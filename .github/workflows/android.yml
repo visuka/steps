@@ -77,11 +77,13 @@ jobs:
       - name: Generate the Android project
         run: npx expo prebuild --platform android --no-install
 
-      # 64-bit ARM only: every current phone runs it, and compiling native code
-      # for all four CPU types took over 30 minutes on GitHub's runners.
+      # 64-bit ARM for phones, plus x86_64 for the emulator in the smoke test:
+      # React Native's library loader only looks for the emulator's own CPU
+      # type, so an ARM-only APK can't start there. Building all four CPU types
+      # took over an hour on GitHub's runners.
       - name: Build release APK
         working-directory: android
-        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a
+        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a,x86_64
 
       # Only handed between jobs; the release keeps the APK, so don't spend
       # artifact storage keeping a second copy.
@@ -91,8 +93,8 @@ jobs:
           path: android/app/build/outputs/apk/release/app-release.apk
           retention-days: 1
 
-  # Android 15 matches the first test phone. x86_64 emulator images translate
-  # ARM code, so the arm64 APK runs as-is.
+  # Android 15 matches the first test phone; the APK's x86_64 libraries run
+  # natively on the emulator.
   smoke-test:
     needs: build-apk
     runs-on: ubuntu-latest
