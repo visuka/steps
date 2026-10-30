@@ -1,9 +1,10 @@
 name: Android build
 
 # Builds an installable test APK on GitHub's runners instead of EAS, so test
-# builds cost nothing beyond Actions minutes. Each build is attached to a
-# GitHub Release named "Android build N": open it on the phone (signed in to
-# GitHub) and tap the .apk.
+# builds cost nothing beyond Actions minutes. Every APK is opened on an
+# Android 15 emulator first; only one that is still running 30 seconds after
+# launch is published, as a GitHub Release named "Android build N". Open it on
+# the phone (signed in to GitHub) and tap the .apk.
 #
 # Signed with the React Native template's shared debug key, so builds install
 # over each other but are for testing only. Play Store uploads need the real
@@ -51,7 +52,7 @@ jobs:
     needs: check
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -81,20 +82,67 @@ jobs:
         working-directory: android
         run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a
 
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 14
+
+  # Android 15 matches the first test phone. x86_64 emulator images translate
+  # ARM code, so the arm64 APK runs as-is.
+  smoke-test:
+    needs: build-apk
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: apk
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          script: bash .github/scripts/launch-and-capture.sh app-release.apk
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-test
+          path: smoke/
+
+  publish:
+    needs: smoke-test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: apk
+
       - name: Publish the APK as a release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           apk="steps-${{ github.run_number }}.apk"
-          cp android/app/build/outputs/apk/release/app-release.apk "$apk"
+          mv app-release.apk "$apk"
           gh release create "android-${{ github.run_number }}" "$apk" \
+            --repo "${{ github.repository }}" \
             --title "Android build ${{ github.run_number }}" \
-            --notes "Test build from ${GITHUB_SHA::7}. Install on an Android phone; allow installs from this source when asked." \
+            --notes "Test build from ${GITHUB_SHA::7}, opened on an Android 15 emulator before publishing. Install on an Android phone; allow installs from this source when asked." \
             --prerelease \
             --target "$GITHUB_SHA"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: steps-${{ github.run_number }}-apk
-          path: android/app/build/outputs/apk/release/app-release.apk
-          retention-days: 14
