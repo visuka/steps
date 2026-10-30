@@ -74,6 +74,21 @@ silent "N steps today" notification, and copies finished hours into Health Conne
   identifying User-Agent. Credit "Weather data from MET Norway" appears where weather is used.
   MET asks high-traffic apps to put a caching proxy in front of it; do that before a big launch.
 
+### Sleep, heart rate and blood pressure
+
+- **Typed in or read from a watch.** Journal → Sleep takes bed and wake times (guessed from when
+  the phone stopped and started moving) and how rested the person feels; Journal → Body → BP takes
+  home readings. After the person taps "Connect", `src/sync/vitals-sync.ts` reads sleep sessions,
+  daily heart rate and BP from Health Connect / Apple Health (`src/health/vitals.*.ts`) on each
+  foreground sync, at most every 30 minutes: 60 days the first time, then the last 3 days.
+- **No double counting.** Sleep stages often arrive from a phone and a watch for the same night;
+  `sleepSessions` in `src/lib/sleep.ts` keeps the app that saw the most sleep. BP readings typed
+  here are also written to the health store and skipped when read back.
+- **Not a diagnosis.** BP categories follow the AHA's adult ranges and are labelled as such.
+  Readings of 180/120 or higher show what to do next (re-measure, call a doctor, 108/112 with
+  symptoms). Insights compare the person's own numbers ("on days you reached your goal…"), never
+  causes.
+
 ## Run it
 
 ```bash

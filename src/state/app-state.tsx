@@ -12,6 +12,7 @@ import { registerBackgroundSync, SOURCE_KEY } from '@/sync/background';
 import { resetBackfill } from '@/sync/engine';
 import { LAST_SYNC_KEY, runSync } from '@/sync/run';
 import { seedPreview } from '@/sync/seed-preview';
+import { syncVitals } from '@/sync/vitals-sync';
 import { walkRecorder } from '@/walks/recorder';
 import { refreshWeather } from '@/weather/refresh';
 
@@ -96,6 +97,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       // Foreground only (MET Norway asks apps not to fetch while unused); throttled inside.
       refreshWeather(r)
+        .then((updated) => updated && setDataVersion((v) => v + 1))
+        .catch(() => undefined);
+      // Sleep, heart rate and BP from the health store, once connected; throttled inside.
+      syncVitals(r)
         .then((updated) => updated && setDataVersion((v) => v + 1))
         .catch(() => undefined);
     },

@@ -4,7 +4,7 @@
  * screen and pattern can be reviewed in a browser.
  */
 import { DEFAULT_PROFILE } from '@/data/profile';
-import type { DayWeather, HourWeather, Mood, Repository } from '@/data/types';
+import type { DayWeather, HeartDay, HourWeather, Mood, Repository, SleepEntry } from '@/data/types';
 import { newId } from '@/data/types';
 import { demoDaySteps } from '@/health/demo-source';
 import { addDays, dayKey } from '@/lib/dates';
@@ -13,6 +13,7 @@ import { findFood, nutrientsFor } from '@/nutrition/catalog';
 import { summarizeDay } from '@/weather/met';
 
 const SEEDED_KEY = 'previewSeeded';
+const VITALS_SEEDED_KEY = 'previewSeededVitals';
 const PLACE = 'Indiranagar';
 const HOME = { lat: 12.9719, lon: 77.6412 };
 const METRES_PER_DEGREE = 111_195;
@@ -65,6 +66,8 @@ function sampleRoute(start: number, minutes: number, seed: number): WalkPoint[] 
 }
 
 export async function seedPreview(repo: Repository): Promise<void> {
+  // Its own flag, so previews seeded before sleep and heart existed get them too.
+  await seedVitals(repo);
   if (await repo.getKv<boolean>(SEEDED_KEY)) return;
   const now = new Date();
 
@@ -147,4 +150,72 @@ export async function seedPreview(repo: Repository): Promise<void> {
   }
 
   await repo.setKv(SEEDED_KEY, true);
+}
+
+/**
+ * Seven weeks of resting heart rate easing down as walking picks up, a month
+ * of nights (the last week as if from a watch, earlier ones typed in) and
+ * blood pressure readings every other morning. Last night is left empty so
+ * the entry form shows.
+ */
+async function seedVitals(repo: Repository) {
+  if (await repo.getKv<boolean>(VITALS_SEEDED_KEY)) return;
+  const now = new Date();
+  const updatedAt = now.getTime();
+
+  const heart: HeartDay[] = [];
+  for (let i = 49; i >= 1; i--) {
+    const resting = Math.round(67 + (i / 49) * 5 + (rand(i + 300) - 0.5) * 3);
+    heart.push({
+      date: dayKey(addDays(now, -i)),
+      restingBpm: resting,
+      avgBpm: resting + 13 + Math.round(rand(i + 400) * 6),
+      minBpm: resting - 6,
+      maxBpm: 118 + Math.round(rand(i + 500) * 30),
+      updatedAt,
+    });
+  }
+  await repo.upsertHeartDays(heart);
+
+  for (let i = 30; i >= 1; i--) {
+    const day = addDays(now, -i);
+    const date = dayKey(day);
+    const steps = demoDaySteps(date);
+    // Fuller nights before busier days, loosely, as people often find.
+    const asleepMin = Math.round(330 + (steps > 8000 ? 60 : 0) + rand(i + 600) * 70);
+    const bedAt = new Date(day.getFullYear(), day.getMonth(), day.getDate() - 1, 22, 30).getTime() + Math.round(rand(i + 700) * 6) * 15 * 60_000;
+    const fromWatch = i <= 7;
+    const awake = fromWatch ? 15 + Math.round(rand(i + 800) * 20) : 0;
+    const endAt = bedAt + (asleepMin + awake) * 60_000;
+    const entry: SleepEntry = {
+      id: fromWatch ? `health:demo-${date}` : `sleep-${date}`,
+      date,
+      startAt: bedAt,
+      endAt,
+      asleepMin,
+      rested: fromWatch ? null : ((asleepMin > 420 ? 4 : asleepMin > 380 ? 3 : 2) as Mood),
+      source: fromWatch ? 'health' : 'manual',
+      healthId: fromWatch ? `demo-${date}` : null,
+      stages: fromWatch
+        ? { awake, deep: Math.round(asleepMin * 0.17), rem: Math.round(asleepMin * 0.22), light: Math.round(asleepMin * 0.61) }
+        : null,
+      updatedAt,
+    };
+    await repo.saveSleep(entry);
+
+    if (i % 2 === 0) {
+      const goalDay = steps >= DEFAULT_PROFILE.dailyGoal;
+      await repo.saveBloodPressure({
+        id: newId(),
+        loggedAt: new Date(day.getFullYear(), day.getMonth(), day.getDate(), 7, 40).getTime(),
+        systolic: Math.round(131 - (goalDay ? 6 : 0) + (rand(i + 900) - 0.5) * 8),
+        diastolic: Math.round(85 - (goalDay ? 3 : 0) + (rand(i + 950) - 0.5) * 6),
+        pulse: 70 + Math.round(rand(i + 975) * 8),
+        source: 'manual',
+        healthId: null,
+        updatedAt,
+      });
+    }
+  }
+  await repo.setKv(VITALS_SEEDED_KEY, true);
 }

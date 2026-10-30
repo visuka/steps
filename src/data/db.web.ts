@@ -7,7 +7,19 @@ import type { Achievement } from '@/lib/achievements';
 import type { WalkPoint } from '@/lib/walk';
 import type { OwnFood } from '@/nutrition/types';
 
-import type { DaySummary, DayWeather, FoodEntry, LogEntry, LogKind, MoodEntry, Repository, Walk } from './types';
+import type {
+  BloodPressureEntry,
+  DaySummary,
+  DayWeather,
+  FoodEntry,
+  HeartDay,
+  LogEntry,
+  LogKind,
+  MoodEntry,
+  Repository,
+  SleepEntry,
+  Walk,
+} from './types';
 
 const STORAGE_KEY = 'steps-preview-db';
 
@@ -22,6 +34,9 @@ interface Snapshot {
   foods?: FoodEntry[];
   walks?: [string, { walk: Walk; points: WalkPoint[] }][];
   ownFoods?: OwnFood[];
+  sleep?: SleepEntry[];
+  heart?: [string, HeartDay][];
+  bp?: BloodPressureEntry[];
 }
 
 function storage(): Storage | null {
@@ -51,6 +66,9 @@ export async function openRepository(): Promise<Repository> {
   let foods: FoodEntry[] = saved?.foods ?? [];
   const walks = new Map<string, { walk: Walk; points: WalkPoint[] }>(saved?.walks);
   let ownFoods: OwnFood[] = saved?.ownFoods ?? [];
+  let sleep: SleepEntry[] = saved?.sleep ?? [];
+  const heart = new Map<string, HeartDay>(saved?.heart);
+  let bp: BloodPressureEntry[] = saved?.bp ?? [];
 
   // Backfill writes hundreds of rows in a burst; save once after it settles.
   let flushTimer: ReturnType<typeof setTimeout> | null = null;
@@ -71,6 +89,9 @@ export async function openRepository(): Promise<Repository> {
           foods,
           walks: [...walks],
           ownFoods,
+          sleep,
+          heart: [...heart],
+          bp,
         };
         store.setItem(STORAGE_KEY, JSON.stringify(snapshot));
       } catch {
@@ -193,6 +214,48 @@ export async function openRepository(): Promise<Repository> {
       persist();
     },
 
+    async saveSleep(entry) {
+      sleep = [...sleep.filter((s) => s.id !== entry.id), { ...entry }];
+      persist();
+    },
+    async deleteSleep(id) {
+      sleep = sleep.filter((s) => s.id !== id);
+      persist();
+    },
+    async getSleep(from, to) {
+      return sleep
+        .filter((s) => s.date >= from && s.date <= to)
+        .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.startAt - b.startAt));
+    },
+    async replaceHealthSleep(from, to, entries) {
+      sleep = [...sleep.filter((s) => s.source !== 'health' || s.date < from || s.date > to), ...entries];
+      persist();
+    },
+
+    async upsertHeartDays(list) {
+      for (const d of list) heart.set(d.date, { ...d });
+      persist();
+    },
+    async getHeartDays(from, to) {
+      return [...heart.values()].filter((d) => d.date >= from && d.date <= to).sort((a, b) => (a.date < b.date ? -1 : 1));
+    },
+
+    async saveBloodPressure(entry) {
+      bp = [...bp.filter((b) => b.id !== entry.id), { ...entry }];
+      persist();
+    },
+    async deleteBloodPressure(id) {
+      bp = bp.filter((b) => b.id !== id);
+      persist();
+    },
+    async getBloodPressure(fromMs, toMs) {
+      return bp.filter((b) => b.loggedAt >= fromMs && b.loggedAt < toMs).sort((a, b) => b.loggedAt - a.loggedAt);
+    },
+    async replaceHealthBloodPressure(fromMs, toMs, entries) {
+      bp = [...bp.filter((b) => b.source !== 'health' || b.loggedAt < fromMs || b.loggedAt >= toMs), ...entries];
+      persist();
+    },
+
     async addLog(kind, entry) {
       logs[kind].push(entry);
       persist();
@@ -225,6 +288,9 @@ export async function openRepository(): Promise<Repository> {
       foods = [];
       walks.clear();
       ownFoods = [];
+      sleep = [];
+      heart.clear();
+      bp = [];
       persist();
     },
   };

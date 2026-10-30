@@ -41,6 +41,11 @@
         "android.permission.health.WRITE_WEIGHT",
         "android.permission.health.WRITE_HYDRATION",
         "android.permission.health.WRITE_NUTRITION",
+        "android.permission.health.READ_SLEEP",
+        "android.permission.health.READ_HEART_RATE",
+        "android.permission.health.READ_RESTING_HEART_RATE",
+        "android.permission.health.READ_BLOOD_PRESSURE",
+        "android.permission.health.WRITE_BLOOD_PRESSURE",
         "android.permission.health.READ_HEALTH_DATA_IN_BACKGROUND",
         "android.permission.health.READ_HEALTH_DATA_HISTORY"
       ],
@@ -90,8 +95,8 @@
       [
         "@kingstinct/react-native-healthkit",
         {
-          "NSHealthShareUsageDescription": "Steps reads your steps, walking distance, floors climbed and weight from Apple Health to show your daily progress.",
-          "NSHealthUpdateUsageDescription": "Steps saves the weight, water and food calories you log to Apple Health.",
+          "NSHealthShareUsageDescription": "Steps reads your steps, walking distance, floors climbed and weight from Apple Health to show your daily progress, and, if you connect them, your sleep, heart rate and blood pressure to show how they go with your walking.",
+          "NSHealthUpdateUsageDescription": "Steps saves the weight, water, food calories and blood pressure readings you log to Apple Health.",
           "background": true
         }
       ],

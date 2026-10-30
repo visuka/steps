@@ -123,6 +123,58 @@ export interface Walk {
   updatedAt: number;
 }
 
+/** 'manual' = typed in this app; 'health' = read from Apple Health / Health Connect. */
+export type VitalSource = 'manual' | 'health';
+
+/** Minutes in each stage, when a watch reports stages. */
+export interface SleepStages {
+  awake: number;
+  light: number;
+  deep: number;
+  rem: number;
+}
+
+export interface SleepEntry {
+  id: string;
+  /** Day key of the morning it ended on: a night's sleep counts toward the day after it. */
+  date: string;
+  startAt: number;
+  endAt: number;
+  /** Time asleep; less than end − start when a watch saw time awake. */
+  asleepMin: number;
+  /** How rested the person felt, for nights they logged themselves. */
+  rested: Mood | null;
+  source: VitalSource;
+  /** The record's id in Apple Health / Health Connect, for nights read from there. */
+  healthId: string | null;
+  stages: SleepStages | null;
+  updatedAt: number;
+}
+
+/** Heart rate for a day, from a watch or band via Apple Health / Health Connect. */
+export interface HeartDay {
+  date: string;
+  restingBpm: number | null;
+  avgBpm: number | null;
+  minBpm: number | null;
+  maxBpm: number | null;
+  updatedAt: number;
+}
+
+export interface BloodPressureEntry {
+  id: string;
+  loggedAt: number;
+  /** mmHg. */
+  systolic: number;
+  diastolic: number;
+  /** Beats per minute, if the monitor showed it. */
+  pulse: number | null;
+  source: VitalSource;
+  /** Apple Health / Health Connect id: the copy written there, or the original for readings read from there. */
+  healthId: string | null;
+  updatedAt: number;
+}
+
 export interface Repository {
   getKv<T>(key: string): Promise<T | null>;
   setKv<T>(key: string, value: T): Promise<void>;
@@ -163,6 +215,25 @@ export interface Repository {
   getWalks(limit: number): Promise<Walk[]>;
   getWalk(id: string): Promise<{ walk: Walk; points: WalkPoint[] } | null>;
   deleteWalk(id: string): Promise<void>;
+
+  /** Inserts or replaces by id. */
+  saveSleep(entry: SleepEntry): Promise<void>;
+  deleteSleep(id: string): Promise<void>;
+  /** Nights whose morning falls in the inclusive range, oldest first. */
+  getSleep(from: string, to: string): Promise<SleepEntry[]>;
+  /** Swaps the nights read from health in the range for a fresh read; manual nights stay. */
+  replaceHealthSleep(from: string, to: string, entries: SleepEntry[]): Promise<void>;
+
+  upsertHeartDays(days: HeartDay[]): Promise<void>;
+  /** Inclusive range, oldest first. */
+  getHeartDays(from: string, to: string): Promise<HeartDay[]>;
+
+  saveBloodPressure(entry: BloodPressureEntry): Promise<void>;
+  deleteBloodPressure(id: string): Promise<void>;
+  /** Taken between the two epoch-ms times, newest first. */
+  getBloodPressure(fromMs: number, toMs: number): Promise<BloodPressureEntry[]>;
+  /** Swaps the readings read from health in the range for a fresh read; manual readings stay. */
+  replaceHealthBloodPressure(fromMs: number, toMs: number, entries: BloodPressureEntry[]): Promise<void>;
 
   addLog(kind: LogKind, entry: LogEntry): Promise<void>;
   deleteLog(kind: LogKind, id: string): Promise<void>;

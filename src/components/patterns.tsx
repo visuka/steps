@@ -6,7 +6,7 @@ import { Card } from '@/components/card';
 import { Button } from '@/components/controls';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
-import type { DaySummary, DayWeather, FoodEntry, MoodEntry, Walk } from '@/data/types';
+import type { BloodPressureEntry, DaySummary, DayWeather, FoodEntry, HeartDay, MoodEntry, Walk } from '@/data/types';
 import { useTheme } from '@/hooks/use-theme';
 import { addDaysToKey, dayKey, parseDayKey } from '@/lib/dates';
 import { formatDistance, formatSteps, formatTemp } from '@/lib/format';
@@ -22,6 +22,8 @@ import {
   timeOfDay,
   weekendComparison,
 } from '@/lib/insights';
+import { formatSleep, type Night, nightsByDate } from '@/lib/sleep';
+import { bpGoalComparison, restingTrend, sleepMoodComparison, sleepStepsComparison } from '@/lib/vitals-insights';
 import { locationAllowed, requestLocation } from '@/location/place';
 import { goodSources } from '@/nutrition/catalog';
 import { dailyAverage, lowestNutrients } from '@/nutrition/day';
@@ -42,6 +44,9 @@ interface Data {
   weather: DayWeather[];
   walks: Walk[];
   foods: FoodEntry[];
+  nights: Night[];
+  heart: HeartDay[];
+  bp: BloodPressureEntry[];
 }
 
 /** What the person's own data says about when and in what conditions they walk. */
@@ -60,7 +65,7 @@ export function Patterns() {
       // Today is still in progress; it would drag every average down.
       const to = addDaysToKey(today, -1);
       const foodFrom = parseDayKey(addDaysToKey(today, -FOOD_DAYS)).getTime();
-      const [days, hourly, moods, weather, walks, allowed, foods] = await Promise.all([
+      const [days, hourly, moods, weather, walks, allowed, foods, sleep, heart, bp] = await Promise.all([
         repo.getDays(from, to),
         repo.getHourlyRange(from, to),
         repo.getMoods(from, to),
@@ -68,9 +73,22 @@ export function Patterns() {
         repo.getWalks(200),
         locationAllowed(),
         repo.getFoods(foodFrom, parseDayKey(today).getTime()),
+        repo.getSleep(from, to),
+        repo.getHeartDays(from, to),
+        repo.getBloodPressure(parseDayKey(from).getTime(), parseDayKey(today).getTime()),
       ]);
       if (!live) return;
-      setData({ days, hourly: [...hourly.values()], moods, weather, walks: walks.filter((w) => dayKey(new Date(w.startedAt)) >= from), foods });
+      setData({
+        days,
+        hourly: [...hourly.values()],
+        moods,
+        weather,
+        walks: walks.filter((w) => dayKey(new Date(w.startedAt)) >= from),
+        foods,
+        nights: nightsByDate(sleep),
+        heart,
+        bp,
+      });
       setHasLocation(allowed);
     })();
     return () => {
@@ -90,6 +108,12 @@ export function Patterns() {
   const nutrition = dailyAverage(data.foods, book.own, book.overrides);
   const low = nutrition.days >= MIN_GROUP_DAYS ? lowestNutrients(nutrition.average) : [];
   const sources = low[0] ? goodSources(low[0].key) : [];
+
+  const sleepSteps = sleepStepsComparison(data.days, data.nights);
+  const sleepMood = sleepMoodComparison(data.nights, data.moods);
+  const resting = restingTrend(data.heart, data.days, today);
+  const restingDays = data.heart.filter((h) => h.restingBpm !== null).length;
+  const bpGoal = bpGoalComparison(data.days, data.bp);
 
   const places = new Map<string, number>();
   for (const w of data.walks) if (w.startPlace) places.set(w.startPlace, (places.get(w.startPlace) ?? 0) + 1);
@@ -197,6 +221,95 @@ export function Patterns() {
         )}
         <ThemedText type="small" themeColor="textSecondary">
           Only counts what you log, so days with missed meals look lower than they were.
+        </ThemedText>
+      </Card>
+
+      <Card title="Sleep">
+        {sleepSteps ? (
+          <>
+            <ThemedText>{sentence('After nights of 7 hours or more, you walked', sleepSteps, 'than after shorter nights')}</ThemedText>
+            <Averages a={sleepSteps.a} b={sleepSteps.b} labelA="After 7 h+" labelB="After less" />
+          </>
+        ) : null}
+        {sleepMood ? (
+          <ThemedText>
+            Before days you felt good or great you slept {formatSleep(sleepMood.a)} on average; before other days,{' '}
+            {formatSleep(sleepMood.b)}.
+          </ThemedText>
+        ) : null}
+        {!sleepSteps && !sleepMood ? (
+          <>
+            <Waiting
+              text={`Log your sleep for a while to see how it goes with your walking and mood; ${data.nights.length} ${data.nights.length === 1 ? 'night' : 'nights'} so far.`}
+            />
+            <Button
+              kind="secondary"
+              label="Log last night"
+              onPress={() => router.push({ pathname: '/journal', params: { section: 'sleep' } })}
+            />
+          </>
+        ) : null}
+      </Card>
+
+      <Card title="Heart rate">
+        {resting ? (
+          <>
+            <ThemedText>
+              Your resting heart rate averaged{' '}
+              <ThemedText type="smallBold">{resting.recent} bpm</ThemedText> over the last two weeks, against{' '}
+              {resting.earlier} bpm a month before.
+            </ThemedText>
+            {resting.recentSteps !== null && resting.earlierSteps !== null ? (
+              <ThemedText themeColor="textSecondary">
+                Your steps over the same weeks: {formatSteps(resting.recentSteps)} a day lately, against{' '}
+                {formatSteps(resting.earlierSteps)} a month before.
+              </ThemedText>
+            ) : null}
+          </>
+        ) : (
+          <>
+            <Waiting
+              text={
+                restingDays
+                  ? `This compares the last two weeks with a month before, so it needs about six weeks of resting heart rate; ${restingDays} days so far.`
+                  : 'Heart rate comes from a watch or band. Connect it under Journal, Body, Heart.'
+              }
+            />
+            {restingDays ? null : (
+              <Button
+                kind="secondary"
+                label="Heart rate"
+                onPress={() => router.push({ pathname: '/journal', params: { section: 'heart' } })}
+              />
+            )}
+          </>
+        )}
+      </Card>
+
+      <Card title="Blood pressure">
+        {bpGoal ? (
+          <ThemedText>
+            On days you reached your step goal, your readings averaged{' '}
+            <ThemedText type="smallBold">
+              {bpGoal.goal.systolic}/{bpGoal.goal.diastolic}
+            </ThemedText>
+            ; on other days, {bpGoal.other.systolic}/{bpGoal.other.diastolic}.
+          </ThemedText>
+        ) : (
+          <>
+            <Waiting
+              text={`Log readings on days you reach your goal and days you don't to compare them. It needs ${MIN_GROUP_DAYS} of each; ${data.bp.length} ${data.bp.length === 1 ? 'reading' : 'readings'} so far.`}
+            />
+            <Button
+              kind="secondary"
+              label="Log a reading"
+              onPress={() => router.push({ pathname: '/journal', params: { section: 'bp' } })}
+            />
+          </>
+        )}
+        <ThemedText type="small" themeColor="textSecondary">
+          Shows what goes together in your own numbers. It isn&apos;t medical advice; talk to your doctor about your
+          blood pressure.
         </ThemedText>
       </Card>
 

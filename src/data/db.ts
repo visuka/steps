@@ -5,15 +5,20 @@ import type { WalkPoint } from '@/lib/walk';
 import type { OwnFood } from '@/nutrition/types';
 
 import type {
+  BloodPressureEntry,
   DaySummary,
   DayWeather,
   FoodEntry,
+  HeartDay,
   LogEntry,
   LogKind,
   Mood,
   MoodEntry,
   Repository,
+  SleepEntry,
+  SleepStages,
   SourceId,
+  VitalSource,
   Walk,
   WeatherCondition,
 } from './types';
@@ -102,6 +107,41 @@ const MIGRATIONS = [
     nutrients TEXT NOT NULL,
     updated_at INTEGER NOT NULL
   );
+  `,
+  // Sleep, heart rate and blood pressure: typed in, or read from Apple Health / Health Connect.
+  `
+  CREATE TABLE sleep_log (
+    id TEXT PRIMARY KEY NOT NULL,
+    date TEXT NOT NULL,
+    start_at INTEGER NOT NULL,
+    end_at INTEGER NOT NULL,
+    asleep_min INTEGER NOT NULL,
+    rested INTEGER,
+    source TEXT NOT NULL,
+    health_id TEXT,
+    stages TEXT,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE INDEX sleep_log_date ON sleep_log (date);
+  CREATE TABLE heart_day (
+    date TEXT PRIMARY KEY NOT NULL,
+    resting_bpm REAL,
+    avg_bpm REAL,
+    min_bpm REAL,
+    max_bpm REAL,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE TABLE bp_log (
+    id TEXT PRIMARY KEY NOT NULL,
+    logged_at INTEGER NOT NULL,
+    systolic INTEGER NOT NULL,
+    diastolic INTEGER NOT NULL,
+    pulse INTEGER,
+    source TEXT NOT NULL,
+    health_id TEXT,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE INDEX bp_log_time ON bp_log (logged_at);
   `,
 ];
 
@@ -215,6 +255,54 @@ const toWalk = (r: WalkRow): Walk => ({
   updatedAt: r.updated_at,
 });
 
+interface SleepRow {
+  id: string;
+  date: string;
+  start_at: number;
+  end_at: number;
+  asleep_min: number;
+  rested: Mood | null;
+  source: VitalSource;
+  health_id: string | null;
+  stages: string | null;
+  updated_at: number;
+}
+
+const toSleep = (r: SleepRow): SleepEntry => ({
+  id: r.id,
+  date: r.date,
+  startAt: r.start_at,
+  endAt: r.end_at,
+  asleepMin: r.asleep_min,
+  rested: r.rested,
+  source: r.source,
+  healthId: r.health_id,
+  stages: r.stages ? (JSON.parse(r.stages) as SleepStages) : null,
+  updatedAt: r.updated_at,
+});
+
+interface BpRow {
+  id: string;
+  logged_at: number;
+  systolic: number;
+  diastolic: number;
+  pulse: number | null;
+  source: VitalSource;
+  health_id: string | null;
+  updated_at: number;
+}
+
+const toBp = (r: BpRow): BloodPressureEntry => ({
+  id: r.id,
+  loggedAt: r.logged_at,
+  systolic: r.systolic,
+  diastolic: r.diastolic,
+  pulse: r.pulse,
+  source: r.source,
+  healthId: r.health_id,
+  updatedAt: r.updated_at,
+});
+
 async function migrate(db: SQLite.SQLiteDatabase) {
   const row = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
   let version = row?.user_version ?? 0;
@@ -231,6 +319,37 @@ export async function openRepository(): Promise<Repository> {
   const db = await SQLite.openDatabaseAsync('steps.db');
   await db.execAsync('PRAGMA journal_mode = WAL');
   await migrate(db);
+
+  const insertSleep = (s: SleepEntry) =>
+    db.runAsync(
+      `INSERT OR REPLACE INTO sleep_log
+         (id, date, start_at, end_at, asleep_min, rested, source, health_id, stages, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      s.id,
+      s.date,
+      s.startAt,
+      s.endAt,
+      s.asleepMin,
+      s.rested,
+      s.source,
+      s.healthId,
+      s.stages ? JSON.stringify(s.stages) : null,
+      s.updatedAt,
+    );
+
+  const insertBp = (b: BloodPressureEntry) =>
+    db.runAsync(
+      `INSERT OR REPLACE INTO bp_log (id, logged_at, systolic, diastolic, pulse, source, health_id, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      b.id,
+      b.loggedAt,
+      b.systolic,
+      b.diastolic,
+      b.pulse,
+      b.source,
+      b.healthId,
+      b.updatedAt,
+    );
 
   return {
     async getKv<T>(key: string) {
@@ -498,6 +617,84 @@ export async function openRepository(): Promise<Repository> {
       });
     },
 
+    async saveSleep(s) {
+      await insertSleep(s);
+    },
+    async deleteSleep(id) {
+      await db.runAsync('DELETE FROM sleep_log WHERE id = ?', id);
+    },
+    async getSleep(from, to) {
+      const rows = await db.getAllAsync<SleepRow>(
+        'SELECT * FROM sleep_log WHERE date >= ? AND date <= ? ORDER BY date, start_at',
+        from,
+        to,
+      );
+      return rows.map(toSleep);
+    },
+    async replaceHealthSleep(from, to, entries) {
+      await db.withTransactionAsync(async () => {
+        await db.runAsync("DELETE FROM sleep_log WHERE source = 'health' AND date >= ? AND date <= ?", from, to);
+        for (const s of entries) await insertSleep(s);
+      });
+    },
+
+    async upsertHeartDays(days) {
+      await db.withTransactionAsync(async () => {
+        for (const d of days) {
+          await db.runAsync(
+            'INSERT OR REPLACE INTO heart_day (date, resting_bpm, avg_bpm, min_bpm, max_bpm, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+            d.date,
+            d.restingBpm,
+            d.avgBpm,
+            d.minBpm,
+            d.maxBpm,
+            d.updatedAt,
+          );
+        }
+      });
+    },
+    async getHeartDays(from, to) {
+      const rows = await db.getAllAsync<{
+        date: string;
+        resting_bpm: number | null;
+        avg_bpm: number | null;
+        min_bpm: number | null;
+        max_bpm: number | null;
+        updated_at: number;
+      }>('SELECT * FROM heart_day WHERE date >= ? AND date <= ? ORDER BY date', from, to);
+      return rows.map(
+        (r): HeartDay => ({
+          date: r.date,
+          restingBpm: r.resting_bpm,
+          avgBpm: r.avg_bpm,
+          minBpm: r.min_bpm,
+          maxBpm: r.max_bpm,
+          updatedAt: r.updated_at,
+        }),
+      );
+    },
+
+    async saveBloodPressure(b) {
+      await insertBp(b);
+    },
+    async deleteBloodPressure(id) {
+      await db.runAsync('DELETE FROM bp_log WHERE id = ?', id);
+    },
+    async getBloodPressure(fromMs, toMs) {
+      const rows = await db.getAllAsync<BpRow>(
+        'SELECT * FROM bp_log WHERE logged_at >= ? AND logged_at < ? ORDER BY logged_at DESC',
+        fromMs,
+        toMs,
+      );
+      return rows.map(toBp);
+    },
+    async replaceHealthBloodPressure(fromMs, toMs, entries) {
+      await db.withTransactionAsync(async () => {
+        await db.runAsync("DELETE FROM bp_log WHERE source = 'health' AND logged_at >= ? AND logged_at < ?", fromMs, toMs);
+        for (const b of entries) await insertBp(b);
+      });
+    },
+
     async addLog(kind, entry) {
       await db.runAsync(
         `INSERT INTO ${logTable(kind)} (id, logged_at, value, health_sample_id) VALUES (?, ?, ?, ?)`,
@@ -540,7 +737,8 @@ export async function openRepository(): Promise<Repository> {
       await db.execAsync(
         `DELETE FROM kv; DELETE FROM day_summary; DELETE FROM hour_steps; DELETE FROM weight_log; DELETE FROM water_log;
          DELETE FROM achievement; DELETE FROM mood_log; DELETE FROM day_weather; DELETE FROM food_log;
-         DELETE FROM walk_point; DELETE FROM walk; DELETE FROM own_food;`,
+         DELETE FROM walk_point; DELETE FROM walk; DELETE FROM own_food; DELETE FROM sleep_log; DELETE FROM heart_day;
+         DELETE FROM bp_log;`,
       );
     },
   };
