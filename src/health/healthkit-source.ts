@@ -105,8 +105,9 @@ export const healthKitSource: StepSource = {
     return sample?.uuid ?? null;
   },
 
-  async writeFood(kcal, _name, at) {
-    const sample = await saveQuantitySample(FOOD, 'kcal', kcal, at, at);
+  // Calories only for now; HealthKit stores each nutrient as its own sample.
+  async writeFood(_name, nutrients, at) {
+    const sample = await saveQuantitySample(FOOD, 'kcal', nutrients.kcal ?? 0, at, at);
     return sample?.uuid ?? null;
   },
 

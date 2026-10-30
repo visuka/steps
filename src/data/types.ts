@@ -2,6 +2,7 @@ import type { Achievement } from '@/lib/achievements';
 import type { Units } from '@/lib/format';
 import type { ReminderSettings } from '@/lib/reminders';
 import type { WalkPoint } from '@/lib/walk';
+import type { OwnFood } from '@/nutrition/types';
 
 export type SourceId = 'healthkit' | 'health-connect' | 'device-sensor' | 'demo';
 
@@ -87,6 +88,15 @@ export interface FoodEntry {
   /** When it was eaten (epoch ms). */
   loggedAt: number;
   name: string;
+  /**
+   * Catalog or own food, with the portion. Nutrients are worked out from these
+   * when shown, so a corrected portion size updates past entries too. Null for
+   * calorie-only entries.
+   */
+  foodId: string | null;
+  unit: string | null;
+  quantity: number | null;
+  /** Calories when logged; the figure for calorie-only entries. */
   kcal: number;
   healthSampleId: string | null;
 }
@@ -94,6 +104,9 @@ export interface FoodEntry {
 export interface RecentFood {
   name: string;
   kcal: number;
+  foodId: string | null;
+  unit: string | null;
+  quantity: number | null;
 }
 
 export interface Walk {
@@ -132,11 +145,17 @@ export interface Repository {
   getWeatherRange(from: string, to: string): Promise<DayWeather[]>;
 
   addFood(entry: FoodEntry): Promise<void>;
+  /** Saves a corrected entry (portion or time). */
+  updateFood(entry: FoodEntry): Promise<void>;
   deleteFood(id: string): Promise<void>;
   /** Logged between the two epoch-ms times, newest first. */
   getFoods(fromMs: number, toMs: number): Promise<FoodEntry[]>;
-  /** Distinct foods, most often logged first, with their latest calories. */
+  /** Distinct foods, most often logged first, with their latest portion. */
   recentFoods(limit: number): Promise<RecentFood[]>;
+
+  getOwnFoods(): Promise<OwnFood[]>;
+  saveOwnFood(food: OwnFood): Promise<void>;
+  deleteOwnFood(id: string): Promise<void>;
 
   /** Inserts or replaces the walk; replaces its route when points are given. */
   saveWalk(walk: Walk, points?: WalkPoint[]): Promise<void>;

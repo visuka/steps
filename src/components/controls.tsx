@@ -211,12 +211,19 @@ export function TextField({
   );
 }
 
-/** A small rounded button, e.g. a recent food to log again. */
-export function Chip({ label, onPress }: { label: string; onPress: () => void }) {
+/** A small rounded button, e.g. a recent food to log again or a portion unit. */
+export function Chip({ label, onPress, selected }: { label: string; onPress: () => void; selected?: boolean }) {
+  const theme = useTheme();
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-      <ThemedView type="backgroundSelected" style={styles.chip}>
-        <ThemedText type="small">{label}</ThemedText>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={selected === undefined ? undefined : { selected }}
+      style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
+      <ThemedView
+        type="backgroundSelected"
+        style={[styles.chip, selected && { backgroundColor: theme.accentSoft, borderColor: theme.accent }]}>
+        <ThemedText type={selected ? 'smallBold' : 'small'}>{label}</ThemedText>
       </ThemedView>
     </Pressable>
   );
@@ -258,5 +265,11 @@ const styles = StyleSheet.create({
   },
   textField: { textAlign: 'left', minWidth: 0 },
   multiline: { minHeight: 72, textAlignVertical: 'top' },
-  chip: { paddingVertical: Spacing.one + 2, paddingHorizontal: Spacing.three - 4, borderRadius: Spacing.three },
+  chip: {
+    paddingVertical: Spacing.one + 2,
+    paddingHorizontal: Spacing.three - 4,
+    borderRadius: Spacing.three,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
 });

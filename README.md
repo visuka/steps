@@ -24,7 +24,7 @@ Built with Expo SDK 58 (React Native 0.88, TypeScript).
 | Patterns: time of day, weekends, mood, heat and rain vs steps | `src/lib/insights.ts`, `src/components/patterns.tsx` |
 | Daily weather for the phone's area (MET Norway) | `src/weather/` |
 | Mood check-in (Today card, optional evening notification) | `src/components/journal/mood-log.tsx`, `src/state/use-mood.ts` |
-| Food log with time eaten; eaten vs burned (resting + active) | `src/components/journal/food-log.tsx`, `src/lib/calories.ts` |
+| Food log: search 143 foods (local names too), portions, own foods; calories, protein, vitamins and minerals vs daily values; eaten vs burned | `src/nutrition/`, `src/components/journal/food-log.tsx`, `src/components/food/` |
 | Weight and water logs, written to the health platform | `src/components/journal/body-log.tsx` |
 | Onboarding, profile, CSV export, delete all data | `src/components/onboarding.tsx`, `src/app/settings.tsx` |
 
@@ -45,6 +45,19 @@ screens · widget · reminders (they only read rows)
 On Android the app picks Health Connect when another app (Samsung Health, Fitbit, Google…) already
 records steps there. Otherwise it runs its own foreground service on `TYPE_STEP_COUNTER`, shows a
 silent "N steps today" notification, and copies finished hours into Health Connect.
+
+### Food and nutrients
+
+- The built-in list (`src/nutrition/foods.generated.ts`) has fruit, vegetables, grains, breads,
+  dals, meat, fish, eggs, dairy and 34 Indian dishes. Raw foods come from USDA FoodData Central
+  (public domain); dishes are rough estimates from typical home recipes. See
+  `scripts/nutrition/` to change or regenerate it.
+- Entries store the food, unit and quantity, not the nutrients. When someone says "my bowl of
+  rice is 200 g", past and future entries recalculate. Health Connect keeps the values from when
+  the entry was logged.
+- People can add their own foods (calories required, everything else optional).
+- Daily values are the US FDA's adult figures, shown as general targets.
+- The planned AI estimate service and its contract are in `docs/food-service.md`.
 
 ### Location, maps and weather
 

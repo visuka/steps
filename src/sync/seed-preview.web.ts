@@ -9,6 +9,7 @@ import { newId } from '@/data/types';
 import { demoDaySteps } from '@/health/demo-source';
 import { addDays, dayKey } from '@/lib/dates';
 import { cleanPoints, walkActiveKcal, type WalkPoint, walkStats } from '@/lib/walk';
+import { findFood, nutrientsFor } from '@/nutrition/catalog';
 import { summarizeDay } from '@/weather/met';
 
 const SEEDED_KEY = 'previewSeeded';
@@ -109,17 +110,40 @@ export async function seedPreview(repo: Repository): Promise<void> {
     );
   }
 
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  for (const [hour, name, kcal] of [
-    [8.2, 'Idli and sambar', 280],
-    [11, 'Masala chai', 90],
-    [13.5, 'Chicken biryani', 650],
-    [16.75, 'Samosa', 260],
-    [17, 'Masala chai', 90],
-  ] as const) {
-    const at = today.getTime() + Math.round(hour * 3_600_000);
-    if (at > now.getTime()) continue;
-    await repo.addFood({ id: newId(), loggedAt: at, name, kcal, healthSampleId: null });
+  const meals = [
+    [8.2, 'idli', 'piece', 3],
+    [8.25, 'sambar', 'bowl', 1],
+    [11, 'chai', 'cup', 1],
+    [13.5, 'chicken-biryani', 'plate', 1],
+    [13.6, 'curd', 'bowl', 1],
+    [16.75, 'samosa', 'piece', 1],
+    [17, 'chai', 'cup', 1],
+    [17.1, 'banana', 'piece', 1],
+    [20.5, 'chapati', 'piece', 3],
+    [20.5, 'dal', 'bowl', 1],
+    [20.6, 'aloo-sabzi', 'bowl', 1],
+  ] as const;
+  for (let daysAgo = 4; daysAgo >= 0; daysAgo--) {
+    const day = addDays(now, -daysAgo);
+    const midnight = new Date(day.getFullYear(), day.getMonth(), day.getDate()).getTime();
+    for (const [hour, foodId, unit, quantity] of meals) {
+      // Skip a snack now and then so the days differ.
+      if (daysAgo % 2 === 1 && foodId === 'samosa') continue;
+      const at = midnight + Math.round(hour * 3_600_000);
+      const food = findFood(foodId, []);
+      if (at > now.getTime() || !food) continue;
+      const { kcal = 0 } = nutrientsFor(food, unit, quantity, {});
+      await repo.addFood({
+        id: newId(),
+        loggedAt: at,
+        name: food.name,
+        foodId,
+        unit,
+        quantity,
+        kcal: Math.round(kcal),
+        healthSampleId: null,
+      });
+    }
   }
 
   await repo.setKv(SEEDED_KEY, true);

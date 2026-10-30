@@ -6,9 +6,9 @@ import { Card } from '@/components/card';
 import { Button } from '@/components/controls';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
-import type { DaySummary, DayWeather, MoodEntry, Walk } from '@/data/types';
+import type { DaySummary, DayWeather, FoodEntry, MoodEntry, Walk } from '@/data/types';
 import { useTheme } from '@/hooks/use-theme';
-import { addDaysToKey, dayKey } from '@/lib/dates';
+import { addDaysToKey, dayKey, parseDayKey } from '@/lib/dates';
 import { formatDistance, formatSteps, formatTemp } from '@/lib/format';
 import {
   type Comparison,
@@ -23,11 +23,17 @@ import {
   weekendComparison,
 } from '@/lib/insights';
 import { locationAllowed, requestLocation } from '@/location/place';
+import { goodSources } from '@/nutrition/catalog';
+import { dailyAverage, lowestNutrients } from '@/nutrition/day';
+import { NUTRIENT } from '@/nutrition/nutrients';
 import { useApp } from '@/state/app-state';
+import { useFoodBook } from '@/state/use-food-book';
 import { WEATHER_CREDIT } from '@/weather/refresh';
 
 /** How far back patterns look. */
 const WINDOW_DAYS = 60;
+/** Nutrition looks at the last week, which is what people can still change. */
+const FOOD_DAYS = 7;
 
 interface Data {
   days: DaySummary[];
@@ -35,12 +41,14 @@ interface Data {
   moods: MoodEntry[];
   weather: DayWeather[];
   walks: Walk[];
+  foods: FoodEntry[];
 }
 
 /** What the person's own data says about when and in what conditions they walk. */
 export function Patterns() {
   const { repo, profile, dataVersion, refresh } = useApp();
   const router = useRouter();
+  const book = useFoodBook();
   const [data, setData] = useState<Data | null>(null);
   const [hasLocation, setHasLocation] = useState(true);
   const today = dayKey(new Date());
@@ -51,16 +59,18 @@ export function Patterns() {
       const from = addDaysToKey(today, -WINDOW_DAYS);
       // Today is still in progress; it would drag every average down.
       const to = addDaysToKey(today, -1);
-      const [days, hourly, moods, weather, walks, allowed] = await Promise.all([
+      const foodFrom = parseDayKey(addDaysToKey(today, -FOOD_DAYS)).getTime();
+      const [days, hourly, moods, weather, walks, allowed, foods] = await Promise.all([
         repo.getDays(from, to),
         repo.getHourlyRange(from, to),
         repo.getMoods(from, to),
         repo.getWeatherRange(from, to),
         repo.getWalks(200),
         locationAllowed(),
+        repo.getFoods(foodFrom, parseDayKey(today).getTime()),
       ]);
       if (!live) return;
-      setData({ days, hourly: [...hourly.values()], moods, weather, walks: walks.filter((w) => dayKey(new Date(w.startedAt)) >= from) });
+      setData({ days, hourly: [...hourly.values()], moods, weather, walks: walks.filter((w) => dayKey(new Date(w.startedAt)) >= from), foods });
       setHasLocation(allowed);
     })();
     return () => {
@@ -76,6 +86,10 @@ export function Patterns() {
   const heat = heatComparison(data.days, data.weather);
   const rain = rainComparison(data.days, data.weather);
   const moodDays = data.moods.filter((m) => data.days.some((d) => d.date === m.date && d.steps > 0)).length;
+
+  const nutrition = dailyAverage(data.foods, book.own, book.overrides);
+  const low = nutrition.days >= MIN_GROUP_DAYS ? lowestNutrients(nutrition.average) : [];
+  const sources = low[0] ? goodSources(low[0].key) : [];
 
   const places = new Map<string, number>();
   for (const w of data.walks) if (w.startPlace) places.set(w.startPlace, (places.get(w.startPlace) ?? 0) + 1);
@@ -145,6 +159,44 @@ export function Patterns() {
         ) : null}
         <ThemedText type="small" themeColor="textSecondary">
           {WEATHER_CREDIT}.
+        </ThemedText>
+      </Card>
+
+      <Card title="Nutrition, last week">
+        {nutrition.days >= MIN_GROUP_DAYS ? (
+          low.length ? (
+            <>
+              <ThemedText>Often low on days you logged food:</ThemedText>
+              {low.map((l) => (
+                <ThemedText key={l.key}>
+                  · {NUTRIENT[l.key].label}: about {l.percent}% of the daily value
+                </ThemedText>
+              ))}
+              {sources.length ? (
+                <ThemedText themeColor="textSecondary">
+                  Good sources of {NUTRIENT[low[0].key].label.replace(/^\w/, (c) => c.toLowerCase())}:{' '}
+                  {sources.map((s) => s.food.name).join(', ')}.
+                  {low[0].key === 'vitD' ? ' Sunlight on your skin is the biggest source of all.' : ''}
+                </ThemedText>
+              ) : null}
+            </>
+          ) : (
+            <ThemedText>Your logged food covered every daily value we track. Nice.</ThemedText>
+          )
+        ) : (
+          <>
+            <Waiting
+              text={`Log what you eat on ${MIN_GROUP_DAYS} days to see which nutrients run low; ${nutrition.days} so far this week.`}
+            />
+            <Button
+              kind="secondary"
+              label="Log food"
+              onPress={() => router.push({ pathname: '/journal', params: { section: 'food' } })}
+            />
+          </>
+        )}
+        <ThemedText type="small" themeColor="textSecondary">
+          Only counts what you log, so days with missed meals look lower than they were.
         </ThemedText>
       </Card>
 

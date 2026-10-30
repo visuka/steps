@@ -1,4 +1,5 @@
 import type { SourceId } from '@/data/types';
+import type { Nutrients } from '@/nutrition/types';
 import type { StepBucket } from '@/lib/metrics';
 
 export type SampleKind = 'weight' | 'water' | 'food';
@@ -31,6 +32,6 @@ export interface StepSource {
   /** Copies a log entry into the health platform; resolves to the platform's sample id. */
   writeWeight?(kg: number, at: Date): Promise<string | null>;
   writeWater?(ml: number, at: Date): Promise<string | null>;
-  writeFood?(kcal: number, name: string, at: Date): Promise<string | null>;
+  writeFood?(name: string, nutrients: Nutrients, at: Date): Promise<string | null>;
   deleteSample?(kind: SampleKind, sampleId: string): Promise<void>;
 }

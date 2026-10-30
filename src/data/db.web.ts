@@ -5,6 +5,7 @@
  */
 import type { Achievement } from '@/lib/achievements';
 import type { WalkPoint } from '@/lib/walk';
+import type { OwnFood } from '@/nutrition/types';
 
 import type { DaySummary, DayWeather, FoodEntry, LogEntry, LogKind, MoodEntry, Repository, Walk } from './types';
 
@@ -20,6 +21,7 @@ interface Snapshot {
   weather?: [string, DayWeather][];
   foods?: FoodEntry[];
   walks?: [string, { walk: Walk; points: WalkPoint[] }][];
+  ownFoods?: OwnFood[];
 }
 
 function storage(): Storage | null {
@@ -48,6 +50,7 @@ export async function openRepository(): Promise<Repository> {
   const weather = new Map<string, DayWeather>(saved?.weather);
   let foods: FoodEntry[] = saved?.foods ?? [];
   const walks = new Map<string, { walk: Walk; points: WalkPoint[] }>(saved?.walks);
+  let ownFoods: OwnFood[] = saved?.ownFoods ?? [];
 
   // Backfill writes hundreds of rows in a burst; save once after it settles.
   let flushTimer: ReturnType<typeof setTimeout> | null = null;
@@ -67,6 +70,7 @@ export async function openRepository(): Promise<Repository> {
           weather: [...weather],
           foods,
           walks: [...walks],
+          ownFoods,
         };
         store.setItem(STORAGE_KEY, JSON.stringify(snapshot));
       } catch {
@@ -131,6 +135,10 @@ export async function openRepository(): Promise<Repository> {
       foods.push(entry);
       persist();
     },
+    async updateFood(entry) {
+      foods = foods.map((f) => (f.id === entry.id ? { ...entry } : f));
+      persist();
+    },
     async deleteFood(id) {
       foods = foods.filter((f) => f.id !== id);
       persist();
@@ -139,19 +147,32 @@ export async function openRepository(): Promise<Repository> {
       return foods.filter((f) => f.loggedAt >= fromMs && f.loggedAt < toMs).sort((a, b) => b.loggedAt - a.loggedAt);
     },
     async recentFoods(limit) {
-      const byName = new Map<string, { kcal: number; count: number; last: number }>();
+      const byKey = new Map<string, { latest: FoodEntry; count: number }>();
       for (const f of foods) {
-        const seen = byName.get(f.name);
-        if (!seen) byName.set(f.name, { kcal: f.kcal, count: 1, last: f.loggedAt });
+        const key = f.foodId ?? f.name;
+        const seen = byKey.get(key);
+        if (!seen) byKey.set(key, { latest: f, count: 1 });
         else {
           seen.count += 1;
-          if (f.loggedAt > seen.last) Object.assign(seen, { kcal: f.kcal, last: f.loggedAt });
+          if (f.loggedAt > seen.latest.loggedAt) seen.latest = f;
         }
       }
-      return [...byName]
-        .sort(([, a], [, b]) => b.count - a.count || b.last - a.last)
+      return [...byKey.values()]
+        .sort((a, b) => b.count - a.count || b.latest.loggedAt - a.latest.loggedAt)
         .slice(0, limit)
-        .map(([name, { kcal }]) => ({ name, kcal }));
+        .map(({ latest: f }) => ({ name: f.name, kcal: f.kcal, foodId: f.foodId, unit: f.unit, quantity: f.quantity }));
+    },
+
+    async getOwnFoods() {
+      return [...ownFoods].sort((a, b) => a.name.localeCompare(b.name));
+    },
+    async saveOwnFood(food) {
+      ownFoods = [...ownFoods.filter((f) => f.id !== food.id), { ...food }];
+      persist();
+    },
+    async deleteOwnFood(id) {
+      ownFoods = ownFoods.filter((f) => f.id !== id);
+      persist();
     },
 
     async saveWalk(walk, points) {
@@ -203,6 +224,7 @@ export async function openRepository(): Promise<Repository> {
       weather.clear();
       foods = [];
       walks.clear();
+      ownFoods = [];
       persist();
     },
   };

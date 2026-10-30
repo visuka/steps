@@ -15,6 +15,7 @@ import {
 } from 'react-native-health-connect';
 
 import { addDays, dayKey, parseDayKey } from '@/lib/dates';
+import type { Nutrients } from '@/nutrition/types';
 import type { StepBucket } from '@/lib/metrics';
 
 import type { DayTotals, SampleKind, StepSource } from './types';
@@ -45,6 +46,29 @@ const RECORD_TYPES = { weight: 'Weight', water: 'Hydration', food: 'Nutrition' }
   SampleKind,
   string
 >;
+
+/** Health Connect's nutrition fields for the nutrients the app tracks. */
+function nutritionFields(n: Nutrients) {
+  const mass = (value: number | undefined, unit: 'grams' | 'milligrams' | 'micrograms') =>
+    value === undefined ? undefined : { unit, value };
+  return {
+    energy: { unit: 'kilocalories' as const, value: n.kcal ?? 0 },
+    protein: mass(n.protein, 'grams'),
+    totalCarbohydrate: mass(n.carbs, 'grams'),
+    totalFat: mass(n.fat, 'grams'),
+    dietaryFiber: mass(n.fiber, 'grams'),
+    vitaminA: mass(n.vitA, 'micrograms'),
+    vitaminC: mass(n.vitC, 'milligrams'),
+    vitaminD: mass(n.vitD, 'micrograms'),
+    vitaminB12: mass(n.vitB12, 'micrograms'),
+    folate: mass(n.folate, 'micrograms'),
+    calcium: mass(n.calcium, 'milligrams'),
+    iron: mass(n.iron, 'milligrams'),
+    potassium: mass(n.potassium, 'milligrams'),
+    magnesium: mass(n.magnesium, 'milligrams'),
+    zinc: mass(n.zinc, 'milligrams'),
+  };
+}
 
 /** Asks for one permission if it wasn't granted at onboarding (older installs predate food logging). */
 async function ensurePermission(permission: Permission) {
@@ -209,13 +233,13 @@ export const healthConnectSource: StepSource = {
     return id ?? null;
   },
 
-  async writeFood(kcal, name, at) {
+  async writeFood(name, nutrients, at) {
     await ready();
     await ensurePermission({ accessType: 'write', recordType: 'Nutrition' });
     const [id] = await insertRecords([
       {
         recordType: 'Nutrition',
-        energy: { unit: 'kilocalories', value: kcal },
+        ...nutritionFields(nutrients),
         name,
         // The app doesn't label meals; people eat whenever.
         mealType: MealType.UNKNOWN,

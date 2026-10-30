@@ -2,6 +2,7 @@ import * as SQLite from 'expo-sqlite';
 
 import type { Achievement } from '@/lib/achievements';
 import type { WalkPoint } from '@/lib/walk';
+import type { OwnFood } from '@/nutrition/types';
 
 import type {
   DaySummary,
@@ -88,6 +89,20 @@ const MIGRATIONS = [
     PRIMARY KEY (walk_id, t)
   );
   `,
+  // Food from the catalog: the entry keeps food, unit and quantity so portion
+  // corrections recalculate it. Foods the person adds live in own_food.
+  `
+  ALTER TABLE food_log ADD COLUMN food_id TEXT;
+  ALTER TABLE food_log ADD COLUMN unit TEXT;
+  ALTER TABLE food_log ADD COLUMN quantity REAL;
+  CREATE TABLE own_food (
+    id TEXT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    serving TEXT NOT NULL,
+    nutrients TEXT NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  `,
 ];
 
 interface DayRow {
@@ -156,6 +171,9 @@ interface FoodRow {
   id: string;
   logged_at: number;
   name: string;
+  food_id: string | null;
+  unit: string | null;
+  quantity: number | null;
   kcal: number;
   health_sample_id: string | null;
 }
@@ -164,6 +182,9 @@ const toFood = (r: FoodRow): FoodEntry => ({
   id: r.id,
   loggedAt: r.logged_at,
   name: r.name,
+  foodId: r.food_id,
+  unit: r.unit,
+  quantity: r.quantity,
   kcal: r.kcal,
   healthSampleId: r.health_sample_id,
 });
@@ -349,12 +370,28 @@ export async function openRepository(): Promise<Repository> {
 
     async addFood(e) {
       await db.runAsync(
-        'INSERT INTO food_log (id, logged_at, name, kcal, health_sample_id) VALUES (?, ?, ?, ?, ?)',
+        `INSERT INTO food_log (id, logged_at, name, food_id, unit, quantity, kcal, health_sample_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         e.id,
         e.loggedAt,
         e.name,
+        e.foodId,
+        e.unit,
+        e.quantity,
         e.kcal,
         e.healthSampleId,
+      );
+    },
+    async updateFood(e) {
+      await db.runAsync(
+        'UPDATE food_log SET logged_at = ?, name = ?, food_id = ?, unit = ?, quantity = ?, kcal = ? WHERE id = ?',
+        e.loggedAt,
+        e.name,
+        e.foodId,
+        e.unit,
+        e.quantity,
+        e.kcal,
+        e.id,
       );
     },
     async deleteFood(id) {
@@ -369,11 +406,45 @@ export async function openRepository(): Promise<Repository> {
       return rows.map(toFood);
     },
     async recentFoods(limit) {
-      return db.getAllAsync<{ name: string; kcal: number }>(
-        `SELECT name, (SELECT f2.kcal FROM food_log f2 WHERE f2.name = f.name ORDER BY f2.logged_at DESC LIMIT 1) AS kcal
-         FROM food_log f GROUP BY name ORDER BY COUNT(*) DESC, MAX(logged_at) DESC LIMIT ?`,
+      // With MAX() in the select, SQLite takes the other columns from the latest row: the last portion used.
+      const rows = await db.getAllAsync<{
+        name: string;
+        kcal: number;
+        food_id: string | null;
+        unit: string | null;
+        quantity: number | null;
+      }>(
+        `SELECT name, kcal, food_id, unit, quantity, MAX(logged_at) AS last
+         FROM food_log GROUP BY COALESCE(food_id, name) ORDER BY COUNT(*) DESC, last DESC LIMIT ?`,
         limit,
       );
+      return rows.map((r) => ({ name: r.name, kcal: r.kcal, foodId: r.food_id, unit: r.unit, quantity: r.quantity }));
+    },
+
+    async getOwnFoods() {
+      const rows = await db.getAllAsync<{ id: string; name: string; serving: string; nutrients: string; updated_at: number }>(
+        'SELECT * FROM own_food ORDER BY name',
+      );
+      return rows.map((r) => ({
+        id: r.id,
+        name: r.name,
+        serving: r.serving,
+        nutrients: JSON.parse(r.nutrients) as OwnFood['nutrients'],
+        updatedAt: r.updated_at,
+      }));
+    },
+    async saveOwnFood(f) {
+      await db.runAsync(
+        'INSERT OR REPLACE INTO own_food (id, name, serving, nutrients, updated_at) VALUES (?, ?, ?, ?, ?)',
+        f.id,
+        f.name,
+        f.serving,
+        JSON.stringify(f.nutrients),
+        f.updatedAt,
+      );
+    },
+    async deleteOwnFood(id) {
+      await db.runAsync('DELETE FROM own_food WHERE id = ?', id);
     },
 
     async saveWalk(walk, points) {
@@ -469,7 +540,7 @@ export async function openRepository(): Promise<Repository> {
       await db.execAsync(
         `DELETE FROM kv; DELETE FROM day_summary; DELETE FROM hour_steps; DELETE FROM weight_log; DELETE FROM water_log;
          DELETE FROM achievement; DELETE FROM mood_log; DELETE FROM day_weather; DELETE FROM food_log;
-         DELETE FROM walk_point; DELETE FROM walk;`,
+         DELETE FROM walk_point; DELETE FROM walk; DELETE FROM own_food;`,
       );
     },
   };
