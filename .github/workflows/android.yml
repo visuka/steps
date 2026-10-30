@@ -70,9 +70,11 @@ jobs:
       - name: Generate the Android project
         run: npx expo prebuild --platform android --no-install
 
+      # 64-bit ARM only: every current phone runs it, and compiling native code
+      # for all four CPU types took over 30 minutes on GitHub's runners.
       - name: Build release APK
         working-directory: android
-        run: ./gradlew assembleRelease --no-daemon
+        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a
 
       - name: Publish the APK as a release
         env:
