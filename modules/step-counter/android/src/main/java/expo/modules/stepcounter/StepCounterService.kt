@@ -1,5 +1,6 @@
 package expo.modules.stepcounter
 
+import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -7,6 +8,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -17,6 +19,7 @@ import android.os.IBinder
 import android.os.SystemClock
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
+import androidx.core.content.ContextCompat
 import java.text.NumberFormat
 import java.util.Calendar
 import kotlin.math.ceil
@@ -40,12 +43,19 @@ class StepCounterService : Service(), SensorEventListener {
     store = StepStore.get(this)
     sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
     createChannel()
-    ServiceCompat.startForeground(
-      this,
-      NOTIFICATION_ID,
-      buildNotification(todaySteps()),
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH else 0
-    )
+    try {
+      ServiceCompat.startForeground(
+        this,
+        NOTIFICATION_ID,
+        buildNotification(todaySteps()),
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH else 0
+      )
+    } catch (e: Exception) {
+      // Android 14+ refuses a health service once the activity permission is
+      // turned off; a sticky restart after that must stop, not crash the app.
+      stopSelf()
+      return
+    }
     sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)?.let {
       // Let the hardware batch up to a minute of events; the counter keeps counting meanwhile.
       sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL, 60_000_000)
@@ -147,6 +157,13 @@ class StepCounterService : Service(), SensorEventListener {
 
     fun start(context: Context) {
       StepStore.get(context).setState(StepStore.ENABLED, 1)
+      // Started with startForegroundService, the service has to go foreground,
+      // and it can't without this permission: check here, before Android
+      // would crash the app for not doing so. Counting resumes on the next
+      // start once the permission is back.
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+        ContextCompat.checkSelfPermission(context, Manifest.permission.ACTIVITY_RECOGNITION) != PackageManager.PERMISSION_GRANTED
+      ) return
       val intent = Intent(context, StepCounterService::class.java)
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(intent) else context.startService(intent)
     }
