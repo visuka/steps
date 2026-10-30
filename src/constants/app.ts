@@ -9,3 +9,11 @@ export const APP_GROUP = 'group.com.neutcrafts.steps';
 
 export const ANDROID_WIDGET_NAME = 'StepsToday';
 export const IOS_WIDGET_KIND = 'StepsWidget';
+
+/**
+ * Supabase project `steps` (account neutcrafts@gmail.com), used only for
+ * sign-in. Both values are public by design and ship inside the app; the
+ * secret key and database password never go in this repo.
+ */
+export const SUPABASE_URL = 'https://hqzroexjsskwryylmccy.supabase.co';
+export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_M-VF4875RISU23zQjj8uQQ_VfCoJ7yn';

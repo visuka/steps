@@ -75,7 +75,7 @@ export function Onboarding() {
                 <ThemedText themeColor="textSecondary">One number, one goal, every day.</ThemedText>
                 <Point icon="walk-outline" text="Counts your steps automatically, with no start button." />
                 <Point icon="flag-outline" text="A daily goal, streaks and badges keep you moving." />
-                <Point icon="lock-closed-outline" text="No account. Your data stays on this phone and in your health app." />
+                <Point icon="lock-closed-outline" text="Your walking data stays on this phone and in your health app." />
                 <Button label="Get started" onPress={next} />
               </>
             ) : null}

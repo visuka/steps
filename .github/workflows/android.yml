@@ -146,9 +146,12 @@ jobs:
         run: |
           apk="steps-${{ github.run_number }}.apk"
           mv app-release.apk "$apk"
+          # Builds run by hand from another branch say so, so they aren't mistaken for master.
+          title="Android build ${{ github.run_number }}"
+          if [ "$GITHUB_REF_NAME" != "master" ]; then title="$title ($GITHUB_REF_NAME test)"; fi
           gh release create "android-${{ github.run_number }}" "$apk" \
             --repo "${{ github.repository }}" \
-            --title "Android build ${{ github.run_number }}" \
+            --title "$title" \
             --notes "Test build from ${GITHUB_SHA::7}, opened on an Android 15 emulator before publishing. Install on an Android phone; allow installs from this source when asked." \
             --prerelease \
             --target "$GITHUB_SHA"

@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Linking, Platform, Share, StyleSheet, Switch, View } from 'react-native';
 
+import { AccountCard } from '@/components/auth/account-card';
 import { Card } from '@/components/card';
 import { confirm } from '@/components/confirm';
 import { Button, NumberField, Row, Segmented, Stepper } from '@/components/controls';
@@ -122,6 +123,8 @@ export default function SettingsScreen() {
 
   return (
     <Screen title="Settings" onBack={() => router.back()}>
+      <AccountCard />
+
       <Card title="Profile">
         <Segmented<Units>
           options={[
@@ -277,8 +280,9 @@ export default function SettingsScreen() {
 
       <Card title="Your data">
         <ThemedText type="small" themeColor="textSecondary">
-          Everything stays on this phone and in your health app: steps, walks and their routes, moods, food and the
-          weather. There is no account and nothing is uploaded.
+          Our sign-in service (Supabase) keeps only your email and a scrambled form of your password. Everything else
+          stays on this phone and in your health app: steps, walks and their routes, moods, food, sleep, health
+          readings and the weather.
         </ThemedText>
         <Button kind="secondary" label="Export daily totals (CSV)" onPress={exportCsv} />
         {exportError ? (

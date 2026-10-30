@@ -4,7 +4,8 @@ A walking-habit app for iOS and Android by Neutcrafts OPC Private Limited. It co
 automatically, turns them into a few honest metrics, and keeps people walking with a daily goal,
 streaks, badges, reminders and a home-screen widget. It also records walks on a map and notes the
 context around walking (time of day, weather, mood, food) so it can show people their own
-patterns. No account, no backend: data stays on the phone and in Apple Health / Health Connect.
+patterns. People sign in with an email and password, then open the app with their fingerprint;
+everything else stays on the phone and in Apple Health / Health Connect.
 
 Built with Expo SDK 58 (React Native 0.88, TypeScript).
 
@@ -88,6 +89,22 @@ silent "N steps today" notification, and copies finished hours into Health Conne
   Readings of 180/120 or higher show what to do next (re-measure, call a doctor, 108/112 with
   symptoms). Insights compare the person's own numbers ("on days you reached your goal…"), never
   causes.
+
+### Sign-in and the app lock
+
+- **Email and password, through Supabase** (project `steps`, `src/auth/`). A new account is
+  confirmed with a code from an email; "Forgot password" sends another code. The Supabase email
+  templates must send the code, not a link: see `docs/auth-emails.md`.
+- **The session sits in the Android Keystore / iOS Keychain** (`src/auth/session-storage.ts`),
+  split into parts because some iOS versions refuse Keychain values over about 2 KB.
+- **Fingerprint lock** (`src/state/app-lock.tsx`): offered once after the first sign-in on each
+  phone, then asked on every open and after a minute in the background. Face and the phone's
+  screen-lock PIN work too. The app stays mounted under the lock, so a walk keeps recording.
+- **One account per phone's data.** Data from before sign-in goes to the first account; if a
+  different account signs in, the previous person's data on the phone is wiped first.
+- Changing or resetting the password signs out every other phone.
+- Not done yet: deleting the account from the app (needs our server), and a custom email sender.
+  Supabase's own sender only reaches the Supabase organisation's members' addresses.
 
 ## Run it
 

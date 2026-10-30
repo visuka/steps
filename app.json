@@ -130,7 +130,14 @@
         }
       ],
       "@bacons/apple-targets",
-      "@maplibre/maplibre-react-native"
+      "@maplibre/maplibre-react-native",
+      "expo-secure-store",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Steps uses Face ID to unlock the app, so only you can open your health data."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
