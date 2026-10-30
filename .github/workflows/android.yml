@@ -12,6 +12,11 @@ name: Android build
 on:
   push:
     branches: [master]
+    # Docs and the smoke test don't change the app; don't spend a build on them.
+    paths-ignore:
+      - '**/*.md'
+      - '.github/scripts/**'
+      - '.github/workflows/android-smoke.yml'
   workflow_dispatch:
 
 concurrency:

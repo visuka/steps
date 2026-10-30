@@ -1,0 +1,47 @@
+name: Android smoke test
+
+# Opens a published test APK on an Android 14 emulator and keeps logcat and a
+# screenshot, so a crash on launch can be read without a phone on a cable.
+# Android 11+ x86_64 emulator images translate ARM code, so the arm64 APK runs.
+
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Release tag whose APK to open (for example android-4)
+        required: true
+        default: android-4
+
+jobs:
+  launch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download the APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download "${{ inputs.release }}" --repo "${{ github.repository }}" --pattern '*.apk' --output app.apk
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          script: bash .github/scripts/launch-and-capture.sh app.apk
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-${{ inputs.release }}
+          path: smoke/
