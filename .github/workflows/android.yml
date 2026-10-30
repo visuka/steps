@@ -4,7 +4,7 @@ name: Android build
 # builds cost nothing beyond Actions minutes. Every APK is opened on an
 # Android 15 emulator first; only one that is still running 30 seconds after
 # launch is published, as a GitHub Release named "Android build N". Open it on
-# the phone (signed in to GitHub) and tap the .apk.
+# the phone and tap the .apk.
 #
 # Signed with the React Native template's shared debug key, so builds install
 # over each other but are for testing only. Play Store uploads need the real
@@ -16,6 +16,7 @@ on:
     # Docs and the smoke test don't change the app; don't spend a build on them.
     paths-ignore:
       - '**/*.md'
+      - 'LICENSE'
       - '.github/scripts/**'
       - '.github/workflows/android-smoke.yml'
   workflow_dispatch:
@@ -82,11 +83,13 @@ jobs:
         working-directory: android
         run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a
 
+      # Only handed between jobs; the release keeps the APK, so don't spend
+      # artifact storage keeping a second copy.
       - uses: actions/upload-artifact@v4
         with:
           name: apk
           path: android/app/build/outputs/apk/release/app-release.apk
-          retention-days: 14
+          retention-days: 1
 
   # Android 15 matches the first test phone. x86_64 emulator images translate
   # ARM code, so the arm64 APK runs as-is.
@@ -122,6 +125,7 @@ jobs:
         with:
           name: smoke-test
           path: smoke/
+          retention-days: 7
 
   publish:
     needs: smoke-test

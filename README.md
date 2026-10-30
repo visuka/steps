@@ -52,10 +52,17 @@ Health data needs a real phone and a native build; Expo Go cannot load these nat
 
 ### Android test builds (GitHub Actions, free)
 
-Every push to `master` runs `.github/workflows/android.yml`: type check, unit tests, then a
-release APK built on GitHub's runners. The APK is attached to a GitHub Release named
-"Android build N" — open it on the phone (signed in to GitHub) and tap the `.apk`. Run it by hand
-from the Actions tab with "Run workflow".
+Every push to `master` runs `.github/workflows/android.yml`: type check, unit tests, a release
+APK built on GitHub's runners, then a launch test on an Android 15 emulator. Only an APK that is
+still running 30 seconds after launch is published, as a GitHub Release named "Android build N":
+open it on the phone and tap the `.apk`. Run it by hand from the Actions tab with "Run workflow".
+
+To read a crash on launch without a phone on a cable, run "Android smoke test" from the Actions
+tab with a release tag; it keeps logcat and a screenshot.
+
+Release builds have R8 shrinking turned off (`expo-build-properties` in `app.json`): with it on,
+R8 stripped WorkManager's generated database class and the app crashed on launch. Re-enable it
+for store builds only together with keep rules, and check with the smoke test.
 
 These APKs are signed with React Native's shared debug key: fine for testing, not for the Play
 Store.

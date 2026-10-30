@@ -1,3 +1,19 @@
+Copyright (c) 2026 Neutcrafts OPC Private Limited. All rights reserved.
+
+This repository is public so its source can be read. That does not grant any
+licence: no part of this software may be used, copied, modified, merged,
+published, distributed, sublicensed or sold without prior written permission
+from Neutcrafts OPC Private Limited.
+
+--------------------------------------------------------------------------------
+Third-party notices
+--------------------------------------------------------------------------------
+
+Parts of this project are derived from the Expo project template (for example
+src/components/themed-text.tsx, src/components/themed-view.tsx,
+src/constants/theme.ts and src/hooks/), which is distributed under the MIT
+License:
+
 The MIT License (MIT)
 
 Copyright (c) 2015-present 650 Industries, Inc. (aka Expo)
@@ -19,3 +35,5 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+Dependencies installed from npm are covered by their own licences.
