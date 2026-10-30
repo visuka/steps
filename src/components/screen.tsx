@@ -1,5 +1,6 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import type { ReactNode } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -13,12 +14,18 @@ export function Screen({
   children,
   refreshing,
   onRefresh,
+  right,
+  onBack,
 }: {
   title: string;
   subtitle?: string;
   children: ReactNode;
   refreshing?: boolean;
   onRefresh?: () => void;
+  /** Shown at the end of the title row, e.g. a settings button. */
+  right?: ReactNode;
+  /** Shows a back arrow before the title (screens pushed over the tabs). */
+  onBack?: () => void;
 }) {
   const theme = useTheme();
   return (
@@ -34,7 +41,17 @@ export function Screen({
           }>
           <View style={styles.inner}>
             <View style={styles.header}>
-              <ThemedText type="subtitle">{title}</ThemedText>
+              <View style={styles.titleRow}>
+                {onBack ? (
+                  <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="Back" hitSlop={12}>
+                    <Ionicons name="chevron-back" size={26} color={theme.text} />
+                  </Pressable>
+                ) : null}
+                <ThemedText type="subtitle" style={styles.title}>
+                  {title}
+                </ThemedText>
+                {right}
+              </View>
               {subtitle ? <ThemedText themeColor="textSecondary">{subtitle}</ThemedText> : null}
             </View>
             {children}
@@ -56,4 +73,6 @@ const styles = StyleSheet.create({
   },
   inner: { width: '100%', maxWidth: MaxContentWidth, gap: Spacing.three },
   header: { gap: Spacing.half, marginBottom: Spacing.one },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
+  title: { flex: 1 },
 });

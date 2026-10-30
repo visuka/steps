@@ -4,3 +4,5 @@ export async function requestNotificationPermission(): Promise<boolean> {
 }
 
 export async function notifyNow(_title: string, _body: string): Promise<void> {}
+
+export async function scheduleMoodCheckIn(_hour: number | null): Promise<void> {}

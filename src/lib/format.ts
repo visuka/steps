@@ -61,3 +61,30 @@ export function minutesAgo(ts: number, now = Date.now()): string {
   const h = Math.round(min / 60);
   return `${h} h ago`;
 }
+
+/** "42 min", "1 h 05 min". */
+export function formatDuration(seconds: number): string {
+  const min = Math.round(seconds / 60);
+  if (min < 60) return `${min} min`;
+  return `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, '0')} min`;
+}
+
+/** "12:34" for a running clock. */
+export function formatClock(seconds: number): string {
+  const s = Math.max(0, Math.floor(seconds));
+  const h = Math.floor(s / 3600);
+  const mm = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+  const ss = String(s % 60).padStart(2, '0');
+  return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+}
+
+/** Minutes per km or mile, e.g. "11:20 /km"; "—" before there's a pace to show. */
+export function formatPace(secPerKm: number | null, units: Units): string {
+  if (secPerKm === null || !Number.isFinite(secPerKm)) return '—';
+  const sec = Math.round(units === 'metric' ? secPerKm : secPerKm * KM_PER_MILE);
+  return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')} /${units === 'metric' ? 'km' : 'mi'}`;
+}
+
+export function formatTemp(celsius: number, units: Units): string {
+  return units === 'metric' ? `${Math.round(celsius)}°C` : `${Math.round((celsius * 9) / 5 + 32)}°F`;
+}

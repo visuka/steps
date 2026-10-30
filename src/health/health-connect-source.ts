@@ -3,9 +3,11 @@ import {
   aggregateGroupByDuration,
   aggregateRecord,
   deleteRecordsByUuids,
+  getGrantedPermissions,
   getSdkStatus,
   initialize,
   insertRecords,
+  MealType,
   type Permission,
   readRecords,
   requestPermission,
@@ -15,7 +17,7 @@ import {
 import { addDays, dayKey, parseDayKey } from '@/lib/dates';
 import type { StepBucket } from '@/lib/metrics';
 
-import type { DayTotals, StepSource } from './types';
+import type { DayTotals, SampleKind, StepSource } from './types';
 
 const OWN_PACKAGE = Constants.expoConfig?.android?.package;
 
@@ -36,7 +38,22 @@ const PERMISSIONS: Permission[] = [
   { accessType: 'read', recordType: 'Weight' },
   { accessType: 'write', recordType: 'Weight' },
   { accessType: 'write', recordType: 'Hydration' },
+  { accessType: 'write', recordType: 'Nutrition' },
 ];
+
+const RECORD_TYPES = { weight: 'Weight', water: 'Hydration', food: 'Nutrition' } as const satisfies Record<
+  SampleKind,
+  string
+>;
+
+/** Asks for one permission if it wasn't granted at onboarding (older installs predate food logging). */
+async function ensurePermission(permission: Permission) {
+  const granted = await getGrantedPermissions();
+  const has = granted.some(
+    (p) => 'recordType' in p && p.recordType === permission.recordType && p.accessType === permission.accessType,
+  );
+  if (!has) await requestPermission([permission]);
+}
 
 export async function healthConnectAvailable(): Promise<boolean> {
   try {
@@ -192,8 +209,25 @@ export const healthConnectSource: StepSource = {
     return id ?? null;
   },
 
+  async writeFood(kcal, name, at) {
+    await ready();
+    await ensurePermission({ accessType: 'write', recordType: 'Nutrition' });
+    const [id] = await insertRecords([
+      {
+        recordType: 'Nutrition',
+        energy: { unit: 'kilocalories', value: kcal },
+        name,
+        // The app doesn't label meals; people eat whenever.
+        mealType: MealType.UNKNOWN,
+        startTime: at.toISOString(),
+        endTime: new Date(at.getTime() + 60_000).toISOString(),
+      },
+    ]);
+    return id ?? null;
+  },
+
   async deleteSample(kind, sampleId) {
     await ready();
-    await deleteRecordsByUuids(kind === 'weight' ? 'Weight' : 'Hydration', [sampleId], []);
+    await deleteRecordsByUuids(RECORD_TYPES[kind], [sampleId], []);
   },
 };

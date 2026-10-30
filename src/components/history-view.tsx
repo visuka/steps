@@ -5,7 +5,6 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { type Bar, BarChart } from '@/components/bar-chart';
 import { Card } from '@/components/card';
 import { Segmented } from '@/components/controls';
-import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import type { DaySummary } from '@/data/types';
@@ -53,7 +52,8 @@ function periodTitle(range: Range, start: Date, end: Date): string {
   return String(start.getFullYear());
 }
 
-export default function HistoryScreen() {
+/** Steps by day, week, month or year, on the Insights tab. */
+export function HistoryView() {
   const { repo, profile, dataVersion } = useApp();
   const [range, setRange] = useState<Range>('week');
   const [offset, setOffset] = useState(0);
@@ -112,7 +112,7 @@ export default function HistoryScreen() {
   };
 
   return (
-    <Screen title="History">
+    <>
       <Segmented
         options={RANGES}
         value={range}
@@ -163,7 +163,7 @@ export default function HistoryScreen() {
       <ThemedText type="small" themeColor="textSecondary">
         Calories are estimates. Days older than a week show daily totals only.
       </ThemedText>
-    </Screen>
+    </>
   );
 }
 

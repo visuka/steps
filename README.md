@@ -2,8 +2,9 @@
 
 A walking-habit app for iOS and Android by Neutcrafts OPC Private Limited. It counts steps
 automatically, turns them into a few honest metrics, and keeps people walking with a daily goal,
-streaks, badges, reminders and a home-screen widget. No account, no backend: data stays on the
-phone and in Apple Health / Health Connect.
+streaks, badges, reminders and a home-screen widget. It also records walks on a map and notes the
+context around walking (time of day, weather, mood, food) so it can show people their own
+patterns. No account, no backend: data stays on the phone and in Apple Health / Health Connect.
 
 Built with Expo SDK 58 (React Native 0.88, TypeScript).
 
@@ -19,8 +20,16 @@ Built with Expo SDK 58 (React Native 0.88, TypeScript).
 | Home-screen widgets | Android: `src/widget/`; iOS: `targets/widget/` |
 | Move reminders and goal-reached notifications | `src/sync/run.ts`, `src/lib/reminders.ts` |
 | Background sync about every 15 min (OS decides) | `src/sync/background.ts` |
-| Weight and water logs, written to the health platform | `src/app/logs.tsx` |
+| Record a walk: route on a map, distance, pace, steps, calories from speed, weather | `src/app/walk/`, `src/walks/`, `modules/step-counter` (Android `WalkService`) |
+| Patterns: time of day, weekends, mood, heat and rain vs steps | `src/lib/insights.ts`, `src/components/patterns.tsx` |
+| Daily weather for the phone's area (MET Norway) | `src/weather/` |
+| Mood check-in (Today card, optional evening notification) | `src/components/journal/mood-log.tsx`, `src/state/use-mood.ts` |
+| Food log with time eaten; eaten vs burned (resting + active) | `src/components/journal/food-log.tsx`, `src/lib/calories.ts` |
+| Weight and water logs, written to the health platform | `src/components/journal/body-log.tsx` |
 | Onboarding, profile, CSV export, delete all data | `src/components/onboarding.tsx`, `src/app/settings.tsx` |
+
+Tabs: Today (with the big Record button), Walks, Journal, Insights, Goals. Settings opens from the
+gear on Today.
 
 ## How steps flow
 
@@ -36,6 +45,21 @@ screens · widget · reminders (they only read rows)
 On Android the app picks Health Connect when another app (Samsung Health, Fitbit, Google…) already
 records steps there. Otherwise it runs its own foreground service on `TYPE_STEP_COUNTER`, shows a
 silent "N steps today" notification, and copies finished hours into Health Connect.
+
+### Location, maps and weather
+
+- **Location is only used while the app is in use.** `ACCESS_BACKGROUND_LOCATION` is blocked in
+  `app.json`. Walks record through a `location` foreground service started from the app
+  (`WalkService.kt`), which Android allows with "while using the app" permission; fixes go to
+  SQLite so a walk survives the app being swiped away. On iOS (and the web preview) recording
+  uses `watchPositionAsync`, so the app must stay open; background recording on iOS needs its
+  own native work.
+- **Maps:** MapLibre with OpenFreeMap tiles (OpenStreetMap data): no API key, commercial use
+  allowed, no SLA. Attribution shows on the map.
+- **Weather:** MET Norway Locationforecast, fetched only from the foreground sync, at most every
+  2 hours (and never before the response's `Expires`), with coordinates rounded to ~1 km and an
+  identifying User-Agent. Credit "Weather data from MET Norway" appears where weather is used.
+  MET asks high-traffic apps to put a caching proxy in front of it; do that before a big launch.
 
 ## Run it
 
@@ -59,6 +83,9 @@ open it on the phone and tap the `.apk`. Run it by hand from the Actions tab wit
 
 To read a crash on launch without a phone on a cable, run "Android smoke test" from the Actions
 tab with a release tag; it keeps logcat and a screenshot.
+
+The emulator test only checks that the app opens. Step counting, walk recording (GPS) and
+Health Connect need a real phone.
 
 Release builds have R8 shrinking turned off (`expo-build-properties` in `app.json`): with it on,
 R8 stripped WorkManager's generated database class and the app crashed on launch. Re-enable it
@@ -94,8 +121,11 @@ iPhone, and compare daily totals with the phone's own health app for a week (tar
 - [ ] Replace the placeholder Expo icons and splash in `assets/`.
 - [ ] Privacy policy URL (both stores require one for health data).
 - [ ] App Store: App Privacy details; HealthKit data is never used for ads.
-- [ ] Google Play: Health Connect permission declaration, Data safety form, health apps
-      declaration, and the foreground service (type `health`) declaration with a short video.
+- [ ] Google Play: Health Connect permission declaration (including nutrition), Data safety form
+      (location, health, food), health apps declaration, and foreground service declarations for
+      types `health` (step counting) and `location` (walk recording), each with a short video.
+- [ ] Privacy policy covers location (approximate area for weather, routes of recorded walks),
+      mood and food, all kept on the phone.
 - [ ] Run a 2-week beta (TestFlight + Play closed testing).
 
 ## Renaming

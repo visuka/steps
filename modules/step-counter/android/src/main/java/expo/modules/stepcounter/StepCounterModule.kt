@@ -31,5 +31,25 @@ class StepCounterModule : Module() {
     }
 
     AsyncFunction("clear") { StepStore.get(context).clear() }
+
+    AsyncFunction("startWalk") { WalkService.start(context).toDouble() }
+
+    AsyncFunction("stopWalk") { WalkService.stop(context) }
+
+    Function("activeWalk") {
+      StepStore.get(context).getState(StepStore.WALK_ID, 0).takeIf { it != 0L }?.toDouble()
+    }
+
+    Function("isWalkRecording") { WalkService.isRunning }
+
+    AsyncFunction("getWalkPoints") { walkId: Double, afterT: Double ->
+      StepStore.get(context).walkPoints(walkId.toLong(), afterT.toLong())
+    }
+
+    AsyncFunction("clearWalk") { walkId: Double ->
+      val store = StepStore.get(context)
+      store.clearWalk(walkId.toLong())
+      if (store.getState(StepStore.WALK_ID, 0) == walkId.toLong()) store.setState(StepStore.WALK_ID, 0)
+    }
   }
 }

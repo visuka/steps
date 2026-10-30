@@ -4,8 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { BarChart } from '@/components/bar-chart';
 import { Card } from '@/components/card';
-import { Button, NumberField, Segmented } from '@/components/controls';
-import { Screen } from '@/components/screen';
+import { Button, NumberField } from '@/components/controls';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { type LogEntry, type LogKind, newId } from '@/data/types';
@@ -23,10 +22,10 @@ import { useApp } from '@/state/app-state';
 
 const WATER_QUICK_ML = [250, 500];
 
-export default function LogsScreen() {
+/** Weight or water entries, on the Journal tab. */
+export function BodyLog({ kind }: { kind: LogKind }) {
   const { repo, source, profile, dataVersion, touch, updateProfile } = useApp();
   const theme = useTheme();
-  const [kind, setKind] = useState<LogKind>('weight');
   const [entries, setEntries] = useState<LogEntry[]>([]);
   const [draft, setDraft] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -82,20 +81,7 @@ export default function LogsScreen() {
   const format = (v: number) => (kind === 'weight' ? formatWeight(v, units) : formatWater(v, units));
 
   return (
-    <Screen title="Logs">
-      <Segmented
-        options={[
-          { value: 'weight', label: 'Weight' },
-          { value: 'water', label: 'Water' },
-        ]}
-        value={kind}
-        onChange={(k) => {
-          setKind(k);
-          setDraft(null);
-          setError(null);
-        }}
-      />
-
+    <>
       <Card>
         {kind === 'weight' ? (
           <View style={styles.headline}>
@@ -113,7 +99,6 @@ export default function LogsScreen() {
           </View>
         )}
         <NumberField
-          key={kind}
           label={kind === 'weight' ? 'New weight' : 'Add water'}
           value={draft}
           unit={kind === 'weight' ? weightUnit(units) : waterUnit(units)}
@@ -175,7 +160,7 @@ export default function LogsScreen() {
           ))
         )}
       </Card>
-    </Screen>
+    </>
   );
 }
 

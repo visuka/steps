@@ -14,12 +14,18 @@ export const DEFAULT_PROFILE: Profile = {
   strideM: null,
   dailyGoal: DEFAULT_GOAL,
   reminders: { enabled: false, startHour: 9, endHour: 20 },
+  moodCheckIn: { enabled: false, hour: 20 },
   onboarded: false,
 };
 
 export async function loadProfile(repo: Repository): Promise<Profile> {
   const stored = await repo.getKv<Partial<Profile>>(PROFILE_KEY);
-  return { ...DEFAULT_PROFILE, ...stored, reminders: { ...DEFAULT_PROFILE.reminders, ...stored?.reminders } };
+  return {
+    ...DEFAULT_PROFILE,
+    ...stored,
+    reminders: { ...DEFAULT_PROFILE.reminders, ...stored?.reminders },
+    moodCheckIn: { ...DEFAULT_PROFILE.moodCheckIn, ...stored?.moodCheckIn },
+  };
 }
 
 export async function saveProfile(repo: Repository, profile: Profile): Promise<void> {

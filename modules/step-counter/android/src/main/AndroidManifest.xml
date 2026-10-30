@@ -2,16 +2,24 @@
   <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
   <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
   <uses-feature android:name="android.hardware.sensor.stepcounter" android:required="false" />
+  <uses-feature android:name="android.hardware.location.gps" android:required="false" />
 
   <application>
     <service
       android:name="expo.modules.stepcounter.StepCounterService"
       android:exported="false"
       android:foregroundServiceType="health" />
+
+    <!-- Records a walk the person started; location while the app is in use only. -->
+    <service
+      android:name="expo.modules.stepcounter.WalkService"
+      android:exported="false"
+      android:foregroundServiceType="location" />
 
     <receiver
       android:name="expo.modules.stepcounter.BootReceiver"

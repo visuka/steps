@@ -1,8 +1,10 @@
 import Constants from 'expo-constants';
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, Platform, Share, StyleSheet, Switch, View } from 'react-native';
+import { Linking, Platform, Share, StyleSheet, Switch, View } from 'react-native';
 
 import { Card } from '@/components/card';
+import { confirm } from '@/components/confirm';
 import { Button, NumberField, Row, Segmented, Stepper } from '@/components/controls';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -15,8 +17,11 @@ import type { StepSource } from '@/health/types';
 import { useTheme } from '@/hooks/use-theme';
 import { addDaysToKey, dayKey } from '@/lib/dates';
 import { cmToHeight, heightToCm, heightUnit, kgToWeight, type Units, weightToKg, weightUnit } from '@/lib/format';
-import { requestNotificationPermission } from '@/notifications/notify';
+import { locationAllowed, requestLocation } from '@/location/place';
+import { requestNotificationPermission, scheduleMoodCheckIn } from '@/notifications/notify';
 import { useApp } from '@/state/app-state';
+import { CONDITION_LABEL } from '@/weather/met';
+import { WEATHER_CREDIT } from '@/weather/refresh';
 
 const hourLabel = (h: number) => {
   const suffix = h < 12 || h === 24 ? 'am' : 'pm';
@@ -24,28 +29,42 @@ const hourLabel = (h: number) => {
   return `${twelve} ${suffix}`;
 };
 
-function confirm(title: string, message: string, onYes: () => void) {
-  if (Platform.OS === 'web') {
-    if (globalThis.confirm?.(`${title}\n\n${message}`)) onYes();
-    return;
-  }
-  Alert.alert(title, message, [
-    { text: 'Cancel', style: 'cancel' },
-    { text: 'Delete', style: 'destructive', onPress: onYes },
-  ]);
-}
-
 export default function SettingsScreen() {
-  const { repo, profile, source, updateProfile, switchSource, resetAll } = useApp();
+  const { repo, profile, source, updateProfile, switchSource, resetAll, refresh } = useApp();
+  const router = useRouter();
   const theme = useTheme();
   const [sources, setSources] = useState<StepSource[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
+  const [moodNotice, setMoodNotice] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [hasLocation, setHasLocation] = useState<boolean | null>(null);
   const units = profile.units;
 
   useEffect(() => {
     switchableSources().then(setSources);
+    locationAllowed().then(setHasLocation);
   }, []);
+
+  const setMoodCheckIn = async (patch: Partial<typeof profile.moodCheckIn>) => {
+    const next = { ...profile.moodCheckIn, ...patch };
+    if (next.enabled && !(await requestNotificationPermission())) {
+      setMoodNotice('Notifications are off for this app. Turn them on in system settings to get the check-in.');
+      return;
+    }
+    setMoodNotice(null);
+    await scheduleMoodCheckIn(next.enabled ? next.hour : null);
+    await updateProfile({ moodCheckIn: next });
+  };
+
+  const allowLocation = async () => {
+    if (await requestLocation()) {
+      setHasLocation(true);
+      refresh();
+    } else {
+      // Asked before and refused: only system settings can change it now.
+      Linking.openSettings();
+    }
+  };
 
   const toggleReminders = async (enabled: boolean) => {
     if (enabled && !(await requestNotificationPermission())) {
@@ -59,11 +78,32 @@ export default function SettingsScreen() {
   const exportCsv = async () => {
     setExportError(null);
     const today = dayKey(new Date());
-    const rows = await repo.getDays(addDaysToKey(today, -3650), today);
-    const header = 'date,steps,distance_m,active_kcal_estimated,active_min,floors,goal';
-    const lines = rows.map((d) =>
-      [d.date, d.steps, d.distanceM, d.activeKcal, d.activeMin ?? '', d.floors ?? '', d.goal].join(','),
-    );
+    const from = addDaysToKey(today, -3650);
+    const [rows, moods, weather] = await Promise.all([
+      repo.getDays(from, today),
+      repo.getMoods(from, today),
+      repo.getWeatherRange(from, today),
+    ]);
+    const moodByDate = new Map(moods.map((m) => [m.date, m.mood]));
+    const weatherByDate = new Map(weather.map((w) => [w.date, w]));
+    const header =
+      'date,steps,distance_m,active_kcal_estimated,active_min,floors,goal,mood_1_to_5,temp_max_c,rain_mm,weather';
+    const lines = rows.map((d) => {
+      const w = weatherByDate.get(d.date);
+      return [
+        d.date,
+        d.steps,
+        d.distanceM,
+        d.activeKcal,
+        d.activeMin ?? '',
+        d.floors ?? '',
+        d.goal,
+        moodByDate.get(d.date) ?? '',
+        w?.tempMaxC ?? '',
+        w?.precipMm ?? '',
+        w ? CONDITION_LABEL[w.condition] : '',
+      ].join(',');
+    });
     const csv = [header, ...lines].join('\n');
     try {
       if (Platform.OS === 'web') {
@@ -81,7 +121,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <Screen title="Settings">
+    <Screen title="Settings" onBack={() => router.back()}>
       <Card title="Profile">
         <Segmented<Units>
           options={[
@@ -182,6 +222,40 @@ export default function SettingsScreen() {
         ) : null}
       </Card>
 
+      <Card title="Evening mood check-in">
+        <Row label="Ask how my day was">
+          <Switch
+            value={profile.moodCheckIn.enabled}
+            onValueChange={(enabled) => setMoodCheckIn({ enabled })}
+            trackColor={{ true: theme.accent, false: theme.track }}
+          />
+        </Row>
+        {profile.moodCheckIn.enabled ? (
+          <Stepper
+            value={profile.moodCheckIn.hour}
+            onChange={(hour) => setMoodCheckIn({ hour })}
+            step={1}
+            min={17}
+            max={23}
+            format={hourLabel}
+          />
+        ) : null}
+        {moodNotice ? (
+          <ThemedText type="small" style={{ color: theme.danger }}>
+            {moodNotice}
+          </ThemedText>
+        ) : null}
+      </Card>
+
+      <Card title="Location">
+        <ThemedText type="small" themeColor="textSecondary">
+          Used only while the app is open: your approximate area for the day&apos;s weather, and your route while you
+          record a walk. Steps never tracks you in the background. {WEATHER_CREDIT}.
+        </ThemedText>
+        {hasLocation === false ? <Button kind="secondary" label="Allow location" onPress={allowLocation} /> : null}
+        {hasLocation ? <ThemedText type="small">Location is allowed.</ThemedText> : null}
+      </Card>
+
       <Card title="Step data">
         <ThemedText>
           Steps come from <ThemedText type="smallBold">{source.label}</ThemedText>.
@@ -203,7 +277,8 @@ export default function SettingsScreen() {
 
       <Card title="Your data">
         <ThemedText type="small" themeColor="textSecondary">
-          Everything stays on this phone and in your health app. There is no account and nothing is uploaded.
+          Everything stays on this phone and in your health app: steps, walks and their routes, moods, food and the
+          weather. There is no account and nothing is uploaded.
         </ThemedText>
         <Button kind="secondary" label="Export daily totals (CSV)" onPress={exportCsv} />
         {exportError ? (

@@ -174,6 +174,54 @@ export function NumberField({
   );
 }
 
+/** A plain text input, e.g. a food name or a note. */
+export function TextField({
+  value,
+  onChangeText,
+  placeholder,
+  label,
+  multiline,
+  onEndEditing,
+}: {
+  value: string;
+  onChangeText: (t: string) => void;
+  placeholder?: string;
+  label: string;
+  multiline?: boolean;
+  onEndEditing?: () => void;
+}) {
+  const theme = useTheme();
+  return (
+    <TextInput
+      value={value}
+      onChangeText={onChangeText}
+      onEndEditing={onEndEditing}
+      onBlur={onEndEditing}
+      placeholder={placeholder}
+      placeholderTextColor={theme.textSecondary}
+      multiline={multiline}
+      accessibilityLabel={label}
+      style={[
+        styles.input,
+        styles.textField,
+        multiline && styles.multiline,
+        { color: theme.text, backgroundColor: theme.background },
+      ]}
+    />
+  );
+}
+
+/** A small rounded button, e.g. a recent food to log again. */
+export function Chip({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
+      <ThemedView type="backgroundSelected" style={styles.chip}>
+        <ThemedText type="small">{label}</ThemedText>
+      </ThemedView>
+    </Pressable>
+  );
+}
+
 export function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <View style={styles.field}>
@@ -208,4 +256,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.two + 4,
     borderRadius: Spacing.two + 4,
   },
+  textField: { textAlign: 'left', minWidth: 0 },
+  multiline: { minHeight: 72, textAlignVertical: 'top' },
+  chip: { paddingVertical: Spacing.one + 2, paddingHorizontal: Spacing.three - 4, borderRadius: Spacing.three },
 });

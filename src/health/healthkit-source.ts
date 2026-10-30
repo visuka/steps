@@ -16,6 +16,9 @@ const DISTANCE = 'HKQuantityTypeIdentifierDistanceWalkingRunning';
 const FLIGHTS = 'HKQuantityTypeIdentifierFlightsClimbed';
 const WEIGHT = 'HKQuantityTypeIdentifierBodyMass';
 const WATER = 'HKQuantityTypeIdentifierDietaryWater';
+const FOOD = 'HKQuantityTypeIdentifierDietaryEnergyConsumed';
+
+const SAMPLE_TYPES = { weight: WEIGHT, water: WATER, food: FOOD } as const;
 
 const between = (startDate: Date, endDate: Date) => ({ date: { startDate, endDate } });
 
@@ -46,7 +49,7 @@ export const healthKitSource: StepSource = {
   async requestPermissions() {
     await requestAuthorization({
       toRead: [STEPS, DISTANCE, FLIGHTS, WEIGHT, WATER],
-      toShare: [WEIGHT, WATER],
+      toShare: [WEIGHT, WATER, FOOD],
     });
     // HealthKit never says whether read access was granted; a denied read just returns no data.
     return true;
@@ -102,7 +105,12 @@ export const healthKitSource: StepSource = {
     return sample?.uuid ?? null;
   },
 
+  async writeFood(kcal, _name, at) {
+    const sample = await saveQuantitySample(FOOD, 'kcal', kcal, at, at);
+    return sample?.uuid ?? null;
+  },
+
   async deleteSample(kind, sampleId) {
-    await deleteObjects(kind === 'weight' ? WEIGHT : WATER, { uuid: sampleId });
+    await deleteObjects(SAMPLE_TYPES[kind], { uuid: sampleId });
   },
 };

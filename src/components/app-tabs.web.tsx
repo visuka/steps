@@ -9,10 +9,10 @@ import { ThemedView } from './themed-view';
 
 const TABS = [
   { name: 'index', href: '/', label: 'Today' },
-  { name: 'history', href: '/history', label: 'History' },
+  { name: 'walks', href: '/walks', label: 'Walks' },
+  { name: 'journal', href: '/journal', label: 'Journal' },
+  { name: 'insights', href: '/insights', label: 'Insights' },
   { name: 'goals', href: '/goals', label: 'Goals' },
-  { name: 'logs', href: '/logs', label: 'Logs' },
-  { name: 'settings', href: '/settings', label: 'Settings' },
 ] as const;
 
 /** Web preview tab bar (the phone apps use native tabs). */

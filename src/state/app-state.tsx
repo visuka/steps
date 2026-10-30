@@ -11,6 +11,9 @@ import { dayKey } from '@/lib/dates';
 import { registerBackgroundSync, SOURCE_KEY } from '@/sync/background';
 import { resetBackfill } from '@/sync/engine';
 import { LAST_SYNC_KEY, runSync } from '@/sync/run';
+import { seedPreview } from '@/sync/seed-preview';
+import { walkRecorder } from '@/walks/recorder';
+import { refreshWeather } from '@/weather/refresh';
 
 import { StepCounter } from '../../modules/step-counter';
 
@@ -57,6 +60,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     (async () => {
       const r = await openRepository();
+      await seedPreview(r);
       const [p, sourceId, synced] = await Promise.all([
         loadProfile(r),
         r.getKv<SourceId>(SOURCE_KEY),
@@ -90,6 +94,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       } finally {
         setSyncing(false);
       }
+      // Foreground only (MET Norway asks apps not to fetch while unused); throttled inside.
+      refreshWeather(r)
+        .then((updated) => updated && setDataVersion((v) => v + 1))
+        .catch(() => undefined);
     },
     [],
   );
@@ -162,6 +170,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const resetAll = useCallback(async () => {
     if (!repo) return;
+    const walking = await walkRecorder.active();
+    if (walking) {
+      await walkRecorder.stop();
+      await walkRecorder.discard(walking);
+    }
     await repo.clearAll();
     await StepCounter?.stop();
     await StepCounter?.clear();

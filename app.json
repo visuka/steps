@@ -40,13 +40,15 @@
         "android.permission.health.READ_WEIGHT",
         "android.permission.health.WRITE_WEIGHT",
         "android.permission.health.WRITE_HYDRATION",
+        "android.permission.health.WRITE_NUTRITION",
         "android.permission.health.READ_HEALTH_DATA_IN_BACKGROUND",
         "android.permission.health.READ_HEALTH_DATA_HISTORY"
       ],
       "blockedPermissions": [
         "android.permission.SYSTEM_ALERT_WINDOW",
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_BACKGROUND_LOCATION"
       ]
     },
     "web": {
@@ -78,10 +80,18 @@
         }
       ],
       [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Steps uses your location to record the route of a walk you start and to note the day's weather in your area.",
+          "isAndroidBackgroundLocationEnabled": false,
+          "isAndroidForegroundServiceEnabled": false
+        }
+      ],
+      [
         "@kingstinct/react-native-healthkit",
         {
           "NSHealthShareUsageDescription": "Steps reads your steps, walking distance, floors climbed and weight from Apple Health to show your daily progress.",
-          "NSHealthUpdateUsageDescription": "Steps saves the weight and water you log to Apple Health.",
+          "NSHealthUpdateUsageDescription": "Steps saves the weight, water and food calories you log to Apple Health.",
           "background": true
         }
       ],
@@ -114,7 +124,8 @@
           ]
         }
       ],
-      "@bacons/apple-targets"
+      "@bacons/apple-targets",
+      "@maplibre/maplibre-react-native"
     ],
     "experiments": {
       "typedRoutes": true,

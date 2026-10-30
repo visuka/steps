@@ -51,6 +51,11 @@ function minutesForDay(key: string): number[] {
   return minutes;
 }
 
+/** The demo day's total, for seeding the preview's moods so its patterns have something to show. */
+export function demoDaySteps(key: string): number {
+  return minutesForDay(key).reduce((a, b) => a + b, 0);
+}
+
 export const demoSource: StepSource = {
   id: 'demo',
   label: 'Demo data',
@@ -91,7 +96,7 @@ export const demoSource: StepSource = {
     const totals: DayTotals[] = [];
     for (let d = parseDayKey(startDay); dayKey(d) <= endDay; d = addDays(d, 1)) {
       const key = dayKey(d);
-      const steps = minutesForDay(key).reduce((a, b) => a + b, 0);
+      const steps = demoDaySteps(key);
       totals.push({ date: key, steps, distanceM: null, floors: await demoSource.getFloors(d, addDays(d, 1)) });
     }
     return totals;

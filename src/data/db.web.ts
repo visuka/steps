@@ -4,8 +4,9 @@
  * a reload doesn't send the preview back through onboarding.
  */
 import type { Achievement } from '@/lib/achievements';
+import type { WalkPoint } from '@/lib/walk';
 
-import type { DaySummary, LogEntry, LogKind, Repository } from './types';
+import type { DaySummary, DayWeather, FoodEntry, LogEntry, LogKind, MoodEntry, Repository, Walk } from './types';
 
 const STORAGE_KEY = 'steps-preview-db';
 
@@ -15,6 +16,10 @@ interface Snapshot {
   hours: [string, number[]][];
   logs: Record<LogKind, LogEntry[]>;
   achievements: [string, Achievement][];
+  moods?: [string, MoodEntry][];
+  weather?: [string, DayWeather][];
+  foods?: FoodEntry[];
+  walks?: [string, { walk: Walk; points: WalkPoint[] }][];
 }
 
 function storage(): Storage | null {
@@ -39,6 +44,10 @@ export async function openRepository(): Promise<Repository> {
   const hours = new Map<string, number[]>(saved?.hours);
   const logs: Record<LogKind, LogEntry[]> = saved?.logs ?? { weight: [], water: [] };
   const achievements = new Map<string, Achievement>(saved?.achievements);
+  const moods = new Map<string, MoodEntry>(saved?.moods);
+  const weather = new Map<string, DayWeather>(saved?.weather);
+  let foods: FoodEntry[] = saved?.foods ?? [];
+  const walks = new Map<string, { walk: Walk; points: WalkPoint[] }>(saved?.walks);
 
   // Backfill writes hundreds of rows in a burst; save once after it settles.
   let flushTimer: ReturnType<typeof setTimeout> | null = null;
@@ -54,6 +63,10 @@ export async function openRepository(): Promise<Repository> {
           hours: [...hours],
           logs,
           achievements: [...achievements],
+          moods: [...moods],
+          weather: [...weather],
+          foods,
+          walks: [...walks],
         };
         store.setItem(STORAGE_KEY, JSON.stringify(snapshot));
       } catch {
@@ -86,10 +99,77 @@ export async function openRepository(): Promise<Repository> {
     async getHourly(date) {
       return hours.get(date) ?? new Array<number>(24).fill(0);
     },
+    async getHourlyRange(from, to) {
+      return new Map([...hours].filter(([date]) => date >= from && date <= to));
+    },
     async lifetimeSteps() {
       let total = 0;
       for (const d of days.values()) total += d.steps;
       return total;
+    },
+
+    async setMood(entry) {
+      moods.set(entry.date, { ...entry });
+      persist();
+    },
+    async getMoods(from, to) {
+      return [...moods.values()].filter((m) => m.date >= from && m.date <= to).sort((a, b) => (a.date < b.date ? -1 : 1));
+    },
+
+    async upsertWeather(w) {
+      weather.set(w.date, { ...w });
+      persist();
+    },
+    async getWeather(date) {
+      return weather.get(date) ?? null;
+    },
+    async getWeatherRange(from, to) {
+      return [...weather.values()].filter((w) => w.date >= from && w.date <= to).sort((a, b) => (a.date < b.date ? -1 : 1));
+    },
+
+    async addFood(entry) {
+      foods.push(entry);
+      persist();
+    },
+    async deleteFood(id) {
+      foods = foods.filter((f) => f.id !== id);
+      persist();
+    },
+    async getFoods(fromMs, toMs) {
+      return foods.filter((f) => f.loggedAt >= fromMs && f.loggedAt < toMs).sort((a, b) => b.loggedAt - a.loggedAt);
+    },
+    async recentFoods(limit) {
+      const byName = new Map<string, { kcal: number; count: number; last: number }>();
+      for (const f of foods) {
+        const seen = byName.get(f.name);
+        if (!seen) byName.set(f.name, { kcal: f.kcal, count: 1, last: f.loggedAt });
+        else {
+          seen.count += 1;
+          if (f.loggedAt > seen.last) Object.assign(seen, { kcal: f.kcal, last: f.loggedAt });
+        }
+      }
+      return [...byName]
+        .sort(([, a], [, b]) => b.count - a.count || b.last - a.last)
+        .slice(0, limit)
+        .map(([name, { kcal }]) => ({ name, kcal }));
+    },
+
+    async saveWalk(walk, points) {
+      walks.set(walk.id, { walk: { ...walk }, points: points ?? walks.get(walk.id)?.points ?? [] });
+      persist();
+    },
+    async getWalks(limit) {
+      return [...walks.values()]
+        .map((w) => w.walk)
+        .sort((a, b) => b.startedAt - a.startedAt)
+        .slice(0, limit);
+    },
+    async getWalk(id) {
+      return walks.get(id) ?? null;
+    },
+    async deleteWalk(id) {
+      walks.delete(id);
+      persist();
     },
 
     async addLog(kind, entry) {
@@ -119,6 +199,10 @@ export async function openRepository(): Promise<Repository> {
       logs.weight = [];
       logs.water = [];
       achievements.clear();
+      moods.clear();
+      weather.clear();
+      foods = [];
+      walks.clear();
       persist();
     },
   };
