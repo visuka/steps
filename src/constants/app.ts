@@ -15,5 +15,5 @@ export const IOS_WIDGET_KIND = 'StepsWidget';
  * sign-in. Both values are public by design and ship inside the app; the
  * secret key and database password never go in this repo.
  */
-export const SUPABASE_URL = 'https://hqzroexjsskwryylmccy.supabase.co';
-export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_M-VF4875RISU23zQjj8uQQ_VfCoJ7yn';
+export const SUPABASE_URL = 'https://iyzcablluxqadfrojgge.supabase.co';
+export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_XtYRdAYuGLMGvbOaSWLiXw_i8TD1EM9';
