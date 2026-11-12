@@ -6,8 +6,10 @@
 import { readFoodItem } from '@/api/food-read';
 import type { Achievement } from '@/lib/achievements';
 import type { WalkPoint } from '@/lib/walk';
+import { recentRestaurants, whereOf } from '@/nutrition/place';
 import type { FoodItem, OwnFood } from '@/nutrition/types';
 
+import { readSnapshotFood } from './food-rows';
 import type {
   BloodPressureEntry,
   DaySummary,
@@ -68,7 +70,8 @@ export async function openRepository(): Promise<Repository> {
   const achievements = new Map<string, Achievement>(saved?.achievements);
   const moods = new Map<string, MoodEntry>(saved?.moods);
   const weather = new Map<string, DayWeather>(saved?.weather);
-  let foods: FoodEntry[] = saved?.foods ?? [];
+  // Entries saved before place and restaurant existed read as home-made.
+  let foods: FoodEntry[] = (saved?.foods ?? []).map(readSnapshotFood);
   const walks = new Map<string, { walk: Walk; points: WalkPoint[] }>(saved?.walks);
   let ownFoods: OwnFood[] = saved?.ownFoods ?? [];
   // Newest first; checked again like the SQLite rows.
@@ -161,11 +164,11 @@ export async function openRepository(): Promise<Repository> {
     },
 
     async addFood(entry) {
-      foods.push(entry);
+      foods.push({ ...entry, ...whereOf(entry.place, entry.restaurant) });
       persist();
     },
     async updateFood(entry) {
-      foods = foods.map((f) => (f.id === entry.id ? { ...entry } : f));
+      foods = foods.map((f) => (f.id === entry.id ? { ...entry, ...whereOf(entry.place, entry.restaurant) } : f));
       persist();
     },
     async deleteFood(id) {
@@ -189,7 +192,21 @@ export async function openRepository(): Promise<Repository> {
       return [...byKey.values()]
         .sort((a, b) => b.count - a.count || b.latest.loggedAt - a.latest.loggedAt)
         .slice(0, limit)
-        .map(({ latest: f }) => ({ name: f.name, kcal: f.kcal, foodId: f.foodId, unit: f.unit, quantity: f.quantity }));
+        .map(({ latest: f }) => ({
+          name: f.name,
+          kcal: f.kcal,
+          foodId: f.foodId,
+          unit: f.unit,
+          quantity: f.quantity,
+          place: f.place,
+          restaurant: f.restaurant,
+        }));
+    },
+    async recentRestaurants(limit) {
+      return recentRestaurants(
+        foods.filter((f) => f.place !== 'home'),
+        limit,
+      );
     },
 
     async getOwnFoods() {

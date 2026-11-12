@@ -21,10 +21,13 @@ export function OwnFoodForm({
   initialName,
   onSave,
   onCancel,
+  children,
 }: {
   initialName: string;
   onSave: (food: OwnFood) => void;
   onCancel: () => void;
+  /** Extra controls above the buttons, e.g. where it was from. */
+  children?: React.ReactNode;
 }) {
   const [name, setName] = useState(initialName);
   const [serving, setServing] = useState('');
@@ -66,6 +69,7 @@ export function OwnFoodForm({
           More: added sugar, cholesterol, vitamins, minerals
         </ThemedText>
       ) : null}
+      {children}
       <View style={styles.actions}>
         <View style={styles.action}>
           <Button kind="secondary" label="Cancel" onPress={onCancel} />

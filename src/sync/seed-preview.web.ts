@@ -145,6 +145,8 @@ export async function seedPreview(repo: Repository): Promise<void> {
         quantity,
         kcal: Math.round(kcal),
         healthSampleId: null,
+        place: 'home',
+        restaurant: null,
       });
     }
   }

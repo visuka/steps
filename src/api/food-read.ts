@@ -9,6 +9,7 @@
  */
 import { OWN_PREFIX } from '@/nutrition/catalog';
 import { NUTRIENTS } from '@/nutrition/nutrients';
+import { cleanRestaurant, isPlace, type Where, whereOf } from '@/nutrition/place';
 import type { FoodCategory, FoodFlag, FoodIngredient, FoodItem, FoodUnit, NutrientKey, Nutrients } from '@/nutrition/types';
 
 /** The server's limits (stepsinfra food/handler.py and recipe.py), checked here first. */
@@ -27,12 +28,23 @@ export interface EstimateItem {
   ingredients: FoodIngredient[];
   /** True when the answer came from the server's store with no AI call. */
   cached: boolean;
+  /**
+   * How the server worked it out: as cooked at home, as served in
+   * restaurants, or 'auto' when it wasn't told where the food was from (or is
+   * a server from before places).
+   */
+  style: 'home' | 'restaurant' | 'auto';
 }
 
 export interface EstimateResult {
   items: EstimateItem[];
   /** Dish names the server couldn't work out: the app offers the recipe form. */
   unknown: string[];
+  /**
+   * Where the server took the food to be from, when it says: the place sent,
+   * or one in the person's own words ("ordered pizza", "biryani from Paradise").
+   */
+  where: Where | null;
 }
 
 export interface RecipeRequest {
@@ -159,6 +171,20 @@ export function checkDescription(text: string): string | null {
   if (!t) return 'Type what you ate first.';
   if (t.length > ESTIMATE_MAX_CHARS) return `Please keep it under ${ESTIMATE_MAX_CHARS} letters.`;
   return null;
+}
+
+/**
+ * The body for POST /v1/food/estimate. With no place the server reads one
+ * from the text, if it says ("ordered pizza"); a place sent wins over that.
+ * The restaurant goes only with dine-in or delivery.
+ */
+export function estimateRequest(description: string, where?: Where | null): Record<string, string> {
+  const body: Record<string, string> = { description: description.trim() };
+  if (!where) return body;
+  const w = whereOf(where.place, where.restaurant);
+  body.place = w.place;
+  if (w.restaurant) body.restaurant = w.restaurant;
+  return body;
 }
 
 /** A plain reason the recipe can't be sent, or null when it can. */
@@ -304,6 +330,27 @@ export function readFoodItem(v: unknown): FoodItem | null {
   if (ingredients.length) food.ingredients = ingredients;
   const notes = readNotes(v.notes);
   if (notes.length) food.notes = notes;
+  // The phone's own notes on a saved food (FoodItem), checked like the rest.
+  if (v.style === 'home' || v.style === 'restaurant') food.style = v.style;
+  if (food.style === 'restaurant') {
+    const restaurant = cleanRestaurant(v.restaurant);
+    if (restaurant) food.restaurant = restaurant;
+    const homeId = text(v.homeId, 80);
+    if (homeId && homeId !== id && !homeId.startsWith(OWN_PREFIX)) food.homeId = homeId;
+  }
+  return food;
+}
+
+/**
+ * A food in the server's answer. Style, restaurant and home dish are notes the
+ * phone keeps (the item says the style), never taken from the food itself.
+ */
+function serverFood(v: unknown): FoodItem | null {
+  const food = readFoodItem(v);
+  if (!food) return null;
+  delete food.style;
+  delete food.restaurant;
+  delete food.homeId;
   return food;
 }
 
@@ -329,7 +376,7 @@ export function readEstimate(body: unknown): EstimateResult {
   const items: EstimateItem[] = [];
   for (const raw of list(body.items, 20)) {
     if (!isObject(raw)) continue;
-    const food = readFoodItem(raw.food);
+    const food = serverFood(raw.food);
     if (!food) continue;
     const askedUnit = text(raw.unit, 24);
     const known = food.units.some((u) => u.key === askedUnit);
@@ -339,7 +386,9 @@ export function readEstimate(body: unknown): EstimateResult {
     const quantity = (known && number(raw.quantity, 0, most)) || (unit === 'g' ? 100 : 1);
     const ingredients = readIngredients(raw.ingredients).map(({ name, grams }) => ({ name, grams }));
     const cached = raw.cached === true;
+    const style = raw.style === 'home' || raw.style === 'restaurant' ? raw.style : 'auto';
 
+    // Food ids differ by style, so the same id is the same version.
     const same = items.find((i) => i.food.id === food.id && i.unit === unit);
     if (same) {
       same.quantity = Math.min(most, same.quantity + quantity);
@@ -347,18 +396,19 @@ export function readEstimate(body: unknown): EstimateResult {
       same.cached = same.cached && cached;
       continue;
     }
-    items.push({ food, unit, quantity, ingredients, cached });
+    items.push({ food, unit, quantity, ingredients, cached, style });
   }
   const unknown = list(body.unknown, 10)
     .map((u) => text(u, 80))
     .filter((u): u is string => u !== null);
-  return { items, unknown };
+  const where = isPlace(body.place) ? whereOf(body.place, body.restaurant) : null;
+  return { items, unknown, where };
 }
 
 /** The checked answer to POST /v1/food/recipe; throws when there's no usable food in it. */
 export function readRecipe(body: unknown): RecipeResult {
   if (!isObject(body)) throw badAnswer();
-  const food = readFoodItem(body.food);
+  const food = serverFood(body.food);
   if (!food) throw badAnswer();
   const servings = number(body.servings, 1, RECIPE_MAX_SERVINGS);
   const cooked = number(body.cookedGrams, 0, 30_000);

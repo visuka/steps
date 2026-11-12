@@ -3,13 +3,15 @@ import * as SQLite from 'expo-sqlite';
 import { readFoodItem } from '@/api/food-read';
 import type { Achievement } from '@/lib/achievements';
 import type { WalkPoint } from '@/lib/walk';
+import { recentRestaurants, whereOf } from '@/nutrition/place';
 import type { FoodItem, OwnFood } from '@/nutrition/types';
 
+import { type FoodRow, toFood } from './food-rows';
+import { MIGRATIONS } from './migrations';
 import type {
   BloodPressureEntry,
   DaySummary,
   DayWeather,
-  FoodEntry,
   HeartDay,
   LogEntry,
   LogKind,
@@ -23,140 +25,6 @@ import type {
   Walk,
   WeatherCondition,
 } from './types';
-
-/** Each entry runs once, in order; PRAGMA user_version records how many have run. */
-const MIGRATIONS = [
-  `
-  CREATE TABLE kv (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL);
-  CREATE TABLE day_summary (
-    date TEXT PRIMARY KEY NOT NULL,
-    steps INTEGER NOT NULL,
-    distance_m INTEGER NOT NULL,
-    active_kcal INTEGER NOT NULL,
-    active_min INTEGER,
-    floors INTEGER,
-    goal INTEGER NOT NULL,
-    source TEXT NOT NULL,
-    updated_at INTEGER NOT NULL
-  );
-  CREATE TABLE hour_steps (
-    date TEXT NOT NULL,
-    hour INTEGER NOT NULL,
-    steps INTEGER NOT NULL,
-    PRIMARY KEY (date, hour)
-  );
-  CREATE TABLE weight_log (id TEXT PRIMARY KEY NOT NULL, logged_at INTEGER NOT NULL, value REAL NOT NULL, health_sample_id TEXT);
-  CREATE TABLE water_log (id TEXT PRIMARY KEY NOT NULL, logged_at INTEGER NOT NULL, value REAL NOT NULL, health_sample_id TEXT);
-  CREATE INDEX weight_log_time ON weight_log (logged_at);
-  CREATE INDEX water_log_time ON water_log (logged_at);
-  CREATE TABLE achievement (id TEXT PRIMARY KEY NOT NULL, kind TEXT NOT NULL, value INTEGER NOT NULL, earned_at INTEGER NOT NULL);
-  `,
-  // Walking context: moods, weather, food and recorded walks. Rows carry ids and
-  // timestamps so they can be synced to a server later without reshaping.
-  `
-  CREATE TABLE mood_log (date TEXT PRIMARY KEY NOT NULL, mood INTEGER NOT NULL, note TEXT, logged_at INTEGER NOT NULL);
-  CREATE TABLE day_weather (
-    date TEXT PRIMARY KEY NOT NULL,
-    temp_max_c REAL NOT NULL,
-    temp_min_c REAL NOT NULL,
-    precip_mm REAL NOT NULL,
-    condition TEXT NOT NULL,
-    place TEXT,
-    hours TEXT NOT NULL,
-    updated_at INTEGER NOT NULL
-  );
-  CREATE TABLE food_log (
-    id TEXT PRIMARY KEY NOT NULL,
-    logged_at INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    kcal REAL NOT NULL,
-    health_sample_id TEXT
-  );
-  CREATE INDEX food_log_time ON food_log (logged_at);
-  CREATE TABLE walk (
-    id TEXT PRIMARY KEY NOT NULL,
-    started_at INTEGER NOT NULL,
-    ended_at INTEGER NOT NULL,
-    distance_m REAL NOT NULL,
-    moving_s INTEGER NOT NULL,
-    steps INTEGER,
-    active_kcal REAL NOT NULL,
-    start_place TEXT,
-    weather TEXT,
-    updated_at INTEGER NOT NULL
-  );
-  CREATE INDEX walk_start ON walk (started_at);
-  CREATE TABLE walk_point (
-    walk_id TEXT NOT NULL,
-    t INTEGER NOT NULL,
-    lat REAL NOT NULL,
-    lon REAL NOT NULL,
-    accuracy REAL,
-    PRIMARY KEY (walk_id, t)
-  );
-  `,
-  // Food from the catalog: the entry keeps food, unit and quantity so portion
-  // corrections recalculate it. Foods the person adds live in own_food.
-  `
-  ALTER TABLE food_log ADD COLUMN food_id TEXT;
-  ALTER TABLE food_log ADD COLUMN unit TEXT;
-  ALTER TABLE food_log ADD COLUMN quantity REAL;
-  CREATE TABLE own_food (
-    id TEXT PRIMARY KEY NOT NULL,
-    name TEXT NOT NULL,
-    serving TEXT NOT NULL,
-    nutrients TEXT NOT NULL,
-    updated_at INTEGER NOT NULL
-  );
-  `,
-  // Sleep, heart rate and blood pressure: typed in, or read from Apple Health / Health Connect.
-  `
-  CREATE TABLE sleep_log (
-    id TEXT PRIMARY KEY NOT NULL,
-    date TEXT NOT NULL,
-    start_at INTEGER NOT NULL,
-    end_at INTEGER NOT NULL,
-    asleep_min INTEGER NOT NULL,
-    rested INTEGER,
-    source TEXT NOT NULL,
-    health_id TEXT,
-    stages TEXT,
-    updated_at INTEGER NOT NULL
-  );
-  CREATE INDEX sleep_log_date ON sleep_log (date);
-  CREATE TABLE heart_day (
-    date TEXT PRIMARY KEY NOT NULL,
-    resting_bpm REAL,
-    avg_bpm REAL,
-    min_bpm REAL,
-    max_bpm REAL,
-    updated_at INTEGER NOT NULL
-  );
-  CREATE TABLE bp_log (
-    id TEXT PRIMARY KEY NOT NULL,
-    logged_at INTEGER NOT NULL,
-    systolic INTEGER NOT NULL,
-    diastolic INTEGER NOT NULL,
-    pulse INTEGER,
-    source TEXT NOT NULL,
-    health_id TEXT,
-    updated_at INTEGER NOT NULL
-  );
-  CREATE INDEX bp_log_time ON bp_log (logged_at);
-  `,
-  // Steps with no known time, and minutes by pace.
-  `
-  ALTER TABLE day_summary ADD COLUMN untimed_steps INTEGER NOT NULL DEFAULT 0;
-  ALTER TABLE day_summary ADD COLUMN walk_min INTEGER;
-  ALTER TABLE day_summary ADD COLUMN brisk_min INTEGER;
-  ALTER TABLE day_summary ADD COLUMN run_min INTEGER;
-  `,
-  // Foods the food API worked out (AI estimates and recipes), kept whole so
-  // they can be searched and logged again offline.
-  `
-  CREATE TABLE saved_food (id TEXT PRIMARY KEY NOT NULL, json TEXT NOT NULL, updated_at INTEGER NOT NULL);
-  `,
-];
 
 interface DayRow {
   date: string;
@@ -226,28 +94,6 @@ const toWeather = (r: WeatherRow): DayWeather => ({
   place: r.place,
   hours: JSON.parse(r.hours) as DayWeather['hours'],
   updatedAt: r.updated_at,
-});
-
-interface FoodRow {
-  id: string;
-  logged_at: number;
-  name: string;
-  food_id: string | null;
-  unit: string | null;
-  quantity: number | null;
-  kcal: number;
-  health_sample_id: string | null;
-}
-
-const toFood = (r: FoodRow): FoodEntry => ({
-  id: r.id,
-  loggedAt: r.logged_at,
-  name: r.name,
-  foodId: r.food_id,
-  unit: r.unit,
-  quantity: r.quantity,
-  kcal: r.kcal,
-  healthSampleId: r.health_sample_id,
 });
 
 interface WalkRow {
@@ -524,9 +370,10 @@ export async function openRepository(): Promise<Repository> {
     },
 
     async addFood(e) {
+      const w = whereOf(e.place, e.restaurant);
       await db.runAsync(
-        `INSERT INTO food_log (id, logged_at, name, food_id, unit, quantity, kcal, health_sample_id)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO food_log (id, logged_at, name, food_id, unit, quantity, kcal, health_sample_id, place, restaurant)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         e.id,
         e.loggedAt,
         e.name,
@@ -535,17 +382,23 @@ export async function openRepository(): Promise<Repository> {
         e.quantity,
         e.kcal,
         e.healthSampleId,
+        w.place,
+        w.restaurant,
       );
     },
     async updateFood(e) {
+      const w = whereOf(e.place, e.restaurant);
       await db.runAsync(
-        'UPDATE food_log SET logged_at = ?, name = ?, food_id = ?, unit = ?, quantity = ?, kcal = ? WHERE id = ?',
+        `UPDATE food_log SET logged_at = ?, name = ?, food_id = ?, unit = ?, quantity = ?, kcal = ?, place = ?, restaurant = ?
+         WHERE id = ?`,
         e.loggedAt,
         e.name,
         e.foodId,
         e.unit,
         e.quantity,
         e.kcal,
+        w.place,
+        w.restaurant,
         e.id,
       );
     },
@@ -568,12 +421,33 @@ export async function openRepository(): Promise<Repository> {
         food_id: string | null;
         unit: string | null;
         quantity: number | null;
+        place: string | null;
+        restaurant: string | null;
       }>(
-        `SELECT name, kcal, food_id, unit, quantity, MAX(logged_at) AS last
+        `SELECT name, kcal, food_id, unit, quantity, place, restaurant, MAX(logged_at) AS last
          FROM food_log GROUP BY COALESCE(food_id, name) ORDER BY COUNT(*) DESC, last DESC LIMIT ?`,
         limit,
       );
-      return rows.map((r) => ({ name: r.name, kcal: r.kcal, foodId: r.food_id, unit: r.unit, quantity: r.quantity }));
+      return rows.map((r) => ({
+        name: r.name,
+        kcal: r.kcal,
+        foodId: r.food_id,
+        unit: r.unit,
+        quantity: r.quantity,
+        ...whereOf(r.place, r.restaurant),
+      }));
+    },
+    async recentRestaurants(limit) {
+      // Spellings differ ("Paradise", "paradise "); a few extra rows leave room to merge them.
+      const rows = await db.getAllAsync<{ restaurant: string; last: number }>(
+        `SELECT restaurant, MAX(logged_at) AS last FROM food_log
+         WHERE restaurant IS NOT NULL AND place != 'home' GROUP BY restaurant ORDER BY last DESC LIMIT ?`,
+        limit * 4,
+      );
+      return recentRestaurants(
+        rows.map((r) => ({ restaurant: r.restaurant, loggedAt: r.last })),
+        limit,
+      );
     },
 
     async getOwnFoods() {

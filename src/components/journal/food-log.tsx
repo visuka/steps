@@ -2,12 +2,13 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
-import { type EstimateItem, type EstimateResult, estimateFood } from '@/api/food-api';
+import { type EstimateItem, type EstimateResult, estimateFood, restaurantVersion } from '@/api/food-api';
 import { checkDescription, FoodApiError } from '@/api/food-read';
 import { Card } from '@/components/card';
 import { Button, Chip, Segmented, TextField } from '@/components/controls';
 import { NutrientBars } from '@/components/food/nutrient-bars';
 import { OwnFoodForm } from '@/components/food/own-food-form';
+import { type PlaceInput, PlacePicker } from '@/components/food/place-picker';
 import { PortionPicker } from '@/components/food/portion-picker';
 import { RecipeForm } from '@/components/food/recipe-form';
 import { ThemedText } from '@/components/themed-text';
@@ -18,6 +19,22 @@ import { formatSteps } from '@/lib/format';
 import { catalogFood, nutrientsFor, OWN_PREFIX, type PortionOverrides, portionLabel, searchFoods } from '@/nutrition/catalog';
 import { byStorage, overLimits } from '@/nutrition/day';
 import { NUTRIENT } from '@/nutrition/nutrients';
+import {
+  asksPlace,
+  HOME,
+  isHomeDish,
+  keepSavedNotes,
+  markStyle,
+  needsLookup,
+  placeLabel,
+  samePortion,
+  savedRestaurantVersion,
+  startingPlace,
+  valuesNote,
+  versionChange,
+  type Where,
+  whereOf,
+} from '@/nutrition/place';
 import type { FoodItem, Nutrients } from '@/nutrition/types';
 import { useApp } from '@/state/app-state';
 import { useCaloriesToday } from '@/state/use-calories';
@@ -36,6 +53,10 @@ const timeOf = (ms: number) => new Date(ms).toLocaleTimeString([], { hour: 'nume
 
 const STORAGE = byStorage();
 
+/** Home-made unless the person says otherwise; `chosen` is whether they did. */
+type PlaceState = PlaceInput & { chosen: boolean };
+const HOME_INPUT: PlaceState = { place: 'home', restaurant: '', chosen: false };
+
 type Mode =
   | { kind: 'search' }
   /** `lookup` is the key of the looked-up item this came from, so Add returns to the rest of the meal. */
@@ -47,7 +68,8 @@ type Mode =
 type Lookup =
   | { status: 'idle' }
   | { status: 'loading'; query: string }
-  | { status: 'done'; query: string; result: EstimateResult }
+  /** `where`: the place it was worked out for, sent or read from the text. */
+  | { status: 'done'; query: string; result: EstimateResult; where: Where | null }
   | { status: 'error'; query: string; message: string };
 
 /**
@@ -68,36 +90,77 @@ export function FoodLog() {
   const [error, setError] = useState<string | null>(null);
   const [lookup, setLookup] = useState<Lookup>({ status: 'idle' });
   const [added, setAdded] = useState<string[]>([]);
+  const [placeIn, setPlaceIn] = useState<PlaceState>(HOME_INPUT);
+  const [restaurants, setRestaurants] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
   // Only the latest lookup's answer is shown; an older one arriving late is dropped.
   const lookupRun = useRef(0);
+  // One save at a time: a second tap while the restaurant version is fetched does nothing.
+  const saving = useRef(false);
 
   useEffect(() => {
     let live = true;
-    repo.recentFoods(8).then((r) => live && setRecent(r));
+    Promise.all([repo.recentFoods(8), repo.recentRestaurants(6)]).then(([r, names]) => {
+      if (!live) return;
+      setRecent(r);
+      setRestaurants(names);
+    });
     return () => {
       live = false;
     };
   }, [repo, dataVersion]);
 
+  const here = whereOf(placeIn.place, placeIn.restaurant);
+  const choosePlace = (p: PlaceInput) => setPlaceIn({ ...p, chosen: true });
+
   const clearLookup = () => {
     lookupRun.current += 1;
     setLookup({ status: 'idle' });
     setAdded([]);
+    // A place read from the text belonged to that look-up.
+    setPlaceIn((p) => (p.chosen ? p : HOME_INPUT));
   };
 
   const reset = () => {
     setMode({ kind: 'search' });
     setQuery('');
     setWhen('0');
+    setPlaceIn(HOME_INPUT);
     clearLookup();
+  };
+
+  /** A new step clears the note about the last save. */
+  const go = (next: Mode) => {
+    setNotice(null);
+    setMode(next);
+  };
+
+  /**
+   * A food from the list. A saved restaurant version ("Chicken biryani
+   * (Paradise)") starts at its own place, unless the person already said
+   * they ate out; Cancel resets the chips.
+   */
+  const pickFood = (food: FoodItem) => {
+    go({ kind: 'pick', food });
+    const start = placeIn.place === 'home' ? startingPlace(food, recent) : null;
+    if (start) setPlaceIn({ place: start.place, restaurant: start.restaurant ?? '', chosen: false });
   };
 
   const changeQuery = (text: string) => {
     setQuery(text);
+    setNotice(null);
     if (lookup.status !== 'idle') clearLookup();
   };
 
-  const save = async (foodId: string | null, name: string, unit: string | null, quantity: number | null, n: Nutrients) => {
+  const save = async (
+    foodId: string | null,
+    name: string,
+    unit: string | null,
+    quantity: number | null,
+    n: Nutrients,
+    w: Where,
+  ) => {
     setError(null);
     const at = eatenAt(when);
     let healthSampleId: string | null = null;
@@ -115,13 +178,65 @@ export function FoodLog() {
       quantity,
       kcal: Math.round(n.kcal ?? 0),
       healthSampleId,
+      place: w.place,
+      restaurant: w.restaurant,
     });
     touch();
   };
 
-  const log = async (foodId: string | null, name: string, unit: string | null, quantity: number | null, n: Nutrients) => {
-    await save(foodId, name, unit, quantity, n);
-    reset();
+  const once = async (work: () => Promise<void>) => {
+    if (saving.current) return;
+    saving.current = true;
+    setNotice(null);
+    try {
+      await work();
+    } finally {
+      saving.current = false;
+    }
+  };
+
+  /**
+   * The version of a food to log for where it was from (nutrition/place.ts).
+   * Eaten out, a home dish becomes its restaurant version: one saved earlier,
+   * or one look-up. When that fails the food is logged as it is, and an entry
+   * with home values says so.
+   */
+  const versionFor = async (food: FoodItem, unit: string, quantity: number, w: Where) => {
+    const change = versionChange(food, w, book.find);
+    if (!change) return { food, unit, quantity };
+    if (change.kind === 'home') return { food: change.food, ...samePortion(food, unit, quantity, change.food, book.overrides) };
+    let next = savedRestaurantVersion(change.base, w, book.saved);
+    if (!next) {
+      setBusy(true);
+      try {
+        const item = await restaurantVersion(change.base, w);
+        if (item) next = await book.saveFood(markStyle(item.food, 'restaurant', w, change.base.id));
+      } catch {
+        // Offline, or the day's look-ups used up: logged as it is, below.
+      } finally {
+        setBusy(false);
+      }
+    }
+    if (!next) {
+      setNotice(
+        isHomeDish(food)
+          ? 'Couldn’t get restaurant-style values just now, so home-style values were used.'
+          : 'Couldn’t look up that restaurant just now, so the restaurant values you had were used.',
+      );
+      return { food, unit, quantity };
+    }
+    return { food: next, ...samePortion(food, unit, quantity, next, book.overrides) };
+  };
+
+  /** Said before Add or Save: the dish's name leaves the phone without a tap on Look up. */
+  const lookupNote = (food: FoodItem) =>
+    needsLookup(food, here, book.find, book.saved)
+      ? 'To get restaurant values, the dish’s name (and the restaurant, if you name one) is sent to our server, not your name.'
+      : null;
+
+  const logFood = async (food: FoodItem, unit: string, quantity: number, w: Where) => {
+    const v = await versionFor(food, unit, quantity, w);
+    await save(v.food.id, v.food.name, v.unit, v.quantity, nutrientsFor(v.food, v.unit, v.quantity, book.overrides), w);
   };
 
   /** Back to the looked-up meal with this part ticked off; when every part is in, start fresh. */
@@ -139,13 +254,19 @@ export function FoodLog() {
     }
   };
 
-  const logAgain = (r: RecentFood) => {
-    const food = r.foodId ? book.find(r.foodId) : null;
-    if (food && r.unit && r.quantity !== null) {
-      log(food.id, food.name, r.unit, r.quantity, nutrientsFor(food, r.unit, r.quantity, book.overrides));
-    } else {
-      log(null, r.name, null, null, { kcal: r.kcal });
-    }
+  /** The same amount from the same place as last time. */
+  const logAgain = (r: RecentFood) =>
+    once(async () => {
+      const w = whereOf(r.place, r.restaurant);
+      const food = r.foodId ? book.find(r.foodId) : null;
+      if (food && r.unit && r.quantity !== null) await logFood(food, r.unit, r.quantity, w);
+      else await save(null, r.name, null, null, { kcal: r.kcal }, w);
+      reset();
+    });
+
+  const startEdit = (entry: FoodEntry, food: FoodItem) => {
+    go({ kind: 'edit', entry, food });
+    setPlaceIn({ place: entry.place, restaurant: entry.restaurant ?? '', chosen: true });
   };
 
   const remove = async (entry: FoodEntry) => {
@@ -163,11 +284,17 @@ export function FoodLog() {
       return;
     }
     const run = ++lookupRun.current;
+    // Sent only when picked, so the server can read a place from the text ("ordered pizza").
+    const sent = placeIn.chosen ? here : null;
     setAdded([]);
     setLookup({ status: 'loading', query: text });
     try {
-      const result = await estimateFood(text);
-      if (run === lookupRun.current) setLookup({ status: 'done', query: text, result });
+      const result = await estimateFood(text, sent);
+      if (run !== lookupRun.current) return;
+      setLookup({ status: 'done', query: text, result, where: result.where ?? sent });
+      if (!placeIn.chosen && result.where) {
+        setPlaceIn({ place: result.where.place, restaurant: result.where.restaurant ?? '', chosen: false });
+      }
     } catch (e) {
       if (run !== lookupRun.current) return;
       const message = e instanceof FoodApiError ? e.message : 'Something went wrong. Please try again.';
@@ -180,7 +307,8 @@ export function FoodLog() {
     let food = catalogFood(item.food.id);
     if (!food) {
       try {
-        food = await book.saveFood(item.food);
+        const marked = markStyle(item.food, item.style, lookup.status === 'done' ? lookup.where : null);
+        food = await book.saveFood(keepSavedNotes(marked, book.saved));
       } catch {
         setError("Couldn't save it on this phone. Please try again.");
         return;
@@ -225,7 +353,7 @@ export function FoodLog() {
               placeholder="Search: roti, dal, or “2 idli and sambar”"
             />
             {results.map((food) => (
-              <SearchResult key={food.id} food={food} onPress={() => setMode({ kind: 'pick', food })} />
+              <SearchResult key={food.id} food={food} onPress={() => pickFood(food)} />
             ))}
 
             {q ? (
@@ -234,9 +362,12 @@ export function FoodLog() {
                 lookup={lookup}
                 added={added}
                 overrides={book.overrides}
+                place={placeIn}
+                onPlace={choosePlace}
+                restaurants={restaurants}
                 onLookUp={lookUp}
                 onPick={pickLooked}
-                onRecipe={(name) => setMode({ kind: 'recipe', name, lookup: unknownKey(name) })}
+                onRecipe={(name) => go({ kind: 'recipe', name, lookup: unknownKey(name) })}
               />
             ) : null}
 
@@ -245,7 +376,7 @@ export function FoodLog() {
                 type="small"
                 themeColor="textSecondary"
                 style={styles.link}
-                onPress={() => setMode({ kind: 'own', name: q })}>
+                onPress={() => go({ kind: 'own', name: q })}>
                 {results.length ? 'Not here? ' : 'No match. '}Add “{q}” as your own food
               </ThemedText>
             ) : recent.length ? (
@@ -254,9 +385,13 @@ export function FoodLog() {
                   Had it again? Tap to add the same amount
                 </ThemedText>
                 <View style={styles.chips}>
-                  {recent.map((r) => (
-                    <Chip key={r.foodId ?? r.name} label={r.name} onPress={() => logAgain(r)} />
-                  ))}
+                  {recent.map((r) => {
+                    // Logging again keeps the place, so say it when it isn't home.
+                    const out = placeLabel({ place: r.place, restaurant: null });
+                    return (
+                      <Chip key={r.foodId ?? r.name} label={out ? `${r.name} · ${out}` : r.name} onPress={() => logAgain(r)} />
+                    );
+                  })}
                 </View>
               </>
             ) : null}
@@ -264,7 +399,7 @@ export function FoodLog() {
               type="small"
               themeColor="textSecondary"
               style={styles.link}
-              onPress={() => setMode({ kind: 'recipe', name: lookup.status === 'idle' ? q : '' })}>
+              onPress={() => go({ kind: 'recipe', name: lookup.status === 'idle' ? q : '' })}>
               Made it yourself? Enter the recipe
             </ThemedText>
           </>
@@ -279,15 +414,21 @@ export function FoodLog() {
             initialQuantity={mode.quantity}
             showWorking={mode.working}
             actionLabel="Add"
+            busy={busy}
             onCancel={() => (mode.lookup ? setMode({ kind: 'search' }) : reset())}
             onSetPortion={(unit, grams) => book.setPortion(mode.food, unit, grams)}
-            onDone={async (unit, quantity, n) => {
-              const part = mode.lookup;
-              await save(mode.food.id, mode.food.name, unit, quantity, n);
-              if (part) doneWithPart(part);
-              else reset();
-            }}>
+            onDone={(unit, quantity) =>
+              once(async () => {
+                const part = mode.lookup;
+                await logFood(mode.food, unit, quantity, asksPlace(mode.food) ? here : HOME);
+                if (part) doneWithPart(part);
+                else reset();
+              })
+            }>
             <Segmented options={WHEN} value={when} onChange={setWhen} />
+            {asksPlace(mode.food) ? (
+              <PlacePicker value={placeIn} onChange={choosePlace} restaurants={restaurants} note={lookupNote(mode.food)} />
+            ) : null}
           </PortionPicker>
         ) : null}
 
@@ -299,13 +440,32 @@ export function FoodLog() {
             initialUnit={mode.entry.unit ?? undefined}
             initialQuantity={mode.entry.quantity ?? undefined}
             actionLabel="Save"
+            busy={busy}
             onCancel={reset}
             onSetPortion={(unit, grams) => book.setPortion(mode.food, unit, grams)}
-            onDone={async (unit, quantity, n) => {
-              await repo.updateFood({ ...mode.entry, unit, quantity, kcal: Math.round(n.kcal ?? 0) });
-              reset();
-              touch();
-            }}>
+            onDone={(unit, quantity) =>
+              once(async () => {
+                const w = asksPlace(mode.food) ? here : HOME;
+                // A new place can mean the other version of the dish (nutrition/place.ts).
+                const v = await versionFor(mode.food, unit, quantity, w);
+                const n = nutrientsFor(v.food, v.unit, v.quantity, book.overrides);
+                await repo.updateFood({
+                  ...mode.entry,
+                  foodId: v.food.id,
+                  name: v.food === mode.food ? mode.entry.name : v.food.name,
+                  unit: v.unit,
+                  quantity: v.quantity,
+                  kcal: Math.round(n.kcal ?? 0),
+                  place: w.place,
+                  restaurant: w.restaurant,
+                });
+                reset();
+                touch();
+              })
+            }>
+            {asksPlace(mode.food) ? (
+              <PlacePicker value={placeIn} onChange={choosePlace} restaurants={restaurants} note={lookupNote(mode.food)} />
+            ) : null}
             <Button kind="danger" label="Delete this entry" onPress={() => remove(mode.entry)} />
           </PortionPicker>
         ) : null}
@@ -314,11 +474,15 @@ export function FoodLog() {
           <OwnFoodForm
             initialName={mode.name}
             onCancel={reset}
-            onSave={async (own) => {
-              await book.saveOwn(own);
-              await log(OWN_PREFIX + own.id, own.name, 'serving', 1, own.nutrients);
-            }}
-          />
+            onSave={(own) =>
+              once(async () => {
+                await book.saveOwn(own);
+                await save(OWN_PREFIX + own.id, own.name, 'serving', 1, own.nutrients, here);
+                reset();
+              })
+            }>
+            <PlacePicker value={placeIn} onChange={choosePlace} restaurants={restaurants} />
+          </OwnFoodForm>
         ) : null}
 
         {mode.kind === 'recipe' ? (
@@ -339,6 +503,19 @@ export function FoodLog() {
           />
         ) : null}
 
+        {busy ? (
+          <View style={styles.busy}>
+            <ActivityIndicator color={theme.accent} />
+            <ThemedText type="small" themeColor="textSecondary">
+              Getting restaurant-style values…
+            </ThemedText>
+          </View>
+        ) : null}
+        {notice ? (
+          <ThemedText type="small" themeColor="textSecondary">
+            {notice}
+          </ThemedText>
+        ) : null}
         {error ? (
           <ThemedText type="small" style={{ color: theme.danger }}>
             {error}
@@ -353,21 +530,33 @@ export function FoodLog() {
           foods.map((f) => {
             const food = f.foodId ? book.find(f.foodId) : null;
             const kcal = Math.round(book.nutrientsOf(f).kcal ?? f.kcal);
+            const detail = [
+              food && f.unit && f.quantity !== null ? portionLabel(food, f.unit, f.quantity) : null,
+              placeLabel(f),
+            ]
+              .filter(Boolean)
+              .join(' · ');
+            const note = valuesNote(f, food);
             return (
               <Pressable
                 key={f.id}
-                onPress={() => (food ? setMode({ kind: 'edit', entry: f, food }) : undefined)}
+                onPress={() => (food ? startEdit(f, food) : undefined)}
                 accessibilityRole="button"
-                accessibilityLabel={`${f.name}, ${kcal} kcal. ${food ? 'Change amount' : ''}`}
+                accessibilityLabel={`${f.name}${detail ? `, ${detail}` : ''}, ${kcal} kcal.${note ? ` ${note}.` : ''} ${food ? 'Change amount or place' : ''}`}
                 style={styles.entry}>
                 <ThemedText type="small" themeColor="textSecondary" style={styles.time}>
                   {timeOf(f.loggedAt)}
                 </ThemedText>
                 <View style={styles.entryName}>
                   <ThemedText>{f.name}</ThemedText>
-                  {food && f.unit && f.quantity !== null ? (
+                  {detail ? (
                     <ThemedText type="small" themeColor="textSecondary">
-                      {portionLabel(food, f.unit, f.quantity)}
+                      {detail}
+                    </ThemedText>
+                  ) : null}
+                  {note ? (
+                    <ThemedText type="small" themeColor="textSecondary">
+                      {note}
                     </ThemedText>
                   ) : null}
                 </View>
@@ -383,7 +572,7 @@ export function FoodLog() {
         )}
         {foods.some((f) => f.foodId) ? (
           <ThemedText type="small" themeColor="textSecondary">
-            Tap an entry to change the amount or delete it.
+            Tap an entry to change the amount or where it was from, or to delete it.
           </ThemedText>
         ) : null}
       </Card>
@@ -427,6 +616,9 @@ function LookupPanel({
   lookup,
   added,
   overrides,
+  place,
+  onPlace,
+  restaurants,
   onLookUp,
   onPick,
   onRecipe,
@@ -435,6 +627,9 @@ function LookupPanel({
   lookup: Lookup;
   added: string[];
   overrides: PortionOverrides;
+  place: PlaceInput;
+  onPlace: (p: PlaceInput) => void;
+  restaurants: string[];
   onLookUp: () => void;
   onPick: (item: EstimateItem, index: number) => void;
   onRecipe: (name: string) => void;
@@ -454,8 +649,15 @@ function LookupPanel({
 
   if (lookup.status === 'done') {
     const { items, unknown } = lookup.result;
+    // Only when the server did work them out that way; one from before places ignores the place.
+    const out = lookup.where && items.some((i) => i.style === 'restaurant') ? placeLabel(lookup.where) : null;
     return (
       <View style={styles.lookup}>
+        {out && items.length ? (
+          <ThemedText type="small" themeColor="textSecondary">
+            {out}: restaurant-style values
+          </ThemedText>
+        ) : null}
         {items.length ? (
           <ThemedText type="small" themeColor="textSecondary">
             {items.length > 1 ? 'Tap each one to add it' : 'Tap to add it'}
@@ -497,10 +699,12 @@ function LookupPanel({
           {lookup.message}
         </ThemedText>
       ) : null}
+      <PlacePicker value={place} onChange={onPlace} restaurants={restaurants} />
       <Button kind="secondary" label={`Look up “${query}”`} onPress={onLookUp} />
       {lookup.status === 'idle' ? (
         <ThemedText type="small" themeColor="textSecondary">
-          For a dish or a whole meal. What you type is sent to our server, not your name.
+          For a dish or a whole meal. What you type, and the restaurant if you name one, is sent to our server, not
+          your name.
         </ThemedText>
       ) : null}
     </View>

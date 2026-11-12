@@ -5,6 +5,7 @@ import {
   checkRecipe,
   errorCode,
   errorFor,
+  estimateRequest,
   FoodApiError,
   readEstimate,
   readFoodItem,
@@ -215,6 +216,63 @@ describe('reading an estimate', () => {
     expect(thrown(() => readEstimate(null)).kind).toBe('bad_answer');
     expect(thrown(() => readEstimate({ items: 'none' })).kind).toBe('bad_answer');
     expect(thrown(() => readEstimate([])).message).toBe('Something went wrong. Please try again.');
+  });
+});
+
+describe('where a food was from', () => {
+  it('sends a place only when there is one, and a restaurant only with dine-in or delivery', () => {
+    expect(estimateRequest('  biryani ')).toEqual({ description: 'biryani' });
+    expect(estimateRequest('biryani', null)).toEqual({ description: 'biryani' });
+    expect(estimateRequest('biryani', { place: 'home', restaurant: 'Paradise' })).toEqual({
+      description: 'biryani',
+      place: 'home',
+    });
+    expect(estimateRequest('biryani', { place: 'dine-in', restaurant: ' <Paradise> ' })).toEqual({
+      description: 'biryani',
+      place: 'dine-in',
+      restaurant: 'Paradise',
+    });
+    expect(estimateRequest('pizza', { place: 'delivery', restaurant: null })).toEqual({
+      description: 'pizza',
+      place: 'delivery',
+    });
+  });
+
+  it("reads each item's style; anything else is auto", () => {
+    const r = readEstimate({
+      items: [
+        { food: dish({ id: 'ai:a' }), unit: 'piece', quantity: 1, style: 'restaurant' },
+        { food: dish({ id: 'ai:b' }), unit: 'piece', quantity: 1, style: 'home' },
+        { food: dish({ id: 'ai:c' }), unit: 'piece', quantity: 1, style: 'fancy' },
+        { food: dish({ id: 'ai:d' }), unit: 'piece', quantity: 1 },
+      ],
+    });
+    expect(r.items.map((i) => i.style)).toEqual(['restaurant', 'home', 'auto', 'auto']);
+  });
+
+  it('reads where the server took the food to be from, when it says', () => {
+    const items = [{ food: dish(), unit: 'piece', quantity: 1 }];
+    expect(readEstimate({ items }).where).toBeNull();
+    expect(readEstimate({ items, place: 'somewhere' }).where).toBeNull();
+    expect(readEstimate({ items, place: 'delivery', restaurant: 'x'.repeat(90) }).where).toEqual({
+      place: 'delivery',
+      restaurant: 'x'.repeat(60),
+    });
+    expect(readEstimate({ items, place: 'home', restaurant: 'Paradise' }).where).toEqual({ place: 'home', restaurant: null });
+  });
+
+  it("keeps a saved food's style notes, but never takes them from the server", () => {
+    const saved = dish({ style: 'restaurant', restaurant: 'Paradise', homeId: 'chicken-biryani' });
+    expect(readFoodItem(saved)).toMatchObject({ style: 'restaurant', restaurant: 'Paradise', homeId: 'chicken-biryani' });
+    expect(readFoodItem(dish({ style: 'home', restaurant: 'Paradise', homeId: 'x' }))).toMatchObject({ style: 'home' });
+    expect(readFoodItem(dish({ style: 'home', restaurant: 'Paradise', homeId: 'x' }))?.homeId).toBeUndefined();
+    expect(readFoodItem(dish({ style: 'restaurant', homeId: 'own:k1' }))?.homeId).toBeUndefined();
+
+    const food = readEstimate({ items: [{ food: saved, unit: 'piece', quantity: 1 }] }).items[0].food;
+    expect(food.style).toBeUndefined();
+    expect(food.restaurant).toBeUndefined();
+    expect(food.homeId).toBeUndefined();
+    expect(readRecipe({ food: saved, servings: 2 }).food.homeId).toBeUndefined();
   });
 });
 

@@ -28,6 +28,7 @@ export function PortionPicker({
   onDone,
   onCancel,
   onSetPortion,
+  busy,
   children,
 }: {
   food: FoodItem;
@@ -40,6 +41,8 @@ export function PortionPicker({
   onDone: (unit: string, quantity: number, nutrients: Nutrients) => void;
   onCancel: () => void;
   onSetPortion: (unit: string, grams: number) => void;
+  /** Saving is waiting on the server: both buttons wait too. */
+  busy?: boolean;
   /** Extra controls under the preview, e.g. when it was eaten. */
   children?: React.ReactNode;
 }) {
@@ -232,10 +235,10 @@ export function PortionPicker({
 
       <View style={styles.actions}>
         <View style={styles.action}>
-          <Button kind="secondary" label="Cancel" onPress={onCancel} />
+          <Button kind="secondary" label="Cancel" onPress={onCancel} disabled={busy} />
         </View>
         <View style={styles.action}>
-          <Button label={actionLabel} onPress={() => onDone(unit, quantity, n)} />
+          <Button label={actionLabel} onPress={() => onDone(unit, quantity, n)} disabled={busy} />
         </View>
       </View>
       <ThemedText type="small" themeColor="textSecondary">

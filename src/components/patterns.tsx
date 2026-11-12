@@ -27,7 +27,8 @@ import { bpGoalComparison, restingTrend, sleepMoodComparison, sleepStepsComparis
 import { locationAllowed, requestLocation } from '@/location/place';
 import { goodSources } from '@/nutrition/catalog';
 import { dailyAverage, lowestNutrients, overLimits } from '@/nutrition/day';
-import { NUTRIENT } from '@/nutrition/nutrients';
+import { eatingOut, eatingOutSummary, MEAL_MIN_KCAL, MIN_MEALS } from '@/nutrition/eating-out';
+import { formatNutrient, NUTRIENT } from '@/nutrition/nutrients';
 import { useApp } from '@/state/app-state';
 import { useFoodBook } from '@/state/use-food-book';
 import { WEATHER_CREDIT } from '@/weather/refresh';
@@ -109,6 +110,7 @@ export function Patterns() {
   const low = nutrition.days >= MIN_GROUP_DAYS ? lowestNutrients(nutrition.average) : [];
   const over = nutrition.days >= MIN_GROUP_DAYS ? overLimits(nutrition.average) : [];
   const sources = low[0] ? goodSources(low[0].key) : [];
+  const out = eatingOut(data.foods, book.nutrientsOf);
 
   const sleepSteps = sleepStepsComparison(data.days, data.nights);
   const sleepMood = sleepMoodComparison(data.nights, data.moods);
@@ -233,6 +235,30 @@ export function Patterns() {
         ) : null}
         <ThemedText type="small" themeColor="textSecondary">
           Only counts what you log, so days with missed meals look lower than they were.
+        </ThemedText>
+      </Card>
+
+      <Card title="Eating out, last week">
+        {out.out + out.home ? <ThemedText>{eatingOutSummary(out)}</ThemedText> : null}
+        {out.averages.length ? (
+          <>
+            <ThemedText>What a meal held, on average:</ThemedText>
+            {out.averages.map((a) => (
+              <ThemedText key={a.key}>
+                · {NUTRIENT[a.key].label}: {formatNutrient(a.key, a.out)} eating out, {formatNutrient(a.key, a.home)}{' '}
+                home-made
+              </ThemedText>
+            ))}
+          </>
+        ) : (
+          <Waiting
+            text={`To compare them it needs at least ${MIN_MEALS} meals eaten out and ${MIN_MEALS} home-made in the week. When you add food, tap where it was from.`}
+          />
+        )}
+        <ThemedText type="small" themeColor="textSecondary">
+          Restaurant food often has more oil, ghee, butter and salt, and bigger portions, than the same dish made at home.
+          A meal here is {MEAL_MIN_KCAL} kcal or more logged within an hour from one place; tea and snacks under that
+          aren&apos;t counted. This shows your own logged meals, not a verdict on any of them.
         </ThemedText>
       </Card>
 

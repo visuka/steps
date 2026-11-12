@@ -182,6 +182,7 @@ export function TextField({
   label,
   multiline,
   onEndEditing,
+  maxLength,
 }: {
   value: string;
   onChangeText: (t: string) => void;
@@ -189,6 +190,7 @@ export function TextField({
   label: string;
   multiline?: boolean;
   onEndEditing?: () => void;
+  maxLength?: number;
 }) {
   const theme = useTheme();
   return (
@@ -200,6 +202,7 @@ export function TextField({
       placeholder={placeholder}
       placeholderTextColor={theme.textSecondary}
       multiline={multiline}
+      maxLength={maxLength}
       accessibilityLabel={label}
       style={[
         styles.input,

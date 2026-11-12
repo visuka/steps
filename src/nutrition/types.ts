@@ -102,6 +102,16 @@ export interface FoodItem {
   ingredients?: FoodIngredient[];
   /** Recipes: plain notes on the maths ("Salt not listed: 6 g assumed"). */
   notes?: string[];
+  /**
+   * Foods from the food API, as kept on the phone: worked out as cooked at
+   * home or as served in restaurants. Unset for older foods and for look-ups
+   * that didn't say, which the server works out like home food.
+   */
+  style?: 'home' | 'restaurant';
+  /** Restaurant versions: the restaurant they were worked out for, when one was named. */
+  restaurant?: string;
+  /** Restaurant versions made from a home dish: that dish's id, to switch back to. */
+  homeId?: string;
 }
 
 /** A food the person added, with nutrients for one serving. */

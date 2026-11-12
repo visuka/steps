@@ -5,11 +5,15 @@
  */
 import { supabase } from '@/auth/supabase';
 import { STEPS_API_URL } from '@/constants/app';
+import { lookupName, restaurantItem, type Where } from '@/nutrition/place';
+import type { FoodItem } from '@/nutrition/types';
 
 import {
   badAnswer,
   errorCode,
   errorFor,
+  type EstimateItem,
+  estimateRequest,
   type EstimateResult,
   type FoodRoute,
   readEstimate,
@@ -78,9 +82,22 @@ async function post(route: FoodRoute, body: unknown): Promise<unknown> {
   }
 }
 
-/** "200 g rice and 2 idli" → the foods in it, each with its amount. */
-export async function estimateFood(description: string): Promise<EstimateResult> {
-  return readEstimate(await post('estimate', { description: description.trim() }));
+/**
+ * "200 g rice and 2 idli" → the foods in it, each with its amount. With a
+ * place, dishes are worked out home-style or restaurant-style; without one
+ * the server goes by the text.
+ */
+export async function estimateFood(description: string, where?: Where | null): Promise<EstimateResult> {
+  return readEstimate(await post('estimate', estimateRequest(description, where)));
+}
+
+/**
+ * The restaurant version of a home dish, from one look-up of its name; null
+ * when the server sent no restaurant-style answer. Throws FoodApiError like
+ * estimateFood.
+ */
+export async function restaurantVersion(home: FoodItem, where: Where): Promise<EstimateItem | null> {
+  return restaurantItem(await estimateFood(lookupName(home), where));
 }
 
 /** A dish the person made → one food, per serving, worked out from its ingredients. */

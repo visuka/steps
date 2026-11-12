@@ -313,7 +313,9 @@ export default function SettingsScreen() {
         </ThemedText>
         <ThemedText type="small" themeColor="textSecondary">
           When you look up a food or enter a recipe, what you type is sent to our server and an AI service to work out
-          what&apos;s in it. It&apos;s kept without your name, so the same food is quicker for everyone next time.
+          what&apos;s in it. When you log a dish as dine-in or ordered in, its name is sent the same way to get
+          restaurant values. If you say it was from a restaurant, that goes too, with the restaurant&apos;s name if you
+          gave one. It&apos;s kept without your name, so the same food is quicker for everyone next time.
         </ThemedText>
         <Button kind="secondary" label="Export daily totals (CSV)" onPress={exportCsv} />
         {exportError ? (
