@@ -20,6 +20,8 @@ const entry = (over: Partial<FoodEntry>): FoodEntry => ({
   quantity: null,
   kcal: 0,
   healthSampleId: null,
+  place: 'home',
+  restaurant: null,
   ...over,
 });
 

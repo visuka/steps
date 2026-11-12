@@ -182,6 +182,7 @@ export function TextField({
   label,
   multiline,
   onEndEditing,
+  maxLength,
 }: {
   value: string;
   onChangeText: (t: string) => void;
@@ -189,6 +190,7 @@ export function TextField({
   label: string;
   multiline?: boolean;
   onEndEditing?: () => void;
+  maxLength?: number;
 }) {
   const theme = useTheme();
   return (
@@ -200,6 +202,7 @@ export function TextField({
       placeholder={placeholder}
       placeholderTextColor={theme.textSecondary}
       multiline={multiline}
+      maxLength={maxLength}
       accessibilityLabel={label}
       style={[
         styles.input,
@@ -211,8 +214,21 @@ export function TextField({
   );
 }
 
-/** A small rounded button, e.g. a recent food to log again or a portion unit. */
-export function Chip({ label, onPress, selected }: { label: string; onPress: () => void; selected?: boolean }) {
+/**
+ * A small rounded button, e.g. a recent food to log again or a portion unit.
+ * `dot` puts a coloured dot before the label, e.g. red for "High in salt".
+ */
+export function Chip({
+  label,
+  onPress,
+  selected,
+  dot,
+}: {
+  label: string;
+  onPress: () => void;
+  selected?: boolean;
+  dot?: string;
+}) {
   const theme = useTheme();
   return (
     <Pressable
@@ -222,7 +238,8 @@ export function Chip({ label, onPress, selected }: { label: string; onPress: () 
       style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
       <ThemedView
         type="backgroundSelected"
-        style={[styles.chip, selected && { backgroundColor: theme.accentSoft, borderColor: theme.accent }]}>
+        style={[styles.chip, dot && styles.chipRow, selected && { backgroundColor: theme.accentSoft, borderColor: theme.accent }]}>
+        {dot ? <View style={[styles.dot, { backgroundColor: dot }]} /> : null}
         <ThemedText type={selected ? 'smallBold' : 'small'}>{label}</ThemedText>
       </ThemedView>
     </Pressable>
@@ -272,4 +289,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'transparent',
   },
+  chipRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one + 2 },
+  dot: { width: 8, height: 8, borderRadius: 4 },
 });

@@ -3,10 +3,13 @@
  * platforms. Kept in memory and mirrored to localStorage (when available) so
  * a reload doesn't send the preview back through onboarding.
  */
+import { readFoodItem } from '@/api/food-read';
 import type { Achievement } from '@/lib/achievements';
 import type { WalkPoint } from '@/lib/walk';
-import type { OwnFood } from '@/nutrition/types';
+import { recentRestaurants, whereOf } from '@/nutrition/place';
+import type { FoodItem, OwnFood } from '@/nutrition/types';
 
+import { readSnapshotFood } from './food-rows';
 import type {
   BloodPressureEntry,
   DaySummary,
@@ -34,6 +37,7 @@ interface Snapshot {
   foods?: FoodEntry[];
   walks?: [string, { walk: Walk; points: WalkPoint[] }][];
   ownFoods?: OwnFood[];
+  savedFoods?: FoodItem[];
   sleep?: SleepEntry[];
   heart?: [string, HeartDay][];
   bp?: BloodPressureEntry[];
@@ -66,9 +70,12 @@ export async function openRepository(): Promise<Repository> {
   const achievements = new Map<string, Achievement>(saved?.achievements);
   const moods = new Map<string, MoodEntry>(saved?.moods);
   const weather = new Map<string, DayWeather>(saved?.weather);
-  let foods: FoodEntry[] = saved?.foods ?? [];
+  // Entries saved before place and restaurant existed read as home-made.
+  let foods: FoodEntry[] = (saved?.foods ?? []).map(readSnapshotFood);
   const walks = new Map<string, { walk: Walk; points: WalkPoint[] }>(saved?.walks);
   let ownFoods: OwnFood[] = saved?.ownFoods ?? [];
+  // Newest first; checked again like the SQLite rows.
+  let savedFoods: FoodItem[] = (saved?.savedFoods ?? []).map(readFoodItem).filter((f): f is FoodItem => f !== null);
   let sleep: SleepEntry[] = saved?.sleep ?? [];
   const heart = new Map<string, HeartDay>(saved?.heart);
   let bp: BloodPressureEntry[] = saved?.bp ?? [];
@@ -92,6 +99,7 @@ export async function openRepository(): Promise<Repository> {
           foods,
           walks: [...walks],
           ownFoods,
+          savedFoods,
           sleep,
           heart: [...heart],
           bp,
@@ -156,11 +164,11 @@ export async function openRepository(): Promise<Repository> {
     },
 
     async addFood(entry) {
-      foods.push(entry);
+      foods.push({ ...entry, ...whereOf(entry.place, entry.restaurant) });
       persist();
     },
     async updateFood(entry) {
-      foods = foods.map((f) => (f.id === entry.id ? { ...entry } : f));
+      foods = foods.map((f) => (f.id === entry.id ? { ...entry, ...whereOf(entry.place, entry.restaurant) } : f));
       persist();
     },
     async deleteFood(id) {
@@ -184,7 +192,21 @@ export async function openRepository(): Promise<Repository> {
       return [...byKey.values()]
         .sort((a, b) => b.count - a.count || b.latest.loggedAt - a.latest.loggedAt)
         .slice(0, limit)
-        .map(({ latest: f }) => ({ name: f.name, kcal: f.kcal, foodId: f.foodId, unit: f.unit, quantity: f.quantity }));
+        .map(({ latest: f }) => ({
+          name: f.name,
+          kcal: f.kcal,
+          foodId: f.foodId,
+          unit: f.unit,
+          quantity: f.quantity,
+          place: f.place,
+          restaurant: f.restaurant,
+        }));
+    },
+    async recentRestaurants(limit) {
+      return recentRestaurants(
+        foods.filter((f) => f.place !== 'home'),
+        limit,
+      );
     },
 
     async getOwnFoods() {
@@ -196,6 +218,18 @@ export async function openRepository(): Promise<Repository> {
     },
     async deleteOwnFood(id) {
       ownFoods = ownFoods.filter((f) => f.id !== id);
+      persist();
+    },
+
+    async getSavedFoods() {
+      return [...savedFoods];
+    },
+    async saveSavedFood(food) {
+      savedFoods = [{ ...food }, ...savedFoods.filter((f) => f.id !== food.id)];
+      persist();
+    },
+    async deleteSavedFood(id) {
+      savedFoods = savedFoods.filter((f) => f.id !== id);
       persist();
     },
 
@@ -291,6 +325,7 @@ export async function openRepository(): Promise<Repository> {
       foods = [];
       walks.clear();
       ownFoods = [];
+      savedFoods = [];
       sleep = [];
       heart.clear();
       bp = [];

@@ -2,7 +2,7 @@ import type { Achievement } from '@/lib/achievements';
 import type { Units } from '@/lib/format';
 import type { ReminderSettings } from '@/lib/reminders';
 import type { WalkPoint } from '@/lib/walk';
-import type { OwnFood } from '@/nutrition/types';
+import type { FoodItem, OwnFood } from '@/nutrition/types';
 
 export type SourceId = 'healthkit' | 'health-connect' | 'device-sensor' | 'demo';
 
@@ -93,6 +93,13 @@ export interface DayWeather {
   updatedAt: number;
 }
 
+/**
+ * Where a food came from. Restaurant cooking usually has more oil, ghee,
+ * butter, cream and salt, and bigger portions, so a restaurant dish is a
+ * different food from the home one. 'delivery' is ordered in or takeaway.
+ */
+export type FoodPlace = 'home' | 'dine-in' | 'delivery';
+
 /** Something eaten, at the time it was eaten. No meal labels: people snack through the day. */
 export interface FoodEntry {
   id: string;
@@ -110,6 +117,10 @@ export interface FoodEntry {
   /** Calories when logged; the figure for calorie-only entries. */
   kcal: number;
   healthSampleId: string | null;
+  /** 'home' for entries logged before this was asked. */
+  place: FoodPlace;
+  /** The restaurant, when the person named one; always null for home-made food. */
+  restaurant: string | null;
 }
 
 export interface RecentFood {
@@ -118,6 +129,9 @@ export interface RecentFood {
   foodId: string | null;
   unit: string | null;
   quantity: number | null;
+  /** Where it was from last time, so logging it again keeps that. */
+  place: FoodPlace;
+  restaurant: string | null;
 }
 
 export interface Walk {
@@ -213,12 +227,20 @@ export interface Repository {
   deleteFood(id: string): Promise<void>;
   /** Logged between the two epoch-ms times, newest first. */
   getFoods(fromMs: number, toMs: number): Promise<FoodEntry[]>;
-  /** Distinct foods, most often logged first, with their latest portion. */
+  /** Distinct foods, most often logged first, with their latest portion and place. */
   recentFoods(limit: number): Promise<RecentFood[]>;
+  /** Restaurants named in past entries, latest first, each once. */
+  recentRestaurants(limit: number): Promise<string[]>;
 
   getOwnFoods(): Promise<OwnFood[]>;
   saveOwnFood(food: OwnFood): Promise<void>;
   deleteOwnFood(id: string): Promise<void>;
+
+  /** Foods from the food API ('ai:' estimates, 'recipe:' recipes) the person used, so they work offline. */
+  getSavedFoods(): Promise<FoodItem[]>;
+  /** Inserts or replaces by id. */
+  saveSavedFood(food: FoodItem): Promise<void>;
+  deleteSavedFood(id: string): Promise<void>;
 
   /** Inserts or replaces the walk; replaces its route when points are given. */
   saveWalk(walk: Walk, points?: WalkPoint[]): Promise<void>;

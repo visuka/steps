@@ -5,18 +5,29 @@ import { Button, NumberField, TextField } from '@/components/controls';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { newId } from '@/data/types';
-import { NUTRIENTS } from '@/nutrition/nutrients';
+import { NUTRIENT, NUTRIENTS } from '@/nutrition/nutrients';
 import type { NutrientKey, Nutrients, OwnFood } from '@/nutrition/types';
+
+/** What a packet label shows first. */
+const FIRST: NutrientKey[] = ['kcal', 'protein', 'carbs', 'sugars', 'fiber', 'fat', 'satFat', 'sodium'];
+/**
+ * Everything else a label might give, in the usual order. Glycemic load is
+ * worked out, never on a label, so it isn't asked for.
+ */
+const MORE: NutrientKey[] = NUTRIENTS.map((n) => n.key).filter((k) => !FIRST.includes(k) && k !== 'gl');
 
 /** A food that isn't in the list: calories are required, everything else is optional. */
 export function OwnFoodForm({
   initialName,
   onSave,
   onCancel,
+  children,
 }: {
   initialName: string;
   onSave: (food: OwnFood) => void;
   onCancel: () => void;
+  /** Extra controls above the buttons, e.g. where it was from. */
+  children?: React.ReactNode;
 }) {
   const [name, setName] = useState(initialName);
   const [serving, setServing] = useState('');
@@ -31,7 +42,7 @@ export function OwnFoodForm({
       return next;
     });
 
-  const shown = NUTRIENTS.filter((n) => n.group === 'energy' || n.group === 'macro' || more);
+  const shown = (more ? [...FIRST, ...MORE] : FIRST).map((k) => NUTRIENT[k]);
   const ready = name.trim() !== '' && (values.kcal ?? 0) > 0;
 
   return (
@@ -55,9 +66,10 @@ export function OwnFoodForm({
       ))}
       {!more ? (
         <ThemedText type="small" themeColor="textSecondary" style={styles.link} onPress={() => setMore(true)}>
-          Add vitamins and minerals
+          More: added sugar, cholesterol, vitamins, minerals
         </ThemedText>
       ) : null}
+      {children}
       <View style={styles.actions}>
         <View style={styles.action}>
           <Button kind="secondary" label="Cancel" onPress={onCancel} />

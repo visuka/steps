@@ -26,8 +26,9 @@ import { formatSleep, type Night, nightsByDate } from '@/lib/sleep';
 import { bpGoalComparison, restingTrend, sleepMoodComparison, sleepStepsComparison } from '@/lib/vitals-insights';
 import { locationAllowed, requestLocation } from '@/location/place';
 import { goodSources } from '@/nutrition/catalog';
-import { dailyAverage, lowestNutrients } from '@/nutrition/day';
-import { NUTRIENT } from '@/nutrition/nutrients';
+import { dailyAverage, lowestNutrients, overLimits } from '@/nutrition/day';
+import { eatingOut, eatingOutSummary, MEAL_MIN_KCAL, MIN_MEALS } from '@/nutrition/eating-out';
+import { formatNutrient, NUTRIENT } from '@/nutrition/nutrients';
 import { useApp } from '@/state/app-state';
 import { useFoodBook } from '@/state/use-food-book';
 import { WEATHER_CREDIT } from '@/weather/refresh';
@@ -105,9 +106,11 @@ export function Patterns() {
   const rain = rainComparison(data.days, data.weather);
   const moodDays = data.moods.filter((m) => data.days.some((d) => d.date === m.date && d.steps > 0)).length;
 
-  const nutrition = dailyAverage(data.foods, book.own, book.overrides);
+  const nutrition = dailyAverage(data.foods, book.own, book.overrides, book.saved);
   const low = nutrition.days >= MIN_GROUP_DAYS ? lowestNutrients(nutrition.average) : [];
+  const over = nutrition.days >= MIN_GROUP_DAYS ? overLimits(nutrition.average) : [];
   const sources = low[0] ? goodSources(low[0].key) : [];
+  const out = eatingOut(data.foods, book.nutrientsOf);
 
   const sleepSteps = sleepStepsComparison(data.days, data.nights);
   const sleepMood = sleepMoodComparison(data.nights, data.moods);
@@ -207,7 +210,18 @@ export function Patterns() {
           ) : (
             <ThemedText>Your logged food covered every daily value we track. Nice.</ThemedText>
           )
-        ) : (
+        ) : null}
+        {over.length ? (
+          <>
+            <ThemedText>Over the advised limit, on average:</ThemedText>
+            {over.map((o) => (
+              <ThemedText key={o.key}>
+                · {NUTRIENT[o.key].label}: about {o.percent}% of the limit
+              </ThemedText>
+            ))}
+          </>
+        ) : null}
+        {nutrition.days < MIN_GROUP_DAYS ? (
           <>
             <Waiting
               text={`Log what you eat on ${MIN_GROUP_DAYS} days to see which nutrients run low; ${nutrition.days} so far this week.`}
@@ -218,9 +232,33 @@ export function Patterns() {
               onPress={() => router.push({ pathname: '/journal', params: { section: 'food' } })}
             />
           </>
-        )}
+        ) : null}
         <ThemedText type="small" themeColor="textSecondary">
           Only counts what you log, so days with missed meals look lower than they were.
+        </ThemedText>
+      </Card>
+
+      <Card title="Eating out, last week">
+        {out.out + out.home ? <ThemedText>{eatingOutSummary(out)}</ThemedText> : null}
+        {out.averages.length ? (
+          <>
+            <ThemedText>What a meal held, on average:</ThemedText>
+            {out.averages.map((a) => (
+              <ThemedText key={a.key}>
+                · {NUTRIENT[a.key].label}: {formatNutrient(a.key, a.out)} eating out, {formatNutrient(a.key, a.home)}{' '}
+                home-made
+              </ThemedText>
+            ))}
+          </>
+        ) : (
+          <Waiting
+            text={`To compare them it needs at least ${MIN_MEALS} meals eaten out and ${MIN_MEALS} home-made in the week. When you add food, tap where it was from.`}
+          />
+        )}
+        <ThemedText type="small" themeColor="textSecondary">
+          Restaurant food often has more oil, ghee, butter and salt, and bigger portions, than the same dish made at home.
+          A meal here is {MEAL_MIN_KCAL} kcal or more logged within an hour from one place; tea and snacks under that
+          aren&apos;t counted. This shows your own logged meals, not a verdict on any of them.
         </ThemedText>
       </Card>
 

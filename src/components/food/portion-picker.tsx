@@ -2,11 +2,16 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Chip, NumberField, Stepper } from '@/components/controls';
+import { NutrientBars } from '@/components/food/nutrient-bars';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
-import { gramsFor, nutrientsFor, type PortionOverrides, unitsFor } from '@/nutrition/catalog';
-import { formatNutrient } from '@/nutrition/nutrients';
+import { useTheme } from '@/hooks/use-theme';
+import { gramsFor, isSavedFoodId, nutrientsFor, type PortionOverrides, unitsFor } from '@/nutrition/catalog';
+import { formatNutrient, NUTRIENT } from '@/nutrition/nutrients';
 import type { FoodItem, Nutrients } from '@/nutrition/types';
+import { glBand, glycemicIndex, type WatchOut, watchOuts } from '@/nutrition/watch';
+
+const DEEP_FRIED_NOTE = 'Cooked in a lot of hot oil, so it soaks some up: more fat and calories than the same food made another way.';
 
 /**
  * Picks how much of a food: a unit (roti, bowl, grams) and a quantity, with a
@@ -18,34 +23,49 @@ export function PortionPicker({
   overrides,
   initialUnit,
   initialQuantity,
+  showWorking,
   actionLabel,
   onDone,
   onCancel,
   onSetPortion,
+  busy,
   children,
 }: {
   food: FoodItem;
   overrides: PortionOverrides;
   initialUnit?: string;
   initialQuantity?: number;
+  /** Open "How we worked this out" from the start, e.g. right after a recipe. */
+  showWorking?: boolean;
   actionLabel: string;
   onDone: (unit: string, quantity: number, nutrients: Nutrients) => void;
   onCancel: () => void;
   onSetPortion: (unit: string, grams: number) => void;
+  /** Saving is waiting on the server: both buttons wait too. */
+  busy?: boolean;
   /** Extra controls under the preview, e.g. when it was eaten. */
   children?: React.ReactNode;
 }) {
+  const theme = useTheme();
   const units = unitsFor(food, overrides);
-  const [unit, setUnit] = useState(initialUnit ?? food.defaultUnit);
+  const [unit, setUnit] = useState(
+    initialUnit && units.some((u) => u.key === initialUnit) ? initialUnit : food.defaultUnit,
+  );
   const [quantity, setQuantity] = useState(initialQuantity ?? (unit === 'g' ? 100 : 1));
   const [editing, setEditing] = useState(false);
   const [grams, setGrams] = useState<number | null>(null);
+  const [allNutrients, setAllNutrients] = useState(false);
+  const [working, setWorking] = useState(Boolean(showWorking));
+  const [watchOpen, setWatchOpen] = useState<WatchOut['key'] | null>(null);
 
   const current = units.find((u) => u.key === unit) ?? units[0];
   const isGrams = unit === 'g';
   const n = nutrientsFor(food, unit, quantity, overrides);
   const totalGrams = Math.round(gramsFor(food, unit, quantity, overrides));
   const own = food.category === 'own';
+  const watch = watchOuts(food, gramsFor(food, unit, quantity, overrides));
+  const gi = glycemicIndex(food);
+  const hasWorking = isSavedFoodId(food.id) || Boolean(food.ingredients?.length || food.notes?.length);
 
   const pickUnit = (key: string) => {
     setUnit(key);
@@ -57,6 +77,16 @@ export function PortionPicker({
     .filter((k) => n[k] !== undefined)
     .map((k) => `${k === 'fiber' ? 'Fibre' : k[0].toUpperCase() + k.slice(1)} ${formatNutrient(k, n[k]!)}`)
     .join(' · ');
+
+  const openWatch = watch.find((w) => w.key === watchOpen);
+  const watchNote = (w: WatchOut) => {
+    if (w.key === 'deep-fried') return DEEP_FRIED_NOTE;
+    const amount = n[w.key];
+    return `${amount === undefined ? '' : `This amount: ${formatNutrient(w.key, amount)}. `}${NUTRIENT[w.key].note}`;
+  };
+
+  // Ingredients are given for the food's first unit (a recipe's one serving).
+  const workingUnit = food.units[0];
 
   return (
     <View style={styles.wrap}>
@@ -92,6 +122,31 @@ export function PortionPicker({
         </ThemedText>
       ) : null}
 
+      {watch.length ? (
+        <View style={styles.chips}>
+          {watch.map((w) => (
+            <Chip
+              key={w.key}
+              label={w.text}
+              dot={w.level === 'high' ? theme.danger : theme.warning}
+              selected={watchOpen === w.key}
+              onPress={() => setWatchOpen(watchOpen === w.key ? null : w.key)}
+            />
+          ))}
+        </View>
+      ) : null}
+      {openWatch ? (
+        <ThemedText type="small" themeColor="textSecondary">
+          {watchNote(openWatch)}
+        </ThemedText>
+      ) : null}
+
+      {gi !== null && n.gl !== undefined ? (
+        <ThemedText type="small" themeColor="textSecondary">
+          GI about {gi} · glycemic load {formatNutrient('gl', n.gl)} for this amount: {glBand(n.gl, 'portion')}
+        </ThemedText>
+      ) : null}
+
       {!isGrams && !own ? (
         editing ? (
           <View style={styles.portion}>
@@ -121,14 +176,69 @@ export function PortionPicker({
         )
       ) : null}
 
+      <ThemedText
+        type="small"
+        themeColor="textSecondary"
+        style={styles.link}
+        onPress={() => setAllNutrients(!allNutrients)}
+        accessibilityRole="button">
+        {allNutrients ? 'Hide nutrients' : 'Show all nutrients'}
+      </ThemedText>
+      {allNutrients ? (
+        <View style={styles.section}>
+          <NutrientBars nutrients={n} groups={['energy', 'macro', 'limit', 'glucose', 'vitamin', 'mineral']} />
+          <ThemedText type="small" themeColor="textSecondary">
+            Percent of a general adult daily value for this amount. Tap a row to see what it is.
+          </ThemedText>
+        </View>
+      ) : null}
+
+      {hasWorking ? (
+        <>
+          <ThemedText
+            type="small"
+            themeColor="textSecondary"
+            style={styles.link}
+            onPress={() => setWorking(!working)}
+            accessibilityRole="button">
+            {working ? 'Hide how we worked this out' : 'How we worked this out'}
+          </ThemedText>
+          {working ? (
+            <View style={styles.section}>
+              {food.ingredients?.length ? (
+                <>
+                  <ThemedText type="small">
+                    In 1 {workingUnit.label}
+                    {workingUnit.key === 'g' ? '' : ` (${Math.round(workingUnit.grams)} g)`}:
+                  </ThemedText>
+                  {food.ingredients.map((i, index) => (
+                    <ThemedText key={`${i.name}-${index}`} type="small" themeColor="textSecondary">
+                      · {i.name}: {i.grams < 10 && !Number.isInteger(i.grams) ? i.grams.toFixed(1) : Math.round(i.grams)} g
+                    </ThemedText>
+                  ))}
+                </>
+              ) : null}
+              {food.notes?.map((note, index) => (
+                <ThemedText key={`note-${index}`} type="small" themeColor="textSecondary">
+                  {note}
+                </ThemedText>
+              ))}
+              <ThemedText type="small" themeColor="textSecondary">
+                Nutrients are added up from each ingredient, not guessed. They are estimates.
+              </ThemedText>
+            </View>
+          ) : null}
+        </>
+      ) : null}
+
       {children}
 
       <View style={styles.actions}>
         <View style={styles.action}>
-          <Button kind="secondary" label="Cancel" onPress={onCancel} />
+          <Button kind="secondary" label="Cancel" onPress={onCancel} disabled={busy} />
         </View>
         <View style={styles.action}>
-          <Button label={actionLabel} onPress={() => onDone(unit, quantity, n)} />
+          <Button label={actionLabel} onPress={() => onDone(unit, quantity, n)} disabled={busy} />
         </View>
       </View>
       <ThemedText type="small" themeColor="textSecondary">
@@ -142,6 +252,7 @@ const styles = StyleSheet.create({
   wrap: { gap: Spacing.two + 4 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
   portion: { gap: Spacing.two },
+  section: { gap: Spacing.two },
   link: { textDecorationLine: 'underline' },
   actions: { flexDirection: 'row', gap: Spacing.two },
   action: { flex: 1 },
