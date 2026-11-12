@@ -124,12 +124,19 @@ jobs:
       # this prints no secret. For the template's debug key it prints a warning
       # instead, so nobody copies that one into the server's settings.
       - name: Print the APK signing certificate
+        # Information only (passkeys need it later): never fail the build.
+        continue-on-error: true
         run: |
-          set -o pipefail
           apksigner="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner"
-          hex="$("$apksigner" verify --print-certs android/app/build/outputs/apk/release/app-release.apk \
-            | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
-          test -n "$hex"
+          certs="$("$apksigner" verify --print-certs android/app/build/outputs/apk/release/app-release.apk)"
+          # Older build-tools print "Signer #1 certificate ...", newer ones
+          # "Signer (minSdkVersion=...) certificate ...": take the first digest.
+          hex="$(printf '%s\n' "$certs" | awk -F'certificate SHA-256 digest: ' 'NF > 1 { print $2; exit }')"
+          if [ -z "$hex" ]; then
+            echo "::warning::No certificate digest found in apksigner's output."
+            printf '%s\n' "$certs" | sed 's/^/  /'
+            exit 0
+          fi
           # React Native's template debug.keystore (password "android"), the same in every project.
           if [ "${hex,,}" = "fac61745dc0903786fb9ede62a962b399f7348f0bb6f899b8332667591033b9c" ]; then
             echo "::warning::Signed with React Native's public debug key. Never list it in assetlinks.json or the sign-in server's origins."
