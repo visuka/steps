@@ -22,6 +22,7 @@ import { cmToHeight, heightToCm, heightUnit, kgToWeight, type Units, weightToKg,
 import { locationAllowed, requestLocation } from '@/location/place';
 import { requestNotificationPermission, scheduleMoodCheckIn } from '@/notifications/notify';
 import { useApp } from '@/state/app-state';
+import { usePremium } from '@/state/use-premium';
 import { CONDITION_LABEL } from '@/weather/met';
 import { WEATHER_CREDIT } from '@/weather/refresh';
 
@@ -45,6 +46,7 @@ export default function SettingsScreen() {
   const { repo, profile, source, updateProfile, switchSource, resetAll, refresh } = useApp();
   const router = useRouter();
   const theme = useTheme();
+  const premium = usePremium();
   const [sources, setSources] = useState<StepSource[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [moodNotice, setMoodNotice] = useState<string | null>(null);
@@ -140,6 +142,26 @@ export default function SettingsScreen() {
   return (
     <Screen title="Settings" onBack={() => router.back()}>
       <AccountCard />
+
+      {/* Testers only: a look at the free app without leaving the test. */}
+      {premium.canPreviewFree ? (
+        <Card title={`${APP_NAME} Premium`}>
+          <ThemedText type="small" themeColor="textSecondary">
+            Premium is free while we test.
+          </ThemedText>
+          <Row label="Preview as a free user">
+            <Switch
+              value={premium.previewFree}
+              onValueChange={(on) => premium.setPreviewFree(on)}
+              trackColor={{ true: theme.accent, false: theme.track }}
+            />
+          </Row>
+          <ThemedText type="small" themeColor="textSecondary">
+            Shows the app as someone without Premium sees it, so you can check it. Nothing is deleted, and your steps
+            keep counting.
+          </ThemedText>
+        </Card>
+      ) : null}
 
       <Card title="Profile">
         <Segmented<Units>
@@ -241,30 +263,33 @@ export default function SettingsScreen() {
         ) : null}
       </Card>
 
-      <Card title="Evening mood check-in">
-        <Row label="Ask how my day was">
-          <Switch
-            value={profile.moodCheckIn.enabled}
-            onValueChange={(enabled) => setMoodCheckIn({ enabled })}
-            trackColor={{ true: theme.accent, false: theme.track }}
-          />
-        </Row>
-        {profile.moodCheckIn.enabled ? (
-          <Stepper
-            value={profile.moodCheckIn.hour}
-            onChange={(hour) => setMoodCheckIn({ hour })}
-            step={1}
-            min={17}
-            max={23}
-            format={hourLabel}
-          />
-        ) : null}
-        {moodNotice ? (
-          <ThemedText type="small" style={{ color: theme.danger }}>
-            {moodNotice}
-          </ThemedText>
-        ) : null}
-      </Card>
+      {/* Mood is premium, and so is its reminder (the setting is kept for when premium is back). */}
+      {premium.isLocked('mood') ? null : (
+        <Card title="Evening mood check-in">
+          <Row label="Ask how my day was">
+            <Switch
+              value={profile.moodCheckIn.enabled}
+              onValueChange={(enabled) => setMoodCheckIn({ enabled })}
+              trackColor={{ true: theme.accent, false: theme.track }}
+            />
+          </Row>
+          {profile.moodCheckIn.enabled ? (
+            <Stepper
+              value={profile.moodCheckIn.hour}
+              onChange={(hour) => setMoodCheckIn({ hour })}
+              step={1}
+              min={17}
+              max={23}
+              format={hourLabel}
+            />
+          ) : null}
+          {moodNotice ? (
+            <ThemedText type="small" style={{ color: theme.danger }}>
+              {moodNotice}
+            </ThemedText>
+          ) : null}
+        </Card>
+      )}
 
       <Card title="Location">
         <ThemedText type="small" themeColor="textSecondary">
@@ -312,10 +337,11 @@ export default function SettingsScreen() {
             : 'To sign you in, our server keeps only your passkey’s public key and a random account number: no email, no name, no fingerprint. Everything else stays on this phone and in your health app: steps, walks and their routes, moods, food, sleep, health readings and the weather.'}
         </ThemedText>
         <ThemedText type="small" themeColor="textSecondary">
-          When you look up a food or enter a recipe, what you type is sent to our server and an AI service to work out
-          what&apos;s in it. When you log a dish as dine-in or ordered in, its name is sent the same way to get
-          restaurant values. If you say it was from a restaurant, that goes too, with the restaurant&apos;s name if you
-          gave one. It&apos;s kept without your name, so the same food is quicker for everyone next time.
+          When you look up a food or enter a recipe, what you type and the country your phone is set to are sent to our
+          server and an AI service to work out what&apos;s in it, the way it&apos;s usually made where you are. When
+          you log a dish as dine-in or ordered in, its name is sent the same way to get restaurant values. If you say it
+          was from a restaurant, that goes too, with the restaurant&apos;s name if you gave one. It&apos;s kept without
+          your name, so the same food is quicker for everyone next time.
         </ThemedText>
         <Button kind="secondary" label="Export daily totals (CSV)" onPress={exportCsv} />
         {exportError ? (

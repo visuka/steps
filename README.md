@@ -30,6 +30,7 @@ Built with Expo SDK 58 (React Native 0.88, TypeScript).
 | Food log: search 143 foods (local names too), portions, own foods; calories, protein, vitamins and minerals vs daily values; eaten vs burned | `src/nutrition/`, `src/components/journal/food-log.tsx`, `src/components/food/` |
 | Weight and water logs, written to the health platform | `src/components/journal/body-log.tsx` |
 | Onboarding, profile, CSV export, delete all data | `src/components/onboarding.tsx`, `src/app/settings.tsx` |
+| Steps Premium: today's steps (count and goal ring) are free, everything else is premium. From `GET /v1/me` (`premium`, `premiumReason`), kept for offline; a food route's 402 goes free; testers get "Preview as a free user" in Settings | `src/premium/premium.ts`, `src/state/use-premium.tsx`, `src/components/premium-gate.tsx` |
 
 Tabs: Today (with the big Record button), Walks, Journal, Insights, Goals. Settings opens from the
 gear on Today.
@@ -225,7 +226,10 @@ iPhone, and compare daily totals with the phone's own health app for a week (tar
       (location, health, food), health apps declaration, and foreground service declarations for
       types `health` (step counting) and `location` (walk recording), each with a short video.
 - [ ] Privacy policy covers location (approximate area for weather, routes of recorded walks),
-      mood and food, all kept on the phone.
+      mood and food, all kept on the phone, and food look-ups, which send what's typed and the
+      phone's country to our server and an AI service.
+- [ ] Premium purchases (Google Play Billing, StoreKit). They only change what `GET /v1/me` says;
+      the buy button goes on the Premium screen (`src/components/premium-gate.tsx`).
 - [ ] Run a 2-week beta (TestFlight + Play closed testing).
 
 ## Renaming

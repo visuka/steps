@@ -13,6 +13,7 @@ import { LockOffer, LockScreen } from '@/components/auth/lock-screen';
 import { Onboarding } from '@/components/onboarding';
 import { LockProvider, useLock } from '@/state/app-lock';
 import { AppProvider, useApp } from '@/state/app-state';
+import { PremiumProvider } from '@/state/use-premium';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -23,7 +24,9 @@ export default function RootLayout() {
       <AuthProvider>
         <AppProvider>
           <LockProvider>
-            <Gate />
+            <PremiumProvider>
+              <Gate />
+            </PremiumProvider>
           </LockProvider>
         </AppProvider>
       </AuthProvider>

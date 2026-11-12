@@ -74,7 +74,10 @@ export function Onboarding() {
                 <ThemedText type="subtitle">Welcome to {APP_NAME}</ThemedText>
                 <ThemedText themeColor="textSecondary">One number, one goal, every day.</ThemedText>
                 <Point icon="walk-outline" text="Counts your steps automatically, with no start button." />
-                <Point icon="flag-outline" text="A daily goal, streaks and badges keep you moving." />
+                <Point
+                  icon="flag-outline"
+                  text={`A daily goal keeps you moving. ${APP_NAME} Premium adds streaks, badges and more.`}
+                />
                 <Point icon="lock-closed-outline" text="Your walking data stays on this phone and in your health app." />
                 <Button label="Get started" onPress={next} />
               </>
@@ -130,7 +133,8 @@ export function Onboarding() {
               <>
                 <ThemedText type="subtitle">Your daily goal</ThemedText>
                 <ThemedText themeColor="textSecondary">
-                  7,000 steps is a good start. After two weeks the app suggests a goal based on how you walk.
+                  7,000 steps is a good start. With Premium, after two weeks the app suggests a goal based on how you
+                  walk.
                 </ThemedText>
                 <Card>
                   <Stepper

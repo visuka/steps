@@ -11,6 +11,7 @@ import { dayKey } from '@/lib/dates';
 import { formatSteps } from '@/lib/format';
 import { REMINDER_MIN_STEPS, shouldRemind } from '@/lib/reminders';
 import { notifyNow } from '@/notifications/notify';
+import { premiumOpenOnPhone } from '@/premium/premium';
 import { pushWidgetData } from '@/widget/update';
 import { WIDGET_DATA_KEY } from '@/widget/widget-data';
 
@@ -103,6 +104,8 @@ async function celebrate(repo: Repository, { today, achievements }: SyncResult) 
     await repo.setKv(GOAL_NOTIFIED_KEY, today.date);
     await notifyNow('Goal reached', `${formatSteps(today.steps)} steps today. Nice work.`);
   }
+  // Badges are premium: earned and kept for everyone, announced only where they can be seen.
+  if (!achievements.length || !(await premiumOpenOnPhone(repo))) return;
   for (const a of achievements) {
     await notifyNow('New badge', achievementTitle(a.kind, a.value));
   }

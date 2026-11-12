@@ -7,6 +7,7 @@
  * shared cache, so nothing is trusted: unknown nutrients, negative or absurd
  * numbers, missing units and over-long text are dropped or trimmed.
  */
+import { APP_NAME } from '@/constants/app';
 import { OWN_PREFIX } from '@/nutrition/catalog';
 import { NUTRIENTS } from '@/nutrition/nutrients';
 import { cleanRestaurant, isPlace, type Where, whereOf } from '@/nutrition/place';
@@ -80,6 +81,8 @@ export type FoodApiErrorKind =
   | 'unavailable'
   | 'too_long'
   | 'bad_answer'
+  /** 402: this account doesn't have premium (the app then shows the Premium screen). */
+  | 'premium'
   | 'other';
 
 export class FoodApiError extends Error {
@@ -101,6 +104,7 @@ const MESSAGES: Record<Exclude<FoodApiErrorKind, 'not_food' | 'limit'>, string> 
   unavailable: "Food lookup isn't working right now. Please try again later.",
   too_long: "That's too long. Please shorten it and try again.",
   bad_answer: 'Something went wrong. Please try again.',
+  premium: `Food and nutrition are part of ${APP_NAME} Premium.`,
   other: 'Something went wrong. Please try again.',
 };
 
@@ -110,6 +114,8 @@ const MESSAGES: Record<Exclude<FoodApiErrorKind, 'not_food' | 'limit'>, string> 
  */
 export function errorFor(route: FoodRoute, status: number | null, code?: string): FoodApiError {
   if (status === null) return new FoodApiError('offline', MESSAGES.offline);
+  // Only our server answers 402 ("premium_required"); API Gateway never does.
+  if (status === 402) return new FoodApiError('premium', MESSAGES.premium);
   if (status === 401 || status === 403) return new FoodApiError('signin', MESSAGES.signin);
   if (status === 422) {
     return new FoodApiError(
@@ -174,17 +180,50 @@ export function checkDescription(text: string): string | null {
 }
 
 /**
+ * The phone's region as the server takes it: ISO 3166-1 alpha-2, upper case
+ * ("IN", "GB"). Anything else ("419" for Latin America, none at all) is
+ * undefined and not sent; the server then counts dishes as made in India.
+ */
+export function countryCode(region: unknown): string | undefined {
+  if (typeof region !== 'string') return undefined;
+  const code = region.trim().toUpperCase();
+  return /^[A-Z]{2}$/.test(code) ? code : undefined;
+}
+
+/**
  * The body for POST /v1/food/estimate. With no place the server reads one
  * from the text, if it says ("ordered pizza"); a place sent wins over that.
- * The restaurant goes only with dine-in or delivery.
+ * The restaurant goes only with dine-in or delivery. `region`: the phone's
+ * region, so dishes are worked out as they're usually made there.
  */
-export function estimateRequest(description: string, where?: Where | null): Record<string, string> {
+export function estimateRequest(description: string, where?: Where | null, region?: unknown): Record<string, string> {
   const body: Record<string, string> = { description: description.trim() };
+  const country = countryCode(region);
+  if (country) body.country = country;
   if (!where) return body;
   const w = whereOf(where.place, where.restaurant);
   body.place = w.place;
   if (w.restaurant) body.restaurant = w.restaurant;
   return body;
+}
+
+/** The body for POST /v1/food/recipe: servings and unit only when given, the country as for estimateRequest. */
+export function recipeRequest(request: RecipeRequest, region?: unknown): Record<string, unknown> {
+  const body: Record<string, unknown> = {
+    name: request.name.trim(),
+    ingredients: request.ingredients.trim(),
+    steps: request.steps.trim(),
+  };
+  if (request.servings !== undefined) body.servings = request.servings;
+  if (request.unit !== undefined) body.unit = request.unit;
+  const country = countryCode(region);
+  if (country) body.country = country;
+  return body;
+}
+
+/** What the app says about a dish the server couldn't work out, where it offers the recipe form. */
+export function unknownDishMessage(name: string): string {
+  return `We couldn't find “${name}” yet. Could you tell us how it's made? Then we can count it properly.`;
 }
 
 /** A plain reason the recipe can't be sent, or null when it can. */

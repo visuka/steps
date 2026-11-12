@@ -142,8 +142,8 @@ export function RecipeForm({
         </View>
       </View>
       <ThemedText type="small" themeColor="textSecondary">
-        What you type here is sent to our server and an AI service to read the ingredients. It&apos;s kept without your
-        name, so the same recipe is quicker next time.
+        What you type here, and your phone&apos;s country, are sent to our server and an AI service to read the
+        ingredients. It&apos;s kept without your name, so the same recipe is quicker next time.
       </ThemedText>
     </View>
   );

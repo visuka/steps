@@ -5,6 +5,7 @@ import { Linking, StyleSheet, View } from 'react-native';
 import { Card } from '@/components/card';
 import { confirm } from '@/components/confirm';
 import { Button } from '@/components/controls';
+import { PremiumCard } from '@/components/premium-gate';
 import { RouteMap } from '@/components/route-map';
 import { Screen } from '@/components/screen';
 import { StatTile } from '@/components/stat-tile';
@@ -14,7 +15,9 @@ import { useTheme } from '@/hooks/use-theme';
 import { formatClock, formatDistance, formatPace, formatSteps } from '@/lib/format';
 import { cleanPoints, paceSecPerKm, walkActiveKcal, type WalkPoint, walkStats } from '@/lib/walk';
 import { preciseLocationAllowed } from '@/location/place';
+import { SCREEN_FEATURES } from '@/premium/premium';
 import { useApp } from '@/state/app-state';
+import { usePremium } from '@/state/use-premium';
 import { walkRecorder } from '@/walks/recorder';
 import { saveWalk } from '@/walks/save';
 
@@ -26,6 +29,7 @@ export default function RecordWalkScreen() {
   const { repo, source, profile, touch } = useApp();
   const router = useRouter();
   const theme = useTheme();
+  const premium = usePremium();
   const [phase, setPhase] = useState<Phase>('loading');
   const [walkId, setWalkId] = useState<number | null>(null);
   const [points, setPoints] = useState<WalkPoint[]>([]);
@@ -97,7 +101,9 @@ export default function RecordWalkScreen() {
     const walk = await saveWalk({ repo, source, profile, startedAt: walkId, endedAt, points: all });
     await walkRecorder.discard(walkId);
     touch();
-    router.replace({ pathname: '/walk/[id]', params: { id: walk.id } });
+    // Saved either way; without premium there's no walk screen to show it on.
+    if (premium.isLocked(SCREEN_FEATURES['walk/[id]'])) router.back();
+    else router.replace({ pathname: '/walk/[id]', params: { id: walk.id } });
   };
 
   const discard = () =>
@@ -113,6 +119,14 @@ export default function RecordWalkScreen() {
   const elapsedS = walkId ? ((phase === 'recording' ? now : (points[points.length - 1]?.t ?? now)) - walkId) / 1000 : 0;
 
   if (phase === 'idle' || phase === 'loading') {
+    // Starting a walk is premium. One already going (started with premium) can always be finished below.
+    if (premium.isLocked(SCREEN_FEATURES['walk/record'])) {
+      return (
+        <Screen title="Record a walk" onBack={() => router.back()}>
+          {phase === 'idle' ? <PremiumCard /> : null}
+        </Screen>
+      );
+    }
     return (
       <Screen title="Record a walk" onBack={() => router.back()}>
         <Card>

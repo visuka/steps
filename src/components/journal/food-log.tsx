@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { type EstimateItem, type EstimateResult, estimateFood, restaurantVersion } from '@/api/food-api';
-import { checkDescription, FoodApiError } from '@/api/food-read';
+import { checkDescription, FoodApiError, unknownDishMessage } from '@/api/food-read';
 import { Card } from '@/components/card';
 import { Button, Chip, Segmented, TextField } from '@/components/controls';
 import { NutrientBars } from '@/components/food/nutrient-bars';
@@ -231,7 +231,7 @@ export function FoodLog() {
   /** Said before Add or Save: the dish's name leaves the phone without a tap on Look up. */
   const lookupNote = (food: FoodItem) =>
     needsLookup(food, here, book.find, book.saved)
-      ? 'To get restaurant values, the dish’s name (and the restaurant, if you name one) is sent to our server, not your name.'
+      ? 'To get restaurant values, the dish’s name (and the restaurant, if you name one) is sent to our server with your phone’s country, not your name.'
       : null;
 
   const logFood = async (food: FoodItem, unit: string, quantity: number, w: Where) => {
@@ -678,9 +678,12 @@ function LookupPanel({
               {name}: added
             </ThemedText>
           ) : (
-            <ThemedText key={name} type="small" style={styles.link} onPress={() => onRecipe(name)}>
-              We don’t know “{name}”. Tell us how you made it
-            </ThemedText>
+            <View key={name} style={styles.lookup}>
+              <ThemedText type="small" themeColor="textSecondary">
+                {unknownDishMessage(name)}
+              </ThemedText>
+              <Button kind="secondary" label="Tell us how it’s made" onPress={() => onRecipe(name)} />
+            </View>
           ),
         )}
         {!items.length && !unknown.length ? (
@@ -703,8 +706,8 @@ function LookupPanel({
       <Button kind="secondary" label={`Look up “${query}”`} onPress={onLookUp} />
       {lookup.status === 'idle' ? (
         <ThemedText type="small" themeColor="textSecondary">
-          For a dish or a whole meal. What you type, and the restaurant if you name one, is sent to our server, not
-          your name.
+          For a dish or a whole meal. What you type, your phone’s country and the restaurant if you name one are sent
+          to our server, not your name.
         </ThemedText>
       ) : null}
     </View>

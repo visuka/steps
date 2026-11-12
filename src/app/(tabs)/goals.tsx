@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Card } from '@/components/card';
 import { Button, Stepper } from '@/components/controls';
+import { PremiumGate } from '@/components/premium-gate';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -22,6 +23,7 @@ import { formatSteps } from '@/lib/format';
 import { GOAL_STEP, MAX_GOAL, MIN_GOAL, SUGGESTION_DAYS, suggestGoal } from '@/lib/goals';
 import { computeStreaks, type Streaks } from '@/lib/streaks';
 import { useApp } from '@/state/app-state';
+import { usePremium } from '@/state/use-premium';
 
 const BADGES: { kind: AchievementKind; value: number }[] = [
   ...STREAK_MILESTONES.map((value) => ({ kind: 'streak' as const, value })),
@@ -31,6 +33,8 @@ const BADGES: { kind: AchievementKind; value: number }[] = [
 export default function GoalsScreen() {
   const { repo, profile, dataVersion, updateProfile } = useApp();
   const theme = useTheme();
+  // Setting the goal is free, as the ring it counts to is; streaks, badges and suggestions come from history.
+  const history = !usePremium().isLocked('history');
   const [streaks, setStreaks] = useState<Streaks>({ current: 0, best: 0 });
   const [lifetime, setLifetime] = useState(0);
   const [earned, setEarned] = useState<Map<string, Achievement>>(new Map());
@@ -59,22 +63,24 @@ export default function GoalsScreen() {
 
   return (
     <Screen title="Goals">
-      <View style={styles.streakRow}>
-        <Card style={styles.streakCard}>
-          <Ionicons name="flame" size={22} color={theme.accent} />
-          <ThemedText style={styles.big}>{streaks.current}</ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            Current streak (days)
-          </ThemedText>
-        </Card>
-        <Card style={styles.streakCard}>
-          <Ionicons name="trophy" size={22} color={theme.accent} />
-          <ThemedText style={styles.big}>{streaks.best}</ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            Best streak (days)
-          </ThemedText>
-        </Card>
-      </View>
+      {history ? (
+        <View style={styles.streakRow}>
+          <Card style={styles.streakCard}>
+            <Ionicons name="flame" size={22} color={theme.accent} />
+            <ThemedText style={styles.big}>{streaks.current}</ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              Current streak (days)
+            </ThemedText>
+          </Card>
+          <Card style={styles.streakCard}>
+            <Ionicons name="trophy" size={22} color={theme.accent} />
+            <ThemedText style={styles.big}>{streaks.best}</ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              Best streak (days)
+            </ThemedText>
+          </Card>
+        </View>
+      ) : null}
 
       <Card title="Daily goal">
         <Stepper
@@ -88,7 +94,7 @@ export default function GoalsScreen() {
         <ThemedText type="small" themeColor="textSecondary">
           Changes apply from today. Past days keep the goal they had.
         </ThemedText>
-        {suggestion ? (
+        {history && suggestion ? (
           <Button
             kind="secondary"
             label={`Use suggested goal: ${formatSteps(suggestion)}`}
@@ -97,34 +103,42 @@ export default function GoalsScreen() {
         ) : null}
       </Card>
 
-      <Card title="Badges" right={<ThemedText type="small" themeColor="textSecondary">{formatSteps(lifetime)} lifetime steps</ThemedText>}>
-        <View style={styles.badges}>
-          {BADGES.map((b) => {
-            const got = earned.get(achievementId(b.kind, b.value));
-            const progress = b.kind === 'streak' ? streaks.best / b.value : lifetime / b.value;
-            return (
-              <ThemedView
-                key={achievementId(b.kind, b.value)}
-                type={got ? 'background' : 'backgroundSelected'}
-                style={[styles.badge, got && { borderColor: theme.accent }]}>
-                <Ionicons
-                  name={b.kind === 'streak' ? 'flame' : 'footsteps'}
-                  size={22}
-                  color={got ? theme.accent : theme.textSecondary}
-                />
-                <ThemedText type="smallBold" style={styles.badgeText}>
-                  {achievementTitle(b.kind, b.value)}
-                </ThemedText>
-                <ThemedText type="small" themeColor="textSecondary" style={styles.badgeText}>
-                  {got
-                    ? `Earned ${new Date(got.earnedAt).toLocaleDateString()}`
-                    : `${Math.min(99, Math.floor(progress * 100))}% there`}
-                </ThemedText>
-              </ThemedView>
-            );
-          })}
-        </View>
-      </Card>
+      <PremiumGate feature="history">
+        <Card
+          title="Badges"
+          right={
+            <ThemedText type="small" themeColor="textSecondary">
+              {formatSteps(lifetime)} lifetime steps
+            </ThemedText>
+          }>
+          <View style={styles.badges}>
+            {BADGES.map((b) => {
+              const got = earned.get(achievementId(b.kind, b.value));
+              const progress = b.kind === 'streak' ? streaks.best / b.value : lifetime / b.value;
+              return (
+                <ThemedView
+                  key={achievementId(b.kind, b.value)}
+                  type={got ? 'background' : 'backgroundSelected'}
+                  style={[styles.badge, got && { borderColor: theme.accent }]}>
+                  <Ionicons
+                    name={b.kind === 'streak' ? 'flame' : 'footsteps'}
+                    size={22}
+                    color={got ? theme.accent : theme.textSecondary}
+                  />
+                  <ThemedText type="smallBold" style={styles.badgeText}>
+                    {achievementTitle(b.kind, b.value)}
+                  </ThemedText>
+                  <ThemedText type="small" themeColor="textSecondary" style={styles.badgeText}>
+                    {got
+                      ? `Earned ${new Date(got.earnedAt).toLocaleDateString()}`
+                      : `${Math.min(99, Math.floor(progress * 100))}% there`}
+                  </ThemedText>
+                </ThemedView>
+              );
+            })}
+          </View>
+        </Card>
+      </PremiumGate>
     </Screen>
   );
 }

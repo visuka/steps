@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { Card } from '@/components/card';
 import { confirm } from '@/components/confirm';
 import { Button } from '@/components/controls';
+import { PremiumGate } from '@/components/premium-gate';
 import { RouteMap } from '@/components/route-map';
 import { Screen } from '@/components/screen';
 import { StatTile } from '@/components/stat-tile';
@@ -13,12 +14,22 @@ import { Spacing } from '@/constants/theme';
 import type { Walk } from '@/data/types';
 import { formatDistance, formatDuration, formatPace, formatSteps, formatTemp } from '@/lib/format';
 import { paceSecPerKm, type WalkPoint } from '@/lib/walk';
+import { SCREEN_FEATURES } from '@/premium/premium';
 import { useApp } from '@/state/app-state';
 import { walkTitle, walkWhen } from '@/walks/labels';
 import { refreshWalkSteps } from '@/walks/save';
 import { CONDITION_ICON, CONDITION_LABEL } from '@/weather/met';
 
-export default function WalkDetailScreen() {
+export default function WalkDetailRoute() {
+  const router = useRouter();
+  return (
+    <PremiumGate feature={SCREEN_FEATURES['walk/[id]']} title="Walk" onBack={() => router.back()}>
+      <WalkDetailScreen />
+    </PremiumGate>
+  );
+}
+
+function WalkDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { repo, source, profile, touch } = useApp();
   const router = useRouter();

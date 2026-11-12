@@ -8,7 +8,9 @@ import { FoodLog } from '@/components/journal/food-log';
 import { HeartLog } from '@/components/journal/heart-log';
 import { MoodLog } from '@/components/journal/mood-log';
 import { SleepLog } from '@/components/journal/sleep-log';
+import { PremiumGate } from '@/components/premium-gate';
 import { Screen } from '@/components/screen';
+import { SCREEN_FEATURES } from '@/premium/premium';
 
 type Section = 'mood' | 'food' | 'sleep' | 'body';
 type BodyPart = 'bp' | 'heart' | 'weight' | 'water';
@@ -50,20 +52,25 @@ export default function JournalScreen() {
     }
   }
 
+  // Every section is premium; the tabs stay, so a free account can see what's in each.
+  const part = section === 'body' ? body : section;
+
   return (
     <Screen title="Journal">
       <Segmented options={SECTIONS} value={section} onChange={setSection} />
-      {section === 'mood' ? <MoodLog /> : null}
-      {section === 'food' ? <FoodLog /> : null}
-      {section === 'sleep' ? <SleepLog /> : null}
-      {section === 'body' ? (
-        <>
-          <Segmented options={BODY} value={body} onChange={setBody} />
-          {body === 'bp' ? <BloodPressureLog /> : null}
-          {body === 'heart' ? <HeartLog /> : null}
-          {body === 'weight' || body === 'water' ? <BodyLog key={body} kind={body} /> : null}
-        </>
-      ) : null}
+      <PremiumGate feature={SCREEN_FEATURES[`journal/${part}` as const]}>
+        {section === 'mood' ? <MoodLog /> : null}
+        {section === 'food' ? <FoodLog /> : null}
+        {section === 'sleep' ? <SleepLog /> : null}
+        {section === 'body' ? (
+          <>
+            <Segmented options={BODY} value={body} onChange={setBody} />
+            {body === 'bp' ? <BloodPressureLog /> : null}
+            {body === 'heart' ? <HeartLog /> : null}
+            {body === 'weight' || body === 'water' ? <BodyLog key={body} kind={body} /> : null}
+          </>
+        ) : null}
+      </PremiumGate>
     </Screen>
   );
 }

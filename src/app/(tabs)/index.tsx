@@ -8,6 +8,7 @@ import { Card } from '@/components/card';
 import { Button } from '@/components/controls';
 import { GoalRing } from '@/components/goal-ring';
 import { MoodPicker } from '@/components/mood-picker';
+import { PremiumGate } from '@/components/premium-gate';
 import { RecordButton } from '@/components/record-button';
 import { Screen } from '@/components/screen';
 import { StatTile } from '@/components/stat-tile';
@@ -22,6 +23,7 @@ import { locationAllowed, requestLocation } from '@/location/place';
 import { useApp } from '@/state/app-state';
 import { useCaloriesToday } from '@/state/use-calories';
 import { useMoodToday } from '@/state/use-mood';
+import { usePremium } from '@/state/use-premium';
 import { walkRecorder } from '@/walks/recorder';
 import { CONDITION_ICON } from '@/weather/met';
 
@@ -36,6 +38,9 @@ export default function TodayScreen() {
   const theme = useTheme();
   const { mood, setMood, reminderOff, turnOnReminder } = useMoodToday();
   const calories = useCaloriesToday();
+  const premium = usePremium();
+  // Free: today's step count and goal ring only; everything else on Today is premium.
+  const details = !premium.isLocked('today-details');
   const [hourly, setHourly] = useState<number[]>(new Array(24).fill(0));
   const [suggestion, setSuggestion] = useState<number | null>(null);
   const [weather, setWeather] = useState<DayWeather | null>(null);
@@ -73,9 +78,10 @@ export default function TodayScreen() {
   const goal = profile.dailyGoal;
   const progress = goal > 0 ? displaySteps / goal : 0;
   const left = Math.max(0, goal - displaySteps);
-  const weatherLine = weather
-    ? ` · ${CONDITION_ICON[weather.condition]} ${formatTemp(weather.tempMaxC, profile.units)}${weather.place ? `, ${weather.place}` : ''}`
-    : '';
+  const weatherLine =
+    details && weather
+      ? ` · ${CONDITION_ICON[weather.condition]} ${formatTemp(weather.tempMaxC, profile.units)}${weather.place ? `, ${weather.place}` : ''}`
+      : '';
 
   return (
     <Screen
@@ -105,90 +111,104 @@ export default function TodayScreen() {
         </ThemedText>
       </Card>
 
-      <RecordButton walking={walking} onPress={() => router.push('/walk/record')} />
+      {/* A walk started with premium can always be got back to and finished. */}
+      {walking || !premium.isLocked('walks') ? (
+        <RecordButton walking={walking} onPress={() => router.push('/walk/record')} />
+      ) : null}
 
-      <View style={styles.tiles}>
-        <StatTile icon="navigate-outline" label="Distance" value={formatDistance(today?.distanceM ?? 0, profile.units)} />
-        <StatTile icon="flame-outline" label="Active kcal" value={formatSteps(today?.activeKcal ?? 0)} note="Estimated" />
-        {today?.floors != null ? (
-          <StatTile icon="trending-up-outline" label="Floors" value={String(today.floors)} />
-        ) : null}
-      </View>
-
-      <Card title="Minutes on the move">
-        <View style={styles.calories}>
-          <PaceFigure label="Walking" value={today?.walkMin ?? 0} note="60–99 steps/min" />
-          <PaceFigure label="Brisk" value={today?.briskMin ?? 0} note="100–139" />
-          <PaceFigure label="Running" value={today?.runMin ?? 0} note="140+" />
-        </View>
-      </Card>
-
-      <Card title="How are you feeling today?">
-        <MoodPicker value={mood?.mood ?? null} onChange={setMood} />
-        {mood && reminderOff ? (
-          <Button kind="secondary" label="Remind me each evening" onPress={turnOnReminder} />
-        ) : null}
-      </Card>
-
-      <Card title="Calories">
-        <View style={styles.calories}>
-          <CalorieFigure label="Eaten" value={calories.eaten} />
-          <CalorieFigure label="Burned so far, resting included" value={calories.burned} />
-        </View>
-        <Button
-          kind="secondary"
-          label="Log food"
-          onPress={() => router.push({ pathname: '/journal', params: { section: 'food' } })}
-        />
-      </Card>
-
-      {askLocation ? (
-        <Card title="Add the weather to your days">
-          <ThemedText themeColor="textSecondary">
-            With your approximate location, Steps notes the weather each day you open it, so Insights can show how heat
-            and rain change your walking. Your location stays on this phone.
-          </ThemedText>
-          <Button
-            label="Allow location"
-            onPress={async () => {
-              if (await requestLocation()) {
-                setAskLocation(false);
-                refresh();
-              }
-            }}
+      <PremiumGate feature="today-details">
+        <View style={styles.tiles}>
+          <StatTile
+            icon="navigate-outline"
+            label="Distance"
+            value={formatDistance(today?.distanceM ?? 0, profile.units)}
           />
+          <StatTile
+            icon="flame-outline"
+            label="Active kcal"
+            value={formatSteps(today?.activeKcal ?? 0)}
+            note="Estimated"
+          />
+          {today?.floors != null ? (
+            <StatTile icon="trending-up-outline" label="Floors" value={String(today.floors)} />
+          ) : null}
+        </View>
+
+        <Card title="Minutes on the move">
+          <View style={styles.calories}>
+            <PaceFigure label="Walking" value={today?.walkMin ?? 0} note="60–99 steps/min" />
+            <PaceFigure label="Brisk" value={today?.briskMin ?? 0} note="100–139" />
+            <PaceFigure label="Running" value={today?.runMin ?? 0} note="140+" />
+          </View>
+        </Card>
+
+        <Card title="How are you feeling today?">
+          <MoodPicker value={mood?.mood ?? null} onChange={setMood} />
+          {mood && reminderOff ? (
+            <Button kind="secondary" label="Remind me each evening" onPress={turnOnReminder} />
+          ) : null}
+        </Card>
+
+        <Card title="Calories">
+          <View style={styles.calories}>
+            <CalorieFigure label="Eaten" value={calories.eaten} />
+            <CalorieFigure label="Burned so far, resting included" value={calories.burned} />
+          </View>
           <Button
             kind="secondary"
-            label="Not now"
-            onPress={async () => {
-              await repo.setKv(WEATHER_PROMPT_KEY, true);
-              setAskLocation(false);
-            }}
+            label="Log food"
+            onPress={() => router.push({ pathname: '/journal', params: { section: 'food' } })}
           />
         </Card>
-      ) : null}
 
-      <Card title="By hour">
-        <BarChart
-          bars={hourly.map((value, hour) => ({ key: String(hour), value, label: HOUR_LABELS[hour] ?? '' }))}
-          height={120}
-        />
-        {today?.untimedSteps ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            Plus {formatSteps(today.untimedSteps)} steps with no known time, so they&apos;re in today&apos;s total but
-            not in any hour. Settings → Step check shows why.
-          </ThemedText>
+        {askLocation ? (
+          <Card title="Add the weather to your days">
+            <ThemedText themeColor="textSecondary">
+              With your approximate location, Steps notes the weather each day you open it, so Insights can show how heat
+              and rain change your walking. Your location stays on this phone.
+            </ThemedText>
+            <Button
+              label="Allow location"
+              onPress={async () => {
+                if (await requestLocation()) {
+                  setAskLocation(false);
+                  refresh();
+                }
+              }}
+            />
+            <Button
+              kind="secondary"
+              label="Not now"
+              onPress={async () => {
+                await repo.setKv(WEATHER_PROMPT_KEY, true);
+                setAskLocation(false);
+              }}
+            />
+          </Card>
         ) : null}
-      </Card>
 
-      {suggestion ? (
-        <Card title="Ready for a new goal?">
-          <ThemedText themeColor="textSecondary">
-            Your last two weeks suggest {formatSteps(suggestion)} steps a day.
-          </ThemedText>
-          <Button label={`Use ${formatSteps(suggestion)}`} onPress={() => updateProfile({ dailyGoal: suggestion })} />
+        <Card title="By hour">
+          <BarChart
+            bars={hourly.map((value, hour) => ({ key: String(hour), value, label: HOUR_LABELS[hour] ?? '' }))}
+            height={120}
+          />
+          {today?.untimedSteps ? (
+            <ThemedText type="small" themeColor="textSecondary">
+              Plus {formatSteps(today.untimedSteps)} steps with no known time, so they&apos;re in today&apos;s total but
+              not in any hour. Settings → Step check shows why.
+            </ThemedText>
+          ) : null}
         </Card>
-      ) : null}
+
+        {suggestion ? (
+          <Card title="Ready for a new goal?">
+            <ThemedText themeColor="textSecondary">
+              Your last two weeks suggest {formatSteps(suggestion)} steps a day.
+            </ThemedText>
+            <Button label={`Use ${formatSteps(suggestion)}`} onPress={() => updateProfile({ dailyGoal: suggestion })} />
+          </Card>
+        ) : null}
+      </PremiumGate>
     </Screen>
   );
 }

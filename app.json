@@ -137,7 +137,8 @@
         {
           "faceIDPermission": "Steps uses Face ID to unlock the app, so only you can open your health data."
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true,

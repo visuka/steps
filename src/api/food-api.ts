@@ -3,10 +3,13 @@
  * The server only ever adds up nutrients from an ingredient table; answers are
  * checked in food-read.ts before the app uses them.
  */
+import { getLocales } from 'expo-localization';
+
 import { getAccessToken } from '@/auth/session';
 import { STEPS_API_URL } from '@/constants/app';
 import { lookupName, restaurantItem, type Where } from '@/nutrition/place';
 import type { FoodItem } from '@/nutrition/types';
+import { premiumRequired } from '@/premium/premium';
 
 import {
   badAnswer,
@@ -19,6 +22,7 @@ import {
   readEstimate,
   readRecipe,
   type RecipeRequest,
+  recipeRequest,
   type RecipeResult,
   timedOut,
   tokenError,
@@ -29,6 +33,19 @@ export type { EstimateItem, EstimateResult, RecipeRequest, RecipeResult, RecipeU
 
 /** The server gives up on the model after about 28 s; a little longer here covers the network. */
 const TIMEOUT_MS = 35_000;
+
+/**
+ * The phone's region setting ("IN", "GB"), sent so dishes are worked out as
+ * they're usually made there. Checked, and left out when unknown, by
+ * estimateRequest and recipeRequest.
+ */
+function phoneRegion(): string | null {
+  try {
+    return getLocales()[0]?.regionCode ?? null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * The signed-in person's access token from our sign-in API: the one place the
@@ -64,6 +81,8 @@ async function post(route: FoodRoute, body: unknown): Promise<unknown> {
     if (!res.ok) {
       // Our server says why ("daily_limit"); API Gateway's own replies don't.
       const code = await res.json().then(errorCode, () => undefined);
+      // The server says this account doesn't have premium: the app goes free and shows why (src/premium).
+      if (res.status === 402) premiumRequired();
       throw errorFor(route, res.status, code);
     }
     try {
@@ -82,7 +101,7 @@ async function post(route: FoodRoute, body: unknown): Promise<unknown> {
  * the server goes by the text.
  */
 export async function estimateFood(description: string, where?: Where | null): Promise<EstimateResult> {
-  return readEstimate(await post('estimate', estimateRequest(description, where)));
+  return readEstimate(await post('estimate', estimateRequest(description, where, phoneRegion())));
 }
 
 /**
@@ -96,12 +115,5 @@ export async function restaurantVersion(home: FoodItem, where: Where): Promise<E
 
 /** A dish the person made → one food, per serving, worked out from its ingredients. */
 export async function recipeFood(request: RecipeRequest): Promise<RecipeResult> {
-  const body: Record<string, unknown> = {
-    name: request.name.trim(),
-    ingredients: request.ingredients.trim(),
-    steps: request.steps.trim(),
-  };
-  if (request.servings !== undefined) body.servings = request.servings;
-  if (request.unit !== undefined) body.unit = request.unit;
-  return readRecipe(await post('recipe', body));
+  return readRecipe(await post('recipe', recipeRequest(request, phoneRegion())));
 }

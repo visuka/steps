@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Card } from '@/components/card';
 import { Button } from '@/components/controls';
+import { PremiumGate } from '@/components/premium-gate';
 import { RouteSketch } from '@/components/route-sketch';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -14,6 +15,7 @@ import type { Walk } from '@/data/types';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDistance, formatDuration, formatSteps } from '@/lib/format';
 import type { WalkPoint } from '@/lib/walk';
+import { SCREEN_FEATURES } from '@/premium/premium';
 import { useApp } from '@/state/app-state';
 import { walkTitle, walkWhen } from '@/walks/labels';
 import { walkRecorder } from '@/walks/recorder';
@@ -22,7 +24,15 @@ const LIST_LIMIT = 50;
 /** Route drawings are only loaded for the first few rows. */
 const SKETCH_LIMIT = 20;
 
-export default function WalksScreen() {
+export default function WalksTab() {
+  return (
+    <PremiumGate feature={SCREEN_FEATURES.walks} title="Walks">
+      <WalksScreen />
+    </PremiumGate>
+  );
+}
+
+function WalksScreen() {
   const { repo, profile, dataVersion } = useApp();
   const router = useRouter();
   const theme = useTheme();

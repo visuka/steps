@@ -3,6 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import {
   checkDescription,
   checkRecipe,
+  countryCode,
   errorCode,
   errorFor,
   estimateRequest,
@@ -11,7 +12,9 @@ import {
   readFoodItem,
   readNutrients,
   readRecipe,
+  recipeRequest,
   tokenError,
+  unknownDishMessage,
 } from '@/api/food-read';
 
 /** A dish as the server sends it (synthetic numbers). */
@@ -276,6 +279,69 @@ describe('where a food was from', () => {
   });
 });
 
+describe('the phone’s country', () => {
+  it('is sent as two upper-case letters, or not at all', () => {
+    expect(countryCode('IN')).toBe('IN');
+    expect(countryCode('gb')).toBe('GB');
+    expect(countryCode(' us ')).toBe('US');
+    // Not a country the server takes: Latin America (es-419), three letters, none, junk.
+    expect(countryCode('419')).toBeUndefined();
+    expect(countryCode('USA')).toBeUndefined();
+    expect(countryCode('')).toBeUndefined();
+    expect(countryCode(null)).toBeUndefined();
+    expect(countryCode(undefined)).toBeUndefined();
+    expect(countryCode('I1')).toBeUndefined();
+    expect(countryCode('ÍN')).toBeUndefined();
+    expect(countryCode(44)).toBeUndefined();
+  });
+
+  it('goes with an estimate, with or without a place', () => {
+    expect(estimateRequest(' fish and chips ', null, 'GB')).toEqual({ description: 'fish and chips', country: 'GB' });
+    expect(estimateRequest('biryani', { place: 'dine-in', restaurant: 'Paradise' }, 'in')).toEqual({
+      description: 'biryani',
+      country: 'IN',
+      place: 'dine-in',
+      restaurant: 'Paradise',
+    });
+    // Unknown: left out, and the server takes it as India.
+    expect(estimateRequest('biryani', null, null)).toEqual({ description: 'biryani' });
+    expect(estimateRequest('biryani', null, '419')).toEqual({ description: 'biryani' });
+    expect(estimateRequest('biryani', { place: 'home', restaurant: null })).toEqual({
+      description: 'biryani',
+      place: 'home',
+    });
+  });
+
+  it('goes with a recipe, beside what the person gave', () => {
+    const r = { name: ' Kootu ', ingredients: ' 1 cup moong dal, salt ', steps: ' Pressure cook. ' };
+    expect(recipeRequest(r, 'IN')).toEqual({
+      name: 'Kootu',
+      ingredients: '1 cup moong dal, salt',
+      steps: 'Pressure cook.',
+      country: 'IN',
+    });
+    expect(recipeRequest({ ...r, servings: 4, unit: 'bowl' }, 'us')).toEqual({
+      name: 'Kootu',
+      ingredients: '1 cup moong dal, salt',
+      steps: 'Pressure cook.',
+      servings: 4,
+      unit: 'bowl',
+      country: 'US',
+    });
+    expect(recipeRequest(r, null)).not.toHaveProperty('country');
+    expect(recipeRequest(r)).not.toHaveProperty('country');
+  });
+});
+
+describe('a dish the server couldn’t work out', () => {
+  it('is asked about kindly, in the shared wording', () => {
+    expect(unknownDishMessage("Grandma's kootu")).toBe(
+      // The contract's text exactly: straight apostrophes, curly quotes around the name.
+      "We couldn't find “Grandma's kootu” yet. Could you tell us how it's made? Then we can count it properly.",
+    );
+  });
+});
+
 describe('reading a recipe', () => {
   it('reads the food, servings and notes', () => {
     const r = readRecipe({
@@ -313,6 +379,9 @@ describe('errors and checks', () => {
     expect(errorFor('estimate', 413).kind).toBe('too_long');
     expect(errorFor('estimate', 500).kind).toBe('other');
     expect(errorFor('estimate', 400).kind).toBe('other');
+    expect(errorFor('estimate', 402, 'premium_required').kind).toBe('premium');
+    expect(errorFor('recipe', 402).kind).toBe('premium');
+    expect(errorFor('recipe', 402).message).toMatch(/Steps Premium/);
     expect(errorFor('estimate', 500)).toBeInstanceOf(FoodApiError);
   });
 

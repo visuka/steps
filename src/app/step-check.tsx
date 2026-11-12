@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Card } from '@/components/card';
 import { Button } from '@/components/controls';
+import { PremiumGate } from '@/components/premium-gate';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -90,6 +91,8 @@ export default function StepCheckScreen() {
 
   const recorderTotal = check?.hours.reduce((s, [, r]) => s + r, 0) ?? 0;
   const counterTotal = check?.hours.reduce((s, [, , c]) => s + c, 0) ?? 0;
+  // Nothing past the Today card on a phone without the counter (iOS), so no Premium card there either.
+  const more = !!check && (check.hours.length > 0 || check.untimed.length > 0 || check.log.length > 0);
 
   return (
     <Screen title="Step check" onBack={() => router.back()}>
@@ -107,82 +110,89 @@ export default function StepCheckScreen() {
         <Button kind="secondary" label="Sync now" onPress={() => refresh().then(load)} />
       </Card>
 
-      {check?.hours.length ? (
-        <Card title="Today by hour">
-          <ThemedText type="small" themeColor="textSecondary">
-            Google&apos;s recorder keeps the time of every step. The app&apos;s own counter only knows them while it
-            runs; steps from while it was stopped are listed under &quot;No known time&quot; instead.
-          </ThemedText>
-          <View style={styles.row}>
-            <ThemedText type="smallBold" style={styles.hour}>
-              Hour
-            </ThemedText>
-            <ThemedText type="smallBold" style={styles.num}>
-              Recorder
-            </ThemedText>
-            <ThemedText type="smallBold" style={styles.num}>
-              Counter
-            </ThemedText>
-          </View>
-          {check.hours.map(([h, r, c]) => (
-            <View key={h} style={styles.row}>
-              <ThemedText style={styles.hour}>{`${h}:00`}</ThemedText>
-              <ThemedText style={styles.num}>{formatSteps(r)}</ThemedText>
-              <ThemedText style={styles.num}>{formatSteps(c)}</ThemedText>
-            </View>
-          ))}
-          <View style={styles.row}>
-            <ThemedText type="smallBold" style={styles.hour}>
-              Total
-            </ThemedText>
-            <ThemedText type="smallBold" style={styles.num}>
-              {formatSteps(recorderTotal)}
-            </ThemedText>
-            <ThemedText type="smallBold" style={styles.num}>
-              {formatSteps(counterTotal)}
-            </ThemedText>
-          </View>
-        </Card>
-      ) : null}
-
-      {check?.untimed.some((u) => u.from < check.split) ? (
-        <Card title="No known time (since yesterday)">
-          <ThemedText type="small" themeColor="textSecondary">
-            Counted for the day each stretch began, in no hour.
-          </ThemedText>
-          {check.untimed
-            .filter((u) => u.from < check.split)
-            .map((u) => (
-              <ThemedText key={`${u.from}-${u.to}`} type="small">
-                {formatSteps(u.steps)} steps between {time(u.from)} and {time(u.to)}: {u.reason}
+      {/* The Today card is free, so anyone can check their steps are being counted. Steps by the hour are
+          premium, as on Today; the untimed stretches and the log go with them, since they list steps with times. */}
+      {more ? (
+        <PremiumGate feature="today-details">
+          {check?.hours.length ? (
+            <Card title="Today by hour">
+              <ThemedText type="small" themeColor="textSecondary">
+                Google&apos;s recorder keeps the time of every step. The app&apos;s own counter only knows them while it
+                runs; steps from while it was stopped are listed under &quot;No known time&quot; instead.
               </ThemedText>
-            ))}
-        </Card>
-      ) : null}
+              <View style={styles.row}>
+                <ThemedText type="smallBold" style={styles.hour}>
+                  Hour
+                </ThemedText>
+                <ThemedText type="smallBold" style={styles.num}>
+                  Recorder
+                </ThemedText>
+                <ThemedText type="smallBold" style={styles.num}>
+                  Counter
+                </ThemedText>
+              </View>
+              {check.hours.map(([h, r, c]) => (
+                <View key={h} style={styles.row}>
+                  <ThemedText style={styles.hour}>{`${h}:00`}</ThemedText>
+                  <ThemedText style={styles.num}>{formatSteps(r)}</ThemedText>
+                  <ThemedText style={styles.num}>{formatSteps(c)}</ThemedText>
+                </View>
+              ))}
+              <View style={styles.row}>
+                <ThemedText type="smallBold" style={styles.hour}>
+                  Total
+                </ThemedText>
+                <ThemedText type="smallBold" style={styles.num}>
+                  {formatSteps(recorderTotal)}
+                </ThemedText>
+                <ThemedText type="smallBold" style={styles.num}>
+                  {formatSteps(counterTotal)}
+                </ThemedText>
+              </View>
+            </Card>
+          ) : null}
 
-      {check?.untimed.some((u) => u.from >= check.split) ? (
-        <Card title="Missed by the app's counter">
-          <ThemedText type="small" themeColor="textSecondary">
-            Google&apos;s recorder has these steps with their times, so they are in the hours above and not added again.
-          </ThemedText>
-          {check.untimed
-            .filter((u) => u.from >= check.split)
-            .map((u) => (
-              <ThemedText key={`${u.from}-${u.to}`} type="small">
-                {formatSteps(u.steps)} steps between {time(u.from)} and {time(u.to)}: {u.reason}
+          {check?.untimed.some((u) => u.from < check.split) ? (
+            <Card title="No known time (since yesterday)">
+              <ThemedText type="small" themeColor="textSecondary">
+                Counted for the day each stretch began, in no hour.
               </ThemedText>
-            ))}
-        </Card>
-      ) : null}
+              {check.untimed
+                .filter((u) => u.from < check.split)
+                .map((u) => (
+                  <ThemedText key={`${u.from}-${u.to}`} type="small">
+                    {formatSteps(u.steps)} steps between {time(u.from)} and {time(u.to)}: {u.reason}
+                  </ThemedText>
+                ))}
+            </Card>
+          ) : null}
 
-      {check?.log.length ? (
-        <Card title="What the counter did">
-          {check.log.map((e) => (
-            <ThemedText key={`${e.t}-${e.kind}-${e.detail}`} type="small" themeColor="textSecondary">
-              {time(e.t)} · {e.kind}: {e.detail}
-            </ThemedText>
-          ))}
-        </Card>
+          {check?.untimed.some((u) => u.from >= check.split) ? (
+            <Card title="Missed by the app's counter">
+              <ThemedText type="small" themeColor="textSecondary">
+                Google&apos;s recorder has these steps with their times, so they are in the hours above and not added
+                again.
+              </ThemedText>
+              {check.untimed
+                .filter((u) => u.from >= check.split)
+                .map((u) => (
+                  <ThemedText key={`${u.from}-${u.to}`} type="small">
+                    {formatSteps(u.steps)} steps between {time(u.from)} and {time(u.to)}: {u.reason}
+                  </ThemedText>
+                ))}
+            </Card>
+          ) : null}
+
+          {check?.log.length ? (
+            <Card title="What the counter did">
+              {check.log.map((e) => (
+                <ThemedText key={`${e.t}-${e.kind}-${e.detail}`} type="small" themeColor="textSecondary">
+                  {time(e.t)} · {e.kind}: {e.detail}
+                </ThemedText>
+              ))}
+            </Card>
+          ) : null}
+        </PremiumGate>
       ) : null}
     </Screen>
   );

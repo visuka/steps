@@ -68,8 +68,15 @@ have 0; packaged foods whose added sugar isn't known leave it out.
 ## `POST /v1/food/estimate`
 
 ```json
-{ "description": "200 g chicken biryani and a lassi", "place": "dine-in", "restaurant": "Paradise" }
+{ "description": "200 g chicken biryani and a lassi", "place": "dine-in", "restaurant": "Paradise", "country": "IN" }
 ```
+
+`country` is the phone's region setting as ISO 3166-1 alpha-2, upper case (`IN`, `GB`, `US`), from
+expo-localization's `getLocales()[0].regionCode`. The app leaves it out when the phone has none or
+it isn't two letters (`419` for Latin America), and the server takes a missing country as `IN`, so
+cache keys and answers from before stay the same for India. Anything else that isn't two letters
+A–Z is a 400 `bad_request`. Built in `src/api/food-read.ts` (`countryCode`, `estimateRequest`,
+`recipeRequest`).
 
 `place` (`home`, `dine-in` or `delivery`) and `restaurant` (up to 60 characters, only with
 `dine-in` or `delivery`) are optional. The app sends a place only when the person picked one, so
@@ -96,15 +103,19 @@ place the app sends wins over the text.
 
 - `FoodItem` is `src/nutrition/types.ts`: `per100g`, `units` (always including `g`),
   `defaultUnit`, `source`, optional `flags` (`"deep-fried"`), `ingredients` (per first unit).
-- `unknown` lists dish names the model couldn't work out. The app offers the recipe form for them.
+- `unknown` lists dish names the model couldn't work out. The app offers the recipe form for them,
+  in the words both sides share: We couldn't find “<name>” yet. Could you tell us how it's made?
+  Then we can count it properly. (`unknownDishMessage` in `src/api/food-read.ts`)
 - `style` is how each item was worked out: `home`, `restaurant` (for `dine-in` or `delivery`), or
   `auto` when no place was sent or read from the text, which is how it worked before places.
   The top-level `place` and `restaurant` are what was used: sent, or read from the text.
 - Simple text ("200 g rice", "2 idli and sambar", "1 bowl dal") is read without the model when
   every part is a known food or a cached dish: **no model call at all**. In restaurant style the
   built-in dishes and breads don't count as known, since they're home recipes.
-- Errors: 400 `bad_request` (also a place that isn't one of the three, or a restaurant with no
-  `dine-in` or `delivery`), 422 `not_food` (not about food or drink), 429 `daily_limit`,
+- Errors: 400 `bad_request` (also a place that isn't one of the three, a restaurant with no
+  `dine-in` or `delivery`, or a country that isn't two letters), 402 `premium_required` (the
+  account doesn't have Steps Premium: the app goes free and shows the Premium screen, see
+  `src/premium/premium.ts`), 422 `not_food` (not about food or drink), 429 `daily_limit`,
   503 `unavailable` (no model answered, or no key yet).
 
 ### Home-made or eaten out
@@ -147,12 +158,14 @@ own place (where it was last eaten, else dine-in), not home-made.
   "ingredients": "1 cup moong dal, 2 cups ash gourd, half coconut grated, 2 tsp oil, salt",
   "steps": "Pressure cook dal and ash gourd for 2 whistles. Grind coconut with cumin, add, simmer 5 min. Temper with mustard seeds in oil.",
   "servings": 4,
-  "unit": "bowl"
+  "unit": "bowl",
+  "country": "IN"
 }
 ```
 
 `ingredients` and `steps` up to 1,500 characters each; `servings` 1–50 and `unit` (one of
-`bowl, plate, piece, glass, cup, serving`) are optional (the model estimates them).
+`bowl, plate, piece, glass, cup, serving`) are optional (the model estimates them). `country` as
+for `estimate`.
 
 ```json
 {
