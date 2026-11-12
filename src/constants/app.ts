@@ -10,12 +10,8 @@ export const APP_GROUP = 'group.com.neutcrafts.steps';
 export const ANDROID_WIDGET_NAME = 'StepsToday';
 export const IOS_WIDGET_KIND = 'StepsWidget';
 
-/**
- * Our sign-in API (stepsinfra `StepsAuth` stack, ap-south-1; docs/passkeys.md).
- * TODO: the address exists only after the first deploy. Until it is filled
- * in, the sign-in screen says sign-in isn't ready yet.
- */
-export const AUTH_API_URL: string = '';
+/** Our sign-in API (stepsinfra `StepsAuth` stack, ap-south-1; docs/phone-signin.md). */
+export const AUTH_API_URL: string = 'https://jnfq4me6g7.execute-api.ap-south-1.amazonaws.com';
 
 /**
  * How people sign in (docs/phone-signin.md):
