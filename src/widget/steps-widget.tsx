@@ -3,9 +3,12 @@
 // react-native-android-widget, so only its widget primitives work here.
 import { FlexWidget, SvgWidget, TextWidget } from 'react-native-android-widget';
 
+import { dayKey } from '@/lib/dates';
 import { formatSteps } from '@/lib/format';
 
 export interface WidgetData {
+  /** The day the steps are for; older saves don't have it. */
+  date?: string;
   steps: number;
   goal: number;
   updatedAt: number;
@@ -23,11 +26,16 @@ function ringSvg(progress: number) {
 }
 
 export function StepsWidget({ data }: { data: WidgetData | null }) {
-  const steps = data?.steps ?? 0;
+  // Steps saved on an earlier day aren't today's: show none until the app syncs again.
+  const savedFor = data?.date ?? (data ? dayKey(new Date(data.updatedAt)) : null);
+  const isToday = savedFor === dayKey(new Date());
+  const steps = isToday ? (data?.steps ?? 0) : 0;
   const goal = data?.goal ?? 0;
   const progress = goal > 0 ? steps / goal : 0;
   const updated = data
-    ? new Date(data.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    ? isToday
+      ? new Date(data.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      : 'before today'
     : '—';
 
   return (

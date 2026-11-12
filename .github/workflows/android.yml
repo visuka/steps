@@ -77,6 +77,11 @@ jobs:
       - name: Generate the Android project
         run: npx expo prebuild --platform android --no-install
 
+      # The step counter's timing rules (gaps, restarts, clock changes), on the JVM.
+      - name: Step counter unit tests
+        working-directory: android
+        run: ./gradlew :step-counter:testReleaseUnitTest --no-daemon
+
       # 64-bit ARM for phones, plus x86_64 for the emulator in the smoke test:
       # React Native's library loader only looks for the emulator's own CPU
       # type, so an ARM-only APK can't start there. Building all four CPU types

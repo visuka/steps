@@ -35,9 +35,13 @@ const seg = (stage: SleepSegment['stage'], fromMin: number, toMin: number, sourc
 const day = (date: string, steps: number, goal = 8000): DaySummary => ({
   date,
   steps,
+  untimedSteps: 0,
   distanceM: 0,
   activeKcal: 0,
   activeMin: null,
+  walkMin: null,
+  briskMin: null,
+  runMin: null,
   floors: null,
   goal,
   source: 'demo',

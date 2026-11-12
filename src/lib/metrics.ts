@@ -3,8 +3,15 @@
  * estimates and are labelled as such in the UI.
  */
 
-/** Steps per minute at which walking counts as moderate intensity. */
+/**
+ * Steps per minute from which a minute counts as walking, brisk walking
+ * (moderate intensity) and running. 100 and 130 are the research cut-offs for
+ * moderate and vigorous walking; few people walk faster than 140 for a whole
+ * minute, so that's where running starts. Slower minutes are moving about.
+ */
+export const WALK_CADENCE = 60;
 export const ACTIVE_CADENCE = 100;
+export const RUN_CADENCE = 140;
 
 /** Slowest pace we assume someone was actually walking at; below it, the rest of the bucket was standing still. */
 const SLOW_WALK_CADENCE = 90;
@@ -36,12 +43,20 @@ export interface StepBucket {
 }
 
 export interface DayMetrics {
+  /** Timed and untimed steps. */
   steps: number;
+  untimedSteps: number;
   distanceM: number;
   activeKcal: number;
+  /** briskMin + runMin. */
   activeMin: number;
-  /** Steps per local hour, 24 entries. */
+  walkMin: number;
+  briskMin: number;
+  runMin: number;
+  /** Steps per local hour, 24 entries; untimed steps aren't in any hour. */
   hourly: number[];
+  /** End of the last minute with steps (epoch ms), or null: what the source has counted up to. */
+  lastStepAt: number | null;
 }
 
 /**
@@ -55,30 +70,51 @@ export function bucketKcal(steps: number, durationMin: number, weightKg: number)
   return (metForCadence(cadence) - 1) * weightKg * (walkingMin / 60);
 }
 
+/**
+ * Day figures from timed buckets plus steps whose time isn't known. Untimed
+ * steps count toward the total, distance and calories (at a slow pace, the
+ * safe assumption) but not toward any hour or minute.
+ */
 export function summarizeBuckets(
   buckets: StepBucket[],
   opts: { weightKg: number; strideM: number },
+  untimedSteps = 0,
 ): DayMetrics {
   const hourly = new Array<number>(24).fill(0);
   let steps = 0;
   let kcal = 0;
-  let activeMin = 0;
+  let walkMin = 0;
+  let briskMin = 0;
+  let runMin = 0;
+  let lastStepAt: number | null = null;
 
   for (const b of buckets) {
     if (b.steps <= 0) continue;
     const durationMin = Math.max((b.end - b.start) / 60_000, 1);
+    const cadence = b.steps / durationMin;
     steps += b.steps;
     kcal += bucketKcal(b.steps, durationMin, opts.weightKg);
-    if (b.steps / durationMin >= ACTIVE_CADENCE) activeMin += durationMin;
+    if (cadence >= RUN_CADENCE) runMin += durationMin;
+    else if (cadence >= ACTIVE_CADENCE) briskMin += durationMin;
+    else if (cadence >= WALK_CADENCE) walkMin += durationMin;
     hourly[new Date(b.start).getHours()] += b.steps;
+    lastStepAt = Math.max(lastStepAt ?? 0, b.end);
   }
 
+  const untimed = Math.max(0, Math.round(untimedSteps));
+  const total = Math.round(steps) + untimed;
+  kcal += bucketKcal(untimed, untimed / SLOW_WALK_CADENCE, opts.weightKg);
   return {
-    steps: Math.round(steps),
-    distanceM: Math.round(steps * opts.strideM),
+    steps: total,
+    untimedSteps: untimed,
+    distanceM: Math.round(total * opts.strideM),
     activeKcal: Math.round(kcal),
-    activeMin: Math.round(activeMin),
+    activeMin: Math.round(briskMin + runMin),
+    walkMin: Math.round(walkMin),
+    briskMin: Math.round(briskMin),
+    runMin: Math.round(runMin),
     hourly: hourly.map(Math.round),
+    lastStepAt,
   };
 }
 

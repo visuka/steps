@@ -3,8 +3,13 @@ package expo.modules.stepcounter
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorManager
+import expo.modules.kotlin.Promise
+import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+
+class RecorderException(cause: Throwable?) :
+  CodedException("ERR_STEP_RECORDER", "Google's step recorder failed: ${cause?.message ?: "unknown error"}", cause)
 
 class StepCounterModule : Module() {
   private val context: Context
@@ -20,7 +25,8 @@ class StepCounterModule : Module() {
 
     Function("isRunning") { StepCounterService.isRunning }
 
-    AsyncFunction("start") { StepCounterService.start(context) }
+    // Waits for the counter's first reading, so a sync right after sees the steps it brings.
+    AsyncFunction("start") { StepCounterService.startAndWait(context, 2_000) }
 
     AsyncFunction("stop") { StepCounterService.stop(context) }
 
@@ -30,7 +36,37 @@ class StepCounterModule : Module() {
       }
     }
 
+    AsyncFunction("getUntimed") { startMs: Double, endMs: Double ->
+      StepStore.get(context).untimed(startMs.toLong(), endMs.toLong())
+    }
+
+    AsyncFunction("getLog") { limit: Int -> StepStore.get(context).logEntries(limit) }
+
     AsyncFunction("clear") { StepStore.get(context).clear() }
+
+    Function("recorderStatus") { StepRecorder.status(context) }
+
+    Function("recorderSince") {
+      StepStore.get(context).getState(StepStore.RECORDER_SINCE, 0).takeIf { it != 0L }?.toDouble()
+    }
+
+    AsyncFunction("startRecorder") { promise: Promise ->
+      StepRecorder.start(context) { since, error ->
+        if (error != null) promise.reject(RecorderException(error)) else promise.resolve(since?.toDouble())
+      }
+    }
+
+    AsyncFunction("stopRecorder") { StepRecorder.stop(context) }
+
+    AsyncFunction("getRecorderBuckets") { startMs: Double, endMs: Double, promise: Promise ->
+      StepRecorder.minutes(
+        context,
+        startMs.toLong(),
+        endMs.toLong(),
+        { minutes -> promise.resolve(minutes.map { (start, steps) -> mapOf("start" to start.toDouble(), "steps" to steps.toDouble()) }) },
+        { error -> promise.reject(RecorderException(error)) }
+      )
+    }
 
     AsyncFunction("startWalk") { WalkService.start(context).toDouble() }
 

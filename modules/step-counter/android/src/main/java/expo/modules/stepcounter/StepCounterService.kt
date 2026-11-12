@@ -6,35 +6,69 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.hardware.Sensor
 import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
+import android.hardware.SensorEventListener2
 import android.hardware.SensorManager
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.os.SystemClock
+import android.provider.Settings
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import java.text.NumberFormat
 import java.util.Calendar
-import kotlin.math.ceil
-import kotlin.math.max
-import kotlin.math.min
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 /**
  * Keeps TYPE_STEP_COUNTER registered so the hardware keeps counting, and turns
- * its running total into per-minute buckets. The ongoing notification it must
- * show doubles as a glanceable step count.
+ * its running total into per-minute buckets (StepAttribution decides when the
+ * steps were taken). The ongoing notification it must show doubles as a
+ * glanceable step count. When Google's step recorder is in use, the app reads
+ * steps from there and this counter is the backup and the notification.
  */
-class StepCounterService : Service(), SensorEventListener {
+class StepCounterService : Service(), SensorEventListener2 {
   private lateinit var store: StepStore
   private lateinit var sensorManager: SensorManager
-  private var lastNotifiedAt = 0L
+  private val handler = Handler(Looper.getMainLooper())
+  private var listeningSince = 0L
+  private var previousAliveAt = 0L
+  private var lastNotifiedElapsed = 0L
+  private var shownSteps = -1L
+
+  private val refreshNotification = Runnable { updateNotification() }
+  /** Best effort (it doesn't run while the phone sleeps): narrows the stretch a later restart can't account for. */
+  private val heartbeat = object : Runnable {
+    override fun run() {
+      store.setState(StepStore.LAST_ALIVE_AT, System.currentTimeMillis())
+      handler.postDelayed(this, HEARTBEAT_MS)
+    }
+  }
+  private val atMidnight = object : Runnable {
+    override fun run() {
+      updateNotification()
+      scheduleMidnight()
+    }
+  }
+  private val clockChanged = object : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+      // The midnight timer doesn't run while the phone sleeps, so it can be
+      // late; the screen coming on is when the notification can be seen anyway.
+      if (intent.action != Intent.ACTION_SCREEN_ON) store.log("clock", intent.action?.substringAfterLast('.') ?: "changed")
+      updateNotification()
+      scheduleMidnight()
+    }
+  }
 
   override fun onBind(intent: Intent?): IBinder? = null
 
@@ -47,79 +81,140 @@ class StepCounterService : Service(), SensorEventListener {
       ServiceCompat.startForeground(
         this,
         NOTIFICATION_ID,
-        buildNotification(todaySteps()),
+        buildNotification(null),
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH else 0
       )
     } catch (e: Exception) {
       // Android 14+ refuses a health service once the activity permission is
       // turned off; a sticky restart after that must stop, not crash the app.
+      store.log("counter", "could not start: ${e.javaClass.simpleName}")
       stopSelf()
       return
     }
-    sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)?.let {
+    // The wake-up variant wakes the phone before its buffer fills, so batched
+    // steps keep their own times instead of being dropped and merged.
+    val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER, true)
+      ?: sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+    if (sensor != null) {
       // Let the hardware batch up to a minute of events; the counter keeps counting meanwhile.
-      sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL, 60_000_000)
+      sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL, BATCH_LATENCY_US)
     }
+    listeningSince = System.currentTimeMillis()
+    previousAliveAt = store.getState(StepStore.LAST_ALIVE_AT, 0)
+    store.log("counter", "listening")
+    handler.postDelayed(heartbeat, HEARTBEAT_MS)
+    if (sensor != null) sensorManager.flush(this)
+    ContextCompat.registerReceiver(
+      this,
+      clockChanged,
+      IntentFilter().apply {
+        addAction(Intent.ACTION_TIME_CHANGED)
+        addAction(Intent.ACTION_TIMEZONE_CHANGED)
+        addAction(Intent.ACTION_DATE_CHANGED)
+        addAction(Intent.ACTION_SCREEN_ON)
+      },
+      ContextCompat.RECEIVER_NOT_EXPORTED
+    )
+    scheduleMidnight()
+    updateNotification()
     isRunning = true
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
 
   override fun onDestroy() {
+    if (isRunning) store.setState(StepStore.LAST_ALIVE_AT, System.currentTimeMillis())
     sensorManager.unregisterListener(this)
+    handler.removeCallbacksAndMessages(null)
+    runCatching { unregisterReceiver(clockChanged) }
+    if (isRunning) store.log("counter", "stopped")
     isRunning = false
     super.onDestroy()
   }
 
   override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
 
+  override fun onFlushCompleted(sensor: Sensor?) {
+    firstReading?.countDown()
+  }
+
   override fun onSensorChanged(event: SensorEvent) {
-    val reading = event.values[0].toLong()
-    val eventAt = System.currentTimeMillis() - (SystemClock.elapsedRealtimeNanos() - event.timestamp) / 1_000_000
-    val last = store.getState(StepStore.LAST_READING, -1)
-    val lastEventAt = store.getState(StepStore.LAST_EVENT_AT, eventAt)
-
-    val delta = when {
-      last < 0 -> 0L // First reading after install: just a baseline.
-      reading < last -> reading // The phone rebooted and the counter restarted from zero.
-      else -> reading - last
+    val now = System.currentTimeMillis()
+    val elapsedNs = SystemClock.elapsedRealtimeNanos()
+    // Step events are stamped on the boot clock; a stamp from the future or
+    // before boot means this phone's sensor uses another clock, so use now.
+    val eventAt = if (event.timestamp in 1..elapsedNs) now - (elapsedNs - event.timestamp) / 1_000_000 else now
+    val reading = StepAttribution.Reading(
+      reading = event.values[0].toLong(),
+      eventAt = eventAt,
+      bootCount = bootCount(),
+      bootAt = now - SystemClock.elapsedRealtime(),
+      listeningSince = listeningSince,
+      aliveUntil = previousAliveAt,
+      now = now,
+    )
+    val result = StepAttribution.attribute(store.counterState(), reading)
+    store.saveAttribution(result)
+    result.untimed?.let {
+      store.log("untimed", "${it.steps} steps between ${it.fromMs} and ${it.toMs} (${it.reason})")
     }
-    store.setState(StepStore.LAST_READING, reading)
-    store.setState(StepStore.LAST_EVENT_AT, eventAt)
-    if (delta > 0) record(delta, lastEventAt, eventAt)
+    if (result.discarded > 0) store.log("counter", "ignored an impossible jump of ${result.discarded} steps")
+    firstReading?.countDown()
 
-    if (eventAt - lastNotifiedAt > 30_000) {
-      lastNotifiedAt = eventAt
-      getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, buildNotification(todaySteps()))
-    }
+    // At most every 30 seconds, plus once after the steps stop so the last ones show.
+    handler.removeCallbacks(refreshNotification)
+    if (SystemClock.elapsedRealtime() - lastNotifiedElapsed > 30_000) updateNotification()
+    handler.postDelayed(refreshNotification, 30_000)
   }
 
-  /**
-   * A long gap between events (process restart, batching) arrives as one big
-   * delta; spread it back over the gap at no more than 120 steps a minute so it
-   * doesn't look like a sprint.
-   */
-  private fun record(delta: Long, fromMs: Long, toMs: Long) {
-    val endMinute = toMs / 60_000
-    val gapMinutes = max(1L, endMinute - fromMs / 60_000)
-    val minutes = min(gapMinutes, max(1L, ceil(delta / 120.0).toLong()))
-    val perMinute = delta / minutes
-    var remainder = delta - perMinute * minutes
-    for (i in 0 until minutes) {
-      val extra = if (remainder > 0) 1 else 0
-      remainder -= extra
-      store.addSteps(endMinute - i, perMinute + extra)
-    }
-  }
+  private fun bootCount(): Long =
+    Settings.Global.getInt(contentResolver, Settings.Global.BOOT_COUNT, -1).toLong()
+      .takeIf { it >= 0 } ?: StepAttribution.UNKNOWN_BOOT
 
-  private fun todaySteps(): Long {
-    val start = Calendar.getInstance().apply {
+  private fun startOfToday(): Long =
+    Calendar.getInstance().apply {
       set(Calendar.HOUR_OF_DAY, 0)
       set(Calendar.MINUTE, 0)
       set(Calendar.SECOND, 0)
       set(Calendar.MILLISECOND, 0)
     }.timeInMillis
-    return store.sum(start, System.currentTimeMillis() + 60_000)
+
+  private fun scheduleMidnight() {
+    handler.removeCallbacks(atMidnight)
+    val next = Calendar.getInstance().apply {
+      add(Calendar.DAY_OF_YEAR, 1)
+      set(Calendar.HOUR_OF_DAY, 0)
+      set(Calendar.MINUTE, 0)
+      set(Calendar.SECOND, 1)
+      set(Calendar.MILLISECOND, 0)
+    }.timeInMillis
+    handler.postDelayed(atMidnight, (next - System.currentTimeMillis()).coerceAtLeast(1_000))
+  }
+
+  /** Today's steps from Google's recorder when it's in use (as the app shows), otherwise from this counter. */
+  private fun updateNotification() {
+    lastNotifiedElapsed = SystemClock.elapsedRealtime()
+    val start = startOfToday()
+    val now = System.currentTimeMillis()
+    val since = store.getState(StepStore.RECORDER_SINCE, 0)
+    val counted = { show(store.sum(start, now) + untimedToday(start, now)) }
+    if (since in 1..start && StepRecorder.status(this) == "ready") {
+      StepRecorder.total(this, start, now, onResult = { show(it) }, onError = { counted() })
+    } else {
+      counted()
+    }
+  }
+
+  /** Steps with no known time that count for today: stretches that began today, as in the app. */
+  private fun untimedToday(start: Long, now: Long): Long =
+    store.untimed(start, now).sumOf {
+      if ((it["from"] as Double).toLong() >= start) (it["steps"] as Double).toLong() else 0L
+    }
+
+  private fun show(steps: Long) {
+    if (steps == shownSteps) return
+    shownSteps = steps
+    getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, buildNotification(steps))
   }
 
   private fun createChannel() {
@@ -131,14 +226,14 @@ class StepCounterService : Service(), SensorEventListener {
     getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
   }
 
-  private fun buildNotification(steps: Long): Notification {
+  private fun buildNotification(steps: Long?): Notification {
     val launch = packageManager.getLaunchIntentForPackage(packageName)
     val tap = PendingIntent.getActivity(this, 0, launch, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
     val icon = resources.getIdentifier("notification_icon", "drawable", packageName)
       .takeIf { it != 0 } ?: applicationInfo.icon
     return NotificationCompat.Builder(this, CHANNEL_ID)
       .setSmallIcon(icon)
-      .setContentTitle("${NumberFormat.getIntegerInstance().format(steps)} steps today")
+      .setContentTitle(if (steps == null) "Counting steps" else "${NumberFormat.getIntegerInstance().format(steps)} steps today")
       .setContentText("Counting steps in the background")
       .setContentIntent(tap)
       .setOngoing(true)
@@ -151,6 +246,11 @@ class StepCounterService : Service(), SensorEventListener {
   companion object {
     private const val CHANNEL_ID = "step-counter"
     private const val NOTIFICATION_ID = 7001
+    private const val BATCH_LATENCY_US = 60_000_000
+    private const val HEARTBEAT_MS = 5 * 60_000L
+
+    /** Released by the first reading (or flush) after a start, so the app can sync after it. */
+    @Volatile private var firstReading: CountDownLatch? = null
 
     @Volatile var isRunning = false
       private set
@@ -166,6 +266,16 @@ class StepCounterService : Service(), SensorEventListener {
       ) return
       val intent = Intent(context, StepCounterService::class.java)
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(intent) else context.startService(intent)
+    }
+
+    /** Starts counting if needed and waits (up to `timeoutMs`) for the counter's first reading. */
+    fun startAndWait(context: Context, timeoutMs: Long) {
+      if (isRunning) return
+      val latch = CountDownLatch(1)
+      firstReading = latch
+      start(context)
+      latch.await(timeoutMs, TimeUnit.MILLISECONDS)
+      if (firstReading === latch) firstReading = null
     }
 
     fun stop(context: Context) {

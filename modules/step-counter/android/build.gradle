@@ -16,4 +16,7 @@ android {
 
 dependencies {
   implementation 'androidx.core:core-ktx:1.13.1'
+  // Google's step recorder (Recording API on mobile), part of Google Play services.
+  implementation 'com.google.android.gms:play-services-fitness:21.3.0'
+  testImplementation 'junit:junit:4.13.2'
 }

@@ -86,6 +86,20 @@ function movingSeconds(s: WalkSegment): number {
   return s.distanceM / s.seconds >= MOVING_SPEED_MS ? s.seconds : s.distanceM / TYPICAL_WALK_MS;
 }
 
+/**
+ * Steps during a walk from minute buckets. Minutes the walk only partly
+ * covers count for the part it covers, so steps just before the start or
+ * after the end aren't added.
+ */
+export function stepsInWindow(buckets: { start: number; end: number; steps: number }[], startedAt: number, endedAt: number): number {
+  let steps = 0;
+  for (const b of buckets) {
+    const overlap = Math.min(b.end, endedAt) - Math.max(b.start, startedAt);
+    if (overlap > 0) steps += (b.steps * overlap) / (b.end - b.start);
+  }
+  return Math.round(steps);
+}
+
 /** METs by speed in km/h (Compendium of Physical Activities, walking then running). */
 const MET_BY_SPEED: [number, number][] = [
   [0, 2.0],

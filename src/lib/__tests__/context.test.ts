@@ -118,9 +118,13 @@ describe('calories', () => {
 const day = (date: string, steps: number): DaySummary => ({
   date,
   steps,
+  untimedSteps: 0,
   distanceM: 0,
   activeKcal: 0,
   activeMin: 0,
+  walkMin: 0,
+  briskMin: 0,
+  runMin: 0,
   floors: null,
   goal: 7000,
   source: 'demo',

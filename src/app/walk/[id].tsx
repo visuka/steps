@@ -37,13 +37,13 @@ export default function WalkDetailScreen() {
       }
       setWalk(found.walk);
       setPoints(found.points);
-      const updated = await refreshWalkSteps(repo, source, found.walk);
+      const updated = await refreshWalkSteps(repo, source, profile, found.walk, found.points);
       if (live && updated !== found.walk) setWalk(updated);
     })();
     return () => {
       live = false;
     };
-  }, [repo, source, id]);
+  }, [repo, source, profile, id]);
 
   const remove = () =>
     confirm('Delete this walk?', 'Its route and stats will be removed. Your step counts stay.', async () => {

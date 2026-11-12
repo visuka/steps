@@ -25,11 +25,22 @@ export interface Profile {
 
 export interface DaySummary {
   date: string;
+  /** All steps, untimedSteps included. */
   steps: number;
+  /**
+   * Steps known to belong to this day but not when (the phone's counter was
+   * stopped, or another app synced one record covering hours). They're in the
+   * total but not in the hourly bars, the minutes below or pace-based calories.
+   */
+  untimedSteps: number;
   distanceM: number;
   activeKcal: number;
-  /** Null for older history where only a daily total exists. */
+  /** Minutes at 100+ steps a minute (brisk walking and running). Null for older history where only a daily total exists. */
   activeMin: number | null;
+  /** Minutes walking (60–99 steps a minute), brisk walking (100–139) and running (140+); null where only a total exists. */
+  walkMin: number | null;
+  briskMin: number | null;
+  runMin: number | null;
   /** Null when the device reports no floor data. */
   floors: number | null;
   goal: number;

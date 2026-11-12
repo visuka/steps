@@ -1,23 +1,12 @@
 import { PermissionsAndroid, Platform } from 'react-native';
 
 import { addDays, dayKey, parseDayKey } from '@/lib/dates';
-import type { StepBucket } from '@/lib/metrics';
 
 import { StepCounter } from '../../modules/step-counter';
+import { phoneMinutes, phoneUntimed, rebucket } from './phone-steps';
 import type { DayTotals, StepSource } from './types';
 
-/** Groups the native module's minute buckets into `bucketMinutes`-long buckets aligned to `start`. */
-export function rebucket(minutes: { start: number; steps: number }[], start: Date, bucketMinutes: number): StepBucket[] {
-  const size = bucketMinutes * 60_000;
-  const out: StepBucket[] = [];
-  for (const m of minutes) {
-    const bucketStart = start.getTime() + Math.floor((m.start - start.getTime()) / size) * size;
-    const last = out.at(-1);
-    if (last && last.start === bucketStart) last.steps += m.steps;
-    else out.push({ start: bucketStart, end: bucketStart + size, steps: m.steps });
-  }
-  return out;
-}
+const MINUTE = 60_000;
 
 async function requestAndroidPermission(permission: (typeof PermissionsAndroid.PERMISSIONS)[keyof typeof PermissionsAndroid.PERMISSIONS], minApi: number) {
   if (Platform.OS !== 'android' || (Platform.Version as number) < minApi) return true;
@@ -26,12 +15,15 @@ async function requestAndroidPermission(permission: (typeof PermissionsAndroid.P
 }
 
 /**
- * The app's own counter (Android only), used when no other app records steps
- * into Health Connect. Counts only from the moment it is turned on.
+ * The phone itself (Android only), used when no other app records steps into
+ * Health Connect. Google's step recorder (in Google Play services) keeps every
+ * step with its time even while this app is stopped; the app's own counter
+ * keeps running for the notification, and is the source on phones without
+ * Play services.
  */
 export const deviceSensorSource: StepSource = {
   id: 'device-sensor',
-  label: "This phone's step sensor",
+  label: 'This phone',
 
   async isAvailable() {
     return StepCounter?.isSupported() ?? false;
@@ -44,12 +36,23 @@ export const deviceSensorSource: StepSource = {
     // Without this the counter still runs, but its ongoing notification is hidden.
     await requestAndroidPermission(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS, 33);
     await StepCounter.start();
+    await StepCounter.startRecorder().catch(() => null);
     return true;
   },
 
   async getStepBuckets(start, end, bucketMinutes) {
     if (!StepCounter) return [];
-    return rebucket(await StepCounter.getBuckets(start.getTime(), end.getTime()), start, bucketMinutes);
+    const minutes = await phoneMinutes(StepCounter, start.getTime(), end.getTime());
+    // Minutes keep their own times, so a walk starting mid-minute can take the part it covers.
+    if (bucketMinutes === 1) {
+      return minutes.map((m) => ({ start: m.start, end: m.start + MINUTE, steps: m.steps })).sort((a, b) => a.start - b.start);
+    }
+    return rebucket(minutes, start, bucketMinutes);
+  },
+
+  async getUntimedSteps(start, end) {
+    if (!StepCounter) return 0;
+    return phoneUntimed(StepCounter, start.getTime(), end.getTime());
   },
 
   async getDistanceM() {
@@ -62,18 +65,24 @@ export const deviceSensorSource: StepSource = {
 
   async getDailyTotals(startDay, endDay) {
     if (!StepCounter) return [];
-    const start = parseDayKey(startDay);
-    const minutes = await StepCounter.getBuckets(start.getTime(), addDays(parseDayKey(endDay), 1).getTime());
-    const byDay = new Map<string, number>();
-    for (const m of minutes) {
-      const key = dayKey(new Date(m.start));
-      byDay.set(key, (byDay.get(key) ?? 0) + m.steps);
+    const totals: DayTotals[] = [];
+    for (let day = parseDayKey(startDay); dayKey(day) <= endDay; day = addDays(day, 1)) {
+      const start = day.getTime();
+      const end = addDays(day, 1).getTime();
+      const minutes = await phoneMinutes(StepCounter, start, end);
+      const steps = minutes.reduce((s, m) => s + m.steps, 0) + (await phoneUntimed(StepCounter, start, end));
+      if (steps > 0) totals.push({ date: dayKey(day), steps: Math.round(steps), distanceM: null, floors: null });
     }
-    return [...byDay].map(([date, steps]): DayTotals => ({ date, steps, distanceM: null, floors: null }));
+    return totals;
   },
 };
 
-/** Keeps the foreground service alive after app updates or if Android stopped it. */
+/**
+ * Keeps counting going after app updates or if Android stopped it, and makes
+ * sure Google's recorder is subscribed (a no-op when it already is).
+ */
 export async function ensureCounterRunning() {
-  if (StepCounter && !StepCounter.isRunning()) await StepCounter.start();
+  if (!StepCounter) return;
+  if (!StepCounter.isRunning()) await StepCounter.start();
+  if (StepCounter.recorderStatus() === 'ready') await StepCounter.startRecorder().catch(() => null);
 }

@@ -24,6 +24,17 @@ export interface StepSource {
   requestPermissions(): Promise<boolean>;
   /** Steps per `bucketMinutes`-long bucket between start and end. Empty buckets may be omitted. */
   getStepBuckets(start: Date, end: Date, bucketMinutes: number): Promise<StepBucket[]>;
+  /**
+   * Steps that belong to the day from start to end but whose time isn't known,
+   * not included in getStepBuckets. Kept out of hourly bars and pace-based figures.
+   */
+  getUntimedSteps?(start: Date, end: Date): Promise<number>;
+  /**
+   * End of the latest record the source has in the window, when it has records
+   * longer than a minute (another app's "today so far" record, say): live
+   * steps before it are already counted.
+   */
+  lastRecordedAt?(start: Date, end: Date): Promise<number | null>;
   /** Platform-measured distance; null when the platform has none (the app then uses stride). */
   getDistanceM(start: Date, end: Date): Promise<number | null>;
   getFloors(start: Date, end: Date): Promise<number | null>;

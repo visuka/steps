@@ -1,4 +1,5 @@
 import Constants from 'expo-constants';
+import * as Device from 'expo-device';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Linking, Platform, Share, StyleSheet, Switch, View } from 'react-native';
@@ -24,6 +25,16 @@ import { useApp } from '@/state/app-state';
 import { CONDITION_LABEL } from '@/weather/met';
 import { WEATHER_CREDIT } from '@/weather/refresh';
 
+import { StepCounter } from '../../modules/step-counter';
+
+/** Brands whose battery savers stop background apps (dontkillmyapp.com). */
+const STRICT_BRANDS = ['oppo', 'realme', 'oneplus', 'vivo', 'iqoo', 'xiaomi', 'redmi', 'poco', 'huawei', 'honor', 'samsung', 'meizu', 'asus', 'tecno', 'infinix', 'itel'];
+
+function stopsBackgroundApps(manufacturer: string | null): boolean {
+  const m = manufacturer?.toLowerCase() ?? '';
+  return STRICT_BRANDS.some((b) => m.includes(b));
+}
+
 const hourLabel = (h: number) => {
   const suffix = h < 12 || h === 24 ? 'am' : 'pm';
   const twelve = h % 12 === 0 ? 12 : h % 12;
@@ -39,6 +50,7 @@ export default function SettingsScreen() {
   const [moodNotice, setMoodNotice] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [hasLocation, setHasLocation] = useState<boolean | null>(null);
+  const recorderReady = StepCounter?.recorderStatus() === 'ready';
   const units = profile.units;
 
   useEffect(() => {
@@ -88,15 +100,19 @@ export default function SettingsScreen() {
     const moodByDate = new Map(moods.map((m) => [m.date, m.mood]));
     const weatherByDate = new Map(weather.map((w) => [w.date, w]));
     const header =
-      'date,steps,distance_m,active_kcal_estimated,active_min,floors,goal,mood_1_to_5,temp_max_c,rain_mm,weather';
+      'date,steps,steps_no_known_time,distance_m,active_kcal_estimated,active_min,walking_min,brisk_min,running_min,floors,goal,mood_1_to_5,temp_max_c,rain_mm,weather';
     const lines = rows.map((d) => {
       const w = weatherByDate.get(d.date);
       return [
         d.date,
         d.steps,
+        d.untimedSteps,
         d.distanceM,
         d.activeKcal,
         d.activeMin ?? '',
+        d.walkMin ?? '',
+        d.briskMin ?? '',
+        d.runMin ?? '',
         d.floors ?? '',
         d.goal,
         moodByDate.get(d.date) ?? '',
@@ -263,12 +279,23 @@ export default function SettingsScreen() {
         <ThemedText>
           Steps come from <ThemedText type="smallBold">{source.label}</ThemedText>.
         </ThemedText>
-        {source.id === 'device-sensor' ? (
+        {source.id === 'device-sensor' && recorderReady ? (
           <ThemedText type="small" themeColor="textSecondary">
-            The app counts steps itself and shows them in a silent notification. Some phone brands stop background
-            apps; if counts stop, allow this app to run in the background in battery settings.
+            Google&apos;s step recorder (part of Google Play services) keeps the time of every step, even while this
+            app is closed. The app&apos;s own counter shows today&apos;s steps in a silent notification.
           </ThemedText>
         ) : null}
+        {source.id === 'device-sensor' && !recorderReady ? (
+          <>
+            <ThemedText type="small" themeColor="textSecondary">
+              {stopsBackgroundApps(Device.manufacturer)
+                ? 'The app counts steps itself. This phone stops apps in the background to save battery; steps still count then, but the app can’t tell when they were taken. To keep every step’s time, open this app’s settings and allow background activity (on OPPO, realme and OnePlus: Battery → Allow background activity, and Allow auto launch).'
+                : 'The app counts steps itself and shows them in a silent notification. If counts stop, allow this app to run in the background in battery settings.'}
+            </ThemedText>
+            <Button kind="secondary" label="Open this app's settings" onPress={() => Linking.openSettings()} />
+          </>
+        ) : null}
+        <Button kind="secondary" label="Step check" onPress={() => router.push('/step-check')} />
         {sources.length > 1
           ? sources
               .filter((s) => s.id !== source.id)

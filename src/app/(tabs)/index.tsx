@@ -110,16 +110,18 @@ export default function TodayScreen() {
       <View style={styles.tiles}>
         <StatTile icon="navigate-outline" label="Distance" value={formatDistance(today?.distanceM ?? 0, profile.units)} />
         <StatTile icon="flame-outline" label="Active kcal" value={formatSteps(today?.activeKcal ?? 0)} note="Estimated" />
-        <StatTile
-          icon="timer-outline"
-          label="Active minutes"
-          value={String(today?.activeMin ?? 0)}
-          note="100+ steps a minute"
-        />
         {today?.floors != null ? (
           <StatTile icon="trending-up-outline" label="Floors" value={String(today.floors)} />
         ) : null}
       </View>
+
+      <Card title="Minutes on the move">
+        <View style={styles.calories}>
+          <PaceFigure label="Walking" value={today?.walkMin ?? 0} note="60–99 steps/min" />
+          <PaceFigure label="Brisk" value={today?.briskMin ?? 0} note="100–139" />
+          <PaceFigure label="Running" value={today?.runMin ?? 0} note="140+" />
+        </View>
+      </Card>
 
       <Card title="How are you feeling today?">
         <MoodPicker value={mood?.mood ?? null} onChange={setMood} />
@@ -131,7 +133,7 @@ export default function TodayScreen() {
       <Card title="Calories">
         <View style={styles.calories}>
           <CalorieFigure label="Eaten" value={calories.eaten} />
-          <CalorieFigure label="Burned so far" value={calories.burned} />
+          <CalorieFigure label="Burned so far, resting included" value={calories.burned} />
         </View>
         <Button
           kind="secondary"
@@ -171,6 +173,12 @@ export default function TodayScreen() {
           bars={hourly.map((value, hour) => ({ key: String(hour), value, label: HOUR_LABELS[hour] ?? '' }))}
           height={120}
         />
+        {today?.untimedSteps ? (
+          <ThemedText type="small" themeColor="textSecondary">
+            Plus {formatSteps(today.untimedSteps)} steps with no known time, so they&apos;re in today&apos;s total but
+            not in any hour. Settings → Step check shows why.
+          </ThemedText>
+        ) : null}
       </Card>
 
       {suggestion ? (
@@ -182,6 +190,20 @@ export default function TodayScreen() {
         </Card>
       ) : null}
     </Screen>
+  );
+}
+
+function PaceFigure({ label, value, note }: { label: string; value: number; note: string }) {
+  return (
+    <View style={styles.calorieFigure}>
+      <ThemedText type="small" themeColor="textSecondary">
+        {label}
+      </ThemedText>
+      <ThemedText style={styles.calorieValue}>{value} min</ThemedText>
+      <ThemedText type="small" themeColor="textSecondary" style={styles.paceNote}>
+        {note}
+      </ThemedText>
+    </View>
   );
 }
 
@@ -200,6 +222,7 @@ const styles = StyleSheet.create({
   calories: { flexDirection: 'row', gap: Spacing.three },
   calorieFigure: { flex: 1, gap: Spacing.half },
   calorieValue: { fontSize: 22, lineHeight: 28, fontWeight: 700, fontVariant: ['tabular-nums'] },
+  paceNote: { fontSize: 12, lineHeight: 16 },
   ringCard: { alignItems: 'center', paddingVertical: Spacing.four },
   steps: { fontSize: 44, lineHeight: 52, fontWeight: 700, fontVariant: ['tabular-nums'] },
   center: { textAlign: 'center' },

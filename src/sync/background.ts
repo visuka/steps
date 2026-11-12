@@ -11,10 +11,11 @@ import { loadProfile } from '@/data/profile';
 import type { SourceId } from '@/data/types';
 import { getSource } from '@/health/select-source';
 
+import { SOURCE_KEY } from './engine';
 import { runSync } from './run';
 
 const TASK = 'steps-background-sync';
-export const SOURCE_KEY = 'sourceId';
+export { SOURCE_KEY };
 
 TaskManager.defineTask(TASK, async () => {
   try {

@@ -9,14 +9,13 @@ import { newId } from '@/data/types';
 import type { StepSource } from '@/health/types';
 import { dayKey } from '@/lib/dates';
 import { estimateKcalFromSteps } from '@/lib/metrics';
-import { cleanPoints, walkActiveKcal, type WalkPoint, walkStats } from '@/lib/walk';
+import { cleanPoints, stepsInWindow, walkActiveKcal, type WalkPoint, walkStats } from '@/lib/walk';
 import { placeName } from '@/location/place';
 import { weatherAt } from '@/weather/met';
 
 export async function stepsBetween(source: StepSource, startedAt: number, endedAt: number): Promise<number | null> {
   try {
-    const buckets = await source.getStepBuckets(new Date(startedAt), new Date(endedAt), 1);
-    return Math.round(buckets.reduce((s, b) => s + b.steps, 0));
+    return stepsInWindow(await source.getStepBuckets(new Date(startedAt), new Date(endedAt), 1), startedAt, endedAt);
   } catch {
     return null;
   }
@@ -59,13 +58,31 @@ export async function saveWalk(opts: {
 /**
  * Step counts arrive late: the phone's sensor batches up to a minute, and
  * other apps sync to Health Connect when they like. Re-reads a recent walk's
- * steps and saves them if they changed.
+ * steps and saves them if they changed. A walk with no usable route got its
+ * distance and calories from its steps, so those follow the new count.
  */
-export async function refreshWalkSteps(repo: Repository, source: StepSource, walk: Walk): Promise<Walk> {
+export async function refreshWalkSteps(
+  repo: Repository,
+  source: StepSource,
+  profile: Profile,
+  walk: Walk,
+  points: WalkPoint[],
+): Promise<Walk> {
   if (Date.now() - walk.endedAt > 2 * 86_400_000) return walk;
   const steps = await stepsBetween(source, walk.startedAt, walk.endedAt);
   if (steps === null || steps === walk.steps) return walk;
-  const updated = { ...walk, steps, updatedAt: Date.now() };
+  const fromSteps = walkStats(cleanPoints(points)).distanceM === 0;
+  const updated: Walk = {
+    ...walk,
+    steps,
+    ...(fromSteps
+      ? {
+          distanceM: Math.round(steps * profileStride(profile)),
+          activeKcal: estimateKcalFromSteps(steps, profile.weightKg),
+        }
+      : {}),
+    updatedAt: Date.now(),
+  };
   await repo.saveWalk(updated);
   return updated;
 }

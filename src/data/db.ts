@@ -143,14 +143,25 @@ const MIGRATIONS = [
   );
   CREATE INDEX bp_log_time ON bp_log (logged_at);
   `,
+  // Steps with no known time, and minutes by pace.
+  `
+  ALTER TABLE day_summary ADD COLUMN untimed_steps INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE day_summary ADD COLUMN walk_min INTEGER;
+  ALTER TABLE day_summary ADD COLUMN brisk_min INTEGER;
+  ALTER TABLE day_summary ADD COLUMN run_min INTEGER;
+  `,
 ];
 
 interface DayRow {
   date: string;
   steps: number;
+  untimed_steps: number;
   distance_m: number;
   active_kcal: number;
   active_min: number | null;
+  walk_min: number | null;
+  brisk_min: number | null;
+  run_min: number | null;
   floors: number | null;
   goal: number;
   source: SourceId;
@@ -167,9 +178,13 @@ interface LogRow {
 const toDay = (r: DayRow): DaySummary => ({
   date: r.date,
   steps: r.steps,
+  untimedSteps: r.untimed_steps,
   distanceM: r.distance_m,
   activeKcal: r.active_kcal,
   activeMin: r.active_min,
+  walkMin: r.walk_min,
+  briskMin: r.brisk_min,
+  runMin: r.run_min,
   floors: r.floors,
   goal: r.goal,
   source: r.source,
@@ -367,17 +382,23 @@ export async function openRepository(): Promise<Repository> {
     async upsertDay(day, hourly) {
       await db.withTransactionAsync(async () => {
         await db.runAsync(
-          `INSERT INTO day_summary (date, steps, distance_m, active_kcal, active_min, floors, goal, source, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `INSERT INTO day_summary (date, steps, untimed_steps, distance_m, active_kcal, active_min, walk_min, brisk_min,
+             run_min, floors, goal, source, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
            ON CONFLICT(date) DO UPDATE SET
-             steps = excluded.steps, distance_m = excluded.distance_m, active_kcal = excluded.active_kcal,
-             active_min = excluded.active_min, floors = excluded.floors, goal = excluded.goal,
+             steps = excluded.steps, untimed_steps = excluded.untimed_steps, distance_m = excluded.distance_m,
+             active_kcal = excluded.active_kcal, active_min = excluded.active_min, walk_min = excluded.walk_min,
+             brisk_min = excluded.brisk_min, run_min = excluded.run_min, floors = excluded.floors, goal = excluded.goal,
              source = excluded.source, updated_at = excluded.updated_at`,
           day.date,
           day.steps,
+          day.untimedSteps,
           day.distanceM,
           day.activeKcal,
           day.activeMin,
+          day.walkMin,
+          day.briskMin,
+          day.runMin,
           day.floors,
           day.goal,
           day.source,

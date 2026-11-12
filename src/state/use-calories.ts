@@ -27,7 +27,8 @@ export function useCaloriesToday() {
   const nutrients = sumNutrients(foods.map(book.nutrientsOf));
   const eaten = Math.round(nutrients.kcal ?? 0);
   const resting = restingKcalSoFar(profile, new Date());
-  const active = today?.activeKcal ?? 0;
+  // Only today's row: after midnight the one in memory can still be yesterday's until the next sync.
+  const active = today?.date === todayKey ? today.activeKcal : 0;
   return {
     book,
     foods,

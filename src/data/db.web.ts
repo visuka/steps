@@ -57,7 +57,10 @@ export async function openRepository(): Promise<Repository> {
   }
 
   const kv = new Map<string, string>(saved?.kv);
-  const days = new Map<string, DaySummary>(saved?.days);
+  // Rows saved before untimed steps and pace minutes existed.
+  const days = new Map<string, DaySummary>(
+    saved?.days.map(([date, d]) => [date, Object.assign({ untimedSteps: 0, walkMin: null, briskMin: null, runMin: null }, d)]),
+  );
   const hours = new Map<string, number[]>(saved?.hours);
   const logs: Record<LogKind, LogEntry[]> = saved?.logs ?? { weight: [], water: [] };
   const achievements = new Map<string, Achievement>(saved?.achievements);

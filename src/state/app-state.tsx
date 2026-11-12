@@ -7,10 +7,11 @@ import type { DaySummary, Profile, Repository, SourceId } from '@/data/types';
 import { watchLiveSteps } from '@/health/live';
 import { getSource, onAppStart } from '@/health/select-source';
 import type { StepSource } from '@/health/types';
-import { dayKey } from '@/lib/dates';
+import { addDays, dayKey, startOfDay } from '@/lib/dates';
+import { addSample, type LiveSample, liveStepsSince, type Shown, stepsToShow } from '@/lib/live-steps';
 import { registerBackgroundSync, SOURCE_KEY } from '@/sync/background';
 import { resetBackfill } from '@/sync/engine';
-import { LAST_SYNC_KEY, runSync } from '@/sync/run';
+import { LAST_SYNC_KEY, runSync, syncIdle } from '@/sync/run';
 import { seedPreview } from '@/sync/seed-preview';
 import { syncVitals } from '@/sync/vitals-sync';
 import { walkRecorder } from '@/walks/recorder';
@@ -22,8 +23,9 @@ interface AppContextValue {
   repo: Repository;
   profile: Profile;
   source: StepSource;
+  /** Today's synced row; null until the first sync of the day (never an earlier day's row). */
   today: DaySummary | null;
-  /** Synced total plus live steps taken since the last sync. */
+  /** Synced total plus live steps the source hasn't counted yet; never goes down during a day. */
   displaySteps: number;
   lastSyncAt: number | null;
   syncing: boolean;
@@ -39,9 +41,13 @@ interface AppContextValue {
 
 const AppContext = createContext<AppContextValue | null>(null);
 
-/** Live steps since the last sync that justify another sync (keeps the platform call rate low). */
+/** Live steps the source hasn't counted yet that justify another sync (keeps the platform call rate low). */
 const LIVE_SYNC_STEPS = 50;
-const LIVE_SYNC_MIN_INTERVAL_MS = 20_000;
+const LIVE_SYNC_MIN_INTERVAL_MS = 60_000;
+
+function msToNextMidnight(now = new Date()): number {
+  return addDays(startOfDay(now), 1).getTime() - now.getTime() + 1_000;
+}
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [repo, setRepo] = useState<Repository | null>(null);
@@ -51,11 +57,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [lastSyncAt, setLastSyncAt] = useState<number | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [dataVersion, setDataVersion] = useState(0);
-  const [liveExtra, setLiveExtra] = useState(0);
+  const [shown, setShown] = useState<Shown | null>(null);
 
-  const liveCount = useRef(0);
-  const liveAtSync = useRef(0);
+  // What the number on Today is made of; kept in refs so live events can recompute it.
+  const todayRef = useRef<DaySummary | null>(null);
+  const coveredUntil = useRef(startOfDay(new Date()).getTime());
+  const samples = useRef<LiveSample[]>([]);
   const lastSyncRef = useRef(0);
+
+  const recompute = useCallback(() => {
+    const date = dayKey(new Date());
+    const row = todayRef.current?.date === date ? todayRef.current : null;
+    const since = Math.max(row ? coveredUntil.current : 0, startOfDay(new Date()).getTime());
+    setShown((previous) =>
+      stepsToShow({ date, synced: row?.steps ?? 0, coveredUntil: since, samples: samples.current, previous }),
+    );
+  }, []);
+
+  const applyToday = useCallback(
+    (row: DaySummary | null, covered?: number) => {
+      todayRef.current = row;
+      if (covered !== undefined) coveredUntil.current = covered;
+      setToday(row && row.date === dayKey(new Date()) ? row : null);
+      recompute();
+    },
+    [recompute],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -70,28 +97,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (cancelled) return;
       setProfile(p);
       setSource(getSource(sourceId));
-      setToday(await r.getDay(dayKey(new Date())));
+      // Until the first sync nothing says what the stored row covers, so live steps aren't added to it.
+      applyToday(await r.getDay(dayKey(new Date())), synced ?? undefined);
       setLastSyncAt(synced);
       setRepo(r);
     })();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [applyToday]);
 
   const doRefresh = useCallback(
     async (r: Repository, p: Profile, s: StepSource) => {
       setSyncing(true);
       try {
         const result = await runSync(r, p, s);
-        liveAtSync.current = liveCount.current;
         lastSyncRef.current = Date.now();
-        setLiveExtra(0);
-        setToday(result.today);
+        applyToday(result.today, result.coveredUntil);
         setLastSyncAt(Date.now());
         setDataVersion((v) => v + 1);
       } catch (e) {
         console.warn('Sync failed', e);
+        // Never leave an earlier day's row on screen because a sync failed.
+        applyToday(await r.getDay(dayKey(new Date())).catch(() => null));
       } finally {
         setSyncing(false);
       }
@@ -104,41 +132,76 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .then((updated) => updated && setDataVersion((v) => v + 1))
         .catch(() => undefined);
     },
-    [],
+    [applyToday],
   );
 
   const refresh = useCallback(async () => {
     if (repo && source && profile.onboarded) await doRefresh(repo, profile, source);
   }, [repo, source, profile, doRefresh]);
 
-  // Start-up, foreground and live-step syncs once onboarded.
+  // Start-up, foreground, midnight and live-step syncs once onboarded.
   useEffect(() => {
     if (!repo || !source || !profile.onboarded) return;
-    onAppStart(source);
+    let stopped = false;
     registerBackgroundSync().catch(() => undefined);
+
+    // Counting is (re)started before reading, so the first sync sees the counter's latest steps.
+    const wake = async () => {
+      await onAppStart(source).catch(() => undefined);
+      if (!stopped) await doRefresh(repo, profile, source);
+    };
     // Deferred so the sync's state updates land after this render commits.
-    const kickoff = setTimeout(() => doRefresh(repo, profile, source), 0);
+    const kickoff = setTimeout(wake, 0);
+
+    // A fresh subscription each time the app comes to the front: its first
+    // event is the baseline, so steps taken in the background can't be added twice.
+    let stopLive: (() => void) | null = null;
+    const startLive = () => {
+      stopLive?.();
+      samples.current = [];
+      stopLive = watchLiveSteps((sample) => {
+        samples.current = addSample(samples.current, sample);
+        recompute();
+        const pending = liveStepsSince(samples.current, coveredUntil.current);
+        if (pending >= LIVE_SYNC_STEPS && Date.now() - lastSyncRef.current > LIVE_SYNC_MIN_INTERVAL_MS) {
+          lastSyncRef.current = Date.now();
+          doRefresh(repo, profile, source);
+        }
+      });
+    };
+    startLive();
 
     const appState = AppState.addEventListener('change', (state) => {
-      if (state === 'active') doRefresh(repo, profile, source);
-    });
-    // A new subscription counts from zero, so the baseline must too.
-    liveCount.current = 0;
-    liveAtSync.current = 0;
-    const stopLive = watchLiveSteps((count) => {
-      liveCount.current = count;
-      const extra = count - liveAtSync.current;
-      setLiveExtra(Math.max(0, extra));
-      if (extra >= LIVE_SYNC_STEPS && Date.now() - lastSyncRef.current > LIVE_SYNC_MIN_INTERVAL_MS) {
-        doRefresh(repo, profile, source);
+      if (state === 'active') {
+        startLive();
+        recompute();
+        wake();
+      } else if (state === 'background') {
+        stopLive?.();
+        stopLive = null;
       }
     });
-    return () => {
-      clearTimeout(kickoff);
-      appState.remove();
-      stopLive();
+
+    // At midnight the number starts again from zero and the new day is read.
+    let midnight: ReturnType<typeof setTimeout>;
+    const armMidnight = () => {
+      midnight = setTimeout(() => {
+        samples.current = [];
+        recompute();
+        doRefresh(repo, profile, source);
+        armMidnight();
+      }, msToNextMidnight());
     };
-  }, [repo, source, profile, doRefresh]);
+    armMidnight();
+
+    return () => {
+      stopped = true;
+      clearTimeout(kickoff);
+      clearTimeout(midnight);
+      appState.remove();
+      stopLive?.();
+    };
+  }, [repo, source, profile, doRefresh, recompute]);
 
   const updateProfile = useCallback(
     async (patch: Partial<Profile>) => {
@@ -165,12 +228,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const switchSource = useCallback(
     async (s: StepSource) => {
       if (!repo) return;
-      await s.requestPermissions();
+      if (!(await s.requestPermissions())) return;
+      // A sync still reading the old source could otherwise mark history as filled from it.
+      await syncIdle();
       await repo.setKv(SOURCE_KEY, s.id);
       await resetBackfill(repo);
+      // The phone's counter would keep showing its own number in the notification.
+      if (source?.id === 'device-sensor' && s.id !== 'device-sensor') await StepCounter?.stop();
+      setShown(null);
       setSource(s);
     },
-    [repo],
+    [repo, source],
   );
 
   const resetAll = useCallback(async () => {
@@ -183,11 +251,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await repo.clearAll();
     await StepCounter?.stop();
     await StepCounter?.clear();
-    setToday(null);
+    samples.current = [];
+    setShown(null);
+    applyToday(null, startOfDay(new Date()).getTime());
     setLastSyncAt(null);
     setProfile(DEFAULT_PROFILE);
     setDataVersion((v) => v + 1);
-  }, [repo]);
+  }, [repo, applyToday]);
 
   const touch = useCallback(() => setDataVersion((v) => v + 1), []);
 
@@ -197,8 +267,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     repo,
     profile,
     source,
-    today,
-    displaySteps: (today?.steps ?? 0) + liveExtra,
+    // Checked at every render: after midnight the row in memory can be yesterday's until the next sync.
+    today: today?.date === dayKey(new Date()) ? today : null,
+    displaySteps:
+      shown?.date === dayKey(new Date()) ? shown.steps : today?.date === dayKey(new Date()) ? today.steps : 0,
     lastSyncAt,
     syncing,
     dataVersion,
