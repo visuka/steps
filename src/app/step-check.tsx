@@ -7,6 +7,7 @@ import { Button } from '@/components/controls';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
+import { phoneSplit } from '@/health/phone-steps';
 import { addDays, startOfDay } from '@/lib/dates';
 import { formatSteps } from '@/lib/format';
 import { useApp } from '@/state/app-state';
@@ -29,11 +30,15 @@ interface Check {
   /** Hour → [Google's recorder, the app's own counter], for today. */
   hours: [number, number, number][];
   untimed: UntimedSteps[];
+  /** Where Google's recorder takes over: the counter's gaps after it are in the recorder, with times. */
+  split: number;
   log: CounterLogEntry[];
 }
 
 async function readCheck(): Promise<Check> {
-  if (!StepCounter) return { recorder: null, recorderSince: null, counterRunning: null, hours: [], untimed: [], log: [] };
+  if (!StepCounter) {
+    return { recorder: null, recorderSince: null, counterRunning: null, hours: [], untimed: [], split: Infinity, log: [] };
+  }
   const now = Date.now();
   const dayStart = startOfDay(new Date()).getTime();
   const recorder = StepCounter.recorderStatus();
@@ -58,6 +63,7 @@ async function readCheck(): Promise<Check> {
     counterRunning: StepCounter.isRunning(),
     hours: [...byHour].sort((a, b) => a[0] - b[0]).map(([h, [r, c]]) => [h, r, c]),
     untimed,
+    split: phoneSplit(StepCounter, now),
     log,
   };
 }
@@ -139,13 +145,33 @@ export default function StepCheckScreen() {
         </Card>
       ) : null}
 
-      {check?.untimed.length ? (
+      {check?.untimed.some((u) => u.from < check.split) ? (
         <Card title="No known time (since yesterday)">
-          {check.untimed.map((u) => (
-            <ThemedText key={`${u.from}-${u.to}`} type="small">
-              {formatSteps(u.steps)} steps between {time(u.from)} and {time(u.to)}: {u.reason}
-            </ThemedText>
-          ))}
+          <ThemedText type="small" themeColor="textSecondary">
+            Counted for the day each stretch began, in no hour.
+          </ThemedText>
+          {check.untimed
+            .filter((u) => u.from < check.split)
+            .map((u) => (
+              <ThemedText key={`${u.from}-${u.to}`} type="small">
+                {formatSteps(u.steps)} steps between {time(u.from)} and {time(u.to)}: {u.reason}
+              </ThemedText>
+            ))}
+        </Card>
+      ) : null}
+
+      {check?.untimed.some((u) => u.from >= check.split) ? (
+        <Card title="Missed by the app's counter">
+          <ThemedText type="small" themeColor="textSecondary">
+            Google&apos;s recorder has these steps with their times, so they are in the hours above and not added again.
+          </ThemedText>
+          {check.untimed
+            .filter((u) => u.from >= check.split)
+            .map((u) => (
+              <ThemedText key={`${u.from}-${u.to}`} type="small">
+                {formatSteps(u.steps)} steps between {time(u.from)} and {time(u.to)}: {u.reason}
+              </ThemedText>
+            ))}
         </Card>
       ) : null}
 

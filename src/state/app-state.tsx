@@ -154,13 +154,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const kickoff = setTimeout(wake, 0);
 
     // A fresh subscription each time the app comes to the front: its first
-    // event is the baseline, so steps taken in the background can't be added twice.
+    // event is the baseline, so steps taken in the background can't be added
+    // twice. Its counts carry on from the last one, so live steps the source
+    // didn't have yet stay in the number until it does.
     let stopLive: (() => void) | null = null;
     const startLive = () => {
       stopLive?.();
-      samples.current = [];
+      const offset = samples.current.at(-1)?.count ?? 0;
       stopLive = watchLiveSteps((sample) => {
-        samples.current = addSample(samples.current, sample);
+        samples.current = addSample(samples.current, { at: sample.at, count: offset + sample.count });
         recompute();
         const pending = liveStepsSince(samples.current, coveredUntil.current);
         if (pending >= LIVE_SYNC_STEPS && Date.now() - lastSyncRef.current > LIVE_SYNC_MIN_INTERVAL_MS) {

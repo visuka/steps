@@ -39,12 +39,15 @@ export function liveStepsSince(samples: LiveSample[], since: number): number {
 export interface Shown {
   date: string;
   steps: number;
+  /** The synced part of `steps` when it was shown. */
+  synced: number;
 }
 
 /**
- * A drop this small is the two counters disagreeing by a step or two, or a
- * minute caught mid-write: it's held back. A bigger one is a real correction
- * (a source fixed its figure, or another source was chosen) and is shown.
+ * The number doesn't go down because live steps were handed over to the
+ * source or the source is behind: the steps shown were walked. Only when the
+ * synced figure itself falls by more than this (the source corrected its
+ * figure) is the lower number shown.
  */
 export const HOLD_BACK_STEPS = 30;
 
@@ -57,7 +60,8 @@ export function stepsToShow(opts: {
   previous: Shown | null;
 }): Shown {
   const steps = opts.synced + liveStepsSince(opts.samples, opts.coveredUntil);
-  const shown = opts.previous?.date === opts.date ? opts.previous.steps : null;
-  const held = shown !== null && steps < shown && shown - steps <= HOLD_BACK_STEPS;
-  return { date: opts.date, steps: held ? shown : steps };
+  const prev = opts.previous?.date === opts.date ? opts.previous : null;
+  const corrected = prev !== null && opts.synced < prev.synced - HOLD_BACK_STEPS;
+  const held = prev !== null && steps < prev.steps && !corrected;
+  return { date: opts.date, synced: opts.synced, steps: held ? prev.steps : steps };
 }

@@ -25,8 +25,10 @@ import android.provider.Settings
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
+import java.text.DateFormat
 import java.text.NumberFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -45,6 +47,8 @@ class StepCounterService : Service(), SensorEventListener2 {
   private var previousAliveAt = 0L
   private var lastNotifiedElapsed = 0L
   private var shownSteps = -1L
+  /** A recorder read can finish after the service stopped; it mustn't post a notification then. */
+  @Volatile private var destroyed = false
 
   private val refreshNotification = Runnable { updateNotification() }
   /** Best effort (it doesn't run while the phone sleeps): narrows the stretch a later restart can't account for. */
@@ -88,6 +92,9 @@ class StepCounterService : Service(), SensorEventListener2 {
       // Android 14+ refuses a health service once the activity permission is
       // turned off; a sticky restart after that must stop, not crash the app.
       store.log("counter", "could not start: ${e.javaClass.simpleName}")
+      // Turning the permission off also ends Google's recording for the app.
+      store.setState(StepStore.RECORDER_SINCE, 0)
+      firstReading?.countDown()
       stopSelf()
       return
     }
@@ -103,7 +110,7 @@ class StepCounterService : Service(), SensorEventListener2 {
     previousAliveAt = store.getState(StepStore.LAST_ALIVE_AT, 0)
     store.log("counter", "listening")
     handler.postDelayed(heartbeat, HEARTBEAT_MS)
-    if (sensor != null) sensorManager.flush(this)
+    if (sensor != null) sensorManager.flush(this) else firstReading?.countDown()
     ContextCompat.registerReceiver(
       this,
       clockChanged,
@@ -123,10 +130,14 @@ class StepCounterService : Service(), SensorEventListener2 {
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
 
   override fun onDestroy() {
+    destroyed = true
     if (isRunning) store.setState(StepStore.LAST_ALIVE_AT, System.currentTimeMillis())
     sensorManager.unregisterListener(this)
     handler.removeCallbacksAndMessages(null)
     runCatching { unregisterReceiver(clockChanged) }
+    // Turned off in the app (not stopped by Android): steps taken while it's
+    // off aren't the counter's, so the next start is a fresh baseline.
+    if (store.getState(StepStore.ENABLED, 0) == 0L) store.clearCounterState()
     if (isRunning) store.log("counter", "stopped")
     isRunning = false
     super.onDestroy()
@@ -156,7 +167,8 @@ class StepCounterService : Service(), SensorEventListener2 {
     val result = StepAttribution.attribute(store.counterState(), reading)
     store.saveAttribution(result)
     result.untimed?.let {
-      store.log("untimed", "${it.steps} steps between ${it.fromMs} and ${it.toMs} (${it.reason})")
+      val f = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
+      store.log("untimed", "${it.steps} steps between ${f.format(Date(it.fromMs))} and ${f.format(Date(it.toMs))} (${it.reason})")
     }
     if (result.discarded > 0) store.log("counter", "ignored an impossible jump of ${result.discarded} steps")
     firstReading?.countDown()
@@ -212,7 +224,7 @@ class StepCounterService : Service(), SensorEventListener2 {
     }
 
   private fun show(steps: Long) {
-    if (steps == shownSteps) return
+    if (destroyed || steps == shownSteps) return
     shownSteps = steps
     getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, buildNotification(steps))
   }
@@ -261,22 +273,34 @@ class StepCounterService : Service(), SensorEventListener2 {
       // and it can't without this permission: check here, before Android
       // would crash the app for not doing so. Counting resumes on the next
       // start once the permission is back.
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
-        ContextCompat.checkSelfPermission(context, Manifest.permission.ACTIVITY_RECOGNITION) != PackageManager.PERMISSION_GRANTED
-      ) return
+      if (!canCount(context)) return
       val intent = Intent(context, StepCounterService::class.java)
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(intent) else context.startService(intent)
     }
 
-    /** Starts counting if needed and waits (up to `timeoutMs`) for the counter's first reading. */
+    /**
+     * Starts counting if needed and waits (up to `timeoutMs`) for the
+     * counter's first reading. Called on Expo's async thread, never the main one.
+     */
     fun startAndWait(context: Context, timeoutMs: Long) {
       if (isRunning) return
+      if (!canCount(context)) {
+        start(context) // Remembers that counting is on, for when the permission is back.
+        return
+      }
       val latch = CountDownLatch(1)
       firstReading = latch
-      start(context)
-      latch.await(timeoutMs, TimeUnit.MILLISECONDS)
-      if (firstReading === latch) firstReading = null
+      try {
+        start(context)
+        latch.await(timeoutMs, TimeUnit.MILLISECONDS)
+      } finally {
+        if (firstReading === latch) firstReading = null
+      }
     }
+
+    fun canCount(context: Context) =
+      Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
+        ContextCompat.checkSelfPermission(context, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED
 
     fun stop(context: Context) {
       StepStore.get(context).setState(StepStore.ENABLED, 0)

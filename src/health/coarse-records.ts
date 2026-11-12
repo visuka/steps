@@ -60,11 +60,14 @@ export function splitCoarse(buckets: StepBucket[], coarse: UntimedSpan[]): { buc
  * deduplication); `records` are the raw records around the window.
  *
  * - Coarse records come out of the minutes. Each counts in full for the day
- *   it began, unless another app recorded the same time in detail: then both
- *   apps counted the same walk, and the detailed one has it.
+ *   it began. When another app recorded the same time in detail, both apps
+ *   counted the same walk: the record adds only what the detailed minutes
+ *   don't already have. When two apps each wrote a long record for the same
+ *   time, only the bigger one counts (as in Health Connect's own total).
  * - Minutes faster than anyone walks are a catch-up written as a short
  *   record: their steps stay in the day, untimed.
- * - What's left of the total (whole-number slices drift) is untimed too.
+ * - What's left of the total beyond the minutes and the long records' share
+ *   of the window is untimed too.
  */
 export function healthConnectWindow(opts: {
   buckets: StepBucket[];
@@ -74,8 +77,19 @@ export function healthConnectWindow(opts: {
   end: number;
 }): { buckets: StepBucket[]; untimed: number; lastRecordAt: number | null } {
   const { start, end } = opts;
-  const coarse = opts.records.filter((r) => isCoarseRecord(r.from, r.to, r.count));
+  const all = opts.records.filter((r) => isCoarseRecord(r.from, r.to, r.count));
   const fine = opts.records.filter((r) => !isCoarseRecord(r.from, r.to, r.count));
+  const overlap = (a: StepRecord, b: StepRecord) => Math.min(a.to, b.to) - Math.max(a.from, b.from);
+  // Mostly covered by a bigger long record from another app: the same steps, counted by both.
+  const shadowed = (c: StepRecord) =>
+    all.some(
+      (o) =>
+        o !== c &&
+        o.origin !== c.origin &&
+        overlap(o, c) >= 0.5 * (c.to - c.from) &&
+        (o.count > c.count || (o.count === c.count && o.origin < c.origin)),
+    );
+  const coarse = all.filter((c) => !shadowed(c));
   const spans = coarse.map((r) => ({ from: r.from, to: r.to, steps: r.count }));
 
   const split = splitCoarse(opts.buckets, spans);
@@ -86,10 +100,17 @@ export function healthConnectWindow(opts: {
     return false;
   });
   const timed = buckets.reduce((s, b) => s + b.steps, 0);
-  const drift = Math.max(0, opts.total - timed - fast - split.untimed);
+  // Health Connect's slices are whole numbers, so what was taken out of them
+  // falls short of the long records' real share; their share is counted
+  // below, so only the rest of the total is drift.
+  const drift = Math.max(0, opts.total - timed - fast - untimedShare(spans, start, end));
 
   const repeated = (c: StepRecord) => fine.some((f) => f.origin !== c.origin && f.to > c.from && f.from < c.to);
-  const ownDay = coarse.filter((c) => c.from >= start && c.from < end && !repeated(c)).reduce((s, c) => s + c.count, 0);
+  const timedIn = (c: StepRecord) =>
+    buckets.filter((b) => b.start < c.to && b.end > c.from).reduce((s, b) => s + b.steps, 0);
+  const ownDay = coarse
+    .filter((c) => c.from >= start && c.from < end)
+    .reduce((s, c) => s + (repeated(c) ? Math.max(0, c.count - timedIn(c)) : c.count), 0);
 
   const ends = opts.records.filter((r) => r.to > start && r.from < end).map((r) => Math.min(r.to, end));
   return { buckets, untimed: drift + fast + ownDay, lastRecordAt: ends.length ? Math.max(...ends) : null };

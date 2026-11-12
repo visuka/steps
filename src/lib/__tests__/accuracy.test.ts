@@ -10,7 +10,7 @@ import { describe, expect, it, jest } from '@jest/globals';
 import { openRepository } from '@/data/db.web';
 import { DEFAULT_PROFILE } from '@/data/profile';
 import { healthConnectWindow, isCoarseRecord, splitCoarse } from '@/health/coarse-records';
-import { type PhoneCounter, phoneMinutes, phoneUntimed } from '@/health/phone-steps';
+import { type PhoneCounter, phoneWindow } from '@/health/phone-steps';
 import type { StepSource } from '@/health/types';
 import { addSample, type LiveSample, liveStepsSince, type Shown, stepsToShow } from '@/lib/live-steps';
 import { type StepBucket, summarizeBuckets } from '@/lib/metrics';
@@ -92,6 +92,32 @@ describe('the live count on Today', () => {
     }
   });
 
+  it('never goes down while walking, even when the source lags behind the live count', () => {
+    for (const lagMs of [30_000, 60_000, 5 * MIN]) {
+      const shown = walk({ spm: 110, minutes: 20, syncEveryS: 60, lagMs, before: 1200 });
+      for (let i = 1; i < shown.length; i++) expect(shown[i].steps).toBeGreaterThanOrEqual(shown[i - 1].steps);
+    }
+  });
+
+  it('keeps live steps the source has not got yet when the app comes back from the background', () => {
+    // 80 live steps were shown on top of 6,000 synced; then the app went to the background.
+    const before: LiveSample[] = [{ at: at(17, 50), count: 0 }, { at: at(17, 51), count: 80 }];
+    const previous: Shown = { date: '2026-11-12', synced: 6000, steps: 6080 };
+    // Back at 18:10: the new subscription's first event carries on from 80. The wake sync hasn't landed yet.
+    const back = addSample(before, { at: at(18, 10), count: 80 });
+    const shown = stepsToShow({ date: '2026-11-12', synced: 6000, coveredUntil: at(17, 50), samples: back, previous });
+    expect(shown.steps).toBe(6080);
+    // The sync lands with the 80 and the 2,320 background steps: nothing is added twice.
+    const synced = stepsToShow({ date: '2026-11-12', synced: 8400, coveredUntil: at(18, 9), samples: back, previous: shown });
+    expect(synced.steps).toBe(8400);
+  });
+
+  it('shows a lower number only when the source itself corrected its figure', () => {
+    const previous: Shown = { date: '2026-11-12', synced: 5000, steps: 5000 };
+    expect(stepsToShow({ date: '2026-11-12', synced: 4990, coveredUntil: at(9), samples: [], previous }).steps).toBe(5000);
+    expect(stepsToShow({ date: '2026-11-12', synced: 4200, coveredUntil: at(9), samples: [], previous }).steps).toBe(4200);
+  });
+
   it('stays close to the truth when the source keeps up', () => {
     const shown = walk({ spm: 100, minutes: 10, syncEveryS: 60, lagMs: 0, before: 1500 });
     for (const s of shown) expect(s.truth - s.steps).toBeLessThanOrEqual(3);
@@ -105,9 +131,9 @@ describe('the live count on Today', () => {
   });
 
   it('starts again from the new day at midnight', () => {
-    const previous: Shown = { date: '2026-11-11', steps: 9350 };
+    const previous: Shown = { date: '2026-11-11', synced: 9350, steps: 9350 };
     const shown = stepsToShow({ date: '2026-11-12', synced: 0, coveredUntil: day, samples: [], previous });
-    expect(shown).toEqual({ date: '2026-11-12', steps: 0 });
+    expect(shown).toEqual({ date: '2026-11-12', synced: 0, steps: 0 });
   });
 
   it('counts live steps only after the last step the source has', () => {
@@ -170,8 +196,10 @@ describe("the phone's two counters", () => {
     ...over,
   });
 
+  const now = at(11);
+
   it("reads the app's counter before Google's recorder started and the recorder after", async () => {
-    const minutes = await phoneMinutes(fake(), at(9), at(11));
+    const { minutes } = await phoneWindow(fake(), at(9), at(11), now);
     expect(minutes.map((m) => [m.start, m.steps])).toEqual([
       [at(9, 59), 50],
       [at(10, 0), 50],
@@ -180,23 +208,30 @@ describe("the phone's two counters", () => {
     ]);
   });
 
-  it('falls back to the counter while Play services refuses', async () => {
-    const minutes = await phoneMinutes(
-      fake({ getRecorderBuckets: async () => Promise.reject(new Error('updating')) }),
-      at(9),
-      at(11),
-    );
-    expect(minutes.reduce((s, m) => s + m.steps, 0)).toBe(200);
+  it('falls back to the counter while Play services refuses, untimed steps included', async () => {
+    const refusing = fake({
+      getRecorderBuckets: async () => Promise.reject(new Error('updating')),
+      getUntimed: async () => [{ from: at(10, 30), to: at(10, 50), steps: 400 }],
+    });
+    const w = await phoneWindow(refusing, at(9), at(11), now);
+    expect(w.minutes.reduce((s, m) => s + m.steps, 0)).toBe(200);
+    expect(w.untimed).toBe(400);
+  });
+
+  it("reads days older than the recorder keeps from the app's counter", async () => {
+    const tenDaysOn = at(24 * 10 + 11);
+    const w = await phoneWindow(fake(), at(9), at(11), tenDaysOn);
+    expect(w.minutes.map((m) => m.steps)).toEqual([50, 50, 50, 50]);
   });
 
   it("keeps only the counter's untimed steps from before the recorder took over", async () => {
     // A 2 am–noon stretch of 1,000; the recorder has everything from 10:01.
-    const before = await phoneUntimed(fake(), day, at(24));
+    const before = (await phoneWindow(fake(), day, at(24), now)).untimed;
     expect(before).toBeGreaterThan(0);
     expect(before).toBeLessThan(1000);
-    expect(await phoneUntimed(fake({ recorderSince: () => null }), day, at(24))).toBe(1000);
+    expect((await phoneWindow(fake({ recorderSince: () => null }), day, at(24), now)).untimed).toBe(1000);
     // Not for the next day: the stretch began on this one.
-    expect(await phoneUntimed(fake({ recorderSince: () => null }), at(24), at(48))).toBe(0);
+    expect((await phoneWindow(fake({ recorderSince: () => null }), at(24), at(48), now)).untimed).toBe(0);
   });
 });
 
@@ -253,13 +288,35 @@ describe("Health Connect's figures for a day", () => {
     expect(yesterday.untimed).toBeCloseTo(2200, 0);
   });
 
-  it('drops a long record that only repeats a walk another app recorded in detail', () => {
+  const dayTotal = (w: { buckets: StepBucket[]; untimed: number }) => w.buckets.reduce((s, b) => s + b.steps, 0) + w.untimed;
+
+  it('counts a walk once when one app recorded it in detail and another in one long record', () => {
     const record = { from: at(7), to: at(9), count: 1000, origin: 'com.other.app' };
-    const buckets = minutes(at(7), at(9), 1000 / 120).map((b) =>
+    // The detailed app has priority in Health Connect: its minutes show the walk.
+    const detailed = minutes(at(7), at(9), 1000 / 120).map((b) =>
       b.start >= at(7, 30) && b.start < at(7, 40) ? { ...b, steps: 100 } : b,
     );
-    const w = healthConnectWindow({ buckets, total: 1000 + (1000 / 120) * 110, records: [record, walk], start: day, end: at(11) });
-    expect(Math.round(w.buckets.reduce((s, b) => s + b.steps, 0) + w.untimed)).toBeLessThan(1100);
+    const w = healthConnectWindow({ buckets: detailed, total: 1000 + (1000 / 120) * 110, records: [record, walk], start: day, end: at(11) });
+    expect(dayTotal(w)).toBeCloseTo(1000, 0);
+    // The long record's app has priority: Health Connect spreads its 1,000 over the two hours.
+    const spread = healthConnectWindow({ buckets: minutes(at(7), at(9), 1000 / 120), total: 1000, records: [record, walk], start: day, end: at(11) });
+    expect(dayTotal(spread)).toBeCloseTo(1000, 0);
+  });
+
+  it("counts two apps' long records of the same time once", () => {
+    const a = { from: day, to: at(10), count: 6000, origin: 'com.maker.health' };
+    const b = { from: day, to: at(10), count: 6000, origin: 'com.band.app' };
+    const w = healthConnectWindow({ buckets: minutes(day, at(10), 10), total: 6000, records: [a, b], start: day, end: at(11) });
+    expect(dayTotal(w)).toBeCloseTo(6000, 0);
+  });
+
+  it("doesn't add the rounding of Health Connect's whole-number minutes", () => {
+    // Health Connect returns whole steps a minute: 3 instead of 3.33 for the catch-up, 103 in the walk.
+    const buckets = minutes(day, at(8), 3).map((b) => (b.start >= at(7, 30) && b.start < at(7, 40) ? { ...b, steps: 103 } : b));
+    const today = healthConnectWindow({ buckets, total: 2600, records: [catchUp], start: day, end: at(11) });
+    expect(Math.abs(dayTotal(today) - 1000)).toBeLessThan(10);
+    const yesterday = healthConnectWindow({ buckets: minutes(at(-3), day, 3), total: 600, records: [catchUp], start: at(-24), end: day });
+    expect(dayTotal(yesterday)).toBeCloseTo(2200, 0);
   });
 
   it('keeps a catch-up written as a few impossible minutes out of the hours', () => {

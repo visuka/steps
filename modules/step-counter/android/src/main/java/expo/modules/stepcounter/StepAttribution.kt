@@ -39,6 +39,8 @@ object StepAttribution {
     val eventAt: Long,
     /** Settings.Global.BOOT_COUNT when it was taken, or UNKNOWN_BOOT. */
     val bootCount: Long,
+    /** listeningSince of the process that took it (0 = not known). */
+    val session: Long = 0,
   )
 
   data class Reading(
@@ -78,7 +80,9 @@ object StepAttribution {
     // The steps lie between the previous reading (or the boot, if the phone
     // restarted since) and this one. A clock that went backwards, or an event
     // stamped in the future, is pulled back into that range.
-    val listenedThroughout = prev != null && !rebooted && r.listeningSince <= prev.eventAt
+    // Listened throughout: the same process took the last reading, or was already listening when it was taken.
+    val listenedThroughout =
+      prev != null && !rebooted && (prev.session == r.listeningSince || r.listeningSince <= prev.eventAt)
     val from = when {
       prev == null -> r.eventAt
       rebooted -> max(prev.eventAt, r.bootAt)
@@ -88,10 +92,10 @@ object StepAttribution {
     }.coerceAtMost(r.now)
     val to = r.eventAt.coerceIn(from, r.now)
     // The first event after the app starts listening can be the sensor's
-    // cached one, stamped at the last step taken before; its count is still
-    // current as of then. So the state is current from when listening began,
-    // and the next walk isn't mistaken for steps from a pause.
-    val next = State(r.reading, max(to, r.listeningSince.coerceAtMost(r.now)), r.bootCount)
+    // cached one, stamped at the last step taken before. The state keeps that
+    // real time and the session, so the next reading of the same process
+    // counts as listened to (not a pause) without moving the time forward.
+    val next = State(r.reading, to, r.bootCount, r.listeningSince)
 
     if (prev == null) return Result(emptyList(), null, next) // First reading: just a baseline.
 

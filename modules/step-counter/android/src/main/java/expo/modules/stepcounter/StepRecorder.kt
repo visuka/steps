@@ -33,6 +33,14 @@ object StepRecorder {
   fun start(context: Context, onDone: (sinceMs: Long?, error: Exception?) -> Unit) {
     if (status(context) != "ready") return onDone(null, null)
     val store = StepStore.get(context)
+    // Without the activity permission Google doesn't record for the app, and
+    // turning it off ends the subscription: what it has from then on starts
+    // when recording starts again, so the counter covers the time before.
+    if (!StepCounterService.canCount(context)) {
+      if (store.getState(StepStore.RECORDER_SINCE, 0) != 0L) store.log("recorder", "stopped: permission is off")
+      store.setState(StepStore.RECORDER_SINCE, 0)
+      return onDone(null, null)
+    }
     FitnessLocal.getLocalRecordingClient(context)
       .subscribe(LocalDataType.TYPE_STEP_COUNT_DELTA)
       .addOnSuccessListener {

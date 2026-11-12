@@ -33,43 +33,57 @@ export function rebucket(minutes: { start: number; steps: number }[], start: Dat
   return out;
 }
 
-/** Where the recorder takes over: the end of the minute it started in, or never. */
-export function phoneSplit(counter: PhoneCounter): number {
+/** The recorder keeps 10 days; a day's margin, so a range it has half forgotten isn't read from it. */
+const RECORDER_KEEPS_MS = 9 * 24 * 60 * MINUTE;
+
+/**
+ * Where the recorder takes over: the end of the minute it started in, or
+ * never. Times it no longer keeps come from the counter, which keeps everything.
+ */
+export function phoneSplit(counter: PhoneCounter, now: number): number {
   const since = counter.recorderSince();
-  return since ? Math.ceil(since / MINUTE) * MINUTE : Infinity;
+  if (!since) return Infinity;
+  return Math.max(Math.ceil(since / MINUTE) * MINUTE, Math.ceil((now - RECORDER_KEEPS_MS) / MINUTE) * MINUTE);
 }
 
-/** Minute buckets in [startMs, endMs) from whichever counter covers each stretch. */
-export async function phoneMinutes(counter: PhoneCounter, startMs: number, endMs: number): Promise<MinuteBucket[]> {
-  const split = phoneSplit(counter);
-  const parts: MinuteBucket[] = [];
+export interface PhoneWindow {
+  /** Minute buckets in the window, from whichever counter covers each stretch. */
+  minutes: MinuteBucket[];
+  /** Steps with no known time that count for the window (stretches that began in it). */
+  untimed: number;
+}
+
+/**
+ * The phone's steps in [startMs, endMs). Untimed steps come only from the
+ * app's counter, for the time the counter covers: of a stretch that runs into
+ * the recorder's time, the part after it is in the recorder, with its times.
+ */
+export async function phoneWindow(counter: PhoneCounter, startMs: number, endMs: number, now: number): Promise<PhoneWindow> {
+  const split = phoneSplit(counter, now);
+  const minutes: MinuteBucket[] = [];
+  let counterUntil = Math.min(endMs, split);
   if (startMs < split) {
-    const counted = await counter.getBuckets(startMs, Math.min(endMs, split));
+    const counted = await counter.getBuckets(startMs, counterUntil);
     // The counter rounds its range out to whole minutes; the minute from the split on is the recorder's.
-    parts.push(...counted.filter((m) => m.start < split));
+    minutes.push(...counted.filter((m) => m.start < split));
   }
   if (endMs > split) {
     const from = Math.max(startMs, split);
     try {
-      parts.push(...(await counter.getRecorderBuckets(from, endMs)));
+      minutes.push(...(await counter.getRecorderBuckets(from, endMs)));
     } catch {
       // Play services refused this time (updating, say): the counter stands in until it answers.
-      parts.push(...(await counter.getBuckets(from, endMs)).filter((m) => m.start >= from));
+      minutes.push(...(await counter.getBuckets(from, endMs)).filter((m) => m.start >= from));
+      counterUntil = endMs;
     }
   }
-  return parts;
+  return { minutes, untimed: await counterUntimed(counter, startMs, endMs, counterUntil) };
 }
 
-/**
- * Untimed steps for the day [dayStart, dayEnd): stretches that began in it.
- * Only the counter has them, and only before the recorder took over: of a
- * stretch that runs past that point, the part after it is in the recorder.
- */
-export async function phoneUntimed(counter: PhoneCounter, dayStart: number, dayEnd: number): Promise<number> {
-  const split = phoneSplit(counter);
-  if (dayStart >= split) return 0;
-  const spans = (await counter.getUntimed(dayStart, Math.min(dayEnd, split))).map((s) =>
-    s.to <= split ? s : { from: s.from, to: split, steps: untimedShare([s], s.from, split, DEFAULT_HOUR_WEIGHTS) },
+async function counterUntimed(counter: PhoneCounter, dayStart: number, dayEnd: number, until: number): Promise<number> {
+  if (until <= dayStart) return 0;
+  const spans = (await counter.getUntimed(dayStart, until)).map((s) =>
+    s.to <= until ? s : { from: s.from, to: until, steps: untimedShare([s], s.from, until, DEFAULT_HOUR_WEIGHTS) },
   );
   return untimedForDay(spans, dayStart, dayEnd);
 }

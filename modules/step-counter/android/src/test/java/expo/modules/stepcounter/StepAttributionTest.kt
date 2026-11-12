@@ -19,7 +19,7 @@ class StepAttributionTest {
     bootAt: Long = day - 30 * 24 * hour,
     listeningSince: Long = day - 24 * hour,
     now: Long = at,
-  ) = StepAttribution.Reading(count, at, boot, bootAt, listeningSince, now)
+  ) = StepAttribution.Reading(count, at, boot, bootAt, listeningSince, now = now)
 
   private fun total(r: StepAttribution.Result) = r.placed.sumOf { it.second }
 
@@ -141,7 +141,8 @@ class StepAttributionTest {
       reading(7_100, day + 7 * hour + 15 * min, listeningSince = listening, now = listening + 1_000),
     )
     assertEquals(1_100, first.untimed!!.steps)
-    assertEquals(listening, first.next.eventAt)
+    assertEquals(day + 7 * hour + 15 * min, first.next.eventAt)
+    assertEquals(listening, first.next.session)
     // A walk at 09:00 is then known to be just now.
     val walk = StepAttribution.attribute(first.next, reading(7_200, day + 9 * hour, listeningSince = listening))
     assertNull(walk.untimed)

@@ -3,10 +3,26 @@ import { PermissionsAndroid, Platform } from 'react-native';
 import { addDays, dayKey, parseDayKey } from '@/lib/dates';
 
 import { StepCounter } from '../../modules/step-counter';
-import { phoneMinutes, phoneUntimed, rebucket } from './phone-steps';
+import { type PhoneWindow, phoneWindow, rebucket } from './phone-steps';
 import type { DayTotals, StepSource } from './types';
 
 const MINUTE = 60_000;
+
+/** One read for a window's minutes and untimed steps; a sync asks for both at once. */
+let lastRead: { key: string; at: number; result: Promise<PhoneWindow> } | null = null;
+
+function windowSteps(startMs: number, endMs: number): Promise<PhoneWindow> {
+  if (!StepCounter) return Promise.resolve({ minutes: [], untimed: 0 });
+  const key = `${startMs}|${endMs}`;
+  const now = Date.now();
+  if (lastRead?.key === key && now - lastRead.at < 10_000) return lastRead.result;
+  const result = phoneWindow(StepCounter, startMs, endMs, now);
+  lastRead = { key, at: now, result };
+  result.catch(() => {
+    if (lastRead?.result === result) lastRead = null;
+  });
+  return result;
+}
 
 async function requestAndroidPermission(permission: (typeof PermissionsAndroid.PERMISSIONS)[keyof typeof PermissionsAndroid.PERMISSIONS], minApi: number) {
   if (Platform.OS !== 'android' || (Platform.Version as number) < minApi) return true;
@@ -41,8 +57,7 @@ export const deviceSensorSource: StepSource = {
   },
 
   async getStepBuckets(start, end, bucketMinutes) {
-    if (!StepCounter) return [];
-    const minutes = await phoneMinutes(StepCounter, start.getTime(), end.getTime());
+    const { minutes } = await windowSteps(start.getTime(), end.getTime());
     // Minutes keep their own times, so a walk starting mid-minute can take the part it covers.
     if (bucketMinutes === 1) {
       return minutes.map((m) => ({ start: m.start, end: m.start + MINUTE, steps: m.steps })).sort((a, b) => a.start - b.start);
@@ -51,8 +66,7 @@ export const deviceSensorSource: StepSource = {
   },
 
   async getUntimedSteps(start, end) {
-    if (!StepCounter) return 0;
-    return phoneUntimed(StepCounter, start.getTime(), end.getTime());
+    return (await windowSteps(start.getTime(), end.getTime())).untimed;
   },
 
   async getDistanceM() {
@@ -69,8 +83,8 @@ export const deviceSensorSource: StepSource = {
     for (let day = parseDayKey(startDay); dayKey(day) <= endDay; day = addDays(day, 1)) {
       const start = day.getTime();
       const end = addDays(day, 1).getTime();
-      const minutes = await phoneMinutes(StepCounter, start, end);
-      const steps = minutes.reduce((s, m) => s + m.steps, 0) + (await phoneUntimed(StepCounter, start, end));
+      const { minutes, untimed } = await phoneWindow(StepCounter, start, end, Date.now());
+      const steps = minutes.reduce((s, m) => s + m.steps, 0) + untimed;
       if (steps > 0) totals.push({ date: dayKey(day), steps: Math.round(steps), distanceM: null, floors: null });
     }
     return totals;

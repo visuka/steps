@@ -13,8 +13,10 @@ import java.util.UUID
  * of what the counter did, and the GPS fixes of a walk being recorded. Lives
  * in its own small database so the services can write without the JS runtime.
  */
-class StepStore(private val context: Context) :
+class StepStore(context: Context) :
   SQLiteOpenHelper(context.applicationContext, "step_counter.db", null, 3) {
+  // The app's context: the store lives as long as the process, a service or receiver doesn't.
+  private val context: Context = context.applicationContext
 
   override fun onCreate(db: SQLiteDatabase) {
     db.execSQL("CREATE TABLE buckets (minute INTEGER PRIMARY KEY NOT NULL, steps INTEGER NOT NULL)")
@@ -68,6 +70,15 @@ class StepStore(private val context: Context) :
       reading = reading,
       eventAt = getState(LAST_EVENT_AT, 0),
       bootCount = getState(BOOT_COUNT, StepAttribution.UNKNOWN_BOOT),
+      session = getState(SESSION, 0),
+    )
+  }
+
+  /** Forgets the last reading, so counting next starts from a fresh baseline (steps while it was off aren't counted). */
+  fun clearCounterState() {
+    writableDatabase.execSQL(
+      "DELETE FROM state WHERE key IN (?, ?, ?, ?, ?)",
+      arrayOf<Any>(LAST_READING, LAST_EVENT_AT, BOOT_COUNT, SESSION, LAST_ALIVE_AT)
     )
   }
 
@@ -90,7 +101,8 @@ class StepStore(private val context: Context) :
         })
       }
       val next = result.next
-      for ((key, value) in listOf(LAST_READING to next.reading, LAST_EVENT_AT to next.eventAt, BOOT_COUNT to next.bootCount)) {
+      val keys = listOf(LAST_READING to next.reading, LAST_EVENT_AT to next.eventAt, BOOT_COUNT to next.bootCount, SESSION to next.session)
+      for ((key, value) in keys) {
         db.insertWithOnConflict("state", null, stateValues(key, value), SQLiteDatabase.CONFLICT_REPLACE)
       }
       db.setTransactionSuccessful()
@@ -192,8 +204,8 @@ class StepStore(private val context: Context) :
     try {
       if (restored) {
         db.execSQL(
-          "DELETE FROM state WHERE key IN (?, ?, ?, ?)",
-          arrayOf<Any>(LAST_READING, LAST_EVENT_AT, BOOT_COUNT, RECORDER_SINCE)
+          "DELETE FROM state WHERE key IN (?, ?, ?, ?, ?, ?)",
+          arrayOf<Any>(LAST_READING, LAST_EVENT_AT, BOOT_COUNT, SESSION, LAST_ALIVE_AT, RECORDER_SINCE)
         )
       }
       db.execSQL("DELETE FROM text_state WHERE key = ?", arrayOf<Any>(INSTALL))
@@ -261,6 +273,8 @@ class StepStore(private val context: Context) :
     const val LAST_READING = "lastReading"
     const val LAST_EVENT_AT = "lastEventAt"
     const val BOOT_COUNT = "bootCount"
+    /** When the process that took the last reading started listening (epoch ms). */
+    const val SESSION = "session"
     /** Last time (epoch ms) the counter was seen alive and listening. */
     const val LAST_ALIVE_AT = "lastAliveAt"
     const val ENABLED = "enabled"
