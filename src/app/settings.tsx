@@ -10,7 +10,7 @@ import { confirm } from '@/components/confirm';
 import { Button, NumberField, Row, Segmented, Stepper } from '@/components/controls';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
-import { APP_NAME } from '@/constants/app';
+import { APP_NAME, SIGN_IN_MODE } from '@/constants/app';
 import { Spacing } from '@/constants/theme';
 import { profileStride } from '@/data/profile';
 import type { Sex } from '@/data/types';
@@ -307,9 +307,9 @@ export default function SettingsScreen() {
 
       <Card title="Your data">
         <ThemedText type="small" themeColor="textSecondary">
-          Our sign-in service (Supabase) keeps only your email and a scrambled form of your password. Everything else
-          stays on this phone and in your health app: steps, walks and their routes, moods, food, sleep, health
-          readings and the weather.
+          {SIGN_IN_MODE === 'phone'
+            ? 'To sign you in, our server keeps only a random account number and your email, used just to get your account back if you change phones: no name, no fingerprint. Everything else stays on this phone and in your health app: steps, walks and their routes, moods, food, sleep, health readings and the weather.'
+            : 'To sign you in, our server keeps only your passkey’s public key and a random account number: no email, no name, no fingerprint. Everything else stays on this phone and in your health app: steps, walks and their routes, moods, food, sleep, health readings and the weather.'}
         </ThemedText>
         <Button kind="secondary" label="Export daily totals (CSV)" onPress={exportCsv} />
         {exportError ? (

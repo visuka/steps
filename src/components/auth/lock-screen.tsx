@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { supabase } from '@/auth/supabase';
+import { useAuth } from '@/auth/auth-state';
 import { AuthLayout, TextButton } from '@/components/auth/auth-layout';
 import { confirm } from '@/components/confirm';
 import { Button } from '@/components/controls';
 import { ThemedText } from '@/components/themed-text';
-import { APP_NAME } from '@/constants/app';
+import { APP_NAME, SIGN_IN_MODE } from '@/constants/app';
 import { useTheme } from '@/hooks/use-theme';
 import { useLock } from '@/state/app-lock';
 
@@ -16,6 +16,7 @@ import { useLock } from '@/state/app-lock';
  */
 export function LockScreen() {
   const { unlock } = useLock();
+  const { signOut } = useAuth();
   const theme = useTheme();
   const [failed, setFailed] = useState(false);
 
@@ -46,17 +47,20 @@ export function LockScreen() {
           </ThemedText>
         ) : null}
         <Button label="Unlock" onPress={tryUnlock} />
-        <TextButton
-          label="Sign out instead"
-          onPress={() =>
-            confirm(
-              'Sign out?',
-              "You'll need your email and password to sign in again.",
-              () => supabase.auth.signOut({ scope: 'local' }),
-              'Sign out',
-            )
-          }
-        />
+        {/* Phone sign-in has no sign-out: without the email there'd be no way back in. */}
+        {SIGN_IN_MODE === 'passkey' ? (
+          <TextButton
+            label="Sign out instead"
+            onPress={() =>
+              confirm(
+                'Sign out?',
+                "You'll need your fingerprint to sign in again. Your data stays on this phone.",
+                () => signOut(),
+                'Sign out',
+              )
+            }
+          />
+        ) : null}
       </AuthLayout>
     </View>
   );

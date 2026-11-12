@@ -5,8 +5,9 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 
-import { AuthProvider, useAuth } from '@/auth/auth-state';
+import { AuthProvider, useAccess, useAuth } from '@/auth/auth-state';
 import { claimLocalData } from '@/auth/owner';
+import { carriedOverAccount } from '@/auth/session-storage';
 import { AuthScreen } from '@/components/auth/auth-screen';
 import { LockOffer, LockScreen } from '@/components/auth/lock-screen';
 import { Onboarding } from '@/components/onboarding';
@@ -39,9 +40,10 @@ function Gate() {
   const { repo, profile, resetAll } = useApp();
   const auth = useAuth();
   const lock = useLock();
-  const userId = auth.session?.user.id ?? null;
+  const access = useAccess();
+  const userId = auth.userId;
   const [claimedFor, setClaimedFor] = useState<string | null>(null);
-  const ready = !auth.loading && lock.loaded;
+  const ready = access !== 'loading';
 
   useEffect(() => {
     if (ready) SplashScreen.hideAsync();
@@ -50,7 +52,7 @@ function Gate() {
   useEffect(() => {
     if (!userId) return;
     let cancelled = false;
-    claimLocalData(repo, userId, resetAll).then(() => {
+    claimLocalData(repo, userId, resetAll, carriedOverAccount).then(() => {
       if (!cancelled) setClaimedFor(userId);
     });
     return () => {
@@ -61,7 +63,8 @@ function Gate() {
   if (!ready) return null;
 
   if (!auth.previewSkipped) {
-    if (!userId || auth.resetting) return <AuthScreen />;
+    // A new phone account stays on the sign-in screens until its email step is done or put off.
+    if (access === 'signed-out' || !userId || auth.confirmingEmail) return <AuthScreen />;
     // Wait until any other account's data on this phone is gone.
     if (claimedFor !== userId) return null;
     if (lock.support === 'ready' && !lock.asked) return <LockOffer />;
@@ -70,7 +73,7 @@ function Gate() {
   return (
     <>
       {profile.onboarded ? <Stack screenOptions={{ headerShown: false }} /> : <Onboarding />}
-      {lock.locked ? <LockScreen /> : null}
+      {access === 'locked' ? <LockScreen /> : null}
     </>
   );
 }

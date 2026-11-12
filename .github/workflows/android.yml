@@ -6,9 +6,11 @@ name: Android build
 # launch is published, as a GitHub Release named "Android build N". Open it on
 # the phone and tap the .apk.
 #
-# Signed with the React Native template's shared debug key, so builds install
-# over each other but are for testing only. Play Store uploads need the real
-# upload key (already generated on EAS for @neutcrafts/steps).
+# Gradle signs the APK with the React Native template's debug key. That key
+# ships in every React Native project, so anyone can sign an app with it:
+# passkeys must never trust it. With the ANDROID_TEST_* secrets set (README,
+# "Test signing key"), the APK is signed again with our own private test key.
+# Play Store uploads use the upload key on EAS, never this one.
 
 on:
   push:
@@ -89,6 +91,58 @@ jobs:
       - name: Build release APK
         working-directory: android
         run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a,x86_64
+
+      # Passkeys trust an app only by its signing certificate, so test APKs
+      # must carry a key only we hold. The keystore is written to the runner's
+      # temp folder and deleted at the end; passwords reach apksigner through
+      # the environment, never the command line.
+      - name: Sign with the private test key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_TEST_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_TEST_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_TEST_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_TEST_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::warning::No ANDROID_TEST_KEYSTORE_BASE64 secret: this APK keeps React Native's public debug key, so passkey sign-in can't work on it."
+            exit 0
+          fi
+          apksigner="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner"
+          keystore="$RUNNER_TEMP/test-key.jks"
+          trap 'rm -f "$keystore"' EXIT
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$keystore"
+          apk=android/app/build/outputs/apk/release/app-release.apk
+          # Without --key-pass, apksigner uses the keystore password (PKCS12 keystores have only one).
+          "$apksigner" sign --ks "$keystore" --ks-pass env:KEYSTORE_PASSWORD --ks-key-alias "$KEY_ALIAS" \
+            ${KEY_PASSWORD:+--key-pass env:KEY_PASSWORD} --out "$RUNNER_TEMP/signed.apk" "$apk"
+          mv "$RUNNER_TEMP/signed.apk" "$apk"
+
+      # Passkeys work only for an app whose signing certificate is listed in
+      # https://<rpId>/.well-known/assetlinks.json, and the sign-in server only
+      # accepts origin android:apk-key-hash:<the same SHA-256, base64url>. Both
+      # forms go in the run summary: a certificate's fingerprint is public, so
+      # this prints no secret. For the template's debug key it prints a warning
+      # instead, so nobody copies that one into the server's settings.
+      - name: Print the APK signing certificate
+        run: |
+          set -o pipefail
+          apksigner="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner"
+          hex="$("$apksigner" verify --print-certs android/app/build/outputs/apk/release/app-release.apk \
+            | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
+          test -n "$hex"
+          # React Native's template debug.keystore (password "android"), the same in every project.
+          if [ "${hex,,}" = "fac61745dc0903786fb9ede62a962b399f7348f0bb6f899b8332667591033b9c" ]; then
+            echo "::warning::Signed with React Native's public debug key. Never list it in assetlinks.json or the sign-in server's origins."
+            echo "Signed with React Native's public debug key, so passkey sign-in can't work on this APK. Set the ANDROID_TEST_* secrets (README, \"Test signing key\")." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          python3 - "$hex" <<'EOF' | tee -a "$GITHUB_STEP_SUMMARY"
+          import base64, sys
+          digest = bytes.fromhex(sys.argv[1])
+          print("assetlinks sha256_cert_fingerprints: " + ":".join(f"{b:02X}" for b in digest))
+          print("")
+          print("origin: android:apk-key-hash:" + base64.urlsafe_b64encode(digest).decode().rstrip("="))
+          EOF
 
       # Only handed between jobs; the release keeps the APK, so don't spend
       # artifact storage keeping a second copy.

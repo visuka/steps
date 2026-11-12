@@ -11,9 +11,21 @@ export const ANDROID_WIDGET_NAME = 'StepsToday';
 export const IOS_WIDGET_KIND = 'StepsWidget';
 
 /**
- * Supabase project `steps` (account neutcrafts@gmail.com), used only for
- * sign-in. Both values are public by design and ship inside the app; the
- * secret key and database password never go in this repo.
+ * Our sign-in API (stepsinfra `StepsAuth` stack, ap-south-1; docs/passkeys.md).
+ * TODO: the address exists only after the first deploy. Until it is filled
+ * in, the sign-in screen says sign-in isn't ready yet.
  */
-export const SUPABASE_URL = 'https://iyzcablluxqadfrojgge.supabase.co';
-export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_XtYRdAYuGLMGvbOaSWLiXw_i8TD1EM9';
+export const AUTH_API_URL: string = '';
+
+/**
+ * How people sign in (docs/phone-signin.md):
+ * - `phone`: per phone, with an email to get the account back and Google
+ *   Block Store to survive a reinstall. Used while testing.
+ * - `passkey`: passkeys (docs/passkeys.md); built, and back once the
+ *   sign-in server has its domain (`rp_id`).
+ */
+export type SignInMode = 'phone' | 'passkey';
+export const SIGN_IN_MODE: SignInMode = 'phone';
+
+/** Our data and food API (stepsinfra `StepsApi` stack, ap-south-1). */
+export const STEPS_API_URL: string = 'https://vbughviry4.execute-api.ap-south-1.amazonaws.com';

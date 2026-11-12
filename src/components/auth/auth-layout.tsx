@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { type ComponentProps, type ReactNode, useState } from 'react';
+import { type ComponentProps, type ReactNode } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -48,7 +48,7 @@ export function AuthLayout({
   );
 }
 
-/** A quiet text-only action, e.g. "Forgot password?". */
+/** A quiet text-only action, e.g. "Not now". */
 export function TextButton({ label, onPress, disabled }: { label: string; onPress: () => void; disabled?: boolean }) {
   const theme = useTheme();
   return (
@@ -65,19 +65,18 @@ export function TextButton({ label, onPress, disabled }: { label: string; onPres
   );
 }
 
-type FieldKind = 'email' | 'password' | 'new-password' | 'code';
+type FieldKind = 'email' | 'code';
 
 const KIND_PROPS: Record<FieldKind, TextInputProps> = {
-  email: { keyboardType: 'email-address', autoComplete: 'email', textContentType: 'emailAddress' },
-  password: { autoComplete: 'current-password', textContentType: 'password' },
-  'new-password': { autoComplete: 'new-password', textContentType: 'newPassword' },
-  code: { keyboardType: 'number-pad', autoComplete: 'one-time-code', textContentType: 'oneTimeCode', maxLength: 10 },
+  email: { keyboardType: 'email-address', autoComplete: 'email', textContentType: 'emailAddress', maxLength: 254 },
+  // Not 6: the phone cuts a paste such as "123 456" to fit before cleanCode
+  // (src/auth/rules.ts) sees it, losing digits. cleanCode keeps the first 6.
+  code: { keyboardType: 'number-pad', autoComplete: 'one-time-code', textContentType: 'oneTimeCode', maxLength: 32 },
 };
 
 /**
- * A labelled input that tells the phone what it holds, so the password
- * manager can fill and save passwords and the keyboard can offer the code
- * from the email.
+ * A labelled input that tells the phone what it holds, so the keyboard can
+ * offer the person's email, or the code from the email.
  */
 export function Field({
   label,
@@ -86,6 +85,7 @@ export function Field({
   onChangeText,
   onSubmitEditing,
   onCard,
+  editable = true,
 }: {
   label: string;
   kind: FieldKind;
@@ -94,10 +94,9 @@ export function Field({
   onSubmitEditing?: () => void;
   /** Inside a Card, whose background the default input colour would match. */
   onCard?: boolean;
+  editable?: boolean;
 }) {
   const theme = useTheme();
-  const [hidden, setHidden] = useState(true);
-  const secret = kind === 'password' || kind === 'new-password';
   return (
     <View style={styles.field}>
       <ThemedText type="small" themeColor="textSecondary">
@@ -109,21 +108,12 @@ export function Field({
           value={value}
           onChangeText={onChangeText}
           onSubmitEditing={onSubmitEditing}
-          secureTextEntry={secret && hidden}
+          editable={editable}
           autoCapitalize="none"
           autoCorrect={false}
           accessibilityLabel={label}
           style={[styles.input, { color: theme.text }, kind === 'code' && styles.code]}
         />
-        {secret ? (
-          <Pressable
-            onPress={() => setHidden((h) => !h)}
-            accessibilityRole="button"
-            accessibilityLabel={hidden ? 'Show password' : 'Hide password'}
-            hitSlop={8}>
-            <Ionicons name={hidden ? 'eye-outline' : 'eye-off-outline'} size={22} color={theme.textSecondary} />
-          </Pressable>
-        ) : null}
       </View>
     </View>
   );
