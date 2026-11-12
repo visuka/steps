@@ -26,7 +26,7 @@ import { formatSleep, type Night, nightsByDate } from '@/lib/sleep';
 import { bpGoalComparison, restingTrend, sleepMoodComparison, sleepStepsComparison } from '@/lib/vitals-insights';
 import { locationAllowed, requestLocation } from '@/location/place';
 import { goodSources } from '@/nutrition/catalog';
-import { dailyAverage, lowestNutrients } from '@/nutrition/day';
+import { dailyAverage, lowestNutrients, overLimits } from '@/nutrition/day';
 import { NUTRIENT } from '@/nutrition/nutrients';
 import { useApp } from '@/state/app-state';
 import { useFoodBook } from '@/state/use-food-book';
@@ -105,8 +105,9 @@ export function Patterns() {
   const rain = rainComparison(data.days, data.weather);
   const moodDays = data.moods.filter((m) => data.days.some((d) => d.date === m.date && d.steps > 0)).length;
 
-  const nutrition = dailyAverage(data.foods, book.own, book.overrides);
+  const nutrition = dailyAverage(data.foods, book.own, book.overrides, book.saved);
   const low = nutrition.days >= MIN_GROUP_DAYS ? lowestNutrients(nutrition.average) : [];
+  const over = nutrition.days >= MIN_GROUP_DAYS ? overLimits(nutrition.average) : [];
   const sources = low[0] ? goodSources(low[0].key) : [];
 
   const sleepSteps = sleepStepsComparison(data.days, data.nights);
@@ -207,7 +208,18 @@ export function Patterns() {
           ) : (
             <ThemedText>Your logged food covered every daily value we track. Nice.</ThemedText>
           )
-        ) : (
+        ) : null}
+        {over.length ? (
+          <>
+            <ThemedText>Over the advised limit, on average:</ThemedText>
+            {over.map((o) => (
+              <ThemedText key={o.key}>
+                · {NUTRIENT[o.key].label}: about {o.percent}% of the limit
+              </ThemedText>
+            ))}
+          </>
+        ) : null}
+        {nutrition.days < MIN_GROUP_DAYS ? (
           <>
             <Waiting
               text={`Log what you eat on ${MIN_GROUP_DAYS} days to see which nutrients run low; ${nutrition.days} so far this week.`}
@@ -218,7 +230,7 @@ export function Patterns() {
               onPress={() => router.push({ pathname: '/journal', params: { section: 'food' } })}
             />
           </>
-        )}
+        ) : null}
         <ThemedText type="small" themeColor="textSecondary">
           Only counts what you log, so days with missed meals look lower than they were.
         </ThemedText>

@@ -15,5 +15,11 @@ export const IOS_WIDGET_KIND = 'StepsWidget';
  * sign-in. Both values are public by design and ship inside the app; the
  * secret key and database password never go in this repo.
  */
-export const SUPABASE_URL = 'https://hqzroexjsskwryylmccy.supabase.co';
-export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_M-VF4875RISU23zQjj8uQQ_VfCoJ7yn';
+export const SUPABASE_URL = 'https://iyzcablluxqadfrojgge.supabase.co';
+export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_XtYRdAYuGLMGvbOaSWLiXw_i8TD1EM9';
+
+/**
+ * Our API on AWS (stepsinfra), for food lookups and recipes. Every call needs
+ * the signed-in person's Supabase token; the URL itself is not a secret.
+ */
+export const STEPS_API_URL = 'https://vbughviry4.execute-api.ap-south-1.amazonaws.com';

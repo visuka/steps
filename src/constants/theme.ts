@@ -19,6 +19,8 @@ export const Colors = {
     onAccent: '#ffffff',
     track: '#E2E6E4',
     danger: '#D92D20',
+    /** Amber: "medium" watch-outs, between fine and too much. */
+    warning: '#B54708',
   },
   dark: {
     text: '#ECEDEE',
@@ -31,6 +33,7 @@ export const Colors = {
     onAccent: '#06281B',
     track: '#2A2F33',
     danger: '#F97066',
+    warning: '#FDB022',
   },
 } as const;
 

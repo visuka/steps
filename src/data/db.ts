@@ -1,8 +1,9 @@
 import * as SQLite from 'expo-sqlite';
 
+import { readFoodItem } from '@/api/food-read';
 import type { Achievement } from '@/lib/achievements';
 import type { WalkPoint } from '@/lib/walk';
-import type { OwnFood } from '@/nutrition/types';
+import type { FoodItem, OwnFood } from '@/nutrition/types';
 
 import type {
   BloodPressureEntry,
@@ -149,6 +150,11 @@ const MIGRATIONS = [
   ALTER TABLE day_summary ADD COLUMN walk_min INTEGER;
   ALTER TABLE day_summary ADD COLUMN brisk_min INTEGER;
   ALTER TABLE day_summary ADD COLUMN run_min INTEGER;
+  `,
+  // Foods the food API worked out (AI estimates and recipes), kept whole so
+  // they can be searched and logged again offline.
+  `
+  CREATE TABLE saved_food (id TEXT PRIMARY KEY NOT NULL, json TEXT NOT NULL, updated_at INTEGER NOT NULL);
   `,
 ];
 
@@ -317,6 +323,15 @@ const toBp = (r: BpRow): BloodPressureEntry => ({
   healthId: r.health_id,
   updatedAt: r.updated_at,
 });
+
+/** Checked again on the way out, so a row from an older app version (or a bad write) can't break a screen. */
+function parseSavedFood(json: string): FoodItem | null {
+  try {
+    return readFoodItem(JSON.parse(json));
+  } catch {
+    return null;
+  }
+}
 
 async function migrate(db: SQLite.SQLiteDatabase) {
   const row = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
@@ -587,6 +602,22 @@ export async function openRepository(): Promise<Repository> {
       await db.runAsync('DELETE FROM own_food WHERE id = ?', id);
     },
 
+    async getSavedFoods() {
+      const rows = await db.getAllAsync<{ json: string }>('SELECT json FROM saved_food ORDER BY updated_at DESC');
+      return rows.map((r) => parseSavedFood(r.json)).filter((f): f is FoodItem => f !== null);
+    },
+    async saveSavedFood(food) {
+      await db.runAsync(
+        'INSERT OR REPLACE INTO saved_food (id, json, updated_at) VALUES (?, ?, ?)',
+        food.id,
+        JSON.stringify(food),
+        Date.now(),
+      );
+    },
+    async deleteSavedFood(id) {
+      await db.runAsync('DELETE FROM saved_food WHERE id = ?', id);
+    },
+
     async saveWalk(walk, points) {
       await db.withTransactionAsync(async () => {
         await db.runAsync(
@@ -759,7 +790,7 @@ export async function openRepository(): Promise<Repository> {
         `DELETE FROM kv; DELETE FROM day_summary; DELETE FROM hour_steps; DELETE FROM weight_log; DELETE FROM water_log;
          DELETE FROM achievement; DELETE FROM mood_log; DELETE FROM day_weather; DELETE FROM food_log;
          DELETE FROM walk_point; DELETE FROM walk; DELETE FROM own_food; DELETE FROM sleep_log; DELETE FROM heart_day;
-         DELETE FROM bp_log;`,
+         DELETE FROM bp_log; DELETE FROM saved_food;`,
       );
     },
   };

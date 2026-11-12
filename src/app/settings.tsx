@@ -311,6 +311,10 @@ export default function SettingsScreen() {
           stays on this phone and in your health app: steps, walks and their routes, moods, food, sleep, health
           readings and the weather.
         </ThemedText>
+        <ThemedText type="small" themeColor="textSecondary">
+          When you look up a food or enter a recipe, what you type is sent to our server and an AI service to work out
+          what&apos;s in it. It&apos;s kept without your name, so the same food is quicker for everyone next time.
+        </ThemedText>
         <Button kind="secondary" label="Export daily totals (CSV)" onPress={exportCsv} />
         {exportError ? (
           <ThemedText type="small" style={{ color: theme.danger }}>

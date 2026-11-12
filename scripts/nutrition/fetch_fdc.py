@@ -35,14 +35,16 @@ BATCHES = {
         "Coriander (cilantro) leaves, raw", "Garlic, raw", "Ginger root, raw", "Peppers, hot chili, green, raw",
         "Mustard greens, cooked, boiled, drained, without salt",
     ],
+    # Unenriched rice, maida, semolina and pasta: Indian ones are not enriched like US ones (no added
+    # iron, thiamin or folic acid), and enriched rice would make two bowls look like 70% of a day's folate.
     "grain": [
-        "Rice, white, long-grain, regular, enriched, cooked", "Rice, brown, long-grain, cooked",
+        "Rice, white, long-grain, regular, unenriched, cooked without salt", "Rice, brown, long-grain, cooked",
         "Bread, chapati or roti, plain, commercially prepared",
         "Bread, chapati or roti, whole wheat, commercially prepared, frozen",
         "Bread, naan, plain, commercially prepared, refrigerated",
         "Bread, white, commercially prepared (includes soft bread crumbs)", "Bread, whole-wheat, commercially prepared",
         "Cereals, oats, regular and quick, unenriched, cooked with water (includes boiling and microwaving), without salt",
-        "Wheat flour, whole-grain", "Semolina, enriched", "Millet, cooked", "Rice flour, white",
+        "Wheat flour, whole-grain", "Semolina, unenriched", "Millet, cooked", "Rice flour, white, unenriched",
         "Lentils, mature seeds, cooked, boiled, without salt",
         "Chickpeas (garbanzo beans, bengal gram), mature seeds, cooked, boiled, without salt",
         "Beans, kidney, all types, mature seeds, cooked, boiled, without salt",
@@ -50,9 +52,10 @@ BATCHES = {
         "Mungo beans, mature seeds, cooked, boiled, without salt",
         "Pigeon peas (red gram), mature seeds, cooked, boiled, without salt",
         "Soybeans, mature cooked, boiled, without salt", "Tofu, raw, firm, prepared with calcium sulfate",
-        "Pasta, cooked, enriched, without added salt", "Peanut butter, smooth style, without salt",
+        "Pasta, cooked, unenriched, without added salt", "Peanut butter, smooth style, without salt",
         "Sugars, granulated", "Honey", "Oil, canola", "Oil, coconut", "Oil, mustard", "Butter, salted",
-        "Butter oil, anhydrous", "Rice, white, long-grain, regular, raw, enriched",
+        "Butter oil, anhydrous", "Rice, white, long-grain, regular, raw, unenriched",
+        "Wheat flour, white, all-purpose, unenriched",
     ],
     "animal": [
         "Chicken, broilers or fryers, breast, meat only, cooked, roasted",
@@ -72,6 +75,33 @@ BATCHES = {
         "Milk, buttermilk, fluid, cultured, lowfat", "Ice creams, vanilla",
         "Beverages, tea, black, brewed, prepared with tap water",
         "Beverages, coffee, brewed, prepared with tap water", "paneer",
+    ],
+    # Recipe ingredients as bought: raw dals, flours, vegetables, meat and fish, spices, salt and
+    # oils, so a recipe the person types can start from raw amounts. Garlic, ginger, green chilli
+    # and coriander leaves are already in "veg".
+    "raw": [
+        "Pigeon peas (red gram), mature seeds, raw", "Lentils, raw", "Mung beans, mature seeds, raw",
+        "Mungo beans, mature seeds, raw", "Chickpeas (garbanzo beans, bengal gram), mature seeds, raw",
+        "Beans, kidney, all types, mature seeds, raw", "Chickpea flour (besan)", "Peanuts, all types, raw",
+        "Seeds, sesame seeds, whole, dried", "Salt, table", "Spearmint, fresh", "Tamarinds, raw",
+        "Cauliflower, raw", "Okra, raw", "Eggplant, raw", "Beans, snap, green, raw", "Peas, green, raw",
+        "Gourd, white-flowered (calabash), raw", "Balsam-pear (bitter gourd), pods, raw", "Pumpkin, raw",
+        "Sweet potato, raw, unprepared", "Mustard greens, raw", "Broccoli, raw", "Corn, sweet, yellow, raw",
+        # Cayenne is plain ground chilli like Indian chilli powder; USDA "chili powder" is a salted US blend.
+        "Spices, turmeric, ground", "Spices, pepper, red or cayenne", "Spices, cumin seed", "Spices, coriander seed",
+        "Spices, mustard seed, ground", "Spices, pepper, black", "Spices, fenugreek seed", "Spices, cardamom",
+        "Spices, cinnamon, ground", "Spices, cloves, ground", "Spices, fennel seed", "Sugars, brown",
+        "Chicken, broiler or fryers, breast, skinless, boneless, meat only, raw",
+        "Chicken, broilers or fryers, dark meat, thigh, meat only, raw",
+        "Game meat, goat, raw", "Lamb, ground, raw", "Egg, whole, raw, fresh", "Fish, carp, raw",
+        "Fish, mackerel, king, raw", "Potatoes, flesh and skin, raw",
+        # Plain raw shrimp: the "mixed species" one has moisture additives and 5x the sodium.
+        "Crustaceans, shrimp, raw",
+        # Vanaspati stand-in: the partially hydrogenated household shortening has no trans fat value.
+        "Shortening, vegetable, household, composite",
+        "Oil, soybean, salad or cooking", "Oil, peanut, salad or cooking", "Oil, sunflower, linoleic, (approx. 65%)",
+        "Oil, sesame, salad or cooking", "Oil, palm", "Nuts, coconut milk, raw (liquid expressed from grated meat and water)",
+        "Beverages, coffee, brewed, espresso, restaurant-prepared",
     ],
 }
 

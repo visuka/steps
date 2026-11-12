@@ -3,9 +3,10 @@
  * platforms. Kept in memory and mirrored to localStorage (when available) so
  * a reload doesn't send the preview back through onboarding.
  */
+import { readFoodItem } from '@/api/food-read';
 import type { Achievement } from '@/lib/achievements';
 import type { WalkPoint } from '@/lib/walk';
-import type { OwnFood } from '@/nutrition/types';
+import type { FoodItem, OwnFood } from '@/nutrition/types';
 
 import type {
   BloodPressureEntry,
@@ -34,6 +35,7 @@ interface Snapshot {
   foods?: FoodEntry[];
   walks?: [string, { walk: Walk; points: WalkPoint[] }][];
   ownFoods?: OwnFood[];
+  savedFoods?: FoodItem[];
   sleep?: SleepEntry[];
   heart?: [string, HeartDay][];
   bp?: BloodPressureEntry[];
@@ -69,6 +71,8 @@ export async function openRepository(): Promise<Repository> {
   let foods: FoodEntry[] = saved?.foods ?? [];
   const walks = new Map<string, { walk: Walk; points: WalkPoint[] }>(saved?.walks);
   let ownFoods: OwnFood[] = saved?.ownFoods ?? [];
+  // Newest first; checked again like the SQLite rows.
+  let savedFoods: FoodItem[] = (saved?.savedFoods ?? []).map(readFoodItem).filter((f): f is FoodItem => f !== null);
   let sleep: SleepEntry[] = saved?.sleep ?? [];
   const heart = new Map<string, HeartDay>(saved?.heart);
   let bp: BloodPressureEntry[] = saved?.bp ?? [];
@@ -92,6 +96,7 @@ export async function openRepository(): Promise<Repository> {
           foods,
           walks: [...walks],
           ownFoods,
+          savedFoods,
           sleep,
           heart: [...heart],
           bp,
@@ -199,6 +204,18 @@ export async function openRepository(): Promise<Repository> {
       persist();
     },
 
+    async getSavedFoods() {
+      return [...savedFoods];
+    },
+    async saveSavedFood(food) {
+      savedFoods = [{ ...food }, ...savedFoods.filter((f) => f.id !== food.id)];
+      persist();
+    },
+    async deleteSavedFood(id) {
+      savedFoods = savedFoods.filter((f) => f.id !== id);
+      persist();
+    },
+
     async saveWalk(walk, points) {
       walks.set(walk.id, { walk: { ...walk }, points: points ?? walks.get(walk.id)?.points ?? [] });
       persist();
@@ -291,6 +308,7 @@ export async function openRepository(): Promise<Repository> {
       foods = [];
       walks.clear();
       ownFoods = [];
+      savedFoods = [];
       sleep = [];
       heart.clear();
       bp = [];

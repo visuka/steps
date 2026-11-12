@@ -2,7 +2,7 @@ import type { Achievement } from '@/lib/achievements';
 import type { Units } from '@/lib/format';
 import type { ReminderSettings } from '@/lib/reminders';
 import type { WalkPoint } from '@/lib/walk';
-import type { OwnFood } from '@/nutrition/types';
+import type { FoodItem, OwnFood } from '@/nutrition/types';
 
 export type SourceId = 'healthkit' | 'health-connect' | 'device-sensor' | 'demo';
 
@@ -219,6 +219,12 @@ export interface Repository {
   getOwnFoods(): Promise<OwnFood[]>;
   saveOwnFood(food: OwnFood): Promise<void>;
   deleteOwnFood(id: string): Promise<void>;
+
+  /** Foods from the food API ('ai:' estimates, 'recipe:' recipes) the person used, so they work offline. */
+  getSavedFoods(): Promise<FoodItem[]>;
+  /** Inserts or replaces by id. */
+  saveSavedFood(food: FoodItem): Promise<void>;
+  deleteSavedFood(id: string): Promise<void>;
 
   /** Inserts or replaces the walk; replaces its route when points are given. */
   saveWalk(walk: Walk, points?: WalkPoint[]): Promise<void>;
