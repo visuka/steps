@@ -600,7 +600,11 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
         {mode.kind === 'own' ? (
           <OwnFoodForm
             initialName={mode.name}
+            // Sent only when picked, as with Look up, so the server can read a place from the name.
+            where={placeIn.chosen ? here : null}
+            overrides={book.overrides}
             onCancel={reset}
+            onRecipe={(name) => go({ kind: 'recipe', name })}
             onSave={(own) =>
               once(async () => {
                 await book.saveOwn(own);
