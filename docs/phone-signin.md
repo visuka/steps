@@ -34,12 +34,13 @@ POST /v1/auth/device/restore     {"restoreKey": "..."}
 POST /v1/auth/email/start        Bearer, {"email": "..."}
   202 {}                           always the same answer (see below)
   400 {"error": "bad_email"}
-  503 {"error": "email_unavailable"}   no mailbox password yet, or the mail server refused
+  503 {"error": "email_unavailable"}   email is off, or SES refused, throttled or timed out the send
 POST /v1/auth/email/finish       Bearer, {"code": "123456"}
   200 {"email": "...", "verified": true}
   400 {"error": "bad_code"}        wrong, expired or too many tries
 POST /v1/auth/recover/start      {"email": "..."}
-  202 {}                           always, whether or not an account has it
+  202 {}                           whether or not an account has it, also when the send failed
+  503 {"error": "email_unavailable"}   only while email is off (the same for every address)
 POST /v1/auth/recover/finish     {"email": "...", "code": "123456"}
   200 Tokens + {"restoreKey": "..."}   a new key for this phone
   400 {"error": "bad_code"}
@@ -60,10 +61,14 @@ Rules:
   sends a code only when a verified account has the email; otherwise nothing, still 202.
 - **After a recovery** the address gets a note: "Your Steps account was opened on another phone.
   If that wasn't you, reply to this email." (no links).
-- **Email sending:** Hostinger SMTP, `smtp.hostinger.com:465` (TLS), from `Steps <no-reply@neutcrafts.in>`
-  (address in config), password from SSM `/steps/smtp-password` (SecureString, read at cold start,
-  never logged). Missing password → `email_unavailable`. Plain text + simple HTML, no links, no
-  tracking. Logs never contain addresses, codes or keys.
+- **Email sending:** Amazon SES (`ap-south-1`), from `Steps <no-reply@neutcrafts.in>` through the
+  configuration set `steps-mail`, sent as the `steps-auth` Lambda's own IAM role: there is no
+  mailbox password anywhere. Email off (`AuthConfig.send_email = False`) → `email_unavailable` on
+  both sending routes. A send SES refuses, throttles or doesn't finish in time → `email/start`
+  answers `email_unavailable`, `recover/start` still 202; the code is removed and not counted.
+  Plain text + simple HTML, no links, no tracking. Logs never contain addresses, codes or keys
+  (only SES's error name). Until SES production access, only verified addresses receive
+  (stepsinfra README, "Email (Amazon SES)").
 - **Account deletion** (`DELETE /v1/me`) also deletes the email and restore-key items. If deleting
   the steps-auth PROFILE fails, write the DELETED marker again **without expiry** and answer
   `accountDeleted: false`; if that write fails too, answer 500. So `accountDeleted: false` always
