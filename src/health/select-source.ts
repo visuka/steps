@@ -12,6 +12,12 @@ export function getSource(_id: SourceId | null): StepSource {
   return demoSource;
 }
 
+/**
+ * Where food, weight and water entries have their copies (Health Connect,
+ * Apple Health), whichever source counts steps. The preview has none.
+ */
+export const copyStore: StepSource = demoSource;
+
 /** Asks for permissions and returns the source to use. */
 export async function setupSource(): Promise<StepSource> {
   return demoSource;

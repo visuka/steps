@@ -3,9 +3,11 @@
  * Connect once the person has connected them. Runs when the app comes to the
  * foreground, like the weather, and at most every half hour.
  */
+import { retryLeftCopies } from '@/data/entries';
 import type { Repository } from '@/data/types';
 import { vitalsSource } from '@/health/vitals';
 import { addDays, dayKey, startOfDay } from '@/lib/dates';
+import { BACK_DAYS } from '@/lib/when';
 
 const CONNECTED_KEY = 'vitalsConnected';
 const SYNCED_KEY = 'vitalsSyncedAt';
@@ -51,15 +53,18 @@ export async function syncVitals(repo: Repository, force = false): Promise<boole
   if (heart) await repo.upsertHeartDays(heart);
   if (bp) {
     // Readings typed here were also saved there; don't bring them back as second copies.
+    // Looked for a year back: a reading can be changed to an earlier date, and its copy there kept.
     const own = new Set(
-      (await repo.getBloodPressure(from.getTime(), until)).flatMap((b) =>
+      (await repo.getBloodPressure(addDays(from, -BACK_DAYS).getTime(), until)).flatMap((b) =>
         b.source === 'manual' && b.healthId ? [b.healthId] : [],
       ),
     );
+    // Nor copies of readings deleted here that Health Connect couldn't delete at the time.
+    const deleted = await retryLeftCopies(repo, vitalsSource);
     await repo.replaceHealthBloodPressure(
       from.getTime(),
       until,
-      bp.filter((b) => !b.healthId || !own.has(b.healthId)),
+      bp.filter((b) => !b.healthId || (!own.has(b.healthId) && !deleted.has(b.healthId))),
     );
   }
   await repo.setKv(SYNCED_KEY, now.getTime());

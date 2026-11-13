@@ -9,6 +9,13 @@ export function getSource(id: SourceId | null): StepSource {
 }
 
 /**
+ * Where food, weight and water entries have their copies, whichever source
+ * counts steps: an entry copied to Health Connect is changed and deleted
+ * there even after steps switch to the phone's own counter.
+ */
+export const copyStore: StepSource = healthConnectSource;
+
+/**
  * Health Connect first: if another app already records steps there, read
  * them. Otherwise count with the phone's own sensor.
  */

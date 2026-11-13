@@ -11,3 +11,8 @@ export function confirm(title: string, message: string, onYes: () => void, actio
     { text: action, style: 'destructive', onPress: onYes },
   ]);
 }
+
+/** The same question for every journal entry, named as its Delete button names it: "Delete this reading?" */
+export function confirmDelete(what: 'entry' | 'reading' | 'night' | 'mood', onYes: () => void) {
+  confirm(`Delete this ${what}?`, "This can't be undone.", onYes);
+}

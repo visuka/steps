@@ -83,6 +83,9 @@ export function HeartLog() {
               Over weeks of regular walking, resting heart rate often drifts down. Day to day it moves with sleep,
               stress, illness, caffeine and heat, so look at the trend, not one day.
             </ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              From {vitals.label ?? 'your watch'}; change it in the app that made it.
+            </ThemedText>
           </Card>
 
           {latest ? (

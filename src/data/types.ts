@@ -214,6 +214,7 @@ export interface Repository {
   lifetimeSteps(): Promise<number>;
 
   setMood(entry: MoodEntry): Promise<void>;
+  deleteMood(date: string): Promise<void>;
   /** Inclusive range, oldest first. */
   getMoods(from: string, to: string): Promise<MoodEntry[]>;
 
@@ -222,7 +223,7 @@ export interface Repository {
   getWeatherRange(from: string, to: string): Promise<DayWeather[]>;
 
   addFood(entry: FoodEntry): Promise<void>;
-  /** Saves a corrected entry (portion or time). */
+  /** Saves a corrected entry (portion, place, time, Health Connect copy) over the one with its id. */
   updateFood(entry: FoodEntry): Promise<void>;
   deleteFood(id: string): Promise<void>;
   /** Logged between the two epoch-ms times, newest first. */
@@ -269,6 +270,8 @@ export interface Repository {
   replaceHealthBloodPressure(fromMs: number, toMs: number, entries: BloodPressureEntry[]): Promise<void>;
 
   addLog(kind: LogKind, entry: LogEntry): Promise<void>;
+  /** Saves a corrected entry over the one with its id. */
+  updateLog(kind: LogKind, entry: LogEntry): Promise<void>;
   deleteLog(kind: LogKind, id: string): Promise<void>;
   /** Newest first. */
   getLogs(kind: LogKind, limit: number): Promise<LogEntry[]>;

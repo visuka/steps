@@ -7,6 +7,9 @@ export function getSource(_id: SourceId | null): StepSource {
   return healthKitSource;
 }
 
+/** Where food, weight and water entries have their copies, whichever source counts steps. */
+export const copyStore: StepSource = healthKitSource;
+
 export async function setupSource(): Promise<StepSource> {
   await healthKitSource.requestPermissions();
   return healthKitSource;

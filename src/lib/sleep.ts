@@ -215,6 +215,32 @@ export function guessSleepWindow(
   return { bedAt, wakeAt };
 }
 
+/** The longest a night (or a day's sleep) can be. */
+export const MAX_NIGHT_MS = 24 * 3_600_000;
+
+/** The morning a night counts toward: the day it ended on. */
+export const nightOf = (wakeAt: number) => dayKey(new Date(wakeAt));
+
+/** What's wrong with a night's times, in plain words; null when they're fine. */
+export function checkNight(bedAt: number, wakeAt: number, now: number): string | null {
+  if (wakeAt > now) return "Wake-up time can't be later than now.";
+  if (wakeAt <= bedAt) return 'Wake-up time has to be after bedtime.';
+  if (wakeAt - bedAt > MAX_NIGHT_MS) return "That's more than 24 hours. Check the dates.";
+  return null;
+}
+
+/**
+ * What a night someone logged would run into on that morning: a night from a
+ * watch or another app, whose times would hide it ('health'), or another
+ * night they logged, which saving replaces ('manual'). `own` is the id of the
+ * night being changed, which doesn't count.
+ */
+export function nightClash(entries: SleepEntry[], morning: string, own: string | null): 'health' | 'manual' | null {
+  const there = entries.filter((e) => e.date === morning && e.id !== own);
+  if (there.some((e) => e.source === 'health')) return 'health';
+  return there.some((e) => e.source === 'manual') ? 'manual' : null;
+}
+
 /** "7 h 20 min", "45 min". */
 export function formatSleep(min: number): string {
   const m = Math.round(min);

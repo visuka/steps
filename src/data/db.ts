@@ -330,6 +330,9 @@ export async function openRepository(): Promise<Repository> {
         entry.loggedAt,
       );
     },
+    async deleteMood(date) {
+      await db.runAsync('DELETE FROM mood_log WHERE date = ?', date);
+    },
     async getMoods(from, to) {
       const rows = await db.getAllAsync<{ date: string; mood: Mood; note: string | null; logged_at: number }>(
         'SELECT * FROM mood_log WHERE date >= ? AND date <= ? ORDER BY date',
@@ -389,7 +392,8 @@ export async function openRepository(): Promise<Repository> {
     async updateFood(e) {
       const w = whereOf(e.place, e.restaurant);
       await db.runAsync(
-        `UPDATE food_log SET logged_at = ?, name = ?, food_id = ?, unit = ?, quantity = ?, kcal = ?, place = ?, restaurant = ?
+        `UPDATE food_log SET logged_at = ?, name = ?, food_id = ?, unit = ?, quantity = ?, kcal = ?, health_sample_id = ?,
+           place = ?, restaurant = ?
          WHERE id = ?`,
         e.loggedAt,
         e.name,
@@ -397,6 +401,7 @@ export async function openRepository(): Promise<Repository> {
         e.unit,
         e.quantity,
         e.kcal,
+        e.healthSampleId,
         w.place,
         w.restaurant,
         e.id,
@@ -628,6 +633,15 @@ export async function openRepository(): Promise<Repository> {
         entry.loggedAt,
         entry.value,
         entry.healthSampleId,
+      );
+    },
+    async updateLog(kind, entry) {
+      await db.runAsync(
+        `UPDATE ${logTable(kind)} SET logged_at = ?, value = ?, health_sample_id = ? WHERE id = ?`,
+        entry.loggedAt,
+        entry.value,
+        entry.healthSampleId,
+        entry.id,
       );
     },
     async deleteLog(kind, id) {

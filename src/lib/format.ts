@@ -46,6 +46,11 @@ export function kgToWeight(kg: number, units: Units): number {
   return Math.round((units === 'metric' ? kg : kg * LB_PER_KG) * 10) / 10;
 }
 
+/** Stored ml in the person's units, whole numbers like formatWater shows. */
+export function mlToWater(ml: number, units: Units): number {
+  return Math.round(units === 'metric' ? ml : ml / ML_PER_FL_OZ);
+}
+
 export function weightUnit(units: Units): string {
   return units === 'metric' ? 'kg' : 'lb';
 }

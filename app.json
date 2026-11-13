@@ -138,7 +138,8 @@
           "faceIDPermission": "Steps uses Face ID to unlock the app, so only you can open your health data."
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,

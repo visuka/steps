@@ -5,17 +5,25 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { type EstimateItem, type EstimateResult, estimateFood, restaurantVersion } from '@/api/food-api';
 import { checkDescription, FoodApiError, unknownDishMessage } from '@/api/food-read';
 import { Card } from '@/components/card';
-import { Button, Chip, Segmented, TextField } from '@/components/controls';
+import { confirmDelete } from '@/components/confirm';
+import { Button, Chip, NumberField, TextField } from '@/components/controls';
 import { NutrientBars } from '@/components/food/nutrient-bars';
 import { OwnFoodForm } from '@/components/food/own-food-form';
 import { type PlaceInput, PlacePicker } from '@/components/food/place-picker';
 import { PortionPicker } from '@/components/food/portion-picker';
 import { RecipeForm } from '@/components/food/recipe-form';
 import { ThemedText } from '@/components/themed-text';
+import { WhenField } from '@/components/when-field';
 import { Spacing } from '@/constants/theme';
+import { changeFood, deleteFood, type HealthCopy } from '@/data/entries';
 import { type FoodEntry, newId, type RecentFood } from '@/data/types';
+import { copyStore } from '@/health/select-source';
+import { useClockStyle } from '@/hooks/use-clock-style';
+import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
+import { addDaysToKey, dayKey, parseDayKey } from '@/lib/dates';
 import { formatSteps } from '@/lib/format';
+import { earliestAt, formatClock, formatDay, formatWhenInSentence, timeNow } from '@/lib/when';
 import { catalogFood, nutrientsFor, OWN_PREFIX, type PortionOverrides, portionLabel, searchFoods } from '@/nutrition/catalog';
 import { byStorage, overLimits } from '@/nutrition/day';
 import { NUTRIENT } from '@/nutrition/nutrients';
@@ -39,19 +47,9 @@ import type { FoodItem, Nutrients } from '@/nutrition/types';
 import { useApp } from '@/state/app-state';
 import { useCaloriesToday } from '@/state/use-calories';
 
-/** People often log after eating; minutes ago. */
-const WHEN: { value: string; label: string; minutesAgo: number }[] = [
-  { value: '0', label: 'Now', minutesAgo: 0 },
-  { value: '30', label: '30 min ago', minutesAgo: 30 },
-  { value: '60', label: '1 h ago', minutesAgo: 60 },
-  { value: '120', label: '2 h ago', minutesAgo: 120 },
-];
-
-const eatenAt = (when: string) => new Date(Date.now() - WHEN.find((w) => w.value === when)!.minutesAgo * 60_000);
-
-const timeOf = (ms: number) => new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-
 const STORAGE = byStorage();
+
+const isToday = (ms: number) => dayKey(new Date(ms)) === dayKey(new Date());
 
 /** Home-made unless the person says otherwise; `chosen` is whether they did. */
 type PlaceState = PlaceInput & { chosen: boolean };
@@ -62,8 +60,17 @@ type Mode =
   /** `lookup` is the key of the looked-up item this came from, so Add returns to the rest of the meal. */
   | { kind: 'pick'; food: FoodItem; unit?: string; quantity?: number; working?: boolean; lookup?: string }
   | { kind: 'own'; name: string }
-  | { kind: 'recipe'; name: string; lookup?: string }
-  | { kind: 'edit'; entry: FoodEntry; food: FoodItem };
+  | { kind: 'recipe'; name: string; lookup?: string };
+
+/** An entry opened from the list. `food` is null for calorie-only entries (or a food since deleted). */
+interface Editing {
+  entry: FoodEntry;
+  food: FoodItem | null;
+  place: PlaceState;
+  at: number;
+  name: string;
+  kcal: number | null;
+}
 
 type Lookup =
   | { status: 'idle' }
@@ -82,10 +89,21 @@ const unknownKey = (name: string) => `unknown:${name}`;
 export function FoodLog() {
   const { repo, source, dataVersion, touch } = useApp();
   const theme = useTheme();
-  const { book, foods, nutrients, week, caloriesOnly, eaten, resting, active, burned } = useCaloriesToday();
+  const clock = useClockStyle();
+  const now = useNow();
+  const { book, foods: loaded, nutrients, week, caloriesOnly, eaten, resting, active, burned } = useCaloriesToday();
   const [query, setQuery] = useState('');
   const [mode, setMode] = useState<Mode>({ kind: 'search' });
-  const [when, setWhen] = useState('0');
+  /** When it was eaten; null is "now", whenever Add is tapped. */
+  const [eatenAt, setEatenAt] = useState<number | null>(null);
+  const [editing, setEditing] = useState<Editing | null>(null);
+  /** What happened to the last change or delete, shown under the list. */
+  const [listNote, setListNote] = useState<{ text: string; problem: boolean } | null>(null);
+  /** Deleted, so off the list before the next read. */
+  const [gone, setGone] = useState<string[]>([]);
+  /** The day the list shows; null is today. An earlier day's entries open, change and delete like today's. */
+  const [listDay, setListDay] = useState<string | null>(null);
+  const [dayFoods, setDayFoods] = useState<{ day: string; foods: FoodEntry[] } | null>(null);
   const [recent, setRecent] = useState<RecentFood[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [lookup, setLookup] = useState<Lookup>({ status: 'idle' });
@@ -98,6 +116,8 @@ export function FoodLog() {
   const lookupRun = useRef(0);
   // One save at a time: a second tap while the restaurant version is fetched does nothing.
   const saving = useRef(false);
+  /** A save under way; Delete waits for it, so a slow look-up can't write a copy of an entry already deleted. */
+  const [working, setWorking] = useState(false);
 
   useEffect(() => {
     let live = true;
@@ -110,6 +130,25 @@ export function FoodLog() {
       live = false;
     };
   }, [repo, dataVersion]);
+
+  useEffect(() => {
+    if (!listDay) return;
+    let live = true;
+    repo
+      .getFoods(parseDayKey(listDay).getTime(), parseDayKey(addDaysToKey(listDay, 1)).getTime())
+      .then((f) => live && setDayFoods({ day: listDay, foods: f }));
+    return () => {
+      live = false;
+    };
+  }, [repo, listDay, dataVersion]);
+
+  const todayKey = dayKey(new Date(now));
+  const shownDay = listDay ?? todayKey;
+  const showDay = (key: string) => {
+    setEditing(null);
+    setListNote(null);
+    setListDay(key < todayKey ? key : null);
+  };
 
   const here = whereOf(placeIn.place, placeIn.restaurant);
   const choosePlace = (p: PlaceInput) => setPlaceIn({ ...p, chosen: true });
@@ -125,7 +164,7 @@ export function FoodLog() {
   const reset = () => {
     setMode({ kind: 'search' });
     setQuery('');
-    setWhen('0');
+    setEatenAt(null);
     setPlaceIn(HOME_INPUT);
     clearLookup();
   };
@@ -162,7 +201,7 @@ export function FoodLog() {
     w: Where,
   ) => {
     setError(null);
-    const at = eatenAt(when);
+    const at = new Date(eatenAt ?? timeNow());
     let healthSampleId: string | null = null;
     try {
       healthSampleId = (await source.writeFood?.(name, n, at)) ?? null;
@@ -181,17 +220,24 @@ export function FoodLog() {
       place: w.place,
       restaurant: w.restaurant,
     });
+    // Not on today's list, so say where it went.
+    if (!isToday(at.getTime())) {
+      const added = `Added for ${formatWhenInSentence(at.getTime(), timeNow(), clock)}.`;
+      setNotice((n) => (n ? `${n} ${added}` : added));
+    }
     touch();
   };
 
   const once = async (work: () => Promise<void>) => {
     if (saving.current) return;
     saving.current = true;
+    setWorking(true);
     setNotice(null);
     try {
       await work();
     } finally {
       saving.current = false;
+      setWorking(false);
     }
   };
 
@@ -201,7 +247,13 @@ export function FoodLog() {
    * or one look-up. When that fails the food is logged as it is, and an entry
    * with home values says so.
    */
-  const versionFor = async (food: FoodItem, unit: string, quantity: number, w: Where) => {
+  const versionFor = async (
+    food: FoodItem,
+    unit: string,
+    quantity: number,
+    w: Where,
+    say: (text: string) => void = setNotice,
+  ) => {
     const change = versionChange(food, w, book.find);
     if (!change) return { food, unit, quantity };
     if (change.kind === 'home') return { food: change.food, ...samePortion(food, unit, quantity, change.food, book.overrides) };
@@ -218,7 +270,7 @@ export function FoodLog() {
       }
     }
     if (!next) {
-      setNotice(
+      say(
         isHomeDish(food)
           ? 'Couldn’t get restaurant-style values just now, so home-style values were used.'
           : 'Couldn’t look up that restaurant just now, so the restaurant values you had were used.',
@@ -229,8 +281,8 @@ export function FoodLog() {
   };
 
   /** Said before Add or Save: the dish's name leaves the phone without a tap on Look up. */
-  const lookupNote = (food: FoodItem) =>
-    needsLookup(food, here, book.find, book.saved)
+  const lookupNote = (food: FoodItem, where: Where = here) =>
+    needsLookup(food, where, book.find, book.saved)
       ? 'To get restaurant values, the dish’s name (and the restaurant, if you name one) is sent to our server with your phone’s country, not your name.'
       : null;
 
@@ -264,17 +316,103 @@ export function FoodLog() {
       reset();
     });
 
-  const startEdit = (entry: FoodEntry, food: FoodItem) => {
-    go({ kind: 'edit', entry, food });
-    setPlaceIn({ place: entry.place, restaurant: entry.restaurant ?? '', chosen: true });
+  const startEdit = (entry: FoodEntry, food: FoodItem | null) => {
+    setListNote(null);
+    setEditing({
+      entry,
+      food,
+      place: { place: entry.place, restaurant: entry.restaurant ?? '', chosen: true },
+      at: entry.loggedAt,
+      name: entry.name,
+      kcal: entry.kcal,
+    });
   };
+  const changeEditing = (patch: Partial<Editing>) => setEditing((e) => (e ? { ...e, ...patch } : e));
+  const editWhere = editing ? whereOf(editing.place.place, editing.place.restaurant) : HOME;
 
-  const remove = async (entry: FoodEntry) => {
-    if (entry.healthSampleId) await source.deleteSample?.('food', entry.healthSampleId).catch(() => undefined);
-    await repo.deleteFood(entry.id);
-    reset();
+  /** After Save: off the form, with a word when it moved off the day shown or Health Connect couldn't follow. */
+  const saved = (at: number, copy: HealthCopy, said: string | null = null) => {
+    setEditing(null);
+    const parts = [
+      said,
+      copy === 'failed' ? `Saved here, but couldn't update it in ${copyStore.label}.` : null,
+      dayKey(new Date(at)) === shownDay ? null : `Moved to ${formatWhenInSentence(at, timeNow(), clock)}.`,
+    ].filter(Boolean);
+    setListNote(parts.length ? { text: parts.join(' '), problem: copy === 'failed' } : null);
     touch();
   };
+
+  /** A food: amount, unit, place and time. A new place can mean the other version of the dish (nutrition/place.ts). */
+  const saveEdit = (e: Editing, food: FoodItem, unit: string, quantity: number) =>
+    once(async () => {
+      const w = asksPlace(food) ? editWhere : HOME;
+      let said: string | null = null;
+      const v = await versionFor(food, unit, quantity, w, (text) => (said = text));
+      const n = nutrientsFor(v.food, v.unit, v.quantity, book.overrides);
+      const after: FoodEntry = {
+        ...e.entry,
+        loggedAt: e.at,
+        foodId: v.food.id,
+        name: v.food === food ? e.entry.name : v.food.name,
+        unit: v.unit,
+        quantity: v.quantity,
+        kcal: Math.round(n.kcal ?? 0),
+        place: w.place,
+        restaurant: w.restaurant,
+      };
+      try {
+        // The copy is wherever it was saved, even if steps now come from somewhere else.
+        saved(after.loggedAt, await changeFood(repo, copyStore, e.entry, after, n), said);
+      } catch {
+        setListNote({ text: "Couldn't save that change. Please try again.", problem: true });
+      }
+    });
+
+  /** A calorie-only entry: name, calories, place and time. */
+  const saveCalories = (e: Editing) =>
+    once(async () => {
+      if (e.kcal === null || e.kcal < 0 || !e.name.trim()) return;
+      const after: FoodEntry = {
+        ...e.entry,
+        loggedAt: e.at,
+        name: e.name.trim(),
+        kcal: Math.round(e.kcal),
+        place: editWhere.place,
+        restaurant: editWhere.restaurant,
+      };
+      try {
+        saved(after.loggedAt, await changeFood(repo, copyStore, e.entry, after, { kcal: after.kcal }));
+      } catch {
+        setListNote({ text: "Couldn't save that change. Please try again.", problem: true });
+      }
+    });
+
+  const remove = async (entry: FoodEntry) => {
+    setGone((g) => [...g, entry.id]);
+    setEditing((e) => (e?.entry.id === entry.id ? null : e));
+    setListNote(null);
+    try {
+      const copy = await deleteFood(repo, copyStore, entry);
+      if (copy === 'failed') {
+        setListNote({ text: `Deleted here, but couldn't delete the copy in ${copyStore.label}.`, problem: true });
+      }
+    } catch {
+      setGone((g) => g.filter((id) => id !== entry.id));
+      setListNote({ text: "Couldn't delete that entry. Please try again.", problem: true });
+    }
+    touch();
+  };
+
+  const askRemove = (entry: FoodEntry) => confirmDelete('entry', () => remove(entry));
+
+  /** Today's, for the nutrients; the list shows the day picked under "Eaten today". */
+  const todayFoods = loaded.filter((f) => !gone.includes(f.id));
+  const foods = (listDay === null ? loaded : dayFoods?.day === listDay ? dayFoods.foods : []).filter(
+    (f) => !gone.includes(f.id),
+  );
+  const firstDay = dayKey(new Date(earliestAt(now)));
+  const dayName = formatDay(parseDayKey(shownDay).getTime(), now, clock);
+  const listTitle = listDay === null ? 'Eaten today' : dayName === 'Yesterday' ? 'Eaten yesterday' : `Eaten on ${dayName}`;
 
   const lookUp = async () => {
     const text = query.trim();
@@ -322,6 +460,50 @@ export function FoodLog() {
       quantity: known ? item.quantity : undefined,
       lookup: itemKey(index),
     });
+  };
+
+  /** The entry's form, in its place on the list: the add form's fields, filled in, with Save and Delete. */
+  const editForm = (e: Editing) => {
+    const { food } = e;
+    const setPlace = (p: PlaceInput) => changeEditing({ place: { ...p, chosen: true } });
+    return (
+      <View key={e.entry.id} style={[styles.editing, { borderColor: theme.backgroundSelected }]}>
+        {food ? (
+          <PortionPicker
+            food={food}
+            overrides={book.overrides}
+            initialUnit={e.entry.unit ?? undefined}
+            initialQuantity={e.entry.quantity ?? undefined}
+            actionLabel="Save"
+            busy={busy || working}
+            onCancel={() => setEditing(null)}
+            onSetPortion={(unit, grams) => book.setPortion(food, unit, grams)}
+            onDone={(unit, quantity) => saveEdit(e, food, unit, quantity)}>
+            <WhenField value={e.at} onChange={(at) => changeEditing({ at })} />
+            {asksPlace(food) ? (
+              <PlacePicker value={e.place} onChange={setPlace} restaurants={restaurants} note={lookupNote(food, editWhere)} />
+            ) : null}
+          </PortionPicker>
+        ) : (
+          <>
+            <ThemedText type="smallBold">Change this entry</ThemedText>
+            <TextField label="Name" value={e.name} onChangeText={(name) => changeEditing({ name })} placeholder="What you ate" />
+            <NumberField label="Calories" unit="kcal" value={e.kcal} onCommit={(kcal) => changeEditing({ kcal })} placeholder="0" />
+            <WhenField value={e.at} onChange={(at) => changeEditing({ at })} />
+            <PlacePicker value={e.place} onChange={setPlace} restaurants={restaurants} />
+            <Button
+              label="Save"
+              onPress={() => saveCalories(e)}
+              disabled={e.kcal === null || e.kcal < 0 || !e.name.trim() || working}
+            />
+            <Button kind="secondary" label="Cancel" onPress={() => setEditing(null)} disabled={working} />
+          </>
+        )}
+        {/* Last, after Save and Cancel, as in the other sections; not while a save is under way. */}
+        <Button kind="danger" label="Delete this entry" onPress={() => askRemove(e.entry)} disabled={busy || working} />
+        {busy ? <Busy /> : null}
+      </View>
+    );
   };
 
   const results = mode.kind === 'search' ? searchFoods(query, book.own, book.saved) : [];
@@ -425,48 +607,10 @@ export function FoodLog() {
                 else reset();
               })
             }>
-            <Segmented options={WHEN} value={when} onChange={setWhen} />
+            <WhenField value={eatenAt ?? now} onChange={setEatenAt} />
             {asksPlace(mode.food) ? (
               <PlacePicker value={placeIn} onChange={choosePlace} restaurants={restaurants} note={lookupNote(mode.food)} />
             ) : null}
-          </PortionPicker>
-        ) : null}
-
-        {mode.kind === 'edit' ? (
-          <PortionPicker
-            key={mode.entry.id}
-            food={mode.food}
-            overrides={book.overrides}
-            initialUnit={mode.entry.unit ?? undefined}
-            initialQuantity={mode.entry.quantity ?? undefined}
-            actionLabel="Save"
-            busy={busy}
-            onCancel={reset}
-            onSetPortion={(unit, grams) => book.setPortion(mode.food, unit, grams)}
-            onDone={(unit, quantity) =>
-              once(async () => {
-                const w = asksPlace(mode.food) ? here : HOME;
-                // A new place can mean the other version of the dish (nutrition/place.ts).
-                const v = await versionFor(mode.food, unit, quantity, w);
-                const n = nutrientsFor(v.food, v.unit, v.quantity, book.overrides);
-                await repo.updateFood({
-                  ...mode.entry,
-                  foodId: v.food.id,
-                  name: v.food === mode.food ? mode.entry.name : v.food.name,
-                  unit: v.unit,
-                  quantity: v.quantity,
-                  kcal: Math.round(n.kcal ?? 0),
-                  place: w.place,
-                  restaurant: w.restaurant,
-                });
-                reset();
-                touch();
-              })
-            }>
-            {asksPlace(mode.food) ? (
-              <PlacePicker value={placeIn} onChange={choosePlace} restaurants={restaurants} note={lookupNote(mode.food)} />
-            ) : null}
-            <Button kind="danger" label="Delete this entry" onPress={() => remove(mode.entry)} />
           </PortionPicker>
         ) : null}
 
@@ -481,6 +625,7 @@ export function FoodLog() {
                 reset();
               })
             }>
+            <WhenField value={eatenAt ?? now} onChange={setEatenAt} />
             <PlacePicker value={placeIn} onChange={choosePlace} restaurants={restaurants} />
           </OwnFoodForm>
         ) : null}
@@ -503,14 +648,7 @@ export function FoodLog() {
           />
         ) : null}
 
-        {busy ? (
-          <View style={styles.busy}>
-            <ActivityIndicator color={theme.accent} />
-            <ThemedText type="small" themeColor="textSecondary">
-              Getting restaurant-style values…
-            </ThemedText>
-          </View>
-        ) : null}
+        {busy && !editing ? <Busy /> : null}
         {notice ? (
           <ThemedText type="small" themeColor="textSecondary">
             {notice}
@@ -523,11 +661,32 @@ export function FoodLog() {
         ) : null}
       </Card>
 
-      <Card title="Eaten today">
+      <Card title={listTitle}>
+        <View style={styles.days}>
+          <View style={styles.dayButton}>
+            <Button
+              kind="secondary"
+              label="Day before"
+              onPress={() => showDay(addDaysToKey(shownDay, -1))}
+              disabled={shownDay <= firstDay}
+            />
+          </View>
+          <View style={styles.dayButton}>
+            <Button
+              kind="secondary"
+              label="Next day"
+              onPress={() => showDay(addDaysToKey(shownDay, 1))}
+              disabled={listDay === null}
+            />
+          </View>
+        </View>
         {foods.length === 0 ? (
-          <ThemedText themeColor="textSecondary">Nothing logged today.</ThemedText>
+          <ThemedText themeColor="textSecondary">
+            {listDay === null ? 'Nothing logged today.' : 'Nothing logged that day.'}
+          </ThemedText>
         ) : (
           foods.map((f) => {
+            if (editing?.entry.id === f.id) return editForm(editing);
             const food = f.foodId ? book.find(f.foodId) : null;
             const kcal = Math.round(book.nutrientsOf(f).kcal ?? f.kcal);
             const detail = [
@@ -537,15 +696,16 @@ export function FoodLog() {
               .filter(Boolean)
               .join(' · ');
             const note = valuesNote(f, food);
+            const time = formatClock(f.loggedAt, clock);
             return (
               <Pressable
                 key={f.id}
-                onPress={() => (food ? startEdit(f, food) : undefined)}
+                onPress={() => startEdit(f, food)}
                 accessibilityRole="button"
-                accessibilityLabel={`${f.name}${detail ? `, ${detail}` : ''}, ${kcal} kcal.${note ? ` ${note}.` : ''} ${food ? 'Change amount or place' : ''}`}
+                accessibilityLabel={`${time}, ${f.name}${detail ? `, ${detail}` : ''}, ${kcal} kcal.${note ? ` ${note}.` : ''} Tap to change or delete it.`}
                 style={styles.entry}>
                 <ThemedText type="small" themeColor="textSecondary" style={styles.time}>
-                  {timeOf(f.loggedAt)}
+                  {time}
                 </ThemedText>
                 <View style={styles.entryName}>
                   <ThemedText>{f.name}</ThemedText>
@@ -561,23 +721,30 @@ export function FoodLog() {
                   ) : null}
                 </View>
                 <ThemedText style={styles.entryKcal}>{formatSteps(kcal)} kcal</ThemedText>
-                {food ? null : (
-                  <Pressable onPress={() => remove(f)} accessibilityRole="button" accessibilityLabel={`Delete ${f.name}`} hitSlop={10}>
-                    <Ionicons name="trash-outline" size={20} color={theme.textSecondary} />
-                  </Pressable>
-                )}
+                <Pressable
+                  onPress={() => askRemove(f)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Delete ${f.name}`}
+                  hitSlop={10}>
+                  <Ionicons name="trash-outline" size={20} color={theme.textSecondary} />
+                </Pressable>
               </Pressable>
             );
           })
         )}
-        {foods.some((f) => f.foodId) ? (
+        {foods.length && !editing ? (
           <ThemedText type="small" themeColor="textSecondary">
-            Tap an entry to change the amount or where it was from, or to delete it.
+            Tap an entry to change it (amount, place, date and time) or to delete it.
+          </ThemedText>
+        ) : null}
+        {listNote ? (
+          <ThemedText type="small" style={listNote.problem ? { color: theme.danger } : undefined} themeColor="textSecondary">
+            {listNote.text}
           </ThemedText>
         ) : null}
       </Card>
 
-      {foods.length ? (
+      {todayFoods.length ? (
         <Card title="Nutrients today">
           <NutrientBars title="Calories and macros" nutrients={nutrients} groups={['energy', 'macro']} />
           {over.length ? (
@@ -767,6 +934,18 @@ function SearchResult({ food, onPress }: { food: FoodItem; onPress: () => void }
   );
 }
 
+function Busy() {
+  const theme = useTheme();
+  return (
+    <View style={styles.busy}>
+      <ActivityIndicator color={theme.accent} />
+      <ThemedText type="small" themeColor="textSecondary">
+        Getting restaurant-style values…
+      </ThemedText>
+    </View>
+  );
+}
+
 function Total({ label, value }: { label: string; value: number }) {
   return (
     <View style={styles.total}>
@@ -794,4 +973,7 @@ const styles = StyleSheet.create({
   time: { width: 64, fontVariant: ['tabular-nums'] },
   entryName: { flex: 1 },
   entryKcal: { fontVariant: ['tabular-nums'] },
+  editing: { gap: Spacing.three, borderTopWidth: 1, borderBottomWidth: 1, paddingVertical: Spacing.three },
+  days: { flexDirection: 'row', gap: Spacing.two },
+  dayButton: { flex: 1 },
 });

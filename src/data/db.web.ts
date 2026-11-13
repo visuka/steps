@@ -148,6 +148,10 @@ export async function openRepository(): Promise<Repository> {
       moods.set(entry.date, { ...entry });
       persist();
     },
+    async deleteMood(date) {
+      moods.delete(date);
+      persist();
+    },
     async getMoods(from, to) {
       return [...moods.values()].filter((m) => m.date >= from && m.date <= to).sort((a, b) => (a.date < b.date ? -1 : 1));
     },
@@ -295,6 +299,10 @@ export async function openRepository(): Promise<Repository> {
 
     async addLog(kind, entry) {
       logs[kind].push(entry);
+      persist();
+    },
+    async updateLog(kind, entry) {
+      logs[kind] = logs[kind].map((e) => (e.id === entry.id ? { ...entry } : e));
       persist();
     },
     async deleteLog(kind, id) {
