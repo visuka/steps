@@ -1,18 +1,15 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Card } from '@/components/card';
 import { confirmDelete } from '@/components/confirm';
-import { Button, TextField } from '@/components/controls';
-import { MoodPicker, moodEmoji, moodLabel } from '@/components/mood-picker';
+import { TextField } from '@/components/controls';
+import { EditPanel, EntryList, EntryRow, FormActions } from '@/components/journal/entry-parts';
+import { MoodFace, MoodPicker, moodLabel } from '@/components/mood-picker';
 import { ThemedText } from '@/components/themed-text';
+import { Button, Card, EmptyState, Notice, SectionHeader, Why } from '@/components/ui';
 import { WhenField } from '@/components/when-field';
-import { Spacing } from '@/constants/theme';
 import { saveMood } from '@/data/entries';
 import type { DaySummary, Mood, MoodEntry } from '@/data/types';
 import { useClockStyle } from '@/hooks/use-clock-style';
-import { useTheme } from '@/hooks/use-theme';
 import { addDays, addDaysToKey, dayKey, formatDayLong } from '@/lib/dates';
 import { formatSteps } from '@/lib/format';
 import { BACK_DAYS, capAt, formatClock } from '@/lib/when';
@@ -31,7 +28,6 @@ type Editing = { kind: 'entry'; date: string } | { kind: 'new'; at: number };
 
 export function MoodLog() {
   const { repo, dataVersion, touch } = useApp();
-  const theme = useTheme();
   const clock = useClockStyle();
   const { mood, setMood, setNote, reminderOff, turnOnReminder } = useMoodToday();
   const [note, setNoteText] = useState(mood?.note ?? '');
@@ -113,7 +109,9 @@ export function MoodLog() {
 
   return (
     <>
-      <Card title="How are you feeling today?">
+      <Card
+        title="How are you feeling today?"
+        right={<Why title="Why log mood?" text="After a week or so, Insights shows how your mood and your walking line up." />}>
         <MoodPicker value={mood?.mood ?? null} onChange={(m: Mood) => setMood(m)} />
         {mood ? (
           <TextField
@@ -121,91 +119,73 @@ export function MoodLog() {
             value={note}
             onChangeText={setNoteText}
             onEndEditing={() => setNote(note)}
-            placeholder="Anything behind it? Sleep, work, a good walk… (optional)"
+            placeholder="Anything behind it? (optional)"
             multiline
           />
         ) : null}
-        {mood && reminderOff ? <Button kind="secondary" label="Remind me each evening" onPress={turnOnReminder} /> : null}
-        <ThemedText type="small" themeColor="textSecondary">
-          After a week or so, Insights shows how your mood and your walking line up.
-        </ThemedText>
+        {mood && reminderOff ? (
+          <Button variant="tonal" icon="notifications-outline" label="Remind me each evening" onPress={turnOnReminder} />
+        ) : null}
       </Card>
 
-      <Card title="Last two weeks">
-        {editing?.kind === 'new' ? (
-          <View style={[styles.editing, { borderColor: theme.backgroundSelected }]}>
-            <ThemedText type="smallBold">A mood for an earlier day</ThemedText>
+      <SectionHeader title="Last two weeks" action={editing ? undefined : { label: 'Add a day', onPress: addEarlier }} />
+      {editing?.kind === 'new' ? (
+        <EntryList>
+          <EditPanel title="A mood for an earlier day">
             <MoodForm
               initialAt={editing.at}
               replaces={has}
               onSave={(after) => save(null, after)}
               onCancel={() => setEditing(null)}
             />
-          </View>
-        ) : null}
-        {shown.length === 0 ? (
-          <ThemedText themeColor="textSecondary">No moods logged yet.</ThemedText>
-        ) : (
-          shown.map(({ entry, day }) =>
-            editing?.kind === 'entry' && editing.date === entry.date ? (
-              <View key={entry.date} style={[styles.editing, { borderColor: theme.backgroundSelected }]}>
-                <ThemedText type="smallBold">Change this mood</ThemedText>
-                <MoodForm
-                  entry={entry}
-                  initialAt={entry.loggedAt}
-                  replaces={(date) => date !== entry.date && has(date)}
-                  onSave={(after) => save(entry, after)}
-                  onCancel={() => setEditing(null)}
-                  onDelete={() => askRemove(entry)}
-                />
-              </View>
-            ) : (
-              <Pressable
+          </EditPanel>
+        </EntryList>
+      ) : null}
+      {shown.length === 0 ? (
+        <EmptyState icon="happy-outline" title="No moods logged yet" hint="Pick a face above to start." />
+      ) : (
+        <EntryList>
+          {shown.map(({ entry, day }) => {
+            const when = entry.date === todayKey ? 'Today' : formatDayLong(entry.date);
+            if (editing?.kind === 'entry' && editing.date === entry.date) {
+              return (
+                <EditPanel key={entry.date} title="Change this mood">
+                  <MoodForm
+                    entry={entry}
+                    initialAt={entry.loggedAt}
+                    replaces={(date) => date !== entry.date && has(date)}
+                    onSave={(after) => save(entry, after)}
+                    onCancel={() => setEditing(null)}
+                    onDelete={() => askRemove(entry)}
+                  />
+                </EditPanel>
+              );
+            }
+            return (
+              <EntryRow
                 key={entry.date}
+                leading={<MoodFace mood={entry.mood} size={28} />}
+                title={`${when} · ${moodLabel(entry.mood)}`}
+                supporting={`${formatClock(entry.loggedAt, clock)} · ${day ? `${formatSteps(day.steps)} steps` : 'No steps recorded'}${
+                  entry.note ? ` · ${entry.note}` : ''
+                }`}
                 onPress={() => {
                   setListNote(null);
                   setEditing({ kind: 'entry', date: entry.date });
                 }}
-                accessibilityRole="button"
-                accessibilityLabel={`${entry.date === todayKey ? 'Today' : formatDayLong(entry.date)}, ${moodLabel(entry.mood)}. Tap to change or delete it.`}
-                style={styles.entry}>
-                <Text style={styles.emoji}>{moodEmoji(entry.mood)}</Text>
-                <View style={styles.entryText}>
-                  <ThemedText>
-                    {entry.date === todayKey ? 'Today' : formatDayLong(entry.date)} · {moodLabel(entry.mood)}
-                  </ThemedText>
-                  <ThemedText type="small" themeColor="textSecondary">
-                    {formatClock(entry.loggedAt, clock)} · {day ? `${formatSteps(day.steps)} steps` : 'No steps recorded'}
-                    {entry.note ? ` · ${entry.note}` : ''}
-                  </ThemedText>
-                </View>
-                <Pressable
-                  onPress={() => askRemove(entry)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Delete the mood for ${formatDayLong(entry.date)}`}
-                  hitSlop={10}>
-                  <Ionicons name="trash-outline" size={20} color={theme.textSecondary} />
-                </Pressable>
-              </Pressable>
-            ),
-          )
-        )}
-        {listNote ? (
-          <ThemedText type="small" themeColor="textSecondary" style={listNote.problem ? { color: theme.danger } : undefined}>
-            {listNote.text}
-          </ThemedText>
-        ) : null}
-        {!editing ? (
-          <>
-            {shown.length ? (
-              <ThemedText type="small" themeColor="textSecondary">
-                Tap a day to change its mood or delete it.
-              </ThemedText>
-            ) : null}
-            <Button kind="secondary" label="Missed a day? Add a mood for it" onPress={addEarlier} />
-          </>
-        ) : null}
-      </Card>
+                onDelete={() => askRemove(entry)}
+                deleteLabel={`Delete the mood for ${formatDayLong(entry.date)}`}
+              />
+            );
+          })}
+        </EntryList>
+      )}
+      {listNote ? <Notice tone={listNote.problem ? 'problem' : 'info'} text={listNote.text} /> : null}
+      {shown.length && !editing ? (
+        <ThemedText type="bodySmall" themeColor="onSurfaceVariant">
+          Tap a day to change its mood. Missed one? Tap Add a day.
+        </ThemedText>
+      ) : null}
     </>
   );
 }
@@ -238,25 +218,13 @@ function MoodForm({
       <MoodPicker value={mood} onChange={setMood} />
       <TextField label="Note" value={note} onChangeText={setNote} placeholder="Anything behind it? (optional)" multiline />
       <WhenField value={at} onChange={setAt} />
-      {replaces(day) ? (
-        <ThemedText type="small" themeColor="textSecondary">
-          That day already has a mood; saving replaces it.
-        </ThemedText>
-      ) : null}
-      <Button
-        label="Save"
-        onPress={() => mood !== null && onSave({ mood, note: note.trim() || null, loggedAt: at })}
-        disabled={mood === null}
+      {replaces(day) ? <Notice text="That day already has a mood. Saving replaces it." /> : null}
+      <FormActions
+        onSave={() => mood !== null && onSave({ mood, note: note.trim() || null, loggedAt: at })}
+        saveDisabled={mood === null}
+        onCancel={onCancel}
+        onDelete={onDelete}
       />
-      <Button kind="secondary" label="Cancel" onPress={onCancel} />
-      {onDelete ? <Button kind="danger" label="Delete this mood" onPress={onDelete} /> : null}
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  entry: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three },
-  entryText: { flex: 1, gap: Spacing.half },
-  emoji: { fontSize: 26, lineHeight: 32 },
-  editing: { gap: Spacing.three, borderTopWidth: 1, borderBottomWidth: 1, paddingVertical: Spacing.three },
-});

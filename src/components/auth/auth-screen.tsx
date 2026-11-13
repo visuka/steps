@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Platform, StyleSheet, Switch } from 'react-native';
+import { Platform } from 'react-native';
 
 import { useAuth } from '@/auth/auth-state';
 import { newAccountWipesData } from '@/auth/owner';
@@ -7,10 +7,8 @@ import { carriedOverAccount } from '@/auth/session-storage';
 import type { SignInResult } from '@/auth/sign-in';
 import { AuthLayout, TextButton } from '@/components/auth/auth-layout';
 import { PhoneAuthScreen } from '@/components/auth/phone-auth-screen';
-import { Button, Row } from '@/components/controls';
-import { ThemedText } from '@/components/themed-text';
+import { Button, Notice, Surface, ToggleRow, Why } from '@/components/ui';
 import { APP_NAME, SIGN_IN_MODE } from '@/constants/app';
-import { useTheme } from '@/hooks/use-theme';
 import { useLock } from '@/state/app-lock';
 import { useApp } from '@/state/app-state';
 
@@ -27,7 +25,6 @@ export function AuthScreen() {
 export function PasskeyAuthScreen() {
   const auth = useAuth();
   const lock = useLock();
-  const theme = useTheme();
   const [newHere, setNewHere] = useState(false);
   const [adult, setAdult] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -80,33 +77,28 @@ export function PasskeyAuthScreen() {
     <AuthLayout
       icon="footsteps"
       title={newHere ? 'New here?' : `Sign in to ${APP_NAME}`}
-      subtitle={newHere ? 'Make a passkey to start. It takes one touch.' : undefined}>
+      subtitle={newHere ? 'Make a passkey to start. One touch.' : undefined}>
       {newHere ? (
-        <Row label="I'm 18 or older">
-          <Switch value={adult} onValueChange={setAdult} trackColor={{ true: theme.accent, false: theme.track }} />
-        </Row>
+        <Surface level={1}>
+          <ToggleRow title="I'm 18 or older" value={adult} onValueChange={setAdult} />
+        </Surface>
       ) : null}
       {newHere && wipesData ? (
-        <ThemedText type="small">
-          This phone has another account&apos;s data. A new account deletes it from this phone. If you already have a
-          passkey, tap “I already have a passkey”.
-        </ThemedText>
+        <Notice tone="problem" text="A new account deletes another account's data on this phone. Have a passkey? Tap “I already have a passkey”." />
       ) : null}
-      {auth.notice ? <ThemedText type="small">{auth.notice}</ThemedText> : null}
-      {error ? (
-        <ThemedText type="small" style={{ color: theme.danger }}>
-          {error}
-        </ThemedText>
-      ) : null}
+      {auth.notice ? <Notice text={auth.notice} /> : null}
+      {error ? <Notice tone="problem" text={error} /> : null}
       <Button
-        label={busy ? 'Waiting…' : 'Continue with fingerprint'}
+        label="Continue with fingerprint"
+        icon="finger-print"
+        loading={busy}
         onPress={newHere ? createAccount : signIn}
-        disabled={busy}
       />
-      <ThemedText type="small" themeColor="textSecondary" style={styles.center}>
-        Your fingerprint stays on your phone. A passkey is saved in your Google account, so you can sign in on a new
-        phone.
-      </ThemedText>
+      <Why
+        title="Passkeys"
+        label="How does this work?"
+        text="Your fingerprint stays on your phone. A passkey is saved in your Google account, so you can sign in on a new phone."
+      />
       {newHere ? <TextButton label="I already have a passkey" onPress={signIn} disabled={busy} /> : null}
       {Platform.OS === 'web' && __DEV__ ? (
         <TextButton label="Look around without an account (preview only)" onPress={auth.skipForPreview} />
@@ -114,7 +106,3 @@ export function PasskeyAuthScreen() {
     </AuthLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  center: { textAlign: 'center' },
-});

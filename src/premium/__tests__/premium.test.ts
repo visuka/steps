@@ -361,6 +361,7 @@ describe('which screens are locked', () => {
         'journal/water',
         'journal/weight',
         'walk/[id]',
+        'walk/places',
         'walk/record',
         'walks',
       ].sort(),

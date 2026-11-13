@@ -2,9 +2,9 @@ import { type ReactNode, useEffect, useRef, useState } from 'react';
 
 import { cleanCode, resendWaitSeconds } from '@/auth/rules';
 import { Field, TextButton } from '@/components/auth/auth-layout';
-import { Button } from '@/components/controls';
 import { ThemedText } from '@/components/themed-text';
-import { useTheme } from '@/hooks/use-theme';
+import { Button } from '@/components/ui/button';
+import { Notice } from '@/components/ui/notice';
 
 type Sent = { kind: 'sent'; email: string } | { kind: 'unavailable' | 'error'; message: string };
 type Checked = { kind: 'error'; message: string } | { kind: 'confirmed' | 'signed-in' };
@@ -23,7 +23,7 @@ export function EmailConfirm({
   check,
   onDone,
   sentText = (email) => `We sent a 6-digit code to ${email}. It works for 10 minutes.`,
-  emailText = "Enter your email. We'll send you a 6-digit code to confirm it.",
+  emailText = "We'll send a 6-digit code to confirm it.",
   checkLabel = 'Confirm',
   onCard,
   children,
@@ -43,7 +43,6 @@ export function EmailConfirm({
   /** More actions under the step, e.g. "Confirm later in Settings". */
   children?: ReactNode;
 }) {
-  const theme = useTheme();
   const [step, setStep] = useState<'email' | 'code'>(sentTo ? 'code' : 'email');
   const [email, setEmail] = useState(sentTo ?? initialEmail);
   const [code, setCode] = useState('');
@@ -110,16 +109,12 @@ export function EmailConfirm({
     setError(null);
   };
 
-  const problem = error ? (
-    <ThemedText type="small" style={{ color: theme.danger }}>
-      {error}
-    </ThemedText>
-  ) : null;
+  const problem = error ? <Notice tone="problem" text={error} /> : null;
 
   if (step === 'email') {
     return (
       <>
-        <ThemedText type="small" themeColor="textSecondary">
+        <ThemedText type="bodyMedium" themeColor="onSurfaceVariant">
           {emailText}
         </ThemedText>
         <Field
@@ -132,7 +127,7 @@ export function EmailConfirm({
           editable={!busy}
         />
         {problem}
-        <Button label={busy ? 'Sending…' : 'Send code'} onPress={() => sendCode(email)} disabled={busy} />
+        <Button label="Send code" icon="mail-outline" loading={busy} onPress={() => sendCode(email)} />
         {children}
       </>
     );
@@ -140,7 +135,7 @@ export function EmailConfirm({
 
   return (
     <>
-      <ThemedText type="small" themeColor="textSecondary">
+      <ThemedText type="bodyMedium" themeColor="onSurfaceVariant">
         {sentText(email)}
       </ThemedText>
       <Field
@@ -153,7 +148,7 @@ export function EmailConfirm({
         editable={!busy}
       />
       {problem}
-      <Button label={busy ? 'Checking…' : checkLabel} onPress={submit} disabled={busy} />
+      <Button label={checkLabel} loading={busy} onPress={submit} />
       <TextButton
         label={wait > 0 ? `Send a new code in ${wait} s` : 'Send a new code'}
         onPress={() => sendCode(email)}

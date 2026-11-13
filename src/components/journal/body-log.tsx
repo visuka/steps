@@ -1,14 +1,14 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { BarChart } from '@/components/bar-chart';
-import { Card } from '@/components/card';
 import { confirmDelete } from '@/components/confirm';
-import { Button, NumberField } from '@/components/controls';
+import { NumberField } from '@/components/controls';
+import { EditPanel, EntryList, EntryRow, FormActions } from '@/components/journal/entry-parts';
 import { ThemedText } from '@/components/themed-text';
+import { Button, Card, EmptyState, Notice, SectionHeader } from '@/components/ui';
 import { WhenField } from '@/components/when-field';
-import { Spacing } from '@/constants/theme';
+import { NumeralMaxScale, Spacing } from '@/constants/theme';
 import { changeLog, deleteLog } from '@/data/entries';
 import { type LogEntry, type LogKind, newId } from '@/data/types';
 import { copyStore } from '@/health/select-source';
@@ -28,8 +28,10 @@ import {
 } from '@/lib/format';
 import { formatWhen, formatWhenInSentence, timeNow } from '@/lib/when';
 import { useApp } from '@/state/app-state';
+import { addWater } from '@/water/add';
 
-const WATER_QUICK_ML = [250, 500];
+/** One glass (the size set in You → Water a day) and a bottle. */
+const quickMl = (glassMl: number) => [...new Set([glassMl, 500])];
 /** How many entries the history lists, newest first. */
 const LISTED = 60;
 const OFF_LIST = `Only your latest ${LISTED} entries are listed here.`;
@@ -92,19 +94,24 @@ export function BodyLog({ kind }: { kind: LogKind }) {
   const add = async (metricValue: number) => {
     setAddNote(null);
     const when = new Date(at ?? timeNow());
-    let healthSampleId: string | null = null;
     let problem: string | null = null;
+    let id = newId();
     try {
-      healthSampleId =
-        (kind === 'weight' ? await source.writeWeight?.(metricValue, when) : await source.writeWater?.(metricValue, when)) ??
-        null;
-    } catch {
-      problem = `Saved here, but couldn't copy it to ${source.label}.`;
-    }
-    const id = newId();
-    try {
-      await repo.addLog(kind, { id, loggedAt: when.getTime(), value: metricValue, healthSampleId });
-      await followLatestWeight();
+      if (kind === 'water') {
+        // The one water path, shared with "+1 glass" on Today and Food (water/add.ts).
+        const added = await addWater(repo, source, metricValue, when);
+        id = added.entry.id;
+        if (added.healthFailed) problem = `Saved here, but couldn't copy it to ${source.label}.`;
+      } else {
+        let healthSampleId: string | null = null;
+        try {
+          healthSampleId = (await source.writeWeight?.(metricValue, when)) ?? null;
+        } catch {
+          problem = `Saved here, but couldn't copy it to ${source.label}.`;
+        }
+        await repo.addLog(kind, { id, loggedAt: when.getTime(), value: metricValue, healthSampleId });
+        await followLatestWeight();
+      }
     } catch {
       setAddNote({ text: "Couldn't save that. Please try again.", problem: true });
       return;
@@ -187,23 +194,31 @@ export function BodyLog({ kind }: { kind: LogKind }) {
   return (
     <>
       <Card>
-        {kind === 'weight' ? (
-          <View style={styles.headline}>
-            <ThemedText type="small" themeColor="textSecondary">
-              Latest
-            </ThemedText>
-            <ThemedText style={styles.big}>{shown[0] ? formatWeight(shown[0].value, units) : '—'}</ThemedText>
+        <View style={styles.hero}>
+          <ThemedText type="labelLarge" themeColor="onSurfaceVariant">
+            {kind === 'weight' ? 'Latest' : 'Today'}
+          </ThemedText>
+          <ThemedText type="numeralLarge" maxFontSizeMultiplier={NumeralMaxScale}>
+            {kind === 'weight' ? (shown[0] ? formatWeight(shown[0].value, units) : '—') : formatWater(waterToday, units)}
+          </ThemedText>
+        </View>
+        {kind === 'water' ? (
+          <View style={styles.quick}>
+            {quickMl(profile.water.glassMl).map((ml) => (
+              <Button
+                key={ml}
+                variant="tonal"
+                icon="add"
+                label={formatWater(ml, units)}
+                accessibilityLabel={`Add ${formatWater(ml, units)}`}
+                onPress={() => add(ml)}
+                style={styles.quickItem}
+              />
+            ))}
           </View>
-        ) : (
-          <View style={styles.headline}>
-            <ThemedText type="small" themeColor="textSecondary">
-              Today
-            </ThemedText>
-            <ThemedText style={styles.big}>{formatWater(waterToday, units)}</ThemedText>
-          </View>
-        )}
+        ) : null}
         <NumberField
-          label={kind === 'weight' ? 'New weight' : 'Add water'}
+          label={kind === 'weight' ? 'New weight' : 'Other amount'}
           value={draft}
           unit={unit}
           decimals={kind === 'weight' ? 1 : 0}
@@ -211,41 +226,45 @@ export function BodyLog({ kind }: { kind: LogKind }) {
           placeholder="0"
         />
         <WhenField value={at ?? now} onChange={setAt} />
-        <Button label="Add" onPress={submitDraft} disabled={draft === null || draft <= 0} />
-        {kind === 'water' ? (
-          <View style={styles.quick}>
-            {WATER_QUICK_ML.map((ml) => (
-              <View key={ml} style={styles.quickItem}>
-                <Button kind="secondary" label={`+ ${formatWater(ml, units)}`} onPress={() => add(ml)} />
-              </View>
-            ))}
-          </View>
-        ) : null}
-        {addNote ? <NoteText note={addNote} /> : null}
+        <Button
+          label="Add"
+          variant={kind === 'water' ? 'outlined' : 'filled'}
+          onPress={submitDraft}
+          disabled={draft === null || draft <= 0}
+        />
+        {addNote ? <Notice tone={addNote.problem ? 'problem' : 'info'} text={addNote.text} /> : null}
         {source.writeWeight ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            Entries are also saved to {source.label}.
+          <ThemedText type="bodySmall" themeColor="onSurfaceVariant">
+            Also saved to {source.label}.
           </ThemedText>
         ) : null}
       </Card>
 
       {weightTrend.length >= 2 ? (
-        <Card title="Last entries">
-          <BarChart
-            bars={weightTrend.map((e) => ({ key: e.id, value: e.value, label: '' }))}
-            height={90}
-          />
-        </Card>
+        <>
+          <SectionHeader title="Last entries" />
+          <Card>
+            <BarChart
+              bars={weightTrend.map((e) => ({ key: e.id, value: e.value, label: '' }))}
+              color={theme.outline}
+              height={90}
+            />
+          </Card>
+        </>
       ) : null}
 
-      <Card title="History">
-        {shown.length === 0 ? (
-          <ThemedText themeColor="textSecondary">Nothing logged yet.</ThemedText>
-        ) : (
-          shown.map((e) =>
+      <SectionHeader title="History" />
+      {shown.length === 0 ? (
+        <EmptyState
+          icon={kind === 'weight' ? 'scale-outline' : 'water-outline'}
+          title="Nothing logged yet"
+          hint={kind === 'weight' ? 'Add a weight above to start.' : 'Tap a glass above to start.'}
+        />
+      ) : (
+        <EntryList>
+          {shown.map((e) =>
             editing === e.id ? (
-              <View key={e.id} style={[styles.editing, { borderColor: theme.backgroundSelected }]}>
-                <ThemedText type="smallBold">Change this entry</ThemedText>
+              <EditPanel key={e.id} title="Change this entry">
                 <LogForm
                   label={kind === 'weight' ? 'Weight' : 'Water'}
                   unit={unit}
@@ -256,41 +275,29 @@ export function BodyLog({ kind }: { kind: LogKind }) {
                   onCancel={() => setEditing(null)}
                   onDelete={() => askRemove(e)}
                 />
-              </View>
+              </EditPanel>
             ) : (
-              <Pressable
+              <EntryRow
                 key={e.id}
+                title={format(e.value)}
+                supporting={formatWhen(e.loggedAt, now, clock)}
                 onPress={() => {
                   setListNote(null);
                   setEditing(e.id);
                 }}
-                accessibilityRole="button"
-                accessibilityLabel={`${format(e.value)}, ${formatWhen(e.loggedAt, now, clock)}. Tap to change or delete it.`}
-                style={styles.entry}>
-                <View>
-                  <ThemedText>{format(e.value)}</ThemedText>
-                  <ThemedText type="small" themeColor="textSecondary">
-                    {formatWhen(e.loggedAt, now, clock)}
-                  </ThemedText>
-                </View>
-                <Pressable
-                  onPress={() => askRemove(e)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Delete ${format(e.value)}`}
-                  hitSlop={10}>
-                  <Ionicons name="trash-outline" size={20} color={theme.textSecondary} />
-                </Pressable>
-              </Pressable>
+                onDelete={() => askRemove(e)}
+                deleteLabel={`Delete ${format(e.value)}`}
+              />
             ),
-          )
-        )}
-        {listNote ? <NoteText note={listNote} /> : null}
-        {shown.length && !editing ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            Tap an entry to change it or delete it.
-          </ThemedText>
-        ) : null}
-      </Card>
+          )}
+        </EntryList>
+      )}
+      {listNote ? <Notice tone={listNote.problem ? 'problem' : 'info'} text={listNote.text} /> : null}
+      {shown.length && !editing ? (
+        <ThemedText type="bodySmall" themeColor="onSurfaceVariant">
+          Tap an entry to change it.
+        </ThemedText>
+      ) : null}
     </>
   );
 }
@@ -333,27 +340,19 @@ function LogForm({
     <>
       <NumberField label={label} value={value} unit={unit} decimals={decimals} onCommit={setValue} placeholder="0" />
       <WhenField value={at} onChange={setAt} />
-      <Button label="Save" onPress={save} disabled={value === null || value <= 0 || saving} />
-      <Button kind="secondary" label="Cancel" onPress={onCancel} />
-      <Button kind="danger" label="Delete this entry" onPress={onDelete} />
+      <FormActions
+        onSave={save}
+        saveDisabled={value === null || value <= 0}
+        saving={saving}
+        onCancel={onCancel}
+        onDelete={onDelete}
+      />
     </>
   );
 }
 
-function NoteText({ note }: { note: Note }) {
-  const theme = useTheme();
-  return (
-    <ThemedText type="small" themeColor="textSecondary" style={note.problem ? { color: theme.danger } : undefined}>
-      {note.text}
-    </ThemedText>
-  );
-}
-
 const styles = StyleSheet.create({
-  headline: { gap: Spacing.half },
-  big: { fontSize: 32, lineHeight: 40, fontWeight: 700, fontVariant: ['tabular-nums'] },
+  hero: { gap: Spacing.half },
   quick: { flexDirection: 'row', gap: Spacing.two },
   quickItem: { flex: 1 },
-  entry: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  editing: { gap: Spacing.three, borderTopWidth: 1, borderBottomWidth: 1, paddingVertical: Spacing.three },
 });

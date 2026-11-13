@@ -2,7 +2,7 @@ import { createContext, type ReactNode, use, useCallback, useEffect, useRef, use
 import { AppState } from 'react-native';
 
 import { openRepository } from '@/data/db';
-import { DEFAULT_PROFILE, loadProfile, saveProfile } from '@/data/profile';
+import { DEFAULT_PROFILE, loadProfile, mergeProfile, type ProfilePatch, saveProfile } from '@/data/profile';
 import type { DaySummary, Profile, Repository, SourceId } from '@/data/types';
 import { watchLiveSteps } from '@/health/live';
 import { getSource, onAppStart } from '@/health/select-source';
@@ -32,7 +32,8 @@ interface AppContextValue {
   /** Bumps after every sync or data change; screens re-read when it changes. */
   dataVersion: number;
   refresh(): Promise<void>;
-  updateProfile(patch: Partial<Profile>): Promise<void>;
+  /** Nested settings (reminders, water, nutrition…) merge field by field. */
+  updateProfile(patch: ProfilePatch): Promise<void>;
   finishOnboarding(profile: Profile, source: StepSource): Promise<void>;
   switchSource(source: StepSource): Promise<void>;
   touch(): void;
@@ -206,9 +207,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [repo, source, profile, doRefresh, recompute]);
 
   const updateProfile = useCallback(
-    async (patch: Partial<Profile>) => {
+    async (patch: ProfilePatch) => {
       if (!repo) return;
-      const next = { ...profile, ...patch, reminders: { ...profile.reminders, ...patch.reminders } };
+      const next = mergeProfile(profile, patch);
       await saveProfile(repo, next);
       setProfile(next);
     },

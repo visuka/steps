@@ -30,7 +30,8 @@ const row = (over: Partial<FoodRow> = {}): FoodRow => ({
 describe('food log place migration', () => {
   withSqlite('reads entries logged before it as home-made, with no restaurant', () => {
     const db = new sqlite!.DatabaseSync(':memory:');
-    const last = MIGRATIONS.length - 1;
+    // The food place migration; later ones (walks) run after it.
+    const last = 6;
     for (const sql of MIGRATIONS.slice(0, last)) db.exec(sql);
     db.prepare(
       'INSERT INTO food_log (id, logged_at, name, food_id, unit, quantity, kcal, health_sample_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',

@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
+import { TickBar } from '@/components/ui/tick-bar';
 import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
 import {
   formatNutrient,
   GL_BANDS,
@@ -20,10 +20,12 @@ import { glBand } from '@/nutrition/watch';
 const BAND_LABEL = { low: 'Low', medium: 'Medium', high: 'High' } as const;
 
 /**
- * One row per nutrient that has data. Nutrients with a daily target get a bar
- * towards it; "keep low" ones a bar towards their limit, which turns red at
- * the limit; sugars, glycemic load and alcohol just show the amount. Tapping a
- * row shows what the nutrient is.
+ * One row per nutrient that has data: the label and amount on one line, the
+ * bar full width under it. Nutrients with a daily target get a bar towards it;
+ * "keep low" ones a bar towards their limit, red only at the limit; sugars,
+ * glycemic load and alcohol just show the amount. No verdict words: one
+ * portion is never "low" (the Food tab's rows use nutrition/state.ts for that).
+ * Tapping a row shows what the nutrient is.
  */
 export function NutrientBars({
   title,
@@ -48,7 +50,6 @@ export function NutrientBars({
   /** Whether the glycemic load is a whole day's or one portion's. */
   glScale?: 'day' | 'portion';
 }) {
-  const theme = useTheme();
   const [open, setOpen] = useState<NutrientKey | null>(null);
 
   const infos = keys ? keys.map((k) => NUTRIENT[k]) : NUTRIENTS.filter((n) => groups?.includes(n.group));
@@ -68,20 +69,14 @@ export function NutrientBars({
         </ThemedText>
       ) : null}
       {weekly ? (
-        <View style={styles.row}>
-          <View style={styles.label} />
-          <View style={styles.spacer} />
-          <ThemedText type="small" themeColor="textSecondary" style={styles.value}>
-            Today · Week
-          </ThemedText>
-        </View>
+        <ThemedText type="small" themeColor="textSecondary" style={styles.value}>
+          Today · Week
+        </ThemedText>
       ) : null}
       {rows.map((n) => {
         const today = nutrients[n.key];
         const week = average && n.storage === 'stored' ? average[n.key] : undefined;
         const row = describe(n, today, week, glScale);
-        const color =
-          row.tone === 'danger' ? theme.danger : row.tone === 'good' ? theme.accent : theme.text;
         const isOpen = open === n.key;
         return (
           <Pressable
@@ -96,17 +91,18 @@ export function NutrientBars({
               <ThemedText type="small" style={styles.label}>
                 {n.label}
               </ThemedText>
-              {row.bar === null ? (
-                <View style={styles.spacer} />
-              ) : (
-                <View style={[styles.track, { backgroundColor: theme.track }]}>
-                  <View style={[styles.fill, { width: `${Math.min(100, row.bar)}%`, backgroundColor: color }]} />
-                </View>
-              )}
               <ThemedText type="small" themeColor="textSecondary" style={styles.value}>
                 {row.shown}
               </ThemedText>
             </View>
+            {row.bar === null ? null : (
+              <TickBar
+                value={Math.min(100, row.bar)}
+                max={100}
+                height={8}
+                tone={row.tone === 'danger' ? 'over' : 'food'}
+              />
+            )}
             {isOpen ? (
               <ThemedText type="small" themeColor="textSecondary">
                 {row.note}
@@ -187,11 +183,8 @@ function describe(n: NutrientInfo, today: number | undefined, week: number | und
 
 const styles = StyleSheet.create({
   list: { gap: Spacing.two },
-  item: { gap: Spacing.one },
-  row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-  label: { width: 96 },
-  track: { flex: 1, height: 8, borderRadius: 4, overflow: 'hidden' },
-  spacer: { flex: 1 },
-  fill: { height: 8, borderRadius: 4, opacity: 0.85 },
-  value: { width: 116, textAlign: 'right', fontVariant: ['tabular-nums'] },
+  item: { gap: Spacing.one, paddingVertical: Spacing.one },
+  row: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.two, flexWrap: 'wrap' },
+  label: { flex: 1 },
+  value: { textAlign: 'right', fontVariant: ['tabular-nums'] },
 });

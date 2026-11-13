@@ -1,14 +1,14 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { type ComponentProps, useState } from 'react';
-import { Platform, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { type ReactNode, useState } from 'react';
+import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Card } from '@/components/card';
-import { Button, NumberField, Row, Segmented, Stepper } from '@/components/controls';
+import { NumberField, Segmented, Stepper } from '@/components/controls';
+import { DietChips } from '@/components/food/food-settings';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { Button, Card, type IconName, Notice, Surface, ToggleRow, Why } from '@/components/ui';
 import { APP_NAME } from '@/constants/app';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { DEFAULT_PROFILE } from '@/data/profile';
 import type { Profile, Sex } from '@/data/types';
 import { requestMotionPermission } from '@/health/live';
@@ -19,9 +19,22 @@ import { cmToHeight, formatSteps, heightToCm, heightUnit, kgToWeight, type Units
 import { GOAL_STEP, MAX_GOAL, MIN_GOAL } from '@/lib/goals';
 import { requestNotificationPermission } from '@/notifications/notify';
 import { useApp } from '@/state/app-state';
+import { formatLitres, stepperRange, suggestionBasis, suggestWaterMl } from '@/water/water';
 
-const STEPS = ['welcome', 'profile', 'goal', 'access', 'reminders'] as const;
+const STEPS = ['welcome', 'profile', 'food', 'goal', 'access', 'reminders'] as const;
 type Step = (typeof STEPS)[number];
+
+const ACCESS = Platform.select({
+  ios: {
+    line: 'Steps, distance and floors from Apple Health.',
+    why: 'The app reads steps, distance and floors from Apple Health, including your Apple Watch. It saves the weight and water you log there too.',
+  },
+  android: {
+    line: "From Health Connect, or your phone's own step sensor.",
+    why: 'The app reads steps from Health Connect if another app records them. Otherwise it counts with your phone’s step sensor and shows a silent notification while counting.',
+  },
+  default: { line: 'The web preview runs on demo data.', why: null },
+});
 
 export function Onboarding() {
   const { finishOnboarding } = useApp();
@@ -33,6 +46,7 @@ export function Onboarding() {
   const units = profile.units;
   const set = (patch: Partial<Profile>) => setProfile((p) => ({ ...p, ...patch }));
   const next = () => setStep(STEPS[Math.min(STEPS.length - 1, STEPS.indexOf(step) + 1)]);
+  const at = STEPS.indexOf(step);
 
   const allowAccess = async () => {
     setBusy(true);
@@ -55,40 +69,48 @@ export function Onboarding() {
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safe}>
+    <View style={[styles.container, { backgroundColor: theme.surface }]}>
+      <SafeAreaView style={styles.container}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <View style={styles.inner}>
-            <View style={styles.dots}>
-              {STEPS.map((s) => (
+            {/* Where they are: a straight piece of track, one painted section per step. */}
+            <View
+              style={styles.progress}
+              accessible
+              accessibilityRole="progressbar"
+              accessibilityLabel={`Step ${at + 1} of ${STEPS.length}`}
+              accessibilityValue={{ min: 1, max: STEPS.length, now: at + 1 }}>
+              {STEPS.map((s, i) => (
                 <View
                   key={s}
-                  style={[styles.dot, { backgroundColor: s === step ? theme.accent : theme.track }]}
+                  style={[styles.segment, { backgroundColor: i <= at ? theme.steps : theme.lane }]}
                 />
               ))}
             </View>
+            <ThemedText type="labelMedium" themeColor="onSurfaceVariant">
+              Step {at + 1} of {STEPS.length}
+            </ThemedText>
 
             {step === 'welcome' ? (
               <>
-                <Ionicons name="footsteps" size={48} color={theme.accent} />
-                <ThemedText type="subtitle">Welcome to {APP_NAME}</ThemedText>
-                <ThemedText themeColor="textSecondary">One number, one goal, every day.</ThemedText>
-                <Point icon="walk-outline" text="Counts your steps automatically, with no start button." />
-                <Point
-                  icon="flag-outline"
-                  text={`A daily goal keeps you moving. ${APP_NAME} Premium adds streaks, badges and more.`}
+                <Heading icon="footsteps" title={`Welcome to ${APP_NAME}`} line="One number, one goal, every day." />
+                <Surface level={1} style={styles.points}>
+                  <Point icon="walk-outline" text="Counts your steps by itself" />
+                  <Point icon="flag-outline" text="A daily goal to aim for" />
+                  <Point icon="lock-closed-outline" text="Your walking data stays on your phone" />
+                </Surface>
+                <Why
+                  title={`Welcome to ${APP_NAME}`}
+                  label="Tell me more"
+                  text={`It counts your steps automatically, with no start button. A daily goal keeps you moving; ${APP_NAME} Premium adds streaks, badges and more. Your walking data stays on this phone and in your health app.`}
                 />
-                <Point icon="lock-closed-outline" text="Your walking data stays on this phone and in your health app." />
                 <Button label="Get started" onPress={next} />
               </>
             ) : null}
 
             {step === 'profile' ? (
               <>
-                <ThemedText type="subtitle">About you</ThemedText>
-                <ThemedText themeColor="textSecondary">
-                  Used to estimate distance and calories. You can change it later.
-                </ThemedText>
+                <Heading title="About you" line="For distance and calories. Change it any time." />
                 <Card>
                   <Segmented<Units>
                     options={[
@@ -109,33 +131,30 @@ export function Onboarding() {
                     unit={weightUnit(units)}
                     decimals={1}
                     value={kgToWeight(profile.weightKg, units)}
-                    onCommit={(v) => v && v > 0 && set({ weightKg: weightToKg(v, units) })}
+                    onCommit={(v) => v && v > 0 && set({ weightKg: weightToKg(v, units), weightSet: true })}
                   />
-                  <Row label="Sex (optional)">
-                    <View style={styles.sex}>
-                      <Segmented<Sex>
-                        options={[
-                          { value: 'unspecified', label: 'Skip' },
-                          { value: 'female', label: 'Female' },
-                          { value: 'male', label: 'Male' },
-                        ]}
-                        value={profile.sex}
-                        onChange={(sex) => set({ sex })}
-                      />
-                    </View>
-                  </Row>
+                  <View style={styles.sex}>
+                    <ThemedText type="bodyLarge">Sex (optional)</ThemedText>
+                    <Segmented<Sex>
+                      options={[
+                        { value: 'unspecified', label: 'Skip' },
+                        { value: 'female', label: 'Female' },
+                        { value: 'male', label: 'Male' },
+                      ]}
+                      value={profile.sex}
+                      onChange={(sex) => set({ sex })}
+                    />
+                  </View>
                 </Card>
                 <Button label="Continue" onPress={next} />
               </>
             ) : null}
 
+            {step === 'food' ? <FoodStep profile={profile} set={set} onNext={next} /> : null}
+
             {step === 'goal' ? (
               <>
-                <ThemedText type="subtitle">Your daily goal</ThemedText>
-                <ThemedText themeColor="textSecondary">
-                  7,000 steps is a good start. With Premium, after two weeks the app suggests a goal based on how you
-                  walk.
-                </ThemedText>
+                <Heading title="Your daily goal" line="7,000 steps is a good start." />
                 <Card>
                   <Stepper
                     value={profile.dailyGoal}
@@ -145,83 +164,148 @@ export function Onboarding() {
                     max={MAX_GOAL}
                     format={formatSteps}
                   />
+                  <ThemedText type="bodySmall" themeColor="onSurfaceVariant" style={styles.center}>
+                    steps a day
+                  </ThemedText>
                 </Card>
+                <Why
+                  title="Your daily goal"
+                  text="With Premium, after two weeks the app suggests a goal based on how you walk. You can change it any time in You."
+                />
                 <Button label="Continue" onPress={next} />
               </>
             ) : null}
 
             {step === 'access' ? (
               <>
-                <ThemedText type="subtitle">Step access</ThemedText>
-                <ThemedText themeColor="textSecondary">
-                  {Platform.OS === 'ios'
-                    ? 'The app reads steps, distance and floors from Apple Health, including your Apple Watch. It saves the weight and water you log there too.'
-                    : Platform.OS === 'android'
-                      ? 'The app reads steps from Health Connect if another app records them. Otherwise it counts with your phone’s step sensor and shows a silent notification while counting.'
-                      : 'The web preview runs on demo data.'}
-                </ThemedText>
+                <Heading title="Step access" line={ACCESS.line} />
+                {ACCESS.why ? <Why title="Step access" text={ACCESS.why} /> : null}
                 {source ? (
-                  <Card>
-                    <Point icon="checkmark-circle" text={`Using ${source.label}.`} />
-                    {source.id === 'device-sensor' ? (
-                      <ThemedText type="small" themeColor="textSecondary">
-                        Counting starts now, so today begins at zero.
-                      </ThemedText>
-                    ) : null}
-                  </Card>
+                  <>
+                    <Notice tone="done" text={`Using ${source.label}.`} />
+                    {source.id === 'device-sensor' ? <Notice text="Counting starts now, so today begins at zero." /> : null}
+                    <Button label="Continue" onPress={next} />
+                  </>
                 ) : (
-                  <Button label={busy ? 'Waiting…' : 'Allow access'} onPress={allowAccess} disabled={busy} />
+                  <Button label="Allow access" loading={busy} onPress={allowAccess} />
                 )}
-                {source ? <Button label="Continue" onPress={next} /> : null}
               </>
             ) : null}
 
             {step === 'reminders' ? (
               <>
-                <ThemedText type="subtitle">Move reminders</ThemedText>
-                <ThemedText themeColor="textSecondary">
-                  A nudge after an hour with under 250 steps, between 9 am and 8 pm. Change the hours in Settings.
-                </ThemedText>
-                <Card>
-                  <Row label="Remind me to move">
-                    <Switch
-                      value={profile.reminders.enabled}
-                      trackColor={{ true: theme.accent, false: theme.track }}
-                      onValueChange={async (enabled) => {
-                        const ok = !enabled || (await requestNotificationPermission());
-                        set({ reminders: { ...profile.reminders, enabled: enabled && ok } });
-                      }}
-                    />
-                  </Row>
-                </Card>
-                <Button label={busy ? 'Setting up…' : 'Start walking'} onPress={finish} disabled={busy} />
+                <Heading title="Move reminders" line="A nudge after an idle hour, 9 am to 8 pm." />
+                <Surface level={1}>
+                  <ToggleRow
+                    icon="notifications-outline"
+                    title="Remind me to move"
+                    value={profile.reminders.enabled}
+                    onValueChange={async (enabled) => {
+                      const ok = !enabled || (await requestNotificationPermission());
+                      set({ reminders: { ...profile.reminders, enabled: enabled && ok } });
+                    }}
+                  />
+                </Surface>
+                <Why
+                  title="Move reminders"
+                  text="An idle hour is one with under 250 steps. You get a nudge between 9 am and 8 pm. Change the hours in Settings."
+                />
+                <Button label="Start walking" loading={busy} onPress={finish} />
               </>
             ) : null}
           </View>
         </ScrollView>
       </SafeAreaView>
-    </ThemedView>
+    </View>
   );
 }
 
-function Point({ icon, text }: { icon: ComponentProps<typeof Ionicons>['name']; text: string }) {
+/** What they eat and how much water a day: both can be skipped and changed later in You. */
+function FoodStep({ profile, set, onNext }: { profile: Profile; set: (p: Partial<Profile>) => void; onNext: () => void }) {
+  const units = profile.units;
+  const suggested = suggestWaterMl(profile.weightSet ? profile.weightKg : null);
+  const range = stepperRange(false);
+  const ml = profile.water.targetMl ?? suggested;
+  return (
+    <>
+      <Heading title="Food and water" line="You can change both later in You." />
+      <Card>
+        <ThemedText type="labelLarge" themeColor="onSurfaceVariant">
+          What do you eat?
+        </ThemedText>
+        <DietChips value={profile.nutrition.diet} onChange={(diet) => set({ nutrition: { ...profile.nutrition, diet } })} />
+        <ThemedText type="labelLarge" themeColor="onSurfaceVariant">
+          Water a day
+        </ThemedText>
+        <Stepper
+          value={ml}
+          onChange={(targetMl) => set({ water: { ...profile.water, targetMl } })}
+          step={range.step}
+          min={range.min}
+          max={range.max}
+          format={(v) => formatLitres(v, units)}
+        />
+        <ThemedText type="bodySmall" themeColor="onSurfaceVariant">
+          {suggestionBasis(profile.weightKg, profile.weightSet, units)}
+        </ThemedText>
+      </Card>
+      <Button
+        label="Continue"
+        onPress={() => {
+          set({ water: { ...profile.water, targetMl: ml } });
+          onNext();
+        }}
+      />
+      <Button label="Skip" variant="text" onPress={onNext} />
+    </>
+  );
+}
+
+/** The step's title and its one line, with an optional mark above. */
+function Heading({ icon, title, line }: { icon?: IconName; title: string; line?: ReactNode }) {
+  const theme = useTheme();
+  return (
+    <View style={styles.heading}>
+      {icon ? (
+        <View style={[styles.mark, { backgroundColor: theme.stepsContainer }]}>
+          <Ionicons name={icon} size={32} color={theme.onStepsContainer} />
+        </View>
+      ) : null}
+      <ThemedText type="headlineMedium" accessibilityRole="header">
+        {title}
+      </ThemedText>
+      {line ? (
+        <ThemedText type="bodyLarge" themeColor="onSurfaceVariant">
+          {line}
+        </ThemedText>
+      ) : null}
+    </View>
+  );
+}
+
+function Point({ icon, text }: { icon: IconName; text: string }) {
   const theme = useTheme();
   return (
     <View style={styles.point}>
-      <Ionicons name={icon} size={22} color={theme.accent} />
-      <ThemedText style={styles.pointText}>{text}</ThemedText>
+      <Ionicons name={icon} size={24} color={theme.onSurfaceVariant} />
+      <ThemedText type="bodyLarge" style={styles.pointText}>
+        {text}
+      </ThemedText>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  safe: { flex: 1 },
   content: { flexGrow: 1, padding: Spacing.four, justifyContent: 'center', alignItems: 'center' },
   inner: { width: '100%', maxWidth: 520, gap: Spacing.three },
-  dots: { flexDirection: 'row', gap: Spacing.two, marginBottom: Spacing.three },
-  dot: { width: 8, height: 8, borderRadius: 4 },
-  point: { flexDirection: 'row', gap: Spacing.three, alignItems: 'flex-start' },
+  progress: { flexDirection: 'row', gap: Spacing.one },
+  segment: { flex: 1, height: 8, borderRadius: Radius.xs },
+  heading: { gap: Spacing.two, marginTop: Spacing.three, marginBottom: Spacing.one },
+  mark: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.two },
+  points: { paddingHorizontal: Spacing.three, paddingVertical: Spacing.two },
+  point: { flexDirection: 'row', gap: Spacing.three, alignItems: 'center', minHeight: 48 },
   pointText: { flex: 1 },
-  sex: { flexShrink: 1, minWidth: 200 },
+  sex: { gap: Spacing.two },
+  center: { textAlign: 'center' },
 });

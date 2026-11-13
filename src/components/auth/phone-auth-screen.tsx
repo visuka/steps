@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Platform, StyleSheet, Switch } from 'react-native';
+import { ActivityIndicator, Platform } from 'react-native';
 
 import { useAuth } from '@/auth/auth-state';
 import { newAccountWipesData } from '@/auth/owner';
@@ -7,8 +7,7 @@ import type { EmailSendResult } from '@/auth/phone-sign-in';
 import { carriedOverAccount } from '@/auth/session-storage';
 import { AuthLayout, Field, TextButton } from '@/components/auth/auth-layout';
 import { EmailConfirm } from '@/components/auth/email-confirm';
-import { Button, Row } from '@/components/controls';
-import { ThemedText } from '@/components/themed-text';
+import { Button, Notice, Surface, ToggleRow, Why } from '@/components/ui';
 import { APP_NAME } from '@/constants/app';
 import { useTheme } from '@/hooks/use-theme';
 import { useLock } from '@/state/app-lock';
@@ -72,12 +71,8 @@ export function PhoneAuthScreen() {
 
   const messages = (
     <>
-      {auth.notice ? <ThemedText type="small">{auth.notice}</ThemedText> : null}
-      {error ? (
-        <ThemedText type="small" style={{ color: theme.danger }}>
-          {error}
-        </ThemedText>
-      ) : null}
+      {auth.notice ? <Notice text={auth.notice} /> : null}
+      {error ? <Notice tone="problem" text={error} /> : null}
     </>
   );
 
@@ -87,7 +82,7 @@ export function PhoneAuthScreen() {
     if (firstSend?.kind === 'unavailable') {
       return (
         <AuthLayout icon="checkmark-circle-outline" title="Your account is ready">
-          <ThemedText type="small">{firstSend.message}</ThemedText>
+          <Notice text={firstSend.message} />
           <Button label="Continue" onPress={auth.doneWithFirstEmail} />
         </AuthLayout>
       );
@@ -102,7 +97,7 @@ export function PhoneAuthScreen() {
           send={(address) => auth.sendEmailCode(address, 'first')}
           check={(_address, code) => auth.confirmEmail(code)}
           onDone={auth.doneWithFirstEmail}
-          emailText="Enter your email. We'll send you a 6-digit code. It lets you get your account back if you change phones.">
+          emailText="We'll send a 6-digit code. Your email gets your account back on a new phone.">
           <TextButton label="Confirm later in Settings" onPress={auth.doneWithFirstEmail} />
         </EmailConfirm>
       </AuthLayout>
@@ -111,8 +106,8 @@ export function PhoneAuthScreen() {
 
   if (auth.restore.state === 'restoring') {
     return (
-      <AuthLayout icon="footsteps" title="Welcome back" subtitle="Signing you in to your account on this phone…">
-        <ActivityIndicator color={theme.accent} />
+      <AuthLayout icon="footsteps" title="Welcome back" subtitle="Signing you in on this phone…">
+        <ActivityIndicator color={theme.primary} size="large" />
       </AuthLayout>
     );
   }
@@ -127,12 +122,12 @@ export function PhoneAuthScreen() {
           // Signed in: the app opens by itself.
           onDone={() => undefined}
           checkLabel="Sign in"
-          emailText="Enter the email you confirmed for your account. We'll send you a 6-digit code."
+          emailText="The email you confirmed for your account. We'll send it a 6-digit code."
           // The server answers the same whether or not an account has the email.
           sentText={(address) =>
             `If ${address} belongs to a ${APP_NAME} account, we sent a 6-digit code to it. It works for 10 minutes.`
           }>
-          {auth.notice ? <ThemedText type="small">{auth.notice}</ThemedText> : null}
+          {auth.notice ? <Notice text={auth.notice} /> : null}
           <TextButton label="Back" onPress={() => setScreen('welcome')} />
         </EmailConfirm>
       </AuthLayout>
@@ -151,11 +146,9 @@ export function PhoneAuthScreen() {
             ? "Your account is saved on this phone, but we couldn't sign you in."
             : "We couldn't check this phone for your account."
         }>
-        {auth.notice ? <ThemedText type="small">{auth.notice}</ThemedText> : null}
-        <ThemedText type="small" style={{ color: theme.danger }}>
-          {auth.restore.message}
-        </ThemedText>
-        <Button label="Try again" onPress={auth.retryRestore} />
+        {auth.notice ? <Notice text={auth.notice} /> : null}
+        <Notice tone="problem" text={auth.restore.message} />
+        <Button label="Try again" icon="refresh" onPress={auth.retryRestore} />
         <TextButton label="Use my email instead" onPress={() => setScreen('recover')} />
       </AuthLayout>
     );
@@ -163,9 +156,9 @@ export function PhoneAuthScreen() {
 
   return (
     <AuthLayout icon="footsteps" title={`Welcome to ${APP_NAME}`} subtitle="Make your account on this phone.">
-      <Row label="I'm 18 or older">
-        <Switch value={adult} onValueChange={setAdult} trackColor={{ true: theme.accent, false: theme.track }} />
-      </Row>
+      <Surface level={1}>
+        <ToggleRow title="I'm 18 or older" value={adult} onValueChange={setAdult} />
+      </Surface>
       <Field
         label="Email"
         kind="email"
@@ -173,21 +166,21 @@ export function PhoneAuthScreen() {
         onChangeText={setEmail}
         onSubmitEditing={createAccount}
         editable={!busy}
+        supporting="Gets your account back on a new phone. Nothing else."
       />
-      <ThemedText type="small" themeColor="textSecondary">
-        To get your account back if you change phones. We send a code to confirm it, nothing else.
-      </ThemedText>
       {wipesData ? (
-        <ThemedText type="small">
-          This phone has another account&apos;s data. A new account deletes it from this phone. If you already have an
-          account, tap “I already have an account”.
-        </ThemedText>
+        <Notice
+          tone="problem"
+          text="A new account deletes another account's data on this phone. Have one? Tap “I already have an account”."
+        />
       ) : null}
       {messages}
-      <Button label={busy ? 'Waiting…' : 'Continue'} onPress={createAccount} disabled={busy} />
-      <ThemedText type="small" themeColor="textSecondary" style={styles.center}>
-        Next, your phone checks your fingerprint or PIN. It stays on your phone.
-      </ThemedText>
+      <Button label="Continue" loading={busy} onPress={createAccount} />
+      <Why
+        title="Your fingerprint"
+        label="What happens next?"
+        text="Next, your phone checks your fingerprint or PIN. It stays on your phone. We send a code to confirm your email, nothing else."
+      />
       <TextButton label="I already have an account" onPress={() => setScreen('recover')} disabled={busy} />
       {Platform.OS === 'web' && __DEV__ ? (
         <TextButton label="Look around without an account (preview only)" onPress={auth.skipForPreview} />
@@ -195,7 +188,3 @@ export function PhoneAuthScreen() {
     </AuthLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  center: { textAlign: 'center' },
-});

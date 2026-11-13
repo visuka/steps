@@ -5,9 +5,12 @@
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
   <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+  <!-- Activity Recognition while a walk records; Android 9 uses Google's own permission. -->
+  <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION" android:maxSdkVersion="28" />
 
   <uses-feature android:name="android.hardware.sensor.stepcounter" android:required="false" />
   <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+  <uses-feature android:name="android.hardware.sensor.barometer" android:required="false" />
 
   <application>
     <service
@@ -20,6 +23,11 @@
       android:name="expo.modules.stepcounter.WalkService"
       android:exported="false"
       android:foregroundServiceType="location" />
+
+    <!-- Activity Recognition results for the walk being recorded. -->
+    <receiver
+      android:name="expo.modules.stepcounter.WalkActivityReceiver"
+      android:exported="false" />
 
     <receiver
       android:name="expo.modules.stepcounter.BootReceiver"

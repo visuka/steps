@@ -2,21 +2,19 @@ import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Linking, Platform, Share, StyleSheet, Switch, View } from 'react-native';
+import { Linking, Platform, Share, StyleSheet, View } from 'react-native';
 
 import { AccountCard } from '@/components/auth/account-card';
-import { Card } from '@/components/card';
 import { confirm } from '@/components/confirm';
-import { Button, NumberField, Row, Segmented, Stepper } from '@/components/controls';
-import { Screen } from '@/components/screen';
+import { NumberField, Segmented, Stepper } from '@/components/controls';
 import { ThemedText } from '@/components/themed-text';
+import { Button, Card, ListRow, Notice, Screen, SectionHeader, Surface, ToggleRow, Why } from '@/components/ui';
 import { APP_NAME, SIGN_IN_MODE } from '@/constants/app';
 import { Spacing } from '@/constants/theme';
 import { profileStride } from '@/data/profile';
 import type { Sex } from '@/data/types';
 import { switchableSources } from '@/health/select-source';
 import type { StepSource } from '@/health/types';
-import { useTheme } from '@/hooks/use-theme';
 import { addDaysToKey, dayKey } from '@/lib/dates';
 import { cmToHeight, heightToCm, heightUnit, kgToWeight, type Units, weightToKg, weightUnit } from '@/lib/format';
 import { locationAllowed, requestLocation } from '@/location/place';
@@ -42,10 +40,22 @@ const hourLabel = (h: number) => {
   return `${twelve} ${suffix}`;
 };
 
+const RECORDER_WHY =
+  "Google's step recorder (part of Google Play services) keeps the time of every step, even while this app is closed. The app's own counter shows today's steps in a silent notification.";
+const STRICT_WHY =
+  'The app counts steps itself. This phone stops apps in the background to save battery; steps still count then, but the app can’t tell when they were taken. To keep every step’s time, open this app’s settings and allow background activity (on OPPO, realme and OnePlus: Battery → Allow background activity, and Allow auto launch).';
+const COUNTER_WHY =
+  'The app counts steps itself and shows them in a silent notification. If counts stop, allow this app to run in the background in battery settings.';
+const KEEP_WHY =
+  SIGN_IN_MODE === 'phone'
+    ? 'To sign you in, our server keeps only a random account number and your email, used just to get your account back if you change phones: no name, no fingerprint. Everything else stays on this phone and in your health app: steps, walks and their routes, moods, food, sleep, health readings and the weather.'
+    : 'To sign you in, our server keeps only your passkey’s public key and a random account number: no email, no name, no fingerprint. Everything else stays on this phone and in your health app: steps, walks and their routes, moods, food, sleep, health readings and the weather.';
+const FOOD_WHY =
+  "When you look up a food or enter a recipe, what you type and the country your phone is set to are sent to our server and an AI service to work out what's in it, the way it's usually made where you are. When you log a dish as dine-in or ordered in, its name is sent the same way to get restaurant values. If you say it was from a restaurant, that goes too, with the restaurant's name if you gave one. It's kept without your name, so the same food is quicker for everyone next time.";
+
 export default function SettingsScreen() {
   const { repo, profile, source, updateProfile, switchSource, resetAll, refresh } = useApp();
   const router = useRouter();
-  const theme = useTheme();
   const premium = usePremium();
   const [sources, setSources] = useState<StepSource[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
@@ -139,31 +149,37 @@ export default function SettingsScreen() {
     }
   };
 
+  const strict = stopsBackgroundApps(Device.manufacturer);
+  const stepWhy = source.id !== 'device-sensor' ? undefined : recorderReady ? RECORDER_WHY : strict ? STRICT_WHY : COUNTER_WHY;
+
   return (
     <Screen title="Settings" onBack={() => router.back()}>
       <AccountCard />
 
       {/* Testers only: a look at the free app without leaving the test. */}
       {premium.canPreviewFree ? (
-        <Card title={`${APP_NAME} Premium`}>
-          <ThemedText type="small" themeColor="textSecondary">
-            Premium is free while we test.
-          </ThemedText>
-          <Row label="Preview as a free user">
-            <Switch
+        <>
+          <SectionHeader
+            title={`${APP_NAME} Premium`}
+            why="Premium is free while we test. The preview shows the app as someone without Premium sees it, so you can check it. Nothing is deleted, and your steps keep counting."
+          />
+          <Surface level={1} style={styles.list}>
+            <ToggleRow
+              icon="eye-outline"
+              title="Preview as a free user"
+              supporting="Premium is free while we test"
               value={premium.previewFree}
               onValueChange={(on) => premium.setPreviewFree(on)}
-              trackColor={{ true: theme.accent, false: theme.track }}
             />
-          </Row>
-          <ThemedText type="small" themeColor="textSecondary">
-            Shows the app as someone without Premium sees it, so you can check it. Nothing is deleted, and your steps
-            keep counting.
-          </ThemedText>
-        </Card>
+          </Surface>
+        </>
       ) : null}
 
-      <Card title="Profile">
+      <SectionHeader
+        title="Profile"
+        why="Height and stride set distance when your phone doesn’t measure it. Weight sets calorie estimates. Leave stride empty to estimate it from height."
+      />
+      <Card>
         <Segmented<Units>
           options={[
             { value: 'metric', label: 'Metric' },
@@ -187,19 +203,18 @@ export default function SettingsScreen() {
           commitOnBlur
           onCommit={(v) => v && v > 0 && updateProfile({ weightKg: weightToKg(v, units) })}
         />
-        <Row label="Sex (optional)">
-          <View style={styles.sex}>
-            <Segmented<Sex>
-              options={[
-                { value: 'unspecified', label: 'Not set' },
-                { value: 'female', label: 'Female' },
-                { value: 'male', label: 'Male' },
-              ]}
-              value={profile.sex}
-              onChange={(sex) => updateProfile({ sex })}
-            />
-          </View>
-        </Row>
+        <View style={styles.sex}>
+          <ThemedText type="bodyLarge">Sex (optional)</ThemedText>
+          <Segmented<Sex>
+            options={[
+              { value: 'unspecified', label: 'Not set' },
+              { value: 'female', label: 'Female' },
+              { value: 'male', label: 'Male' },
+            ]}
+            value={profile.sex}
+            onChange={(sex) => updateProfile({ sex })}
+          />
+        </View>
         <NumberField
           label="Birth year (optional)"
           value={profile.birthYear}
@@ -216,161 +231,186 @@ export default function SettingsScreen() {
           commitOnBlur
           onCommit={(v) => updateProfile({ strideM: v && v > 0.3 && v < 1.5 ? v : null })}
         />
-        <ThemedText type="small" themeColor="textSecondary">
-          Height and stride set distance when your phone doesn’t measure it. Weight sets calorie estimates. Leave
-          stride empty to estimate it from height.
-        </ThemedText>
       </Card>
 
-      <Card title="Move reminders">
-        <Row label="Remind me after an idle hour">
-          <Switch
-            value={profile.reminders.enabled}
-            onValueChange={toggleReminders}
-            trackColor={{ true: theme.accent, false: theme.track }}
-          />
-        </Row>
+      <SectionHeader title="Reminders" />
+      <Surface level={1} style={styles.list}>
+        <ToggleRow
+          icon="walk-outline"
+          title="Move reminders"
+          supporting="After an idle hour"
+          value={profile.reminders.enabled}
+          onValueChange={toggleReminders}
+        />
         {profile.reminders.enabled ? (
-          <>
-            <ThemedText type="small" themeColor="textSecondary">
-              From
-            </ThemedText>
-            <Stepper
+          <View style={styles.inset}>
+            <HourStepper
+              label="From"
               value={profile.reminders.startHour}
               onChange={(startHour) => updateProfile({ reminders: { ...profile.reminders, startHour } })}
-              step={1}
               min={5}
               max={profile.reminders.endHour - 2}
-              format={hourLabel}
             />
-            <ThemedText type="small" themeColor="textSecondary">
-              Until
-            </ThemedText>
-            <Stepper
+            <HourStepper
+              label="Until"
               value={profile.reminders.endHour}
               onChange={(endHour) => updateProfile({ reminders: { ...profile.reminders, endHour } })}
-              step={1}
               min={profile.reminders.startHour + 2}
               max={23}
-              format={hourLabel}
             />
-          </>
+          </View>
         ) : null}
         {notice ? (
-          <ThemedText type="small" style={{ color: theme.danger }}>
-            {notice}
-          </ThemedText>
+          <View style={styles.inset}>
+            <Notice tone="problem" text={notice} />
+          </View>
         ) : null}
-      </Card>
 
-      {/* Mood is premium, and so is its reminder (the setting is kept for when premium is back). */}
-      {premium.isLocked('mood') ? null : (
-        <Card title="Evening mood check-in">
-          <Row label="Ask how my day was">
-            <Switch
+        {/* Mood is premium, and so is its reminder (the setting is kept for when premium is back). */}
+        {premium.isLocked('mood') ? null : (
+          <>
+            <ToggleRow
+              icon="happy-outline"
+              title="Evening mood check-in"
+              supporting="Asks how your day was"
               value={profile.moodCheckIn.enabled}
               onValueChange={(enabled) => setMoodCheckIn({ enabled })}
-              trackColor={{ true: theme.accent, false: theme.track }}
             />
-          </Row>
-          {profile.moodCheckIn.enabled ? (
-            <Stepper
-              value={profile.moodCheckIn.hour}
-              onChange={(hour) => setMoodCheckIn({ hour })}
-              step={1}
-              min={17}
-              max={23}
-              format={hourLabel}
-            />
-          ) : null}
-          {moodNotice ? (
-            <ThemedText type="small" style={{ color: theme.danger }}>
-              {moodNotice}
-            </ThemedText>
-          ) : null}
-        </Card>
-      )}
-
-      <Card title="Location">
-        <ThemedText type="small" themeColor="textSecondary">
-          Used only while the app is open: your approximate area for the day&apos;s weather, and your route while you
-          record a walk. Steps never tracks you in the background. {WEATHER_CREDIT}.
-        </ThemedText>
-        {hasLocation === false ? <Button kind="secondary" label="Allow location" onPress={allowLocation} /> : null}
-        {hasLocation ? <ThemedText type="small">Location is allowed.</ThemedText> : null}
-      </Card>
-
-      <Card title="Step data">
-        <ThemedText>
-          Steps come from <ThemedText type="smallBold">{source.label}</ThemedText>.
-        </ThemedText>
-        {source.id === 'device-sensor' && recorderReady ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            Google&apos;s step recorder (part of Google Play services) keeps the time of every step, even while this
-            app is closed. The app&apos;s own counter shows today&apos;s steps in a silent notification.
-          </ThemedText>
-        ) : null}
-        {source.id === 'device-sensor' && !recorderReady ? (
-          <>
-            <ThemedText type="small" themeColor="textSecondary">
-              {stopsBackgroundApps(Device.manufacturer)
-                ? 'The app counts steps itself. This phone stops apps in the background to save battery; steps still count then, but the app can’t tell when they were taken. To keep every step’s time, open this app’s settings and allow background activity (on OPPO, realme and OnePlus: Battery → Allow background activity, and Allow auto launch).'
-                : 'The app counts steps itself and shows them in a silent notification. If counts stop, allow this app to run in the background in battery settings.'}
-            </ThemedText>
-            <Button kind="secondary" label="Open this app's settings" onPress={() => Linking.openSettings()} />
+            {profile.moodCheckIn.enabled ? (
+              <View style={styles.inset}>
+                <HourStepper
+                  label="At"
+                  value={profile.moodCheckIn.hour}
+                  onChange={(hour) => setMoodCheckIn({ hour })}
+                  min={17}
+                  max={23}
+                />
+              </View>
+            ) : null}
+            {moodNotice ? (
+              <View style={styles.inset}>
+                <Notice tone="problem" text={moodNotice} />
+              </View>
+            ) : null}
           </>
+        )}
+      </Surface>
+
+      <SectionHeader
+        title="Location"
+        why={`Used only while the app is open: your approximate area for the day's weather, and your route while you record a walk. The app never tracks you in the background. ${WEATHER_CREDIT}.`}
+      />
+      <Surface level={1} style={styles.list}>
+        <ListRow
+          icon="location-outline"
+          title={hasLocation ? 'Location is allowed' : hasLocation === false ? 'Location is off' : 'Location'}
+          supporting="Only while the app is open"
+          trailing={
+            hasLocation === false ? <Button variant="tonal" compact label="Allow" onPress={allowLocation} /> : undefined
+          }
+        />
+      </Surface>
+
+      <SectionHeader title="Step data" why={stepWhy} />
+      <Surface level={1} style={styles.list}>
+        <ListRow icon="footsteps-outline" title={source.label} supporting="Where your steps come from" />
+        {source.id === 'device-sensor' && !recorderReady ? (
+          <ListRow
+            icon="battery-half-outline"
+            title="Open this app's settings"
+            supporting={strict ? 'Allow background activity to keep step times' : 'If counts stop, allow background use'}
+            chevron
+            onPress={() => Linking.openSettings()}
+          />
         ) : null}
-        <Button kind="secondary" label="Step check" onPress={() => router.push('/step-check')} />
+        <ListRow
+          icon="checkmark-done-outline"
+          title="Step check"
+          supporting="If your steps look wrong"
+          chevron
+          onPress={() => router.push('/step-check')}
+        />
         {sources.length > 1
           ? sources
               .filter((s) => s.id !== source.id)
               .map((s) => (
-                <Button key={s.id} kind="secondary" label={`Switch to ${s.label}`} onPress={() => switchSource(s)} />
+                <ListRow key={s.id} icon="swap-horizontal-outline" title={`Switch to ${s.label}`} onPress={() => switchSource(s)} />
               ))
           : null}
-      </Card>
+      </Surface>
 
-      <Card title="Your data">
-        <ThemedText type="small" themeColor="textSecondary">
-          {SIGN_IN_MODE === 'phone'
-            ? 'To sign you in, our server keeps only a random account number and your email, used just to get your account back if you change phones: no name, no fingerprint. Everything else stays on this phone and in your health app: steps, walks and their routes, moods, food, sleep, health readings and the weather.'
-            : 'To sign you in, our server keeps only your passkey’s public key and a random account number: no email, no name, no fingerprint. Everything else stays on this phone and in your health app: steps, walks and their routes, moods, food, sleep, health readings and the weather.'}
-        </ThemedText>
-        <ThemedText type="small" themeColor="textSecondary">
-          When you look up a food or enter a recipe, what you type and the country your phone is set to are sent to our
-          server and an AI service to work out what&apos;s in it, the way it&apos;s usually made where you are. When
-          you log a dish as dine-in or ordered in, its name is sent the same way to get restaurant values. If you say it
-          was from a restaurant, that goes too, with the restaurant&apos;s name if you gave one. It&apos;s kept without
-          your name, so the same food is quicker for everyone next time.
-        </ThemedText>
-        <Button kind="secondary" label="Export daily totals (CSV)" onPress={exportCsv} />
-        {exportError ? (
-          <ThemedText type="small" style={{ color: theme.danger }}>
-            {exportError}
-          </ThemedText>
-        ) : null}
-        <Button
-          kind="danger"
-          label="Delete all app data"
-          onPress={() =>
-            confirm(
-              'Delete all app data?',
-              `This clears ${APP_NAME}'s history, logs and settings on this phone. Data in your health app stays.`,
-              resetAll,
-            )
-          }
+      <SectionHeader title="Your data" />
+      <Surface level={1} style={styles.list}>
+        <ListRow
+          icon="phone-portrait-outline"
+          title="Kept on this phone"
+          supporting="Steps, walks, food, sleep and readings"
+          trailing={<Why title="What we keep" label="(i)" text={KEEP_WHY} />}
         />
-      </Card>
+        <ListRow
+          icon="restaurant-outline"
+          title="Food lookups"
+          supporting="Sent without your name"
+          trailing={<Why title="Food lookups" label="(i)" text={FOOD_WHY} />}
+        />
+        <ListRow icon="download-outline" title="Export daily totals" supporting="A CSV file" chevron onPress={exportCsv} />
+      </Surface>
+      {exportError ? <Notice tone="problem" text={exportError} /> : null}
+      <Button
+        variant="outlined"
+        danger
+        icon="trash-outline"
+        label="Delete all app data"
+        onPress={() =>
+          confirm(
+            'Delete all app data?',
+            `This clears ${APP_NAME}'s history, logs and settings on this phone. Data in your health app stays.`,
+            resetAll,
+          )
+        }
+      />
 
-      <ThemedText type="small" themeColor="textSecondary" style={styles.about}>
-        {APP_NAME} {Constants.expoConfig?.version ?? ''} · Neutcrafts OPC Private Limited{'\n'}
-        For general wellness only. Calories and distance are estimates, not medical advice.
-      </ThemedText>
+      <View style={styles.about}>
+        <ThemedText type="bodySmall" themeColor="onSurfaceVariant" style={styles.center}>
+          {APP_NAME} {Constants.expoConfig?.version ?? ''} · Neutcrafts OPC Private Limited
+        </ThemedText>
+        <ThemedText type="bodySmall" themeColor="onSurfaceVariant" style={styles.center}>
+          For general wellness only. Calories and distance are estimates, not medical advice.
+        </ThemedText>
+      </View>
     </Screen>
   );
 }
 
+/** An hour of the day with − and +, under its label. */
+function HourStepper({
+  label,
+  value,
+  onChange,
+  min,
+  max,
+}: {
+  label: string;
+  value: number;
+  onChange: (h: number) => void;
+  min: number;
+  max: number;
+}) {
+  return (
+    <View style={styles.hour}>
+      <ThemedText type="labelLarge" themeColor="onSurfaceVariant">
+        {label}
+      </ThemedText>
+      <Stepper value={value} onChange={onChange} step={1} min={min} max={max} format={hourLabel} />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  sex: { flexShrink: 1, minWidth: 220 },
-  about: { textAlign: 'center', marginTop: Spacing.two },
+  sex: { gap: Spacing.two },
+  list: { overflow: 'hidden', paddingVertical: Spacing.one },
+  inset: { paddingHorizontal: Spacing.three, paddingBottom: Spacing.three, gap: Spacing.three },
+  hour: { gap: Spacing.one },
+  about: { gap: Spacing.one, marginTop: Spacing.three },
+  center: { textAlign: 'center' },
 });

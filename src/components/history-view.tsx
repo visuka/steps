@@ -1,14 +1,12 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { type Bar, BarChart } from '@/components/bar-chart';
-import { Card } from '@/components/card';
 import { Segmented } from '@/components/controls';
 import { ThemedText } from '@/components/themed-text';
+import { Card, IconButton, StatTile, Why } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import type { DaySummary } from '@/data/types';
-import { useTheme } from '@/hooks/use-theme';
 import { addDays, dayKey, daysBetween, formatDayLong, monthShort, parseDayKey, weekdayShort } from '@/lib/dates';
 import { formatDistance, formatSteps } from '@/lib/format';
 import { useApp } from '@/state/app-state';
@@ -123,9 +121,16 @@ export function HistoryView() {
       />
 
       <View style={styles.nav}>
-        <NavButton icon="chevron-back" label="Earlier" onPress={() => setOffset(offset + 1)} />
-        <ThemedText type="smallBold">{periodTitle(range, start, end)}</ThemedText>
-        <NavButton icon="chevron-forward" label="Later" onPress={() => setOffset(offset - 1)} disabled={offset === 0} />
+        <IconButton icon="chevron-back" accessibilityLabel="Earlier" onPress={() => setOffset(offset + 1)} />
+        <ThemedText type="titleMedium" style={styles.period}>
+          {periodTitle(range, start, end)}
+        </ThemedText>
+        <IconButton
+          icon="chevron-forward"
+          accessibilityLabel="Later"
+          onPress={() => setOffset(offset - 1)}
+          disabled={offset === 0}
+        />
       </View>
 
       <Card>
@@ -135,8 +140,8 @@ export function HistoryView() {
           onPressBar={range === 'week' || range === 'month' ? openDay : undefined}
         />
         {range === 'week' || range === 'month' ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            Tap a day for its hourly detail. Dashed line: your goal.
+          <ThemedText type="bodySmall" themeColor="onSurfaceVariant">
+            Tap a day for its hours. Dashed line: your goal.
           </ThemedText>
         ) : null}
       </Card>
@@ -160,60 +165,25 @@ export function HistoryView() {
           />
         </View>
       )}
-      <ThemedText type="small" themeColor="textSecondary">
-        Calories are estimates. Days older than a week show daily totals only.
-      </ThemedText>
+      <View style={styles.foot}>
+        <ThemedText type="bodySmall" themeColor="onSurfaceVariant" style={styles.footText}>
+          Calories are estimates.
+        </ThemedText>
+        <Why title="History" text="Calories are estimates. Days older than a week show daily totals only, not hours." />
+      </View>
     </>
   );
 }
 
-function NavButton({
-  icon,
-  label,
-  onPress,
-  disabled,
-}: {
-  icon: 'chevron-back' | 'chevron-forward';
-  label: string;
-  onPress: () => void;
-  disabled?: boolean;
-}) {
-  const theme = useTheme();
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      hitSlop={12}
-      style={{ opacity: disabled ? 0.3 : 1 }}>
-      <Ionicons name={icon} size={22} color={theme.text} />
-    </Pressable>
-  );
-}
-
 function Summary({ label, value, note }: { label: string; value: string; note?: string }) {
-  return (
-    <Card style={styles.summaryCard}>
-      <View style={styles.summaryInner}>
-        <ThemedText type="small" themeColor="textSecondary">
-          {label}
-        </ThemedText>
-        <ThemedText style={styles.summaryValue}>{value}</ThemedText>
-        {note ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            {note}
-          </ThemedText>
-        ) : null}
-      </View>
-    </Card>
-  );
+  return <StatTile label={label} value={value} note={note} style={styles.summaryTile} />;
 }
 
 const styles = StyleSheet.create({
-  nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.one },
-  summary: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.three },
-  summaryCard: { flexGrow: 1, flexBasis: '45%' },
-  summaryInner: { gap: Spacing.half },
-  summaryValue: { fontSize: 22, lineHeight: 28, fontWeight: 700, fontVariant: ['tabular-nums'] },
+  nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: -Spacing.two },
+  period: { flex: 1, textAlign: 'center' },
+  summary: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
+  summaryTile: { flexBasis: '45%' },
+  foot: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
+  footText: { flex: 1 },
 });

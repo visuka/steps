@@ -2,12 +2,15 @@ import * as SQLite from 'expo-sqlite';
 
 import { readFoodItem } from '@/api/food-read';
 import type { Achievement } from '@/lib/achievements';
+import type { Place } from '@/lib/places';
 import type { WalkPoint } from '@/lib/walk';
+import { applyChoice } from '@/lib/walk-totals';
 import { recentRestaurants, whereOf } from '@/nutrition/place';
 import type { FoodItem, OwnFood } from '@/nutrition/types';
 
 import { type FoodRow, toFood } from './food-rows';
 import { MIGRATIONS } from './migrations';
+import { type PlaceRow, toPart, toPlace, toWalk, type WalkPartRow, type WalkRow } from './walk-rows';
 import type {
   BloodPressureEntry,
   DaySummary,
@@ -23,6 +26,7 @@ import type {
   SourceId,
   VitalSource,
   Walk,
+  WalkPart,
   WeatherCondition,
 } from './types';
 
@@ -96,32 +100,6 @@ const toWeather = (r: WeatherRow): DayWeather => ({
   updatedAt: r.updated_at,
 });
 
-interface WalkRow {
-  id: string;
-  started_at: number;
-  ended_at: number;
-  distance_m: number;
-  moving_s: number;
-  steps: number | null;
-  active_kcal: number;
-  start_place: string | null;
-  weather: string | null;
-  updated_at: number;
-}
-
-const toWalk = (r: WalkRow): Walk => ({
-  id: r.id,
-  startedAt: r.started_at,
-  endedAt: r.ended_at,
-  distanceM: r.distance_m,
-  movingS: r.moving_s,
-  steps: r.steps,
-  activeKcal: r.active_kcal,
-  startPlace: r.start_place,
-  weather: r.weather ? (JSON.parse(r.weather) as Walk['weather']) : null,
-  updatedAt: r.updated_at,
-});
-
 interface SleepRow {
   id: string;
   date: string;
@@ -183,11 +161,15 @@ async function migrate(db: SQLite.SQLiteDatabase) {
   const row = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
   let version = row?.user_version ?? 0;
   while (version < MIGRATIONS.length) {
+    const next = version + 1;
+    // The version is written in the same transaction as the migration: killed
+    // in between, the next launch would run the ALTERs again and fail with
+    // "duplicate column", and the app wouldn't open.
     await db.withTransactionAsync(async () => {
       await db.execAsync(MIGRATIONS[version]);
+      await db.execAsync(`PRAGMA user_version = ${next}`);
     });
-    version += 1;
-    await db.execAsync(`PRAGMA user_version = ${version}`);
+    version = next;
   }
 }
 
@@ -212,6 +194,112 @@ export async function openRepository(): Promise<Repository> {
       s.stages ? JSON.stringify(s.stages) : null,
       s.updatedAt,
     );
+
+  // Walk writes run one at a time, so a step refresh and a keep/remove tapped
+  // meanwhile can't interleave their reads and writes.
+  let walkQueue: Promise<unknown> = Promise.resolve();
+  const serial = <T>(task: () => Promise<T>): Promise<T> => {
+    const run = walkQueue.then(task, task);
+    walkQueue = run.catch(() => undefined);
+    return run;
+  };
+
+  const writeWalk = async (walk: Walk, points?: WalkPoint[], parts?: WalkPart[]) => {
+    // Every column, with the NOT NULL ones filled in: a column left out of
+    // INSERT OR REPLACE goes back to its default (a ride would turn back
+    // into a walk), and NULL into a NOT NULL column fails.
+    await db.runAsync(
+      `INSERT OR REPLACE INTO walk
+         (id, started_at, ended_at, distance_m, moving_s, steps, active_kcal, start_place, weather, updated_at,
+          activity, indoor, place_id, distance_from, steps_from, floors_up, floors_down, lift_up, lift_down,
+          climb_m, top_speed_ms, effort, stretches)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      walk.id,
+      walk.startedAt,
+      walk.endedAt,
+      walk.distanceM,
+      walk.movingS,
+      walk.steps,
+      walk.activeKcal,
+      walk.startPlace,
+      walk.weather ? JSON.stringify(walk.weather) : null,
+      walk.updatedAt,
+      walk.activity ?? 'walk',
+      walk.indoor ? 1 : 0,
+      walk.placeId ?? null,
+      walk.distanceFrom ?? null,
+      walk.stepsFrom ?? null,
+      walk.floorsUp ?? null,
+      walk.floorsDown ?? null,
+      walk.liftUp ?? null,
+      walk.liftDown ?? null,
+      walk.climbM ?? null,
+      walk.topSpeedMs ?? null,
+      walk.effort ?? null,
+      walk.stretches ? JSON.stringify(walk.stretches) : null,
+    );
+    if (points) {
+      await db.runAsync('DELETE FROM walk_point WHERE walk_id = ?', walk.id);
+      // An hour's walk is ~1,800 fixes; one prepared statement keeps the save quick.
+      const insert = await db.prepareAsync(
+        'INSERT OR IGNORE INTO walk_point (walk_id, t, lat, lon, accuracy, speed, alt, part) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      );
+      try {
+        for (const p of points) {
+          await insert.executeAsync(walk.id, p.t, p.lat, p.lon, p.acc, p.speed ?? null, p.alt ?? null, p.part ?? null);
+        }
+      } finally {
+        await insert.finalizeAsync();
+      }
+    }
+    if (parts) {
+      await db.runAsync('DELETE FROM walk_part WHERE walk_id = ?', walk.id);
+      for (const p of parts) {
+        await db.runAsync(
+          `INSERT OR REPLACE INTO walk_part
+             (walk_id, ord, start_t, end_t, kind, steps, distance_m, moving_s, top_speed_ms, kcal_walk, kcal_ride, choice, default_keep)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          walk.id,
+          p.ord,
+          p.startT,
+          p.endT,
+          p.kind,
+          p.steps,
+          p.distanceM,
+          p.movingS,
+          p.topSpeedMs,
+          p.kcalWalk,
+          p.kcalRide,
+          p.choice,
+          p.defaultKeep ? 1 : 0,
+        );
+      }
+    }
+  };
+
+  const readWalk = async (id: string) => {
+    const row = await db.getFirstAsync<WalkRow>('SELECT * FROM walk WHERE id = ?', id);
+    return row ? toWalk(row) : null;
+  };
+  const readParts = async (walkId: string) =>
+    (await db.getAllAsync<WalkPartRow>('SELECT * FROM walk_part WHERE walk_id = ? ORDER BY ord', walkId)).map(toPart);
+
+  const updateWalk = (id: string, change: (walk: Walk, parts: WalkPart[]) => { walk: Walk; parts?: WalkPart[] } | null) =>
+    serial(async () => {
+      let saved: Walk | null = null;
+      await db.withTransactionAsync(async () => {
+        const walk = await readWalk(id);
+        if (!walk) return;
+        const next = change(walk, await readParts(id));
+        if (!next) {
+          saved = walk;
+          return;
+        }
+        await writeWalk(next.walk, undefined, next.parts);
+        saved = next.walk;
+      });
+      return saved as Walk | null;
+    });
 
   const insertBp = (b: BloodPressureEntry) =>
     db.runAsync(
@@ -497,36 +585,8 @@ export async function openRepository(): Promise<Repository> {
       await db.runAsync('DELETE FROM saved_food WHERE id = ?', id);
     },
 
-    async saveWalk(walk, points) {
-      await db.withTransactionAsync(async () => {
-        await db.runAsync(
-          `INSERT OR REPLACE INTO walk
-             (id, started_at, ended_at, distance_m, moving_s, steps, active_kcal, start_place, weather, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          walk.id,
-          walk.startedAt,
-          walk.endedAt,
-          walk.distanceM,
-          walk.movingS,
-          walk.steps,
-          walk.activeKcal,
-          walk.startPlace,
-          walk.weather ? JSON.stringify(walk.weather) : null,
-          walk.updatedAt,
-        );
-        if (points) {
-          await db.runAsync('DELETE FROM walk_point WHERE walk_id = ?', walk.id);
-          // An hour's walk is ~1,800 fixes; one prepared statement keeps the save quick.
-          const insert = await db.prepareAsync(
-            'INSERT OR IGNORE INTO walk_point (walk_id, t, lat, lon, accuracy) VALUES (?, ?, ?, ?, ?)',
-          );
-          try {
-            for (const p of points) await insert.executeAsync(walk.id, p.t, p.lat, p.lon, p.acc);
-          } finally {
-            await insert.finalizeAsync();
-          }
-        }
-      });
+    async saveWalk(walk, points, parts) {
+      await serial(() => db.withTransactionAsync(() => writeWalk(walk, points, parts)));
     },
     async getWalks(limit) {
       const rows = await db.getAllAsync<WalkRow>('SELECT * FROM walk ORDER BY started_at DESC LIMIT ?', limit);
@@ -535,17 +595,62 @@ export async function openRepository(): Promise<Repository> {
     async getWalk(id) {
       const row = await db.getFirstAsync<WalkRow>('SELECT * FROM walk WHERE id = ?', id);
       if (!row) return null;
-      const points = await db.getAllAsync<{ t: number; lat: number; lon: number; accuracy: number | null }>(
-        'SELECT t, lat, lon, accuracy FROM walk_point WHERE walk_id = ? ORDER BY t',
-        id,
-      );
-      return { walk: toWalk(row), points: points.map((p): WalkPoint => ({ t: p.t, lat: p.lat, lon: p.lon, acc: p.accuracy })) };
+      const points = await db.getAllAsync<{
+        t: number;
+        lat: number;
+        lon: number;
+        accuracy: number | null;
+        speed: number | null;
+        alt: number | null;
+        part: number | null;
+      }>('SELECT t, lat, lon, accuracy, speed, alt, part FROM walk_point WHERE walk_id = ? ORDER BY t', id);
+      return {
+        walk: toWalk(row),
+        points: points.map(
+          (p): WalkPoint => ({ t: p.t, lat: p.lat, lon: p.lon, acc: p.accuracy, speed: p.speed, alt: p.alt, part: p.part }),
+        ),
+      };
     },
+    async getWalkParts(walkId) {
+      return readParts(walkId);
+    },
+    async setPartChoice(walkId, ord, choice) {
+      return updateWalk(walkId, (walk, parts) => applyChoice(walk, parts, ord, choice));
+    },
+    updateWalk,
     async deleteWalk(id) {
-      await db.withTransactionAsync(async () => {
-        await db.runAsync('DELETE FROM walk_point WHERE walk_id = ?', id);
-        await db.runAsync('DELETE FROM walk WHERE id = ?', id);
-      });
+      await serial(() =>
+        db.withTransactionAsync(async () => {
+          await db.runAsync('DELETE FROM walk_point WHERE walk_id = ?', id);
+          await db.runAsync('DELETE FROM walk_part WHERE walk_id = ?', id);
+          await db.runAsync('DELETE FROM walk WHERE id = ?', id);
+        }),
+      );
+    },
+
+    async getPlaces() {
+      return (await db.getAllAsync<PlaceRow>('SELECT * FROM place ORDER BY name')).map(toPlace);
+    },
+    async savePlace(place: Place) {
+      await db.runAsync(
+        'INSERT OR REPLACE INTO place (id, name, lat, lon, radius_m, last_mode, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        place.id,
+        place.name,
+        place.lat,
+        place.lon,
+        place.radiusM,
+        place.lastMode,
+        place.updatedAt,
+      );
+    },
+    async deletePlace(id) {
+      await serial(() =>
+        db.withTransactionAsync(async () => {
+          // Past walks keep the place's name as their start_place.
+          await db.runAsync('UPDATE walk SET place_id = NULL WHERE place_id = ?', id);
+          await db.runAsync('DELETE FROM place WHERE id = ?', id);
+        }),
+      );
     },
 
     async saveSleep(s) {
@@ -677,7 +782,7 @@ export async function openRepository(): Promise<Repository> {
       await db.execAsync(
         `DELETE FROM kv; DELETE FROM day_summary; DELETE FROM hour_steps; DELETE FROM weight_log; DELETE FROM water_log;
          DELETE FROM achievement; DELETE FROM mood_log; DELETE FROM day_weather; DELETE FROM food_log;
-         DELETE FROM walk_point; DELETE FROM walk; DELETE FROM own_food; DELETE FROM sleep_log; DELETE FROM heart_day;
+         DELETE FROM walk_point; DELETE FROM walk_part; DELETE FROM walk; DELETE FROM place; DELETE FROM own_food; DELETE FROM sleep_log; DELETE FROM heart_day;
          DELETE FROM bp_log; DELETE FROM saved_food;`,
       );
     },

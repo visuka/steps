@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
-import { Switch } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { type ReactNode, useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 
 import { type AccountInfo, fetchAccountInfo } from '@/auth/account';
 import { useAuth } from '@/auth/auth-state';
@@ -7,11 +8,11 @@ import { accountCode, passkeyName } from '@/auth/rules';
 import { authFetch, isAuthApiError } from '@/auth/session';
 import { TextButton } from '@/components/auth/auth-layout';
 import { EmailConfirm } from '@/components/auth/email-confirm';
-import { Card } from '@/components/card';
 import { confirm } from '@/components/confirm';
-import { Button, Row } from '@/components/controls';
 import { ThemedText } from '@/components/themed-text';
+import { Button, Card, type IconName, Notice, ToggleRow } from '@/components/ui';
 import { APP_NAME, SIGN_IN_MODE, STEPS_API_URL } from '@/constants/app';
+import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useLock } from '@/state/app-lock';
 import { useApp } from '@/state/app-state';
@@ -27,7 +28,6 @@ export function AccountCard() {
   const auth = useAuth();
   const { resetAll } = useApp();
   const lock = useLock();
-  const theme = useTheme();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const userId = auth.userId;
@@ -55,36 +55,25 @@ export function AccountCard() {
 
   return (
     <Card title="Account">
-      {phone ? <AccountEmail /> : <ThemedText>Signed in with a passkey</ThemedText>}
-      <ThemedText type="small" themeColor="textSecondary">
-        Account code <ThemedText type="smallBold">{accountCode(userId)}</ThemedText>
-      </ThemedText>
+      {phone ? <AccountEmail /> : <Line icon="key-outline" title="Signed in with a passkey" />}
+      <Line icon="id-card-outline" title={accountCode(userId)} supporting="Account code" />
 
       {lock.support === 'ready' || lock.enabled ? (
-        <Row label="Lock with fingerprint">
-          <Switch
-            value={lock.enabled}
-            onValueChange={toggleLock}
-            trackColor={{ true: theme.accent, false: theme.track }}
-          />
-        </Row>
+        <View style={styles.bleed}>
+          <ToggleRow icon="finger-print" title="Lock with fingerprint" value={lock.enabled} onValueChange={toggleLock} />
+        </View>
       ) : null}
       {lock.support === 'no-lock' && !lock.enabled ? (
-        <ThemedText type="small" themeColor="textSecondary">
-          Set a screen lock on this phone to open the app with your fingerprint.
-        </ThemedText>
+        <Notice text="Set a screen lock on this phone to open the app with your fingerprint." />
       ) : null}
 
-      {message ? (
-        <ThemedText type="small" style={{ color: theme.danger }}>
-          {message}
-        </ThemedText>
-      ) : null}
+      {message ? <Notice tone="problem" text={message} /> : null}
 
       {phone ? null : (
         <Button
-          kind="secondary"
+          variant="tonal"
           label="Sign out"
+          icon="log-out-outline"
           disabled={busy}
           onPress={() =>
             confirm(
@@ -97,19 +86,50 @@ export function AccountCard() {
         />
       )}
       <Button
-        kind="danger"
-        label={busy ? 'Deleting…' : 'Delete account'}
-        disabled={busy}
+        variant="outlined"
+        danger
+        label="Delete account"
+        loading={busy}
         onPress={() => confirm('Delete your account?', deleteWarning, removeAccount, 'Delete')}
       />
     </Card>
   );
 }
 
+/** A plain line of the account: an icon, the value, and what it is. */
+function Line({
+  icon,
+  title,
+  supporting,
+  trailing,
+}: {
+  icon: IconName;
+  title: string;
+  supporting?: string;
+  trailing?: ReactNode;
+}) {
+  const theme = useTheme();
+  return (
+    <View style={styles.line} accessible accessibilityLabel={supporting ? `${supporting}: ${title}` : title}>
+      <Ionicons name={icon} size={24} color={theme.onSurfaceVariant} />
+      <View style={styles.lineText}>
+        <ThemedText type="bodyLarge" numberOfLines={1}>
+          {title}
+        </ThemedText>
+        {supporting ? (
+          <ThemedText type="bodyMedium" themeColor="onSurfaceVariant">
+            {supporting}
+          </ThemedText>
+        ) : null}
+      </View>
+      {trailing}
+    </View>
+  );
+}
+
 /** The account's email and whether it's confirmed (GET /v1/me), with "Confirm your email" when it isn't. */
 function AccountEmail() {
   const auth = useAuth();
-  const theme = useTheme();
   const [info, setInfo] = useState<AccountInfo | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
@@ -156,9 +176,7 @@ function AccountEmail() {
   if (loadError) {
     return (
       <>
-        <ThemedText type="small" style={{ color: theme.danger }}>
-          {loadError}
-        </ThemedText>
+        <Notice tone="problem" text={loadError} />
         <TextButton
           label="Try again"
           onPress={() => {
@@ -172,36 +190,33 @@ function AccountEmail() {
 
   if (!info) {
     return (
-      <ThemedText type="small" themeColor="textSecondary">
-        Checking your email…
-      </ThemedText>
+      <Notice text="Checking your email…" />
     );
   }
 
   if (info.email && info.emailVerified) {
     return (
-      <>
-        <ThemedText>
-          Email <ThemedText type="smallBold">{info.email}</ThemedText>
-        </ThemedText>
-        <ThemedText type="small" themeColor="textSecondary">
-          Confirmed. It gets your account back if you change phones.
-        </ThemedText>
-      </>
+      <Line icon="mail-outline" title={info.email} supporting="Email · confirmed" trailing={<ConfirmedMark />} />
     );
   }
 
   return (
     <>
-      {info.email ? (
-        <ThemedText>
-          Email <ThemedText type="smallBold">{info.email}</ThemedText> (not confirmed yet)
-        </ThemedText>
-      ) : null}
-      <ThemedText type="small" themeColor="textSecondary">
-        Confirm your email so you can get your account back if you change phones or reset this one.
-      </ThemedText>
-      <Button kind="secondary" label="Confirm your email" onPress={() => setConfirming(true)} />
+      {info.email ? <Line icon="mail-outline" title={info.email} supporting="Email · not confirmed yet" /> : null}
+      <Notice text="Confirm it to get your account back on a new phone." />
+      <Button variant="tonal" label="Confirm your email" onPress={() => setConfirming(true)} />
     </>
   );
 }
+
+function ConfirmedMark() {
+  const theme = useTheme();
+  return <Ionicons name="checkmark-circle" size={20} color={theme.steps} accessibilityLabel="Confirmed" />;
+}
+
+const styles = StyleSheet.create({
+  line: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, minHeight: 56 },
+  lineText: { flex: 1, gap: Spacing.half },
+  // The switch row spans the card's full width, like a list row.
+  bleed: { marginHorizontal: -Spacing.three },
+});

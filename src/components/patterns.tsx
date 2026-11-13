@@ -1,11 +1,11 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { Card } from '@/components/card';
-import { Button } from '@/components/controls';
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
+import { Button, Card, Notice, TickBar, Why } from '@/components/ui';
+import { NumeralMaxScale, Spacing } from '@/constants/theme';
 import type { BloodPressureEntry, DaySummary, DayWeather, FoodEntry, HeartDay, MoodEntry, Walk } from '@/data/types';
 import { useTheme } from '@/hooks/use-theme';
 import { addDaysToKey, dayKey, parseDayKey } from '@/lib/dates';
@@ -27,7 +27,7 @@ import { bpGoalComparison, restingTrend, sleepMoodComparison, sleepStepsComparis
 import { locationAllowed, requestLocation } from '@/location/place';
 import { goodSources } from '@/nutrition/catalog';
 import { dailyAverage, lowestNutrients, overLimits } from '@/nutrition/day';
-import { eatingOut, eatingOutSummary, MEAL_MIN_KCAL, MIN_MEALS } from '@/nutrition/eating-out';
+import { eatingOut, MEAL_MIN_KCAL, MIN_MEALS } from '@/nutrition/eating-out';
 import { formatNutrient, NUTRIENT } from '@/nutrition/nutrients';
 import { useApp } from '@/state/app-state';
 import { useFoodBook } from '@/state/use-food-book';
@@ -121,290 +121,363 @@ export function Patterns() {
   const places = new Map<string, number>();
   for (const w of data.walks) if (w.startPlace) places.set(w.startPlace, (places.get(w.startPlace) ?? 0) + 1);
   const topPlace = [...places].sort((a, b) => b[1] - a[1])[0]?.[0];
+  const journal = (section: string) => router.navigate({ pathname: '/journal', params: { section } });
 
   return (
     <>
-      <Card title="When you walk">
+      <Insight title="When you walk">
         {tod ? (
           <>
-            <ThemedText>
-              You walk most between <ThemedText type="smallBold">{formatHourWindow(tod.peakStartHour)}</ThemedText>.
-            </ThemedText>
+            <Fact value={formatHourWindow(tod.peakStartHour).replace(' and ', '–')} label="your busiest hours" />
             <DayPartBars shares={tod.shares} />
-            {weekend ? <ThemedText>{sentence('On weekends you walk', weekend, 'than on weekdays')}</ThemedText> : null}
+            {weekend ? <ThemedText type="bodyMedium">Weekends: {versus(weekend, 'weekdays')}</ThemedText> : null}
           </>
         ) : (
-          <Waiting text="Shows once there are a few days with hourly steps." />
+          <Waiting text="Needs a few days with hourly steps." />
         )}
-      </Card>
+      </Insight>
 
-      <Card title="Mood">
+      <Insight title="Mood">
         {mood ? (
           <>
-            <ThemedText>{sentence('On days you felt good or great, you walked', mood, 'than on other days')}</ThemedText>
-            <Averages a={mood.a} b={mood.b} labelA="Good days" labelB="Other days" />
+            <Pair a={mood.a} b={mood.b} labelA="Good days" labelB="Other days" />
+            <ThemedText type="bodyMedium">Good or great days: {versus(mood, 'other days')}</ThemedText>
           </>
         ) : (
-          <>
-            <Waiting
-              text={`Log your mood for a while to see this. It needs at least ${MIN_GROUP_DAYS} good days and ${MIN_GROUP_DAYS} other days; ${moodDays} logged so far.`}
-            />
-            <Button
-              kind="secondary"
-              label="Log today's mood"
-              onPress={() => router.push({ pathname: '/journal', params: { section: 'mood' } })}
-            />
-          </>
+          <Waiting
+            text={`Needs ${MIN_GROUP_DAYS} good days and ${MIN_GROUP_DAYS} others. ${moodDays} logged so far.`}
+            action={{ label: "Log today's mood", onPress: () => journal('mood') }}
+          />
         )}
-      </Card>
+      </Insight>
 
-      <Card title="Weather">
+      <Insight title="Weather" why={`${WEATHER_CREDIT}.`}>
         {heat ? (
-          <ThemedText>
-            {sentence(`On days ${formatTemp(heat.thresholdC, profile.units)} or hotter, you walked`, heat.comparison, 'than on cooler days')}
+          <ThemedText type="bodyMedium">
+            {formatTemp(heat.thresholdC, profile.units)} or hotter: {versus(heat.comparison, 'cooler days')}
           </ThemedText>
         ) : null}
-        {rain ? <ThemedText>{sentence('On rainy days you walked', rain, 'than on dry days')}</ThemedText> : null}
+        {rain ? <ThemedText type="bodyMedium">Rainy days: {versus(rain, 'dry days')}</ThemedText> : null}
         {!heat && !rain ? (
           hasLocation ? (
-            <Waiting text={`Steps notes the weather each day you open it; ${data.weather.length} days so far.`} />
+            <Waiting text={`The weather is noted each day you open the app. ${data.weather.length} days so far.`} />
           ) : (
-            <>
-              <Waiting text="Allow location so Steps can note the weather in your area each day." />
-              <Button
-                kind="secondary"
-                label="Allow location"
-                onPress={async () => {
+            <Waiting
+              text="Allow location to note your area's weather each day."
+              action={{
+                label: 'Allow location',
+                onPress: async () => {
                   if (await requestLocation()) {
                     setHasLocation(true);
                     refresh();
                   }
-                }}
-              />
-            </>
+                },
+              }}
+            />
           )
         ) : null}
-        <ThemedText type="small" themeColor="textSecondary">
-          {WEATHER_CREDIT}.
-        </ThemedText>
-      </Card>
+      </Insight>
 
-      <Card title="Nutrition, last week">
+      <Insight
+        title="Nutrition, last week"
+        why="Only counts what you log, so days with missed meals look lower than they were.">
         {nutrition.days >= MIN_GROUP_DAYS ? (
           low.length ? (
             <>
-              <ThemedText>Often low on days you logged food:</ThemedText>
+              <ThemedText type="labelLarge" themeColor="onSurfaceVariant">
+                Often low, share of the daily value
+              </ThemedText>
               {low.map((l) => (
-                <ThemedText key={l.key}>
-                  · {NUTRIENT[l.key].label}: about {l.percent}% of the daily value
-                </ThemedText>
+                <Meter key={l.key} label={NUTRIENT[l.key].label} percent={l.percent} />
               ))}
               {sources.length ? (
-                <ThemedText themeColor="textSecondary">
-                  Good sources of {NUTRIENT[low[0].key].label.replace(/^\w/, (c) => c.toLowerCase())}:{' '}
-                  {sources.map((s) => s.food.name).join(', ')}.
-                  {low[0].key === 'vitD' ? ' Sunlight on your skin is the biggest source of all.' : ''}
+                <ThemedText type="bodyMedium" themeColor="onSurfaceVariant">
+                  Good for {lowerFirst(NUTRIENT[low[0].key].label)}: {sources.map((s) => s.food.name).join(', ')}
+                  {low[0].key === 'vitD' ? '; sunlight most of all' : ''}
                 </ThemedText>
               ) : null}
             </>
           ) : (
-            <ThemedText>Your logged food covered every daily value we track. Nice.</ThemedText>
+            <Notice tone="done" text="Your logged food covered every daily value we track." />
           )
         ) : null}
         {over.length ? (
           <>
-            <ThemedText>Over the advised limit, on average:</ThemedText>
+            <ThemedText type="labelLarge" themeColor="onSurfaceVariant">
+              Over the advised limit, on average
+            </ThemedText>
             {over.map((o) => (
-              <ThemedText key={o.key}>
-                · {NUTRIENT[o.key].label}: about {o.percent}% of the limit
-              </ThemedText>
+              <Meter key={o.key} label={NUTRIENT[o.key].label} percent={o.percent} over />
             ))}
           </>
         ) : null}
         {nutrition.days < MIN_GROUP_DAYS ? (
-          <>
-            <Waiting
-              text={`Log what you eat on ${MIN_GROUP_DAYS} days to see which nutrients run low; ${nutrition.days} so far this week.`}
-            />
-            <Button
-              kind="secondary"
-              label="Log food"
-              onPress={() => router.push({ pathname: '/journal', params: { section: 'food' } })}
-            />
-          </>
+          <Waiting
+            text={`Needs food logged on ${MIN_GROUP_DAYS} days. ${nutrition.days} so far this week.`}
+            action={{
+              label: 'Log food',
+              onPress: () => router.navigate({ pathname: '/food', params: { add: String(Date.now()) } }),
+            }}
+          />
         ) : null}
-        <ThemedText type="small" themeColor="textSecondary">
-          Only counts what you log, so days with missed meals look lower than they were.
-        </ThemedText>
-      </Card>
+      </Insight>
 
-      <Card title="Eating out, last week">
-        {out.out + out.home ? <ThemedText>{eatingOutSummary(out)}</ThemedText> : null}
+      <Insight
+        title="Eating out, last week"
+        why={`Eaten out means dine-in or ordered in. Restaurant food often has more oil, ghee, butter and salt, and bigger portions, than the same dish made at home. A meal here is ${MEAL_MIN_KCAL} kcal or more logged within an hour from one place; tea and snacks under that aren't counted. This shows your own logged meals, not a verdict on any of them.`}>
+        {out.out + out.home ? (
+          <View style={styles.tiles}>
+            <Figure label="Eaten out" value={String(out.out)} unit={out.out === 1 ? 'meal' : 'meals'} />
+            <Figure label="Home-made" value={String(out.home)} unit={out.home === 1 ? 'meal' : 'meals'} />
+          </View>
+        ) : null}
         {out.averages.length ? (
           <>
-            <ThemedText>What a meal held, on average:</ThemedText>
+            <ThemedText type="labelLarge" themeColor="onSurfaceVariant">
+              A meal, on average: out · home
+            </ThemedText>
             {out.averages.map((a) => (
-              <ThemedText key={a.key}>
-                · {NUTRIENT[a.key].label}: {formatNutrient(a.key, a.out)} eating out, {formatNutrient(a.key, a.home)}{' '}
-                home-made
-              </ThemedText>
+              <View key={a.key} style={styles.line}>
+                <ThemedText type="bodyMedium" style={styles.flex}>
+                  {NUTRIENT[a.key].label}
+                </ThemedText>
+                <ThemedText type="labelLarge" style={styles.figure}>
+                  {formatNutrient(a.key, a.out)} · {formatNutrient(a.key, a.home)}
+                </ThemedText>
+              </View>
             ))}
           </>
         ) : (
-          <Waiting
-            text={`To compare them it needs at least ${MIN_MEALS} meals eaten out and ${MIN_MEALS} home-made in the week. When you add food, tap where it was from.`}
-          />
+          <Waiting text={`Needs ${MIN_MEALS} meals out and ${MIN_MEALS} home-made in a week. Tap where food was from when you add it.`} />
         )}
-        <ThemedText type="small" themeColor="textSecondary">
-          Restaurant food often has more oil, ghee, butter and salt, and bigger portions, than the same dish made at home.
-          A meal here is {MEAL_MIN_KCAL} kcal or more logged within an hour from one place; tea and snacks under that
-          aren&apos;t counted. This shows your own logged meals, not a verdict on any of them.
-        </ThemedText>
-      </Card>
+      </Insight>
 
-      <Card title="Sleep">
+      <Insight title="Sleep">
         {sleepSteps ? (
           <>
-            <ThemedText>{sentence('After nights of 7 hours or more, you walked', sleepSteps, 'than after shorter nights')}</ThemedText>
-            <Averages a={sleepSteps.a} b={sleepSteps.b} labelA="After 7 h+" labelB="After less" />
+            <Pair a={sleepSteps.a} b={sleepSteps.b} labelA="After 7 h+" labelB="After less" />
+            <ThemedText type="bodyMedium">After 7 hours or more: {versus(sleepSteps, 'shorter nights')}</ThemedText>
           </>
         ) : null}
         {sleepMood ? (
-          <ThemedText>
-            Before days you felt good or great you slept {formatSleep(sleepMood.a)} on average; before other days,{' '}
-            {formatSleep(sleepMood.b)}.
-          </ThemedText>
+          <View style={styles.tiles}>
+            <Figure label="Before good days" value={formatSleep(sleepMood.a)} />
+            <Figure label="Before other days" value={formatSleep(sleepMood.b)} />
+          </View>
         ) : null}
         {!sleepSteps && !sleepMood ? (
-          <>
-            <Waiting
-              text={`Log your sleep for a while to see how it goes with your walking and mood; ${data.nights.length} ${data.nights.length === 1 ? 'night' : 'nights'} so far.`}
-            />
-            <Button
-              kind="secondary"
-              label="Log last night"
-              onPress={() => router.push({ pathname: '/journal', params: { section: 'sleep' } })}
-            />
-          </>
+          <Waiting
+            text={`Log your sleep for a while. ${data.nights.length} ${data.nights.length === 1 ? 'night' : 'nights'} so far.`}
+            action={{ label: 'Log last night', onPress: () => journal('sleep') }}
+          />
         ) : null}
-      </Card>
+      </Insight>
 
-      <Card title="Heart rate">
+      <Insight
+        title="Heart rate"
+        why={
+          resting || restingDays
+            ? 'This compares your resting heart rate over the last two weeks with a month before, so it needs about six weeks of it.'
+            : undefined
+        }>
         {resting ? (
           <>
-            <ThemedText>
-              Your resting heart rate averaged{' '}
-              <ThemedText type="smallBold">{resting.recent} bpm</ThemedText> over the last two weeks, against{' '}
-              {resting.earlier} bpm a month before.
-            </ThemedText>
+            <View style={styles.tiles}>
+              <Figure label="Last 2 weeks" value={String(resting.recent)} unit="bpm" />
+              <Figure label="A month before" value={String(resting.earlier)} unit="bpm" />
+            </View>
             {resting.recentSteps !== null && resting.earlierSteps !== null ? (
-              <ThemedText themeColor="textSecondary">
-                Your steps over the same weeks: {formatSteps(resting.recentSteps)} a day lately, against{' '}
-                {formatSteps(resting.earlierSteps)} a month before.
+              <ThemedText type="bodyMedium" themeColor="onSurfaceVariant">
+                Steps: {formatSteps(resting.recentSteps)} a day lately, {formatSteps(resting.earlierSteps)} before
               </ThemedText>
             ) : null}
           </>
+        ) : restingDays ? (
+          <Waiting text={`Needs about six weeks of resting heart rate. ${restingDays} days so far.`} />
         ) : (
-          <>
-            <Waiting
-              text={
-                restingDays
-                  ? `This compares the last two weeks with a month before, so it needs about six weeks of resting heart rate; ${restingDays} days so far.`
-                  : 'Heart rate comes from a watch or band. Connect it under Journal, Body, Heart.'
-              }
-            />
-            {restingDays ? null : (
-              <Button
-                kind="secondary"
-                label="Heart rate"
-                onPress={() => router.push({ pathname: '/journal', params: { section: 'heart' } })}
-              />
-            )}
-          </>
+          <Waiting
+            text="Heart rate comes from a watch or band."
+            action={{ label: 'Heart rate', onPress: () => journal('heart') }}
+          />
         )}
-      </Card>
+      </Insight>
 
-      <Card title="Blood pressure">
+      <Insight title="Blood pressure">
         {bpGoal ? (
-          <ThemedText>
-            On days you reached your step goal, your readings averaged{' '}
-            <ThemedText type="smallBold">
-              {bpGoal.goal.systolic}/{bpGoal.goal.diastolic}
-            </ThemedText>
-            ; on other days, {bpGoal.other.systolic}/{bpGoal.other.diastolic}.
-          </ThemedText>
+          <View style={styles.tiles}>
+            <Figure
+              label="Goal days"
+              value={`${bpGoal.goal.systolic}/${bpGoal.goal.diastolic}`}
+              note="on average"
+             
+            />
+            <Figure
+              label="Other days"
+              value={`${bpGoal.other.systolic}/${bpGoal.other.diastolic}`}
+              note="on average"
+             
+            />
+          </View>
         ) : (
-          <>
-            <Waiting
-              text={`Log readings on days you reach your goal and days you don't to compare them. It needs ${MIN_GROUP_DAYS} of each; ${data.bp.length} ${data.bp.length === 1 ? 'reading' : 'readings'} so far.`}
-            />
-            <Button
-              kind="secondary"
-              label="Log a reading"
-              onPress={() => router.push({ pathname: '/journal', params: { section: 'bp' } })}
-            />
-          </>
+          <Waiting
+            text={`Needs ${MIN_GROUP_DAYS} readings on goal days and ${MIN_GROUP_DAYS} on others. ${data.bp.length} so far.`}
+            action={{ label: 'Log a reading', onPress: () => journal('bp') }}
+          />
         )}
-        <ThemedText type="small" themeColor="textSecondary">
-          Shows what goes together in your own numbers. It isn&apos;t medical advice; talk to your doctor about your
-          blood pressure.
+        <ThemedText type="bodySmall" themeColor="onSurfaceVariant">
+          Not medical advice. Talk to your doctor about your blood pressure.
         </ThemedText>
-      </Card>
+      </Insight>
 
-      <Card title="Recorded walks">
+      <Insight title="Recorded walks">
         {data.walks.length ? (
           <>
-            <ThemedText>
-              {data.walks.length} walks in the last {WINDOW_DAYS} days,{' '}
-              {formatDistance(
-                data.walks.reduce((s, w) => s + w.distanceM, 0),
-                profile.units,
-              )}{' '}
-              in all.
-            </ThemedText>
-            {topPlace ? <ThemedText>Most start around {topPlace}.</ThemedText> : null}
+            <View style={styles.tiles}>
+              <Figure label="Walks" value={String(data.walks.length)} note={`last ${WINDOW_DAYS} days`} />
+              <Figure
+                label="Distance"
+                value={formatDistance(
+                  data.walks.reduce((s, w) => s + w.distanceM, 0),
+                  profile.units,
+                )}
+                note="in all"
+               
+              />
+            </View>
+            {topPlace ? <ThemedText type="bodyMedium">Most start around {topPlace}</ThemedText> : null}
           </>
         ) : (
-          <Waiting text="Record walks from the Walks tab to see where and how far you go." />
+          <Waiting text="Record a walk from Activity to see where and how far you go." />
         )}
-      </Card>
+      </Insight>
 
-      <ThemedText type="small" themeColor="textSecondary">
-        Patterns come from your last {WINDOW_DAYS} days and show what goes together, not what causes what.
-      </ThemedText>
+      <View style={styles.foot}>
+        <ThemedText type="bodySmall" themeColor="onSurfaceVariant" style={styles.flex}>
+          From your last {WINDOW_DAYS} days.
+        </ThemedText>
+        <Why
+          title="Patterns"
+          text={`Patterns come from your last ${WINDOW_DAYS} days and show what goes together, not what causes what.`}
+        />
+      </View>
     </>
   );
 }
 
-function sentence(start: string, c: Comparison, end: string): string {
+const lowerFirst = (s: string) => s.replace(/^\w/, (c) => c.toLowerCase());
+
+/** "12% more steps than weekdays", "about the same as weekdays". */
+function versus(c: Comparison, others: string): string {
   const change = describeChange(c.change);
-  return change === 'about the same' ? `${start} about the same as ${end.replace(/^than /, '')}.` : `${start} ${change} steps ${end}.`;
+  return change === 'about the same' ? `about the same as ${others}` : `${change} steps than ${others}`;
 }
 
-function Averages({ a, b, labelA, labelB }: { a: number; b: number; labelA: string; labelB: string }) {
+/** One insight: its title, a "Why?" when there's more to say, and its numbers. */
+function Insight({ title, why, children }: { title: string; why?: string; children: ReactNode }) {
   return (
-    <View style={styles.averages}>
-      <ThemedText type="small" themeColor="textSecondary">
-        {labelA}: {formatSteps(a)} steps on average · {labelB}: {formatSteps(b)}
+    <Card title={title} right={why ? <Why title={title} text={why} /> : undefined}>
+      {children}
+    </Card>
+  );
+}
+
+/** The headline of an insight: a value in the track numerals, and what it is. */
+function Fact({ value, label }: { value: string; label: string }) {
+  return (
+    <View style={styles.fact}>
+      <ThemedText type="numeralMedium" maxFontSizeMultiplier={NumeralMaxScale}>
+        {value}
+      </ThemedText>
+      <ThemedText type="labelLarge" themeColor="onSurfaceVariant">
+        {label}
       </ThemedText>
     </View>
   );
 }
 
-function DayPartBars({ shares }: { shares: Record<string, number> }) {
+/**
+ * A number inside an insight: what it is, the value in the track numerals,
+ * one short note. No plate of its own, since it already sits on the card.
+ */
+function Figure({ label, value, unit, note }: { label: string; value: string; unit?: string; note?: string }) {
+  return (
+    <View style={styles.figureBox} accessible accessibilityLabel={`${label}: ${value}${unit ? ` ${unit}` : ''}${note ? `, ${note}` : ''}`}>
+      <ThemedText type="labelMedium" themeColor="onSurfaceVariant" numberOfLines={1}>
+        {label}
+      </ThemedText>
+      <View style={styles.fact}>
+        <ThemedText type="numeralMedium" maxFontSizeMultiplier={NumeralMaxScale} numberOfLines={1} adjustsFontSizeToFit>
+          {value}
+        </ThemedText>
+        {unit ? (
+          <ThemedText type="labelMedium" themeColor="onSurfaceVariant">
+            {unit}
+          </ThemedText>
+        ) : null}
+      </View>
+      {note ? (
+        <ThemedText type="bodySmall" themeColor="onSurfaceVariant">
+          {note}
+        </ThemedText>
+      ) : null}
+    </View>
+  );
+}
+
+/** Average steps on two kinds of day, side by side. */
+function Pair({ a, b, labelA, labelB }: { a: number; b: number; labelA: string; labelB: string }) {
+  return (
+    <View style={styles.tiles}>
+      <Figure label={labelA} value={formatSteps(a)} note="steps on average" />
+      <Figure label={labelB} value={formatSteps(b)} note="steps on average" />
+    </View>
+  );
+}
+
+/** A nutrient against its daily value, or against its limit when `over`. */
+function Meter({ label, percent, over }: { label: string; percent: number; over?: boolean }) {
   const theme = useTheme();
+  const text = over ? `${percent}% of the limit` : `${percent}% of the daily value`;
+  return (
+    <View style={styles.meter}>
+      <View style={styles.line}>
+        {over ? <Ionicons name="alert-circle-outline" size={18} color={theme.error} /> : null}
+        <ThemedText type="bodyMedium" style={styles.flex}>
+          {label}
+        </ThemedText>
+        <ThemedText type="labelLarge" style={styles.figure}>
+          {percent}%
+        </ThemedText>
+      </View>
+      <TickBar
+        value={Math.min(100, percent)}
+        max={100}
+        tone={over ? 'over' : 'food'}
+        height={8}
+        accessibilityLabel={`${label}: ${text}`}
+      />
+    </View>
+  );
+}
+
+function DayPartBars({ shares }: { shares: Record<string, number> }) {
   const max = Math.max(...Object.values(shares), 0.01);
   return (
     <View style={styles.bars}>
       {DAY_PARTS.map(({ part, label }) => (
         <View key={part} style={styles.barRow}>
-          <ThemedText type="small" style={styles.barLabel}>
+          <ThemedText type="labelMedium" style={styles.barLabel}>
             {label}
           </ThemedText>
-          <View style={[styles.barTrack, { backgroundColor: theme.track }]}>
-            <View style={[styles.barFill, { width: `${(shares[part] / max) * 100}%`, backgroundColor: theme.accent }]} />
-          </View>
-          <ThemedText type="small" themeColor="textSecondary" style={styles.barValue}>
+          <TickBar
+            value={shares[part]}
+            max={max}
+            height={10}
+            ticks={false}
+            style={styles.barTrack}
+            accessibilityLabel={`${label}: ${Math.round(shares[part] * 100)}% of your steps`}
+          />
+          <ThemedText type="labelMedium" themeColor="onSurfaceVariant" style={styles.barValue}>
             {Math.round(shares[part] * 100)}%
           </ThemedText>
         </View>
@@ -413,16 +486,35 @@ function DayPartBars({ shares }: { shares: Record<string, number> }) {
   );
 }
 
-function Waiting({ text }: { text: string }) {
-  return <ThemedText themeColor="textSecondary">{text}</ThemedText>;
+/** Not enough yet: what it needs, one line, and the action that fills it. */
+function Waiting({ text, action }: { text: string; action?: { label: string; onPress: () => void } }) {
+  const theme = useTheme();
+  return (
+    <View style={styles.waiting}>
+      <View style={styles.line}>
+        <Ionicons name="hourglass-outline" size={18} color={theme.onSurfaceVariant} />
+        <ThemedText type="bodyMedium" themeColor="onSurfaceVariant" style={styles.flex}>
+          {text}
+        </ThemedText>
+      </View>
+      {action ? <Button variant="tonal" compact label={action.label} onPress={action.onPress} /> : null}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-  averages: { gap: Spacing.half },
+  tiles: { flexDirection: 'row', gap: Spacing.three },
+  figureBox: { flex: 1, minWidth: 0, gap: Spacing.half },
+  fact: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', columnGap: Spacing.two },
+  line: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
+  flex: { flex: 1 },
+  figure: { fontVariant: ['tabular-nums'] },
+  meter: { gap: Spacing.one },
   bars: { gap: Spacing.two },
   barRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   barLabel: { width: 76 },
-  barTrack: { flex: 1, height: 10, borderRadius: 5, overflow: 'hidden' },
-  barFill: { height: 10, borderRadius: 5 },
+  barTrack: { flex: 1, width: undefined },
   barValue: { width: 40, textAlign: 'right', fontVariant: ['tabular-nums'] },
+  waiting: { gap: Spacing.two },
+  foot: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
 });

@@ -70,7 +70,7 @@ export const FREE_FEATURES = ['today-steps', 'daily-goal'] as const;
 export const PREMIUM_FEATURES = [
   { key: 'history', label: 'Your step history, streaks and badges' },
   { key: 'today-details', label: 'Distance, calories, active minutes and steps by the hour' },
-  { key: 'walks', label: 'Walks, with your route on a map' },
+  { key: 'walks', label: 'Walks and rides, with your route on a map' },
   { key: 'food', label: 'Food and nutrition' },
   { key: 'sleep', label: 'Sleep' },
   { key: 'heart', label: 'Heart rate and blood pressure' },
@@ -93,6 +93,7 @@ export const SCREEN_FEATURES = {
   walks: 'walks',
   'walk/record': 'walks',
   'walk/[id]': 'walks',
+  'walk/places': 'walks',
   insights: 'insights',
   'journal/mood': 'mood',
   'journal/food': 'food',

@@ -1,38 +1,37 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { resolveFont, ThemedText } from '@/components/themed-text';
+import { Button as UiButton, type ButtonVariant } from '@/components/ui/button';
+import { Chip as UiChip } from '@/components/ui/chip';
+import { NumeralMaxScale, Radius, Spacing, TouchTarget, Type } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
+/**
+ * The older button API, drawn as Material 3 buttons: primary = filled,
+ * secondary = tonal, danger = outlined in the error colour. New code can
+ * use Button from '@/components/ui' with `variant` directly.
+ */
 export function Button({
   label,
   onPress,
   kind = 'primary',
+  variant,
   disabled,
 }: {
   label: string;
   onPress: () => void;
   kind?: 'primary' | 'secondary' | 'danger';
+  /** Overrides `kind` with a Material variant. */
+  variant?: ButtonVariant;
   disabled?: boolean;
 }) {
-  const theme = useTheme();
-  const bg = kind === 'primary' ? theme.accent : theme.backgroundSelected;
-  const fg = kind === 'primary' ? theme.onAccent : kind === 'danger' ? theme.danger : theme.text;
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      accessibilityRole="button"
-      style={({ pressed }) => [styles.button, { backgroundColor: bg, opacity: disabled ? 0.5 : pressed ? 0.8 : 1 }]}>
-      <ThemedText type="smallBold" style={{ color: fg }}>
-        {label}
-      </ThemedText>
-    </Pressable>
-  );
+  const v: ButtonVariant = variant ?? (kind === 'primary' ? 'filled' : kind === 'danger' ? 'outlined' : 'tonal');
+  return <UiButton label={label} onPress={onPress} variant={v} danger={kind === 'danger'} disabled={disabled} />;
 }
 
+/** Material 3 segmented buttons: 2 to 5 short choices, the chosen one ticked. */
 export function Segmented<T extends string>({
   options,
   value,
@@ -42,9 +41,10 @@ export function Segmented<T extends string>({
   value: T;
   onChange: (v: T) => void;
 }) {
+  const theme = useTheme();
   return (
-    <ThemedView type="backgroundSelected" style={styles.segmented}>
-      {options.map((o) => {
+    <View accessibilityRole="tablist" style={[styles.segmented, { borderColor: theme.outline }]}>
+      {options.map((o, i) => {
         const active = o.value === value;
         return (
           <Pressable
@@ -52,16 +52,25 @@ export function Segmented<T extends string>({
             onPress={() => onChange(o.value)}
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
-            style={styles.segment}>
-            <ThemedView type={active ? 'background' : 'backgroundSelected'} style={styles.segmentInner}>
-              <ThemedText type="smallBold" themeColor={active ? 'text' : 'textSecondary'}>
-                {o.label}
-              </ThemedText>
-            </ThemedView>
+            aria-selected={active}
+            accessibilityLabel={o.label}
+            style={({ pressed }) => [
+              styles.segment,
+              i > 0 && { borderLeftWidth: 1, borderLeftColor: theme.outline },
+              { backgroundColor: active ? theme.secondaryContainer : pressed ? theme.surfaceContainerHigh : 'transparent' },
+            ]}>
+            {active ? <Ionicons name="checkmark" size={16} color={theme.onSecondaryContainer} /> : null}
+            <ThemedText
+              type="labelLarge"
+              themeColor={active ? 'onSecondaryContainer' : 'onSurface'}
+              numberOfLines={1}
+              style={styles.segmentLabel}>
+              {o.label}
+            </ThemedText>
           </Pressable>
         );
       })}
-    </ThemedView>
+    </View>
   );
 }
 
@@ -83,7 +92,7 @@ export function Stepper({
   return (
     <View style={styles.stepper}>
       <RoundButton label="−" onPress={() => onChange(Math.max(min, value - step))} disabled={value <= min} />
-      <ThemedText type="subtitle" style={styles.stepperValue}>
+      <ThemedText type="numeralLarge" maxFontSizeMultiplier={NumeralMaxScale} style={styles.stepperValue}>
         {format(value)}
       </ThemedText>
       <RoundButton label="+" onPress={() => onChange(Math.min(max, value + step))} disabled={value >= max} />
@@ -92,18 +101,19 @@ export function Stepper({
 }
 
 function RoundButton({ label, onPress, disabled }: { label: string; onPress: () => void; disabled?: boolean }) {
+  const theme = useTheme();
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={label === '+' ? 'Increase' : 'Decrease'}
-      style={({ pressed }) => ({ opacity: disabled ? 0.4 : pressed ? 0.7 : 1 })}>
-      <ThemedView type="backgroundSelected" style={styles.round}>
-        <ThemedText type="subtitle" style={styles.roundLabel}>
-          {label}
-        </ThemedText>
-      </ThemedView>
+      accessibilityState={{ disabled: !!disabled }}
+      style={({ pressed }) => [
+        styles.round,
+        { backgroundColor: theme.secondaryContainer, opacity: disabled ? 0.38 : pressed ? 0.8 : 1 },
+      ]}>
+      <Ionicons name={label === '+' ? 'add' : 'remove'} size={24} color={theme.onSecondaryContainer} />
     </Pressable>
   );
 }
@@ -164,11 +174,13 @@ export function NumberField({
           onBlur={commit}
           keyboardType="decimal-pad"
           placeholder={placeholder}
-          placeholderTextColor={theme.textSecondary}
-          style={[styles.input, { color: theme.text, backgroundColor: theme.background }]}
+          placeholderTextColor={theme.onSurfaceVariant}
+          cursorColor={theme.primary}
+          selectionColor={theme.secondaryContainer}
+          style={inputStyle(theme, [styles.input, styles.numberInput])}
           accessibilityLabel={label}
         />
-        {unit ? <ThemedText themeColor="textSecondary">{unit}</ThemedText> : null}
+        {unit ? <ThemedText themeColor="onSurfaceVariant">{unit}</ThemedText> : null}
       </View>
     </View>
   );
@@ -183,6 +195,7 @@ export function TextField({
   multiline,
   onEndEditing,
   maxLength,
+  autoFocus,
 }: {
   value: string;
   onChangeText: (t: string) => void;
@@ -191,6 +204,8 @@ export function TextField({
   multiline?: boolean;
   onEndEditing?: () => void;
   maxLength?: number;
+  /** Opens the keyboard on this field when it appears. */
+  autoFocus?: boolean;
 }) {
   const theme = useTheme();
   return (
@@ -200,23 +215,34 @@ export function TextField({
       onEndEditing={onEndEditing}
       onBlur={onEndEditing}
       placeholder={placeholder}
-      placeholderTextColor={theme.textSecondary}
+      placeholderTextColor={theme.onSurfaceVariant}
+      cursorColor={theme.primary}
+      selectionColor={theme.secondaryContainer}
       multiline={multiline}
       maxLength={maxLength}
+      autoFocus={autoFocus}
       accessibilityLabel={label}
-      style={[
-        styles.input,
-        styles.textField,
-        multiline && styles.multiline,
-        { color: theme.text, backgroundColor: theme.background },
-      ]}
+      style={inputStyle(theme, [styles.input, styles.textField, multiline && styles.multiline])}
     />
   );
 }
 
+/** Field colours and the Barlow face (TextInput is not a ThemedText). */
+function inputStyle(theme: ReturnType<typeof useTheme>, extra: Parameters<typeof resolveFont>[0]) {
+  return resolveFont([
+    Type.bodyLarge,
+    {
+      color: theme.onSurface,
+      backgroundColor: theme.surfaceContainerHighest,
+      borderBottomColor: theme.onSurfaceVariant,
+    },
+    extra,
+  ]);
+}
+
 /**
- * A small rounded button, e.g. a recent food to log again or a portion unit.
- * `dot` puts a coloured dot before the label, e.g. red for "High in salt".
+ * A small chip, e.g. a recent food to log again or a portion unit.
+ * `dot` puts a data-colour dot before the label, e.g. theme.near for "High in salt".
  */
 export function Chip({
   label,
@@ -229,21 +255,7 @@ export function Chip({
   selected?: boolean;
   dot?: string;
 }) {
-  const theme = useTheme();
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityState={selected === undefined ? undefined : { selected }}
-      style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-      <ThemedView
-        type="backgroundSelected"
-        style={[styles.chip, dot && styles.chipRow, selected && { backgroundColor: theme.accentSoft, borderColor: theme.accent }]}>
-        {dot ? <View style={[styles.dot, { backgroundColor: dot }]} /> : null}
-        <ThemedText type={selected ? 'smallBold' : 'small'}>{label}</ThemedText>
-      </ThemedView>
-    </Pressable>
-  );
+  return <UiChip label={label} onPress={onPress} selected={selected} dot={dot} />;
 }
 
 export function Row({ label, children }: { label: string; children: React.ReactNode }) {
@@ -256,39 +268,35 @@ export function Row({ label, children }: { label: string; children: React.ReactN
 }
 
 const styles = StyleSheet.create({
-  button: {
-    paddingVertical: Spacing.three - 4,
-    paddingHorizontal: Spacing.three,
-    borderRadius: Spacing.three,
+  segmented: { flexDirection: 'row', borderWidth: 1, borderRadius: Radius.full, overflow: 'hidden' },
+  segment: {
+    flex: 1,
+    minHeight: TouchTarget,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.one,
+    paddingHorizontal: Spacing.two,
   },
-  segmented: { flexDirection: 'row', padding: Spacing.half, borderRadius: Spacing.three },
-  segment: { flex: 1 },
-  segmentInner: { paddingVertical: Spacing.two, borderRadius: Spacing.three - 2, alignItems: 'center' },
-  stepper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  stepperValue: { fontVariant: ['tabular-nums'] },
-  round: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
-  roundLabel: { lineHeight: 34 },
-  field: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.two },
+  segmentLabel: { flexShrink: 1 },
+  stepper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.three },
+  stepperValue: { flexShrink: 1, textAlign: 'center' },
+  round: { width: TouchTarget, height: TouchTarget, borderRadius: TouchTarget / 2, alignItems: 'center', justifyContent: 'center' },
+  field: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.two, minHeight: TouchTarget },
   fieldLabel: { flexShrink: 1 },
   fieldInput: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
+  // A set width: the web preview's inputs are 20 characters wide by default, which pushed the unit off a phone screen.
+  numberInput: { width: 112 },
   input: {
     minWidth: 88,
+    minHeight: TouchTarget,
     textAlign: 'right',
-    fontSize: 16,
     paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.two + 4,
-    borderRadius: Spacing.two + 4,
+    paddingHorizontal: Spacing.three - 4,
+    borderTopLeftRadius: Radius.xs,
+    borderTopRightRadius: Radius.xs,
+    borderBottomWidth: 1,
   },
   textField: { textAlign: 'left', minWidth: 0 },
   multiline: { minHeight: 72, textAlignVertical: 'top' },
-  chip: {
-    paddingVertical: Spacing.one + 2,
-    paddingHorizontal: Spacing.three - 4,
-    borderRadius: Spacing.three,
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  chipRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one + 2 },
-  dot: { width: 8, height: 8, borderRadius: 4 },
 });

@@ -3,9 +3,10 @@ import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/d
 import { useState } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 
-import { Button } from '@/components/controls';
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
+import { Button } from '@/components/ui/button';
+import { Notice } from '@/components/ui/notice';
+import { Radius, Spacing, TouchTarget } from '@/constants/theme';
 import { useClockStyle } from '@/hooks/use-clock-style';
 import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
@@ -19,10 +20,13 @@ export interface WhenFieldProps {
   onChange: (ms: number) => void;
 }
 
+/** Said under the field when a later time was picked. */
+export const CAPPED_NOTE = 'That time hasn’t come yet, so it’s set to now.';
+
 /**
- * The date and time of an entry, e.g. "Today, 2:35 pm". A tap opens the
- * phone's date picker, then its time picker. Never later than now, at most a
- * year back.
+ * The date and time of an entry, e.g. "Today, 2:35 pm", as a filled field.
+ * A tap opens the phone's date picker, then its time picker. Never later
+ * than now, at most a year back.
  */
 export function WhenField({ label = 'When', value, onChange }: WhenFieldProps) {
   const theme = useTheme();
@@ -51,18 +55,29 @@ export function WhenField({ label = 'When', value, onChange }: WhenFieldProps) {
 
   return (
     <View style={styles.wrap}>
-      <Pressable
-        onPress={pick}
-        accessibilityRole="button"
-        accessibilityLabel={`${label}: ${text}`}
-        accessibilityHint="Opens the date, then the time"
-        style={({ pressed }) => [styles.row, { opacity: pressed ? 0.7 : 1 }]}>
-        <ThemedText style={styles.label}>{label}</ThemedText>
-        <View style={[styles.value, { backgroundColor: theme.background }]}>
-          <ThemedText style={styles.valueText}>{text}</ThemedText>
-          <Ionicons name="calendar-outline" size={18} color={theme.textSecondary} />
-        </View>
-      </Pressable>
+      <View style={styles.row}>
+        <ThemedText type="bodyLarge" style={styles.label}>
+          {label}
+        </ThemedText>
+        <Pressable
+          onPress={pick}
+          accessibilityRole="button"
+          accessibilityLabel={`${label}: ${text}`}
+          accessibilityHint="Opens the date, then the time"
+          android_ripple={{ color: theme.outlineVariant }}
+          style={({ pressed }) => [
+            styles.value,
+            {
+              backgroundColor: pressed ? theme.surfaceContainerHigh : theme.surfaceContainerHighest,
+              borderBottomColor: theme.onSurfaceVariant,
+            },
+          ]}>
+          <ThemedText type="bodyLarge" style={styles.valueText}>
+            {text}
+          </ThemedText>
+          <Ionicons name="calendar-outline" size={20} color={theme.onSurfaceVariant} />
+        </Pressable>
+      </View>
       {open && Platform.OS === 'ios' ? (
         <>
           <DateTimePicker
@@ -73,14 +88,10 @@ export function WhenField({ label = 'When', value, onChange }: WhenFieldProps) {
             maximumDate={new Date(now)}
             onValueChange={(_event, date) => set(date.getTime())}
           />
-          <Button kind="secondary" label="Done" onPress={() => setOpen(false)} />
+          <Button variant="tonal" label="Done" onPress={() => setOpen(false)} />
         </>
       ) : null}
-      {cappedAt !== null && cappedAt === value ? (
-        <ThemedText type="small" themeColor="textSecondary">
-          That was later than now, so it&apos;s set to now.
-        </ThemedText>
-      ) : null}
+      {cappedAt !== null && cappedAt === value ? <Notice text={CAPPED_NOTE} /> : null}
     </View>
   );
 }
@@ -94,6 +105,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: Spacing.two,
+    minHeight: TouchTarget,
   },
   label: { flexShrink: 1 },
   value: {
@@ -101,9 +113,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexShrink: 1,
     gap: Spacing.two,
+    minHeight: TouchTarget,
     paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.two + 4,
-    borderRadius: Spacing.two + 4,
+    paddingHorizontal: Spacing.three - 4,
+    borderTopLeftRadius: Radius.xs,
+    borderTopRightRadius: Radius.xs,
+    borderBottomWidth: 1,
+    overflow: 'hidden',
   },
   valueText: { flexShrink: 1, fontVariant: ['tabular-nums'] },
 });

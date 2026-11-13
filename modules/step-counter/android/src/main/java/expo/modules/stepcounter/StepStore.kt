@@ -10,8 +10,16 @@ import java.util.UUID
 /**
  * Per-minute step counts plus the counter state needed to turn the sensor's
  * "steps since boot" into deltas, steps whose time isn't known, a short log
- * of what the counter did, and the GPS fixes of a walk being recorded. Lives
- * in its own small database so the services can write without the JS runtime.
+ * of what the counter did, and what a walk being recorded collects (GPS
+ * fixes, its own step counter, air pressure, Activity Recognition and
+ * indoor/outdoor switches). Lives in its own small database so the services
+ * can write without the JS runtime.
+ *
+ * The walk tables added later are created by ensureWalkTables on every open
+ * rather than by a version bump: it is safe to run twice, and an older test
+ * build installed on top still opens the database (a version it doesn't know
+ * would make it throw "Can't downgrade" and stop the day's step counting).
+ * No UPSERT or window functions: Android 9 ships SQLite 3.22.
  */
 class StepStore(context: Context) :
   SQLiteOpenHelper(context.applicationContext, "step_counter.db", null, 3) {
@@ -28,6 +36,43 @@ class StepStore(context: Context) :
   override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
     if (oldVersion < 2) createWalkPoints(db)
     if (oldVersion < 3) createUntimedAndLog(db)
+  }
+
+  /** A later build's database: keep everything (the tables it added are left alone). */
+  override fun onDowngrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
+
+  override fun onOpen(db: SQLiteDatabase) {
+    super.onOpen(db)
+    runCatching { ensureWalkTables(db) }
+  }
+
+  private fun ensureWalkTables(db: SQLiteDatabase) {
+    if (db.isReadOnly) return
+    val columns = mutableSetOf<String>()
+    db.rawQuery("PRAGMA table_info(walk_points)", null).use {
+      val name = it.getColumnIndexOrThrow("name")
+      while (it.moveToNext()) columns.add(it.getString(name))
+    }
+    for (column in listOf("speed", "speed_acc", "alt")) {
+      if (column !in columns) db.execSQL("ALTER TABLE walk_points ADD COLUMN $column REAL")
+    }
+    // Steps and pressure in their own tables, each written in order by its own sensor.
+    db.execSQL(
+      "CREATE TABLE IF NOT EXISTS walk_steps (walk_id INTEGER NOT NULL, t INTEGER NOT NULL, steps INTEGER NOT NULL, " +
+        "PRIMARY KEY (walk_id, t))"
+    )
+    db.execSQL(
+      "CREATE TABLE IF NOT EXISTS walk_pressure (walk_id INTEGER NOT NULL, t INTEGER NOT NULL, hpa REAL NOT NULL, " +
+        "PRIMARY KEY (walk_id, t))"
+    )
+    db.execSQL(
+      "CREATE TABLE IF NOT EXISTS walk_activity (walk_id INTEGER NOT NULL, t INTEGER NOT NULL, type TEXT NOT NULL, " +
+        "conf INTEGER NOT NULL, PRIMARY KEY (walk_id, t, type))"
+    )
+    db.execSQL(
+      "CREATE TABLE IF NOT EXISTS walk_mode (walk_id INTEGER NOT NULL, t INTEGER NOT NULL, indoor INTEGER NOT NULL, " +
+        "PRIMARY KEY (walk_id, t))"
+    )
   }
 
   private fun createWalkPoints(db: SQLiteDatabase) {
@@ -50,6 +95,12 @@ class StepStore(context: Context) :
   fun getState(key: String, fallback: Long): Long {
     readableDatabase.rawQuery("SELECT value FROM state WHERE key = ?", arrayOf(key)).use {
       return if (it.moveToFirst()) it.getLong(0) else fallback
+    }
+  }
+
+  fun getStateOrNull(key: String): Long? {
+    readableDatabase.rawQuery("SELECT value FROM state WHERE key = ?", arrayOf(key)).use {
+      return if (it.moveToFirst()) it.getLong(0) else null
     }
   }
 
@@ -223,40 +274,227 @@ class StepStore(context: Context) :
     }
   }
 
-  fun addWalkPoint(walkId: Long, t: Long, lat: Double, lon: Double, accuracy: Float?) {
+  fun getTextState(key: String): String? = getStringState(key)
+
+  /** Sets (or with null, removes) a text value. */
+  fun setTextState(key: String, value: String?) {
+    val db = writableDatabase
+    db.execSQL("DELETE FROM text_state WHERE key = ?", arrayOf<Any>(key))
+    if (value != null) db.execSQL("INSERT INTO text_state (key, value) VALUES (?, ?)", arrayOf<Any>(key, value))
+  }
+
+  fun addWalkPoint(
+    walkId: Long,
+    t: Long,
+    lat: Double,
+    lon: Double,
+    accuracy: Float?,
+    speed: Float? = null,
+    speedAccuracy: Float? = null,
+    altitude: Double? = null,
+  ) {
     val values = ContentValues().apply {
       put("walk_id", walkId)
       put("t", t)
       put("lat", lat)
       put("lon", lon)
       if (accuracy != null) put("accuracy", accuracy) else putNull("accuracy")
+      if (speed != null) put("speed", speed)
+      if (speedAccuracy != null) put("speed_acc", speedAccuracy)
+      if (altitude != null) put("alt", altitude)
     }
-    writableDatabase.insertWithOnConflict("walk_points", null, values, SQLiteDatabase.CONFLICT_IGNORE)
+    try {
+      writableDatabase.insertWithOnConflict("walk_points", null, values, SQLiteDatabase.CONFLICT_IGNORE)
+    } catch (e: Exception) {
+      // The new columns are missing (the schema check failed): keep the fix without them.
+      values.remove("speed")
+      values.remove("speed_acc")
+      values.remove("alt")
+      writableDatabase.insertWithOnConflict("walk_points", null, values, SQLiteDatabase.CONFLICT_IGNORE)
+    }
   }
 
   /** Fixes recorded after `afterT`, oldest first. */
   fun walkPoints(walkId: Long, afterT: Long): List<Map<String, Any?>> {
     val result = mutableListOf<Map<String, Any?>>()
-    readableDatabase.rawQuery(
-      "SELECT t, lat, lon, accuracy FROM walk_points WHERE walk_id = ? AND t > ? ORDER BY t",
-      arrayOf(walkId.toString(), afterT.toString())
-    ).use {
-      while (it.moveToNext()) {
-        result.add(
-          mapOf(
-            "t" to it.getLong(0).toDouble(),
-            "lat" to it.getDouble(1),
-            "lon" to it.getDouble(2),
-            "acc" to if (it.isNull(3)) null else it.getDouble(3)
+    val args = arrayOf(walkId.toString(), afterT.toString())
+    try {
+      readableDatabase.rawQuery(
+        "SELECT t, lat, lon, accuracy, speed, speed_acc, alt FROM walk_points WHERE walk_id = ? AND t > ? ORDER BY t",
+        args
+      ).use {
+        while (it.moveToNext()) {
+          result.add(
+            mapOf(
+              "t" to it.getLong(0).toDouble(),
+              "lat" to it.getDouble(1),
+              "lon" to it.getDouble(2),
+              "acc" to if (it.isNull(3)) null else it.getDouble(3),
+              "speed" to if (it.isNull(4)) null else it.getDouble(4),
+              "speedAcc" to if (it.isNull(5)) null else it.getDouble(5),
+              "alt" to if (it.isNull(6)) null else it.getDouble(6)
+            )
           )
-        )
+        }
+      }
+    } catch (e: Exception) {
+      result.clear()
+      readableDatabase.rawQuery(
+        "SELECT t, lat, lon, accuracy FROM walk_points WHERE walk_id = ? AND t > ? ORDER BY t",
+        args
+      ).use {
+        while (it.moveToNext()) {
+          result.add(
+            mapOf(
+              "t" to it.getLong(0).toDouble(),
+              "lat" to it.getDouble(1),
+              "lon" to it.getDouble(2),
+              "acc" to if (it.isNull(3)) null else it.getDouble(3)
+            )
+          )
+        }
       }
     }
     return result
   }
 
+  fun addWalkSteps(walkId: Long, t: Long, steps: Long) {
+    writableDatabase.insertWithOnConflict("walk_steps", null, ContentValues().apply {
+      put("walk_id", walkId)
+      put("t", t)
+      put("steps", steps)
+    }, SQLiteDatabase.CONFLICT_IGNORE)
+  }
+
+  fun walkSteps(walkId: Long, afterT: Long): List<Map<String, Any>> {
+    val result = mutableListOf<Map<String, Any>>()
+    readableDatabase.rawQuery(
+      "SELECT t, steps FROM walk_steps WHERE walk_id = ? AND t > ? ORDER BY t",
+      arrayOf(walkId.toString(), afterT.toString())
+    ).use {
+      while (it.moveToNext()) result.add(mapOf("t" to it.getLong(0).toDouble(), "steps" to it.getLong(1).toDouble()))
+    }
+    return result
+  }
+
+  fun addWalkPressure(walkId: Long, t: Long, hpa: Double) {
+    writableDatabase.insertWithOnConflict("walk_pressure", null, ContentValues().apply {
+      put("walk_id", walkId)
+      put("t", t)
+      put("hpa", hpa)
+    }, SQLiteDatabase.CONFLICT_IGNORE)
+  }
+
+  fun walkPressure(walkId: Long, afterT: Long): List<Map<String, Any>> {
+    val result = mutableListOf<Map<String, Any>>()
+    readableDatabase.rawQuery(
+      "SELECT t, hpa FROM walk_pressure WHERE walk_id = ? AND t > ? ORDER BY t",
+      arrayOf(walkId.toString(), afterT.toString())
+    ).use {
+      while (it.moveToNext()) result.add(mapOf("t" to it.getLong(0).toDouble(), "hpa" to it.getDouble(1)))
+    }
+    return result
+  }
+
+  /** One Activity Recognition result, all its rows in one transaction, so an incremental read never sees half. */
+  fun addWalkActivities(walkId: Long, t: Long, rows: List<Pair<String, Int>>) {
+    val db = writableDatabase
+    db.beginTransaction()
+    try {
+      for ((type, conf) in rows) {
+        db.insertWithOnConflict("walk_activity", null, ContentValues().apply {
+          put("walk_id", walkId)
+          put("t", t)
+          put("type", type)
+          put("conf", conf)
+        }, SQLiteDatabase.CONFLICT_IGNORE)
+      }
+      db.setTransactionSuccessful()
+    } finally {
+      db.endTransaction()
+    }
+  }
+
+  fun walkActivity(walkId: Long, afterT: Long): List<Map<String, Any>> {
+    val result = mutableListOf<Map<String, Any>>()
+    readableDatabase.rawQuery(
+      "SELECT t, type, conf FROM walk_activity WHERE walk_id = ? AND t > ? ORDER BY t, type",
+      arrayOf(walkId.toString(), afterT.toString())
+    ).use {
+      while (it.moveToNext()) {
+        result.add(mapOf("t" to it.getLong(0).toDouble(), "type" to it.getString(1), "conf" to it.getLong(2).toDouble()))
+      }
+    }
+    return result
+  }
+
+  fun addWalkMode(walkId: Long, t: Long, indoor: Boolean) {
+    writableDatabase.insertWithOnConflict("walk_mode", null, ContentValues().apply {
+      put("walk_id", walkId)
+      put("t", t)
+      put("indoor", if (indoor) 1 else 0)
+    }, SQLiteDatabase.CONFLICT_REPLACE)
+  }
+
+  /** The recording's mode for the app: activity, indoor now, pin, effort, last alive and the switches. */
+  fun walkMode(): Map<String, Any?>? {
+    val walkId = getState(WALK_ID, 0)
+    if (walkId == 0L) return null
+    val changes = mutableListOf<Map<String, Any>>()
+    runCatching {
+      readableDatabase.rawQuery(
+        "SELECT t, indoor FROM walk_mode WHERE walk_id = ? ORDER BY t",
+        arrayOf(walkId.toString())
+      ).use {
+        while (it.moveToNext()) changes.add(mapOf("t" to it.getLong(0).toDouble(), "indoor" to (it.getLong(1) == 1L)))
+      }
+    }
+    return mapOf(
+      "activity" to if (getState(WALK_ACTIVITY, 0) == 1L) "ride" else "walk",
+      "indoor" to (getState(WALK_INDOOR, 0) == 1L),
+      "place" to getStringState(WALK_PLACE),
+      "effort" to getStringState(WALK_EFFORT),
+      "lastAliveAt" to getStateOrNull(WALK_LAST_ALIVE)?.toDouble(),
+      "changes" to changes
+    )
+  }
+
+  /** Begins a new recording's state; WALK_ID last, so a half-written start isn't a walk. */
+  fun startWalkState(walkId: Long, ride: Boolean, indoor: Boolean, placeJson: String?, effort: String?) {
+    val db = writableDatabase
+    db.beginTransaction()
+    try {
+      db.execSQL(
+        "DELETE FROM state WHERE key IN (?, ?, ?, ?, ?)",
+        arrayOf<Any>(WALK_STEP_BASE, WALK_STEP_LAST, WALK_STEP_BOOT, WALK_LAST_ALIVE, WALK_STOPPED)
+      )
+      db.insertWithOnConflict("state", null, stateValues(WALK_ACTIVITY, if (ride) 1L else 0L), SQLiteDatabase.CONFLICT_REPLACE)
+      db.insertWithOnConflict("state", null, stateValues(WALK_INDOOR, if (indoor) 1L else 0L), SQLiteDatabase.CONFLICT_REPLACE)
+      db.execSQL("DELETE FROM text_state WHERE key IN (?, ?)", arrayOf<Any>(WALK_PLACE, WALK_EFFORT))
+      if (placeJson != null) db.execSQL("INSERT INTO text_state (key, value) VALUES (?, ?)", arrayOf<Any>(WALK_PLACE, placeJson))
+      if (effort != null) db.execSQL("INSERT INTO text_state (key, value) VALUES (?, ?)", arrayOf<Any>(WALK_EFFORT, effort))
+      db.insertWithOnConflict("state", null, stateValues(WALK_ID, walkId), SQLiteDatabase.CONFLICT_REPLACE)
+      db.setTransactionSuccessful()
+    } finally {
+      db.endTransaction()
+    }
+    runCatching { addWalkMode(walkId, walkId, indoor) }
+  }
+
   fun clearWalk(walkId: Long) {
-    writableDatabase.execSQL("DELETE FROM walk_points WHERE walk_id = ?", arrayOf<Any>(walkId))
+    val db = writableDatabase
+    db.execSQL("DELETE FROM walk_points WHERE walk_id = ?", arrayOf<Any>(walkId))
+    for (table in WALK_TABLES) runCatching { db.execSQL("DELETE FROM $table WHERE walk_id = ?", arrayOf<Any>(walkId)) }
+  }
+
+  /** Forgets the recording's mode and counters (after the app saved it). */
+  fun clearWalkState() {
+    val db = writableDatabase
+    db.execSQL(
+      "DELETE FROM state WHERE key IN (?, ?, ?, ?, ?, ?, ?, ?)",
+      arrayOf<Any>(WALK_ID, WALK_ACTIVITY, WALK_INDOOR, WALK_STEP_BASE, WALK_STEP_LAST, WALK_STEP_BOOT, WALK_LAST_ALIVE, WALK_STOPPED)
+    )
+    db.execSQL("DELETE FROM text_state WHERE key IN (?, ?)", arrayOf<Any>(WALK_PLACE, WALK_EFFORT))
   }
 
   fun clear() {
@@ -267,6 +505,8 @@ class StepStore(context: Context) :
     // Keeps the install token: the data is gone, but this is still the same install.
     db.execSQL("DELETE FROM state")
     db.execSQL("DELETE FROM walk_points")
+    for (table in WALK_TABLES) runCatching { db.execSQL("DELETE FROM $table") }
+    db.execSQL("DELETE FROM text_state WHERE key IN (?, ?)", arrayOf<Any>(WALK_PLACE, WALK_EFFORT))
   }
 
   companion object {
@@ -283,6 +523,24 @@ class StepStore(context: Context) :
     /** When Google's step recorder first started recording for this app (epoch ms); 0 when not in use. */
     const val RECORDER_SINCE = "recorderSince"
     private const val INSTALL = "install"
+
+    /** The recording: 1 = ride, 0 = walk. */
+    const val WALK_ACTIVITY = "walkActivity"
+    /** 1 while recording indoors (steps only, a low-power fix a minute). */
+    const val WALK_INDOOR = "walkIndoor"
+    /** The walk counter: base reading, steps so far, and the boot count they belong to. */
+    const val WALK_STEP_BASE = "walkStepBase"
+    const val WALK_STEP_LAST = "walkStepLast"
+    const val WALK_STEP_BOOT = "walkStepBoot"
+    /** Last time (epoch ms) the walk service wrote a sample: when an interrupted walk ended. */
+    const val WALK_LAST_ALIVE = "walkLastAlive"
+    /** When the person pressed stop (epoch ms); 0 while recording. Ends an indoor ride, which has no service. */
+    const val WALK_STOPPED = "walkStopped"
+    /** text_state: the pin as JSON, and an indoor ride's effort. */
+    const val WALK_PLACE = "walkPlace"
+    const val WALK_EFFORT = "walkEffort"
+
+    private val WALK_TABLES = listOf("walk_steps", "walk_pressure", "walk_activity", "walk_mode")
 
     @Volatile private var instance: StepStore? = null
 

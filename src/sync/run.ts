@@ -10,6 +10,8 @@ import { achievementTitle } from '@/lib/achievements';
 import { dayKey } from '@/lib/dates';
 import { formatSteps } from '@/lib/format';
 import { REMINDER_MIN_STEPS, shouldRemind } from '@/lib/reminders';
+import { spendBudget } from '@/notifications/budget';
+import { healthNotes } from '@/notifications/health-notes';
 import { notifyNow } from '@/notifications/notify';
 import { premiumOpenOnPhone } from '@/premium/premium';
 import { pushWidgetData } from '@/widget/update';
@@ -60,12 +62,16 @@ async function doSync(repo: Repository, profile: Profile, source: StepSource, no
   await repo.setKv(LAST_SYNC_KEY, now.getTime());
 
   // Side effects must never fail the sync itself.
-  await Promise.allSettled([
+  const [, nudged, celebrated] = await Promise.allSettled([
     updateWidget(repo, result, now),
     nudge(repo, profile, result, now),
     celebrate(repo, result),
     publishStepsIfOwnCounter(repo, source, now),
   ]);
+  const stepSent = [nudged, celebrated].some((r) => r.status === 'fulfilled' && r.value);
+  if (stepSent) await spendBudget(repo, now).catch(() => undefined);
+  // Water and nutrition notes after them, so they can keep out of the way (premium-gated inside).
+  await Promise.allSettled([healthNotes(repo, profile, { steps: result.today.steps, stepSent }, now)]);
   return result;
 }
 
@@ -75,7 +81,8 @@ async function updateWidget(repo: Repository, { today }: SyncResult, now: Date) 
   await pushWidgetData(data);
 }
 
-async function nudge(repo: Repository, profile: Profile, { today, stepsLastWindow }: SyncResult, now: Date) {
+/** True when it posted. */
+async function nudge(repo: Repository, profile: Profile, { today, stepsLastWindow }: SyncResult, now: Date): Promise<boolean> {
   const lastRemindedAt = await repo.getKv<number>(LAST_REMINDED_KEY);
   const remind = shouldRemind({
     now,
@@ -84,13 +91,14 @@ async function nudge(repo: Repository, profile: Profile, { today, stepsLastWindo
     lastRemindedAt,
     goalMetToday: timedSteps(today) >= today.goal,
   });
-  if (!remind) return;
+  if (!remind) return false;
   await repo.setKv(LAST_REMINDED_KEY, now.getTime());
   const left = Math.max(0, today.goal - today.steps);
   await notifyNow(
     'Time for a short walk',
     `Under ${REMINDER_MIN_STEPS} steps in the last hour. ${formatSteps(left)} to go for today's goal.`,
   );
+  return true;
 }
 
 /**
@@ -99,14 +107,18 @@ async function nudge(repo: Repository, profile: Profile, { today, stepsLastWindo
  */
 const timedSteps = (day: SyncResult['today']) => day.steps - day.untimedSteps;
 
-async function celebrate(repo: Repository, { today, achievements }: SyncResult) {
+/** True when it posted. */
+async function celebrate(repo: Repository, { today, achievements }: SyncResult): Promise<boolean> {
+  let sent = false;
   if (timedSteps(today) >= today.goal && (await repo.getKv<string>(GOAL_NOTIFIED_KEY)) !== today.date) {
     await repo.setKv(GOAL_NOTIFIED_KEY, today.date);
     await notifyNow('Goal reached', `${formatSteps(today.steps)} steps today. Nice work.`);
+    sent = true;
   }
   // Badges are premium: earned and kept for everyone, announced only where they can be seen.
-  if (!achievements.length || !(await premiumOpenOnPhone(repo))) return;
+  if (!achievements.length || !(await premiumOpenOnPhone(repo))) return sent;
   for (const a of achievements) {
     await notifyNow('New badge', achievementTitle(a.kind, a.value));
   }
+  return true;
 }

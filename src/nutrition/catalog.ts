@@ -3,6 +3,7 @@
  * store the food, unit and quantity, not the nutrients, so when someone says
  * "my bowl of rice is 200 g" every past and future entry recalculates.
  */
+import { fixCatalog } from './fixes';
 import { FOODS } from './foods.generated';
 import { scaleNutrients, sumNutrients } from './nutrients';
 import type { FoodItem, FoodUnit, Nutrients, OwnFood } from './types';
@@ -21,7 +22,8 @@ export function isSavedFoodId(id: string): boolean {
   return id.startsWith(AI_PREFIX) || id.startsWith(RECIPE_PREFIX);
 }
 
-const byId = new Map(FOODS.map((f) => [f.id, f]));
+// Fixed in place, so every list of FOODS sees it.
+const byId = new Map(fixCatalog(FOODS).map((f) => [f.id, f]));
 
 /** A built-in food by id, or null. */
 export function catalogFood(id: string): FoodItem | null {

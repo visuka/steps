@@ -1,4 +1,3 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
@@ -7,14 +6,14 @@ import { checkDescription, FoodApiError, unknownDishMessage } from '@/api/food-r
 import { Card } from '@/components/card';
 import { confirmDelete } from '@/components/confirm';
 import { Button, Chip, NumberField, TextField } from '@/components/controls';
-import { NutrientBars } from '@/components/food/nutrient-bars';
 import { OwnFoodForm } from '@/components/food/own-food-form';
 import { type PlaceInput, PlacePicker } from '@/components/food/place-picker';
 import { PortionPicker } from '@/components/food/portion-picker';
 import { RecipeForm } from '@/components/food/recipe-form';
 import { ThemedText } from '@/components/themed-text';
+import { IconButton, Why } from '@/components/ui';
 import { WhenField } from '@/components/when-field';
-import { Spacing } from '@/constants/theme';
+import { Spacing, TouchTarget } from '@/constants/theme';
 import { changeFood, deleteFood, type HealthCopy } from '@/data/entries';
 import { type FoodEntry, newId, type RecentFood } from '@/data/types';
 import { copyStore } from '@/health/select-source';
@@ -25,8 +24,6 @@ import { addDaysToKey, dayKey, parseDayKey } from '@/lib/dates';
 import { formatSteps } from '@/lib/format';
 import { earliestAt, formatClock, formatDay, formatWhenInSentence, timeNow } from '@/lib/when';
 import { catalogFood, nutrientsFor, OWN_PREFIX, type PortionOverrides, portionLabel, searchFoods } from '@/nutrition/catalog';
-import { byStorage, overLimits } from '@/nutrition/day';
-import { NUTRIENT } from '@/nutrition/nutrients';
 import {
   asksPlace,
   HOME,
@@ -46,8 +43,6 @@ import {
 import type { FoodItem, Nutrients } from '@/nutrition/types';
 import { useApp } from '@/state/app-state';
 import { useCaloriesToday } from '@/state/use-calories';
-
-const STORAGE = byStorage();
 
 const isToday = (ms: number) => dayKey(new Date(ms)) === dayKey(new Date());
 
@@ -86,12 +81,13 @@ type Lookup =
 const itemKey = (index: number) => `item:${index}`;
 const unknownKey = (name: string) => `unknown:${name}`;
 
-export function FoodLog() {
+/** `focusKey`: each new value (Today's "Log food") opens the keyboard on the search. */
+export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
   const { repo, source, dataVersion, touch } = useApp();
   const theme = useTheme();
   const clock = useClockStyle();
   const now = useNow();
-  const { book, foods: loaded, nutrients, week, caloriesOnly, eaten, resting, active, burned } = useCaloriesToday();
+  const { book, foods: loaded } = useCaloriesToday();
   const [query, setQuery] = useState('');
   const [mode, setMode] = useState<Mode>({ kind: 'search' });
   /** When it was eaten; null is "now", whenever Add is tapped. */
@@ -405,8 +401,7 @@ export function FoodLog() {
 
   const askRemove = (entry: FoodEntry) => confirmDelete('entry', () => remove(entry));
 
-  /** Today's, for the nutrients; the list shows the day picked under "Eaten today". */
-  const todayFoods = loaded.filter((f) => !gone.includes(f.id));
+  /** The day picked under "Eaten today". */
   const foods = (listDay === null ? loaded : dayFoods?.day === listDay ? dayFoods.foods : []).filter(
     (f) => !gone.includes(f.id),
   );
@@ -507,28 +502,16 @@ export function FoodLog() {
   };
 
   const results = mode.kind === 'search' ? searchFoods(query, book.own, book.saved) : [];
-  const balance = eaten - burned;
   const q = query.trim();
-  const over = overLimits(nutrients);
 
   return (
     <>
-      <Card title="Today so far">
-        <View style={styles.totals}>
-          <Total label="Eaten" value={eaten} />
-          <Total label="Burned" value={burned} />
-          <Total label={balance > 0 ? 'Over' : 'Under'} value={Math.abs(balance)} />
-        </View>
-        <ThemedText type="small" themeColor="textSecondary">
-          Burned = {formatSteps(resting)} resting (what your body uses anyway) + {formatSteps(active)} from walking.
-          Both are estimates; add your birth year in Settings to improve the resting figure.
-        </ThemedText>
-      </Card>
-
       <Card title="I ate">
         {mode.kind === 'search' ? (
           <>
             <TextField
+              key={focusKey}
+              autoFocus={focusKey !== undefined}
               label="Search foods"
               value={query}
               onChangeText={changeQuery}
@@ -698,43 +681,38 @@ export function FoodLog() {
             const note = valuesNote(f, food);
             const time = formatClock(f.loggedAt, clock);
             return (
-              <Pressable
-                key={f.id}
-                onPress={() => startEdit(f, food)}
-                accessibilityRole="button"
-                accessibilityLabel={`${time}, ${f.name}${detail ? `, ${detail}` : ''}, ${kcal} kcal.${note ? ` ${note}.` : ''} Tap to change or delete it.`}
-                style={styles.entry}>
-                <ThemedText type="small" themeColor="textSecondary" style={styles.time}>
-                  {time}
-                </ThemedText>
-                <View style={styles.entryName}>
-                  <ThemedText>{f.name}</ThemedText>
-                  {detail ? (
-                    <ThemedText type="small" themeColor="textSecondary">
-                      {detail}
-                    </ThemedText>
-                  ) : null}
-                  {note ? (
-                    <ThemedText type="small" themeColor="textSecondary">
-                      {note}
-                    </ThemedText>
-                  ) : null}
-                </View>
-                <ThemedText style={styles.entryKcal}>{formatSteps(kcal)} kcal</ThemedText>
+              <View key={f.id} style={styles.entry}>
                 <Pressable
-                  onPress={() => askRemove(f)}
+                  onPress={() => startEdit(f, food)}
                   accessibilityRole="button"
-                  accessibilityLabel={`Delete ${f.name}`}
-                  hitSlop={10}>
-                  <Ionicons name="trash-outline" size={20} color={theme.textSecondary} />
+                  accessibilityLabel={`${time}, ${f.name}${detail ? `, ${detail}` : ''}, ${kcal} kcal.${note ? ` ${note}.` : ''} Tap to change or delete it.`}
+                  style={({ pressed }) => [styles.entryMain, pressed && { opacity: 0.7 }]}>
+                  <ThemedText type="small" themeColor="textSecondary" style={styles.time}>
+                    {time}
+                  </ThemedText>
+                  <View style={styles.entryName}>
+                    <ThemedText>{f.name}</ThemedText>
+                    {detail ? (
+                      <ThemedText type="small" themeColor="textSecondary">
+                        {detail}
+                      </ThemedText>
+                    ) : null}
+                    {note ? (
+                      <ThemedText type="small" themeColor="textSecondary">
+                        {note}
+                      </ThemedText>
+                    ) : null}
+                  </View>
+                  <ThemedText style={styles.entryKcal}>{formatSteps(kcal)} kcal</ThemedText>
                 </Pressable>
-              </Pressable>
+                <IconButton icon="trash-outline" onPress={() => askRemove(f)} accessibilityLabel={`Delete ${f.name}`} />
+              </View>
             );
           })
         )}
         {foods.length && !editing ? (
           <ThemedText type="small" themeColor="textSecondary">
-            Tap an entry to change it (amount, place, date and time) or to delete it.
+            Tap an entry to change or delete it
           </ThemedText>
         ) : null}
         {listNote ? (
@@ -744,35 +722,6 @@ export function FoodLog() {
         ) : null}
       </Card>
 
-      {todayFoods.length ? (
-        <Card title="Nutrients today">
-          <NutrientBars title="Calories and macros" nutrients={nutrients} groups={['energy', 'macro']} />
-          {over.length ? (
-            <ThemedText type="small" style={{ color: theme.danger }}>
-              Over the advised limit today: {over.map((o) => NUTRIENT[o.key].label.toLowerCase()).join(', ')}.
-            </ThemedText>
-          ) : null}
-          <NutrientBars title="Keep low" nutrients={nutrients} groups={['limit']} />
-          <NutrientBars title="Sugar and glucose" nutrients={nutrients} groups={['glucose']} glScale="day" />
-          <NutrientBars
-            title="Needed every day (your body keeps little)"
-            nutrients={nutrients}
-            keys={STORAGE.daily.map((n) => n.key)}
-          />
-          <NutrientBars
-            title="Stored by your body (the week's average counts)"
-            nutrients={nutrients}
-            keys={STORAGE.stored.map((n) => n.key)}
-            average={week.average}
-          />
-          <ThemedText type="small" themeColor="textSecondary">
-            Estimates. Targets are general adult daily values (US FDA); limits follow WHO advice. Your own needs may
-            differ. Week figures average the {week.days} {week.days === 1 ? 'day' : 'days'} you logged food in the last 7
-            {caloriesOnly ? `; ${caloriesOnly} calorie-only ${caloriesOnly === 1 ? 'entry adds' : 'entries add'} no nutrients` : ''}.
-            Tap a row to see what it is.
-          </ThemedText>
-        </Card>
-      ) : null}
     </>
   );
 }
@@ -872,10 +821,15 @@ function LookupPanel({
       <PlacePicker value={place} onChange={onPlace} restaurants={restaurants} />
       <Button kind="secondary" label={`Look up “${query}”`} onPress={onLookUp} />
       {lookup.status === 'idle' ? (
-        <ThemedText type="small" themeColor="textSecondary">
-          For a dish or a whole meal. What you type, your phone’s country and the restaurant if you name one are sent
-          to our server, not your name.
-        </ThemedText>
+        <View style={styles.hintRow}>
+          <ThemedText type="small" themeColor="textSecondary" style={styles.entryName}>
+            For a dish or a whole meal
+          </ThemedText>
+          <Why
+            title="Looking up food"
+            text="What you type, your phone’s country and the restaurant if you name one are sent to our server to work out what’s in it. Your name is not sent."
+          />
+        </View>
       ) : null}
     </View>
   );
@@ -946,30 +900,15 @@ function Busy() {
   );
 }
 
-function Total({ label, value }: { label: string; value: number }) {
-  return (
-    <View style={styles.total}>
-      <ThemedText type="small" themeColor="textSecondary">
-        {label}
-      </ThemedText>
-      <ThemedText style={styles.totalValue}>{formatSteps(value)}</ThemedText>
-      <ThemedText type="small" themeColor="textSecondary">
-        kcal
-      </ThemedText>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  totals: { flexDirection: 'row', justifyContent: 'space-between' },
-  total: { flex: 1, alignItems: 'center', gap: Spacing.half },
-  totalValue: { fontSize: 24, lineHeight: 30, fontWeight: 700, fontVariant: ['tabular-nums'] },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
   link: { textDecorationLine: 'underline' },
   lookup: { gap: Spacing.two },
   busy: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   result: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, paddingVertical: Spacing.one },
-  entry: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three },
+  entry: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one },
+  entryMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.three, minHeight: TouchTarget },
+  hintRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   time: { width: 64, fontVariant: ['tabular-nums'] },
   entryName: { flex: 1 },
   entryKcal: { fontVariant: ['tabular-nums'] },

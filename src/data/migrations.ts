@@ -140,4 +140,52 @@ export const MIGRATIONS = [
   ALTER TABLE food_log ADD COLUMN place TEXT NOT NULL DEFAULT 'home';
   ALTER TABLE food_log ADD COLUMN restaurant TEXT;
   `,
+  // Rides, indoor walks at pinned places, vehicle parts and stairs. Walks
+  // from before read as outdoor walks, with the distance and steps worked out
+  // as they were (distance_from and steps_from NULL). No foreign key with
+  // ON DELETE CASCADE on walk_part: saveWalk's INSERT OR REPLACE would
+  // delete the parts with it.
+  `
+  ALTER TABLE walk ADD COLUMN activity TEXT NOT NULL DEFAULT 'walk';
+  ALTER TABLE walk ADD COLUMN indoor INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE walk ADD COLUMN place_id TEXT;
+  ALTER TABLE walk ADD COLUMN distance_from TEXT;
+  ALTER TABLE walk ADD COLUMN steps_from TEXT;
+  ALTER TABLE walk ADD COLUMN floors_up INTEGER;
+  ALTER TABLE walk ADD COLUMN floors_down INTEGER;
+  ALTER TABLE walk ADD COLUMN lift_up INTEGER;
+  ALTER TABLE walk ADD COLUMN lift_down INTEGER;
+  ALTER TABLE walk ADD COLUMN climb_m REAL;
+  ALTER TABLE walk ADD COLUMN top_speed_ms REAL;
+  ALTER TABLE walk ADD COLUMN effort TEXT;
+  ALTER TABLE walk ADD COLUMN stretches TEXT;
+  ALTER TABLE walk_point ADD COLUMN speed REAL;
+  ALTER TABLE walk_point ADD COLUMN alt REAL;
+  ALTER TABLE walk_point ADD COLUMN part INTEGER;
+  CREATE TABLE walk_part (
+    walk_id TEXT NOT NULL,
+    ord INTEGER NOT NULL,
+    start_t INTEGER NOT NULL,
+    end_t INTEGER NOT NULL,
+    kind TEXT NOT NULL,
+    steps INTEGER,
+    distance_m REAL NOT NULL,
+    moving_s INTEGER NOT NULL,
+    top_speed_ms REAL,
+    kcal_walk REAL NOT NULL,
+    kcal_ride REAL NOT NULL,
+    choice TEXT,
+    default_keep INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (walk_id, ord)
+  );
+  CREATE TABLE place (
+    id TEXT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    lat REAL NOT NULL,
+    lon REAL NOT NULL,
+    radius_m REAL NOT NULL DEFAULT 100,
+    last_mode TEXT,
+    updated_at INTEGER NOT NULL
+  );
+  `,
 ];

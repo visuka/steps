@@ -2,13 +2,15 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
+import { Notice } from '@/components/ui/notice';
+import { Fonts, Radius, Spacing, TouchTarget } from '@/constants/theme';
 import { useClockStyle } from '@/hooks/use-clock-style';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
 import { capAt, earliestAt, formatWhen, timeNow } from '@/lib/when';
 
-import type { WhenFieldProps } from './when-field';
+import { CAPPED_NOTE, type WhenFieldProps } from './when-field';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
@@ -25,10 +27,11 @@ function fromInput(text: string): number | null {
   return new Date(y, mo - 1, d, h, mi).getTime();
 }
 
-/** The web preview has no native picker: the browser's own date-and-time field. */
+/** The web preview has no native picker: the browser's own date-and-time field, drawn as a filled field. */
 export function WhenField({ label = 'When', value, onChange }: WhenFieldProps) {
   const theme = useTheme();
   const clock = useClockStyle();
+  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   /** The value set to now because a later time was picked; the note goes once the value is something else. */
   const [cappedAt, setCappedAt] = useState<number | null>(null);
   const now = useNow();
@@ -36,7 +39,9 @@ export function WhenField({ label = 'When', value, onChange }: WhenFieldProps) {
   return (
     <View style={styles.wrap}>
       <View style={styles.row}>
-        <ThemedText style={styles.label}>{label}</ThemedText>
+        <ThemedText type="bodyLarge" style={styles.label}>
+          {label}
+        </ThemedText>
         <input
           type="datetime-local"
           aria-label={label}
@@ -52,24 +57,25 @@ export function WhenField({ label = 'When', value, onChange }: WhenFieldProps) {
             onChange(at);
           }}
           style={{
-            font: 'inherit',
+            fontFamily: Fonts.regular,
             fontSize: 16,
-            color: theme.text,
-            backgroundColor: theme.background,
+            minHeight: TouchTarget,
+            boxSizing: 'border-box',
+            color: theme.onSurface,
+            backgroundColor: theme.surfaceContainerHighest,
+            accentColor: theme.primary,
+            colorScheme: scheme,
             border: 'none',
-            borderRadius: Spacing.two + 4,
-            padding: `${Spacing.two}px ${Spacing.two + 4}px`,
+            borderBottom: `1px solid ${theme.onSurfaceVariant}`,
+            borderRadius: `${Radius.xs}px ${Radius.xs}px 0 0`,
+            padding: `${Spacing.two}px ${Spacing.three - 4}px`,
           }}
         />
       </View>
-      <ThemedText type="small" themeColor="textSecondary">
+      <ThemedText type="bodySmall" themeColor="onSurfaceVariant">
         {formatWhen(value, now, clock)}
       </ThemedText>
-      {cappedAt !== null && cappedAt === value ? (
-        <ThemedText type="small" themeColor="textSecondary">
-          That was later than now, so it&apos;s set to now.
-        </ThemedText>
-      ) : null}
+      {cappedAt !== null && cappedAt === value ? <Notice text={CAPPED_NOTE} /> : null}
     </View>
   );
 }

@@ -5,7 +5,9 @@
  */
 import { readFoodItem } from '@/api/food-read';
 import type { Achievement } from '@/lib/achievements';
+import type { Place } from '@/lib/places';
 import type { WalkPoint } from '@/lib/walk';
+import { applyChoice } from '@/lib/walk-totals';
 import { recentRestaurants, whereOf } from '@/nutrition/place';
 import type { FoodItem, OwnFood } from '@/nutrition/types';
 
@@ -22,6 +24,7 @@ import type {
   Repository,
   SleepEntry,
   Walk,
+  WalkPart,
 } from './types';
 
 const STORAGE_KEY = 'steps-preview-db';
@@ -35,7 +38,8 @@ interface Snapshot {
   moods?: [string, MoodEntry][];
   weather?: [string, DayWeather][];
   foods?: FoodEntry[];
-  walks?: [string, { walk: Walk; points: WalkPoint[] }][];
+  walks?: [string, { walk: Walk; points: WalkPoint[]; parts?: WalkPart[] }][];
+  places?: Place[];
   ownFoods?: OwnFood[];
   savedFoods?: FoodItem[];
   sleep?: SleepEntry[];
@@ -72,7 +76,8 @@ export async function openRepository(): Promise<Repository> {
   const weather = new Map<string, DayWeather>(saved?.weather);
   // Entries saved before place and restaurant existed read as home-made.
   let foods: FoodEntry[] = (saved?.foods ?? []).map(readSnapshotFood);
-  const walks = new Map<string, { walk: Walk; points: WalkPoint[] }>(saved?.walks);
+  const walks = new Map<string, { walk: Walk; points: WalkPoint[]; parts?: WalkPart[] }>(saved?.walks);
+  let places: Place[] = saved?.places ?? [];
   let ownFoods: OwnFood[] = saved?.ownFoods ?? [];
   // Newest first; checked again like the SQLite rows.
   let savedFoods: FoodItem[] = (saved?.savedFoods ?? []).map(readFoodItem).filter((f): f is FoodItem => f !== null);
@@ -98,6 +103,7 @@ export async function openRepository(): Promise<Repository> {
           weather: [...weather],
           foods,
           walks: [...walks],
+          places,
           ownFoods,
           savedFoods,
           sleep,
@@ -237,8 +243,13 @@ export async function openRepository(): Promise<Repository> {
       persist();
     },
 
-    async saveWalk(walk, points) {
-      walks.set(walk.id, { walk: { ...walk }, points: points ?? walks.get(walk.id)?.points ?? [] });
+    async saveWalk(walk, points, parts) {
+      const before = walks.get(walk.id);
+      walks.set(walk.id, {
+        walk: { ...walk },
+        points: points ?? before?.points ?? [],
+        parts: parts ? parts.map((p) => ({ ...p, walkId: walk.id })) : (before?.parts ?? []),
+      });
       persist();
     },
     async getWalks(limit) {
@@ -248,10 +259,45 @@ export async function openRepository(): Promise<Repository> {
         .slice(0, limit);
     },
     async getWalk(id) {
-      return walks.get(id) ?? null;
+      const w = walks.get(id);
+      return w ? { walk: w.walk, points: w.points } : null;
+    },
+    async getWalkParts(walkId) {
+      return [...(walks.get(walkId)?.parts ?? [])].sort((a, b) => a.ord - b.ord);
+    },
+    async setPartChoice(walkId, ord, choice) {
+      const w = walks.get(walkId);
+      if (!w) return null;
+      const next = applyChoice(w.walk, w.parts ?? [], ord, choice);
+      if (!next) return w.walk;
+      walks.set(walkId, { ...w, walk: next.walk, parts: next.parts });
+      persist();
+      return next.walk;
+    },
+    async updateWalk(id, change) {
+      const w = walks.get(id);
+      if (!w) return null;
+      const next = change(w.walk, w.parts ?? []);
+      if (!next) return w.walk;
+      walks.set(id, { ...w, walk: { ...next.walk }, parts: next.parts ?? w.parts ?? [] });
+      persist();
+      return next.walk;
     },
     async deleteWalk(id) {
       walks.delete(id);
+      persist();
+    },
+
+    async getPlaces() {
+      return [...places].sort((a, b) => a.name.localeCompare(b.name));
+    },
+    async savePlace(place) {
+      places = [...places.filter((p) => p.id !== place.id), { ...place }];
+      persist();
+    },
+    async deletePlace(id) {
+      places = places.filter((p) => p.id !== id);
+      for (const [key, w] of walks) if (w.walk.placeId === id) walks.set(key, { ...w, walk: { ...w.walk, placeId: null } });
       persist();
     },
 
@@ -332,6 +378,7 @@ export async function openRepository(): Promise<Repository> {
       weather.clear();
       foods = [];
       walks.clear();
+      places = [];
       ownFoods = [];
       savedFoods = [];
       sleep = [];

@@ -1,78 +1,113 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://unistyl.es/), etc.
+ * The park-track world: Material 3 colour roles for light and dark, the 8 dp
+ * spacing scale, shapes, motion and the type scale with its fonts. The values
+ * live in tokens.ts (plain data, tested for contrast); this file adds the
+ * font families, which differ on the web preview.
+ *
+ * Read colours with useTheme() (hooks/use-theme). Text styles come from
+ * <ThemedText type="bodyLarge" /> or Type.bodyLarge; never hand-pick a size.
  */
 
 import '@/global.css';
 
-import { Platform } from 'react-native';
+import { Platform, type TextStyle } from 'react-native';
 
-export const Colors = {
-  light: {
-    text: '#11181C',
-    background: '#ffffff',
-    backgroundElement: '#F2F4F3',
-    backgroundSelected: '#E2E6E4',
-    textSecondary: '#60646C',
-    accent: '#0E9F6E',
-    accentSoft: '#D5F2E6',
-    onAccent: '#ffffff',
-    track: '#E2E6E4',
-    danger: '#D92D20',
-    /** Amber: "medium" watch-outs, between fine and too much. */
-    warning: '#B54708',
-  },
-  dark: {
-    text: '#ECEDEE',
-    background: '#0B0D0E',
-    backgroundElement: '#191C1E',
-    backgroundSelected: '#262A2D',
-    textSecondary: '#A3A9AE',
-    accent: '#34D399',
-    accentSoft: '#123327',
-    onAccent: '#06281B',
-    track: '#2A2F33',
-    danger: '#F97066',
-    warning: '#FDB022',
-  },
+import { type FontWeightName, TypeScale, type TypeRole, type TypeSpec } from './tokens';
+
+export * from './tokens';
+
+/**
+ * Loaded in app/_layout.tsx from @expo-google-fonts. Barlow is the one UI
+ * family; Barlow Condensed is its own condensed cut, for the big numbers.
+ * Neither has Indian scripts: Android draws those with the system's Noto
+ * fonts, glyph by glyph, and the web preview falls back the same way.
+ */
+export const FontFiles = {
+  regular: 'Barlow_400Regular',
+  medium: 'Barlow_500Medium',
+  semibold: 'Barlow_600SemiBold',
+  bold: 'Barlow_700Bold',
+  numeralMedium: 'BarlowCondensed_500Medium',
+  numeral: 'BarlowCondensed_600SemiBold',
 } as const;
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+/** The web preview names a fallback chain; phones fall back on their own. */
+const WEB_FALLBACK = ", 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Telugu', system-ui, sans-serif";
+const family = (file: string) => (Platform.OS === 'web' ? `${file}${WEB_FALLBACK}` : file);
 
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
-});
-
-export const Spacing = {
-  half: 2,
-  one: 4,
-  two: 8,
-  three: 16,
-  four: 24,
-  five: 32,
-  six: 64,
+export const Fonts = {
+  regular: family(FontFiles.regular),
+  medium: family(FontFiles.medium),
+  semibold: family(FontFiles.semibold),
+  bold: family(FontFiles.bold),
+  numeralMedium: family(FontFiles.numeralMedium),
+  numeral: family(FontFiles.numeral),
+  /** Kept for old code that asked for these. */
+  sans: family(FontFiles.regular),
+  rounded: family(FontFiles.medium),
+  serif: Platform.OS === 'web' ? 'Georgia, serif' : 'serif',
+  mono: Platform.OS === 'web' ? 'ui-monospace, monospace' : 'monospace',
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
-export const MaxContentWidth = 800;
+/** The UI face for a weight name or a CSS-style weight (400, '600', 'bold'). */
+export function uiFont(weight: FontWeightName | TextStyle['fontWeight'] | undefined): string {
+  switch (weight) {
+    case 'medium':
+    case '500':
+    case 500:
+      return Fonts.medium;
+    case 'semibold':
+    case '600':
+    case 600:
+      return Fonts.semibold;
+    case 'bold':
+    case '700':
+    case 700:
+    case '800':
+    case 800:
+    case '900':
+    case 900:
+    case 'heavy':
+    case 'black':
+      return Fonts.bold;
+    default:
+      return Fonts.regular;
+  }
+}
+
+/** The numeral face for a weight: 500 and below are Medium, the rest SemiBold. */
+export function numeralFont(weight: FontWeightName | TextStyle['fontWeight'] | undefined): string {
+  switch (weight) {
+    case 'regular':
+    case 'medium':
+    case 'normal':
+    case '400':
+    case 400:
+    case '500':
+    case 500:
+      return Fonts.numeralMedium;
+    default:
+      return Fonts.numeral;
+  }
+}
+
+function toStyle(spec: TypeSpec): TextStyle {
+  return {
+    fontFamily: spec.numeral ? numeralFont(spec.weight) : uiFont(spec.weight),
+    fontSize: spec.size,
+    lineHeight: spec.line,
+    letterSpacing: spec.tracking,
+    ...(spec.numeral ? { fontVariant: ['tabular-nums'] as TextStyle['fontVariant'] } : null),
+  };
+}
+
+/** Ready-made text styles for every role of the type scale. */
+export const Type = Object.fromEntries(
+  (Object.keys(TypeScale) as TypeRole[]).map((role) => [role, toStyle(TypeScale[role])]),
+) as Record<TypeRole, TextStyle>;
+
+/** How much the big numerals may grow with the phone's text size; they are large already. */
+export const NumeralMaxScale = 1.3;
+
+/** Old name for the space the tab bar takes; the bar now takes its own room, so screens need none. */
+export const BottomTabInset = 0;

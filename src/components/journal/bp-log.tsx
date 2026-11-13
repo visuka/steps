@@ -1,13 +1,14 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { Card } from '@/components/card';
 import { confirmDelete } from '@/components/confirm';
-import { Button, NumberField } from '@/components/controls';
+import { NumberField } from '@/components/controls';
+import { EditPanel, EntryList, EntryRow, FormActions } from '@/components/journal/entry-parts';
 import { ThemedText } from '@/components/themed-text';
+import { Card, EmptyState, Notice, SectionHeader, StatTile, Why } from '@/components/ui';
 import { WhenField } from '@/components/when-field';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { changeBloodPressure, deleteBloodPressure } from '@/data/entries';
 import { type BloodPressureEntry, newId } from '@/data/types';
 import { vitalsSource } from '@/health/vitals';
@@ -21,6 +22,11 @@ import { useVitalsConnection } from '@/state/use-vitals';
 
 const HISTORY_DAYS = 30;
 const DAY_MS = 86_400_000;
+
+const STEADY_WHY =
+  'Sit quietly for 5 minutes first, back supported, feet flat, arm resting at heart height. Take two readings a minute apart and log both.';
+const RANGES_WHY =
+  "Ranges are the American Heart Association's for adults. One reading says little on its own; what matters is how your numbers run over weeks.";
 
 /** What the form gives back. */
 interface Reading {
@@ -37,7 +43,6 @@ interface Note {
 
 export function BloodPressureLog() {
   const { repo, dataVersion, touch } = useApp();
-  const theme = useTheme();
   const clock = useClockStyle();
   const vitals = useVitalsConnection();
   const [readings, setReadings] = useState<BloodPressureEntry[]>([]);
@@ -149,28 +154,26 @@ export function BloodPressureLog() {
     <>
       {warning ? <SevereWarning reading={warning} /> : null}
 
-      <Card title="New reading">
+      <Card title="New reading" right={<Why title="A steady reading" text={STEADY_WHY} label="How?" />}>
         <BpForm key={formKey} actionLabel="Save reading" onSave={add} />
-        {addNote ? <NoteText note={addNote} /> : null}
-        <ThemedText type="small" themeColor="textSecondary">
-          For a steady reading: sit quietly for 5 minutes first, back supported, feet flat, arm resting at heart height.
-          Take two readings a minute apart and log both.
-        </ThemedText>
+        {addNote ? <Notice tone={addNote.problem ? 'problem' : 'info'} text={addNote.text} /> : null}
       </Card>
 
-      <Card title="Your readings">
-        {shown.length === 0 ? (
-          <ThemedText themeColor="textSecondary">No readings in the last {HISTORY_DAYS} days.</ThemedText>
-        ) : (
-          <>
+      <SectionHeader title="Your readings" why={RANGES_WHY} />
+      {shown.length === 0 ? (
+        <EmptyState icon="pulse-outline" title="No readings yet" hint={`Readings from the last ${HISTORY_DAYS} days show here.`} />
+      ) : (
+        <>
+          <View style={styles.tiles}>
             <Average label="Last 7 days" avg={week} />
             <Average label={`Last ${HISTORY_DAYS} days`} avg={month} />
+          </View>
+          <EntryList>
             {shown.map((r) => {
               const mine = r.source === 'manual';
               if (mine && editing === r.id) {
                 return (
-                  <View key={r.id} style={[styles.editing, { borderColor: theme.backgroundSelected }]}>
-                    <ThemedText type="smallBold">Change this reading</ThemedText>
+                  <EditPanel key={r.id} title="Change this reading">
                     <BpForm
                       initial={r}
                       actionLabel="Save"
@@ -178,67 +181,49 @@ export function BloodPressureLog() {
                       onCancel={() => setEditing(null)}
                       onDelete={() => askRemove(r)}
                     />
-                  </View>
+                  </EditPanel>
                 );
               }
               const label = `${r.systolic}/${r.diastolic} mmHg${r.pulse ? ` · pulse ${r.pulse}` : ''}`;
               const detail = `${formatWhen(r.loggedAt, now, clock)} · ${BP_CATEGORY[bpCategory(r.systolic, r.diastolic)].label}${
-                mine ? '' : ` · from ${vitals.label ?? 'another app'}`
+                mine ? '' : ` · ${vitals.label ?? 'another app'}`
               }`;
-              const text = (
-                <View style={styles.entryText}>
-                  <ThemedText>{label}</ThemedText>
-                  <ThemedText type="small" themeColor="textSecondary">
-                    {detail}
-                  </ThemedText>
-                </View>
-              );
-              if (!mine) {
-                return (
-                  <View key={r.id} style={styles.entry}>
-                    {text}
-                  </View>
-                );
-              }
               return (
-                <Pressable
+                <EntryRow
                   key={r.id}
-                  onPress={() => {
-                    setListNote(null);
-                    setEditing(r.id);
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${label}, ${detail}. Tap to change or delete it.`}
-                  style={styles.entry}>
-                  {text}
-                  <Pressable
-                    onPress={() => askRemove(r)}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Delete ${r.systolic} over ${r.diastolic}`}
-                    hitSlop={10}>
-                    <Ionicons name="trash-outline" size={20} color={theme.textSecondary} />
-                  </Pressable>
-                </Pressable>
+                  title={label}
+                  supporting={detail}
+                  onPress={
+                    mine
+                      ? () => {
+                          setListNote(null);
+                          setEditing(r.id);
+                        }
+                      : undefined
+                  }
+                  onDelete={mine ? () => askRemove(r) : undefined}
+                  deleteLabel={`Delete ${r.systolic} over ${r.diastolic}`}
+                  readOnly={!mine}
+                />
               );
             })}
-          </>
-        )}
-        {listNote ? <NoteText note={listNote} /> : null}
-        {shown.some((r) => r.source === 'manual') && !editing ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            Tap a reading you logged to change it or delete it.
-          </ThemedText>
-        ) : null}
-        {shown.some((r) => r.source !== 'manual') ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            Readings from {vitals.label ?? 'another app'} can only be changed in the app that made them.
-          </ThemedText>
-        ) : null}
-        <ThemedText type="small" themeColor="textSecondary">
-          Ranges are the American Heart Association&apos;s for adults. One reading says little on its own; what matters is
-          how your numbers run over weeks. This isn&apos;t a diagnosis. Talk to your doctor about your readings.
+          </EntryList>
+        </>
+      )}
+      {listNote ? <Notice tone={listNote.problem ? 'problem' : 'info'} text={listNote.text} /> : null}
+      {shown.some((r) => r.source === 'manual') && !editing ? (
+        <ThemedText type="bodySmall" themeColor="onSurfaceVariant">
+          Tap a reading you logged to change it.
         </ThemedText>
-      </Card>
+      ) : null}
+      {shown.some((r) => r.source !== 'manual') ? (
+        <ThemedText type="bodySmall" themeColor="onSurfaceVariant">
+          Readings from {vitals.label ?? 'another app'} change only in the app that made them.
+        </ThemedText>
+      ) : null}
+      <ThemedText type="bodySmall" themeColor="onSurfaceVariant">
+        Not a diagnosis. Talk to your doctor about your readings.
+      </ThemedText>
     </>
   );
 }
@@ -257,7 +242,6 @@ function BpForm({
   onCancel?: () => void;
   onDelete?: () => void;
 }) {
-  const theme = useTheme();
   const [systolic, setSystolic] = useState<number | null>(initial?.systolic ?? null);
   const [diastolic, setDiastolic] = useState<number | null>(initial?.diastolic ?? null);
   const [pulse, setPulse] = useState<number | null>(initial?.pulse ?? null);
@@ -297,78 +281,101 @@ function BpForm({
       <NumberField label="Bottom number (diastolic)" value={diastolic} unit="mmHg" onCommit={setDiastolic} placeholder="80" />
       <NumberField label="Pulse (optional)" value={pulse} unit="bpm" onCommit={setPulse} placeholder="—" />
       <WhenField value={at ?? now} onChange={setAt} />
-      {preview ? (
-        <ThemedText themeColor="textSecondary">
-          {systolic}/{diastolic} is in the <CategoryText category={preview} /> range.
-        </ThemedText>
-      ) : null}
-      {problem || error ? (
-        <ThemedText type="small" style={{ color: theme.danger }}>
-          {error ?? problem}
-        </ThemedText>
-      ) : null}
-      <Button label={actionLabel} onPress={save} disabled={systolic === null || diastolic === null || saving} />
-      {onCancel ? <Button kind="secondary" label="Cancel" onPress={onCancel} /> : null}
-      {onDelete ? <Button kind="danger" label="Delete this reading" onPress={onDelete} /> : null}
+      {preview ? <CategoryLine systolic={systolic!} diastolic={diastolic!} category={preview} /> : null}
+      {problem || error ? <Notice tone="problem" text={(error ?? problem)!} /> : null}
+      <FormActions
+        saveLabel={actionLabel}
+        onSave={save}
+        saveDisabled={systolic === null || diastolic === null}
+        saving={saving}
+        onCancel={onCancel}
+        onDelete={onDelete}
+      />
     </>
   );
 }
 
-function NoteText({ note }: { note: Note }) {
-  const theme = useTheme();
-  return (
-    <ThemedText type="small" themeColor="textSecondary" style={note.problem ? { color: theme.danger } : undefined}>
-      {note.text}
-    </ThemedText>
-  );
-}
-
-function CategoryText({ category }: { category: ReturnType<typeof bpCategory> }) {
+/** "128/84 · Elevated", with a mark for the readings to watch; the label always says it too. */
+function CategoryLine({
+  systolic,
+  diastolic,
+  category,
+}: {
+  systolic: number;
+  diastolic: number;
+  category: ReturnType<typeof bpCategory>;
+}) {
   const theme = useTheme();
   const { label, tone } = BP_CATEGORY[category];
+  const mark = tone === 'high' ? theme.over : tone === 'watch' ? theme.near : theme.steps;
   return (
-    <ThemedText type="smallBold" style={tone === 'high' ? { color: theme.danger } : undefined}>
-      {label.toLowerCase()}
-    </ThemedText>
+    <View style={styles.category} accessible accessibilityLabel={`${systolic} over ${diastolic} is in the ${label.toLowerCase()} range`}>
+      <View style={[styles.dot, { backgroundColor: mark }]} />
+      <ThemedText type="labelLarge">
+        {systolic}/{diastolic} · {label}
+      </ThemedText>
+    </View>
   );
 }
 
 function Average({ label, avg }: { label: string; avg: BpAverage | null }) {
   if (!avg) return null;
   return (
-    <View style={styles.average}>
-      <ThemedText type="small" themeColor="textSecondary">
-        {label}
-      </ThemedText>
-      <ThemedText>
-        {avg.systolic}/{avg.diastolic} on average · {BP_CATEGORY[bpCategory(avg.systolic, avg.diastolic)].label} ·{' '}
-        {avg.count} {avg.count === 1 ? 'reading' : 'readings'}
-      </ThemedText>
-    </View>
+    <StatTile
+      label={label}
+      value={`${avg.systolic}/${avg.diastolic}`}
+      note={`${BP_CATEGORY[bpCategory(avg.systolic, avg.diastolic)].label} · ${avg.count} ${avg.count === 1 ? 'reading' : 'readings'}`}
+      style={styles.tile}
+      accessibilityLabel={`${label}: ${avg.systolic} over ${avg.diastolic} on average, ${avg.count} readings`}
+    />
   );
 }
 
 /** Very high readings get plain next steps, following the AHA's advice for readings over 180/120. */
 function SevereWarning({ reading }: { reading: BloodPressureEntry }) {
   const theme = useTheme();
+  const ink = { color: theme.onErrorContainer };
   return (
-    <Card style={{ borderColor: theme.danger, borderWidth: 1 }}>
-      <ThemedText type="smallBold" style={{ color: theme.danger }}>
-        {reading.systolic}/{reading.diastolic} is very high
+    <View style={[styles.warning, { backgroundColor: theme.errorContainer }]} accessibilityRole="alert">
+      <View style={styles.warningHead}>
+        <Ionicons name="warning-outline" size={24} color={theme.onErrorContainer} />
+        <ThemedText type="titleMedium" style={[styles.flex, ink]}>
+          {reading.systolic}/{reading.diastolic} is very high
+        </ThemedText>
+      </View>
+      <Step n={1} text="Sit quietly for 5 minutes and measure again." />
+      <Step n={2} text="If it stays this high, contact a doctor today." />
+      <ThemedText type="bodyMedium" style={ink}>
+        Chest pain, short of breath, back pain, numbness, weakness, a change in vision or trouble speaking?
       </ThemedText>
-      <ThemedText>Sit quietly for 5 minutes and measure again.</ThemedText>
-      <ThemedText>If it stays this high, contact a doctor today.</ThemedText>
-      <ThemedText>
-        If you also have chest pain, shortness of breath, back pain, numbness or weakness, a change in vision or trouble
-        speaking, call 108 or 112 now.
+      <ThemedText type="titleMedium" style={ink}>
+        Call 108 or 112 now.
       </ThemedText>
-    </Card>
+    </View>
+  );
+}
+
+function Step({ n, text }: { n: number; text: string }) {
+  const theme = useTheme();
+  return (
+    <View style={styles.step}>
+      <ThemedText type="labelLarge" style={{ color: theme.onErrorContainer }}>
+        {n}.
+      </ThemedText>
+      <ThemedText type="bodyLarge" style={[styles.flex, { color: theme.onErrorContainer }]}>
+        {text}
+      </ThemedText>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  entry: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three },
-  entryText: { flex: 1, gap: Spacing.half },
-  average: { gap: Spacing.half },
-  editing: { gap: Spacing.three, borderTopWidth: 1, borderBottomWidth: 1, paddingVertical: Spacing.three },
+  tiles: { flexDirection: 'row', gap: Spacing.two },
+  tile: { flexBasis: 0, minWidth: 0 },
+  category: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
+  dot: { width: 10, height: 10, borderRadius: 5 },
+  warning: { borderRadius: Radius.md, padding: Spacing.three, gap: Spacing.two },
+  warningHead: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
+  step: { flexDirection: 'row', gap: Spacing.two },
+  flex: { flex: 1 },
 });

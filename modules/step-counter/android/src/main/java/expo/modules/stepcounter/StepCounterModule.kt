@@ -68,7 +68,9 @@ class StepCounterModule : Module() {
       )
     }
 
-    AsyncFunction("startWalk") { WalkService.start(context).toDouble() }
+    AsyncFunction("startWalk") { activity: String, indoor: Boolean, place: String?, effort: String? ->
+      WalkService.start(context, activity, indoor, place, effort).toDouble()
+    }
 
     AsyncFunction("stopWalk") { WalkService.stop(context) }
 
@@ -76,7 +78,7 @@ class StepCounterModule : Module() {
       StepStore.get(context).getState(StepStore.WALK_ID, 0).takeIf { it != 0L }?.toDouble()
     }
 
-    Function("isWalkRecording") { WalkService.isRunning }
+    Function("isWalkRecording") { WalkService.isRecording(context) }
 
     AsyncFunction("getWalkPoints") { walkId: Double, afterT: Double ->
       StepStore.get(context).walkPoints(walkId.toLong(), afterT.toLong())
@@ -85,7 +87,28 @@ class StepCounterModule : Module() {
     AsyncFunction("clearWalk") { walkId: Double ->
       val store = StepStore.get(context)
       store.clearWalk(walkId.toLong())
-      if (store.getState(StepStore.WALK_ID, 0) == walkId.toLong()) store.setState(StepStore.WALK_ID, 0)
+      if (store.getState(StepStore.WALK_ID, 0) == walkId.toLong()) store.clearWalkState()
+    }
+
+    AsyncFunction("setWalkIndoor") { indoor: Boolean -> WalkService.setIndoor(context, indoor) }
+
+    AsyncFunction("walkMode") { StepStore.get(context).walkMode() }
+
+    AsyncFunction("getWalkSteps") { walkId: Double, afterT: Double ->
+      runCatching { StepStore.get(context).walkSteps(walkId.toLong(), afterT.toLong()) }.getOrDefault(emptyList())
+    }
+
+    AsyncFunction("getWalkPressure") { walkId: Double, afterT: Double ->
+      runCatching { StepStore.get(context).walkPressure(walkId.toLong(), afterT.toLong()) }.getOrDefault(emptyList())
+    }
+
+    AsyncFunction("getWalkActivity") { walkId: Double, afterT: Double ->
+      runCatching { StepStore.get(context).walkActivity(walkId.toLong(), afterT.toLong()) }.getOrDefault(emptyList())
+    }
+
+    Function("hasBarometer") {
+      val sensors = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+      sensors.getDefaultSensor(Sensor.TYPE_PRESSURE) != null
     }
   }
 }

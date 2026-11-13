@@ -1,16 +1,16 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { BarChart } from '@/components/bar-chart';
-import { Card } from '@/components/card';
 import { confirmDelete } from '@/components/confirm';
-import { Button } from '@/components/controls';
 import { ConnectHealth } from '@/components/journal/connect-health';
-import { MoodPicker, moodEmoji } from '@/components/mood-picker';
+import { EditPanel, EntryList, EntryRow, FieldLabel, FormActions } from '@/components/journal/entry-parts';
+import { MoodFace, MoodPicker } from '@/components/mood-picker';
 import { ThemedText } from '@/components/themed-text';
+import { Button, Card, EmptyState, Notice, SectionHeader, Why } from '@/components/ui';
 import { WhenField } from '@/components/when-field';
-import { Spacing } from '@/constants/theme';
+import { NumeralMaxScale, Spacing } from '@/constants/theme';
 import { saveLastNight, saveNight } from '@/data/entries';
 import type { Mood, SleepEntry, SleepStages } from '@/data/types';
 import { useClockStyle } from '@/hooks/use-clock-style';
@@ -35,8 +35,11 @@ interface Note {
   problem: boolean;
 }
 
-const REPLACES = 'That morning already has a night you logged; saving replaces it.';
+const REPLACES = 'That morning already has a night you logged. Saving replaces it.';
 const watchHas = (store: string) => `That morning already has a night from ${store}. Pick another date.`;
+const GUESS_WHY =
+  'The times are a guess from when your phone stopped and started moving. Tap a time to change its date or time.';
+const CHART_WHY = 'The dashed line is 7 hours, the least most adults are advised to get.';
 
 /** The morning a night counts toward; a wake-up time left as it was keeps the night's own. */
 const morningFor = (wakeAt: number, entry: SleepEntry | null) =>
@@ -44,7 +47,6 @@ const morningFor = (wakeAt: number, entry: SleepEntry | null) =>
 
 export function SleepLog() {
   const { repo, dataVersion, touch } = useApp();
-  const theme = useTheme();
   const clock = useClockStyle();
   const vitals = useVitalsConnection();
   /** A year of nights: the list shows two weeks, the rest is to see what a night saved for an older morning would replace. */
@@ -162,15 +164,17 @@ export function SleepLog() {
 
   return (
     <>
-      <Card title="Last night">
+      <Card title="Last night" right={!watchNight && !saved ? <Why title="Last night" text={GUESS_WHY} /> : undefined}>
         {watchNight ? (
-          <>
-            <ThemedText style={styles.big}>{formatSleep(watchNight.asleepMin)}</ThemedText>
-            <ThemedText themeColor="textSecondary">
-              {formatClock(watchNight.bedAt, clock)} to {formatClock(watchNight.wakeAt, clock)}, from {store}
+          <View style={styles.hero}>
+            <ThemedText type="numeralLarge" maxFontSizeMultiplier={NumeralMaxScale}>
+              {formatSleep(watchNight.asleepMin)}
+            </ThemedText>
+            <ThemedText type="bodyMedium" themeColor="onSurfaceVariant">
+              {formatClock(watchNight.bedAt, clock)} – {formatClock(watchNight.wakeAt, clock)} · {store}
             </ThemedText>
             {watchNight.stages ? <StageLine stages={watchNight.stages} /> : null}
-          </>
+          </View>
         ) : bedAt !== null && wakeAt !== null ? (
           <NightTimes
             bedAt={bedAt}
@@ -179,27 +183,17 @@ export function SleepLog() {
             onWake={(v) => setDraft((d) => ({ ...d, wakeAt: v }))}
           />
         ) : null}
-        {problem ? (
-          <ThemedText type="small" style={{ color: theme.danger }}>
-            {problem}
-          </ThemedText>
-        ) : null}
+        {problem ? <Notice tone="problem" text={problem} /> : null}
         {clash === 'health' ? (
-          <ThemedText type="small" style={{ color: theme.danger }}>
-            {watchHas(store)}
-          </ThemedText>
+          <Notice tone="problem" text={watchHas(store)} />
         ) : clash === 'manual' ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            {REPLACES}
-          </ThemedText>
+          <Notice text={REPLACES} />
         ) : null}
         {saved && morningOf !== today ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            This saves a night for the morning of {formatDayLong(morningOf)}. Last night stays as it is.
-          </ThemedText>
+          <Notice text={`Saves a night for ${formatDayLong(morningOf)}. Last night stays.`} />
         ) : null}
 
-        <ThemedText type="smallBold">How rested do you feel?</ThemedText>
+        <FieldLabel>How rested do you feel?</FieldLabel>
         <MoodPicker value={rested} onChange={(m) => setDraft((d) => ({ ...d, rested: m }))} />
 
         {!saved || changed ? (
@@ -209,30 +203,28 @@ export function SleepLog() {
             disabled={!watchNight && (bedAt === null || wakeAt === null || problem !== null || clash === 'health')}
           />
         ) : (
-          <ThemedText type="small" themeColor="textSecondary">
-            Saved. Change anything above to update it.
-          </ThemedText>
+          <Notice tone="done" text="Saved. Change anything above to update it." />
         )}
-        {cardNote ? <NoteText note={cardNote} /> : null}
-        {!watchNight && !saved ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            Times are a guess from when your phone stopped and started moving. Tap a time to change its date or time.
-          </ThemedText>
-        ) : null}
+        {cardNote ? <Notice tone={cardNote.problem ? 'problem' : 'info'} text={cardNote.text} /> : null}
       </Card>
 
       <ConnectHealth what="sleep and heart rate" />
 
-      <Card title="Last two weeks">
-        {nights.length === 0 ? (
-          <ThemedText themeColor="textSecondary">No nights logged yet.</ThemedText>
-        ) : (
-          <>
+      <SectionHeader title="Last two weeks" why={nights.length ? CHART_WHY : undefined} />
+      {nights.length === 0 ? (
+        <EmptyState icon="moon-outline" title="No nights logged yet" hint="Save last night above to start." />
+      ) : (
+        <>
+          <Card>
             {weekAverage !== null ? (
-              <ThemedText>
-                Past week: {formatSleep(weekAverage)} a night on average ({recent.length}{' '}
-                {recent.length === 1 ? 'night' : 'nights'}).
-              </ThemedText>
+              <View style={styles.value}>
+                <ThemedText type="numeralMedium" maxFontSizeMultiplier={NumeralMaxScale}>
+                  {formatSleep(weekAverage)}
+                </ThemedText>
+                <ThemedText type="labelLarge" themeColor="onSurfaceVariant">
+                  a night · past week, {recent.length} {recent.length === 1 ? 'night' : 'nights'}
+                </ThemedText>
+              </View>
             ) : null}
             <BarChart
               bars={chartDays.map((date, i) => ({
@@ -241,17 +233,17 @@ export function SleepLog() {
                 label: i % 2 === 1 ? weekdayShort(date).slice(0, 2) : '',
               }))}
               goal={FULL_NIGHT_MIN}
+              tone="sleep"
               height={90}
             />
-            <ThemedText type="small" themeColor="textSecondary">
-              The dashed line is 7 hours, the least most adults are advised to get.
-            </ThemedText>
+          </Card>
+
+          <EntryList>
             {[...nights].reverse().map((n) => {
               const own = n.fromHealth ? null : manualOn(n.date);
               if (own && editing === own.id) {
                 return (
-                  <View key={n.date} style={[styles.editing, { borderColor: theme.backgroundSelected }]}>
-                    <ThemedText type="smallBold">Change this night</ThemedText>
+                  <EditPanel key={n.date} title="Change this night">
                     <NightForm
                       entry={own}
                       clash={(morning) => nightClash(all, morning, own.id)}
@@ -260,7 +252,7 @@ export function SleepLog() {
                       onCancel={() => setEditing(null)}
                       onDelete={() => askRemove(own)}
                     />
-                  </View>
+                  </EditPanel>
                 );
               }
               return (
@@ -278,24 +270,23 @@ export function SleepLog() {
                       : undefined
                   }
                   onDelete={own ? () => askRemove(own) : undefined}
-                  color={theme.textSecondary}
                 />
               );
             })}
-          </>
-        )}
-        {listNote ? <NoteText note={listNote} /> : null}
-        {nights.some((n) => !n.fromHealth) && !editing ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            Tap a night you logged to change it or delete it.
-          </ThemedText>
-        ) : null}
-        {nights.some((n) => n.fromHealth) ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            Nights from {store} can only be changed in the app that made them.
-          </ThemedText>
-        ) : null}
-      </Card>
+          </EntryList>
+        </>
+      )}
+      {listNote ? <Notice tone={listNote.problem ? 'problem' : 'info'} text={listNote.text} /> : null}
+      {nights.some((n) => !n.fromHealth) && !editing ? (
+        <ThemedText type="bodySmall" themeColor="onSurfaceVariant">
+          Tap a night you logged to change it.
+        </ThemedText>
+      ) : null}
+      {nights.some((n) => n.fromHealth) ? (
+        <ThemedText type="bodySmall" themeColor="onSurfaceVariant">
+          Nights from {store} change only in the app that made them.
+        </ThemedText>
+      ) : null}
     </>
   );
 }
@@ -317,7 +308,17 @@ function NightTimes({
       <WhenField label="Went to sleep" value={bedAt} onChange={onBed} />
       <WhenField label="Woke up" value={wakeAt} onChange={onWake} />
       {wakeAt > bedAt ? (
-        <ThemedText themeColor="textSecondary">About {formatSleep((wakeAt - bedAt) / 60_000)} of sleep.</ThemedText>
+        <View style={styles.value}>
+          <ThemedText type="labelLarge" themeColor="onSurfaceVariant">
+            About
+          </ThemedText>
+          <ThemedText type="numeralSmall" maxFontSizeMultiplier={NumeralMaxScale}>
+            {formatSleep((wakeAt - bedAt) / 60_000)}
+          </ThemedText>
+          <ThemedText type="labelLarge" themeColor="onSurfaceVariant">
+            of sleep
+          </ThemedText>
+        </View>
       ) : null}
     </>
   );
@@ -341,7 +342,6 @@ function NightForm({
   onCancel: () => void;
   onDelete: () => void;
 }) {
-  const theme = useTheme();
   const [bedAt, setBedAt] = useState(entry.startAt);
   const [wakeAt, setWakeAt] = useState(entry.endAt);
   const [rested, setRested] = useState<Mood | null>(entry.rested);
@@ -351,29 +351,16 @@ function NightForm({
   return (
     <>
       <NightTimes bedAt={bedAt} wakeAt={wakeAt} onBed={setBedAt} onWake={setWakeAt} />
-      {problem ? (
-        <ThemedText type="small" style={{ color: theme.danger }}>
-          {problem}
-        </ThemedText>
-      ) : null}
-      {there === 'health' ? (
-        <ThemedText type="small" style={{ color: theme.danger }}>
-          {watchHas(store)}
-        </ThemedText>
-      ) : there === 'manual' ? (
-        <ThemedText type="small" themeColor="textSecondary">
-          {REPLACES}
-        </ThemedText>
-      ) : null}
-      <ThemedText type="smallBold">How rested did you feel?</ThemedText>
+      {problem ? <Notice tone="problem" text={problem} /> : null}
+      {there === 'health' ? <Notice tone="problem" text={watchHas(store)} /> : there === 'manual' ? <Notice text={REPLACES} /> : null}
+      <FieldLabel>How rested did you feel?</FieldLabel>
       <MoodPicker value={rested} onChange={setRested} />
-      <Button
-        label="Save"
-        onPress={() => onSave({ bedAt, wakeAt, rested })}
-        disabled={problem !== null || there === 'health'}
+      <FormActions
+        onSave={() => onSave({ bedAt, wakeAt, rested })}
+        saveDisabled={problem !== null || there === 'health'}
+        onCancel={onCancel}
+        onDelete={onDelete}
       />
-      <Button kind="secondary" label="Cancel" onPress={onCancel} />
-      <Button kind="danger" label="Delete this night" onPress={onDelete} />
     </>
   );
 }
@@ -386,7 +373,7 @@ function StageLine({ stages }: { stages: SleepStages }) {
     ['Awake', stages.awake],
   ] as const;
   return (
-    <ThemedText type="small" themeColor="textSecondary">
+    <ThemedText type="labelMedium" themeColor="onSurfaceVariant">
       {parts
         .filter(([, min]) => min > 0)
         .map(([label, min]) => `${label} ${formatSleep(min)}`)
@@ -401,51 +388,40 @@ function NightRow({
   from,
   onPress,
   onDelete,
-  color,
 }: {
   night: Night;
   clock: ClockStyle;
   from: string;
   onPress?: () => void;
   onDelete?: () => void;
-  color: string;
 }) {
-  const title = `${formatDayLong(night.date)} · ${formatSleep(night.asleepMin)}${night.rested ? ` ${moodEmoji(night.rested)}` : ''}`;
-  const detail = `${formatClock(night.bedAt, clock)} to ${formatClock(night.wakeAt, clock)}${night.fromHealth ? ` · from ${from}` : ''}`;
+  const title = `${formatDayLong(night.date)} · ${formatSleep(night.asleepMin)}`;
+  const detail = `${formatClock(night.bedAt, clock)} – ${formatClock(night.wakeAt, clock)}${night.fromHealth ? ` · ${from}` : ''}`;
   return (
-    <Pressable
+    <EntryRow
+      title={title}
+      supporting={detail}
+      leading={night.rested ? <MoodFace mood={night.rested} size={28} /> : <NoFace />}
       onPress={onPress}
-      disabled={!onPress}
-      accessibilityRole={onPress ? 'button' : undefined}
-      accessibilityLabel={`${title}, ${detail}.${onPress ? ' Tap to change or delete it.' : ''}`}
-      style={styles.night}>
-      <View style={styles.nightText}>
-        <ThemedText>{title}</ThemedText>
-        <ThemedText type="small" themeColor="textSecondary">
-          {detail}
-        </ThemedText>
-      </View>
-      {onDelete ? (
-        <Pressable onPress={onDelete} accessibilityRole="button" accessibilityLabel={`Delete ${formatDayLong(night.date)}`} hitSlop={10}>
-          <Ionicons name="trash-outline" size={20} color={color} />
-        </Pressable>
-      ) : null}
-    </Pressable>
+      onDelete={onDelete}
+      deleteLabel={`Delete ${formatDayLong(night.date)}`}
+      readOnly={night.fromHealth}
+    />
   );
 }
 
-function NoteText({ note }: { note: Note }) {
+/** A night with no "how rested": a moon in the face's place, so the rows line up. */
+function NoFace() {
   const theme = useTheme();
   return (
-    <ThemedText type="small" themeColor="textSecondary" style={note.problem ? { color: theme.danger } : undefined}>
-      {note.text}
-    </ThemedText>
+    <View style={styles.noFace}>
+      <Ionicons name="moon-outline" size={22} color={theme.onSurfaceVariant} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  big: { fontSize: 32, lineHeight: 40, fontWeight: 700, fontVariant: ['tabular-nums'] },
-  night: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three },
-  nightText: { flex: 1, gap: Spacing.half },
-  editing: { gap: Spacing.three, borderTopWidth: 1, borderBottomWidth: 1, paddingVertical: Spacing.three },
+  hero: { gap: Spacing.one },
+  value: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', columnGap: Spacing.two },
+  noFace: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
 });

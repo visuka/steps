@@ -1,35 +1,56 @@
 import { Camera, GeoJSONSource, Layer, Map } from '@maplibre/maplibre-react-native';
-import { StyleSheet, useColorScheme, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { Colors, Spacing } from '@/constants/theme';
+import { Radius } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { routeBounds, type WalkPoint } from '@/lib/walk';
+import { lineColor, type RouteLine } from '@/walks/view';
 
 /** OpenFreeMap: OpenStreetMap tiles, free with no key, commercial use allowed. */
 const MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty';
 
+const SOLID = ['route', 'part'];
+const DASHED = ['weak', 'left-out'];
+
 /**
- * A walk's route on a map. `follow` keeps the latest point in view while
- * recording; otherwise the map frames the whole route.
+ * A walk's route on a map. Pass `lines` (from routeLines) to draw weak GPS
+ * and vehicle or cycling parts their own way; `points` alone draws one line.
+ * `follow` keeps the latest point in view while recording; otherwise the map
+ * frames the whole route.
  */
-export function RouteMap({ points, height, follow }: { points: WalkPoint[]; height: number; follow?: boolean }) {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
-  const coordinates = points.map((p) => [p.lon, p.lat]);
-  const last = points[points.length - 1];
-  const b = routeBounds(points);
+export function RouteMap({
+  points,
+  lines,
+  height,
+  follow,
+}: {
+  points?: WalkPoint[];
+  lines?: RouteLine[];
+  height: number;
+  follow?: boolean;
+}) {
+  const theme = useTheme();
+  const drawn: RouteLine[] =
+    lines ?? (points && points.length >= 2 ? [{ kind: 'route', ord: null, points }] : []);
+  const all = drawn.flatMap((l) => l.points);
+  const first = all[0];
+  const last = all[all.length - 1];
+  const b = routeBounds(all);
 
   const route: GeoJSON.FeatureCollection = {
     type: 'FeatureCollection',
     features: [
-      ...(coordinates.length >= 2
-        ? [{ type: 'Feature' as const, properties: {}, geometry: { type: 'LineString' as const, coordinates } }]
-        : []),
-      ...(points.length
+      ...drawn.map((l) => ({
+        type: 'Feature' as const,
+        properties: { kind: l.kind, color: lineColor(theme, l.kind) },
+        geometry: { type: 'LineString' as const, coordinates: l.points.map((p) => [p.lon, p.lat]) },
+      })),
+      ...(first && last
         ? [
             {
               type: 'Feature' as const,
               properties: { end: 0 },
-              geometry: { type: 'Point' as const, coordinates: [points[0].lon, points[0].lat] },
+              geometry: { type: 'Point' as const, coordinates: [first.lon, first.lat] },
             },
             {
               type: 'Feature' as const,
@@ -42,7 +63,7 @@ export function RouteMap({ points, height, follow }: { points: WalkPoint[]; heig
   };
 
   return (
-    <View style={[styles.frame, { height }]}>
+    <View style={[styles.frame, { height, backgroundColor: theme.surfaceContainerHigh }]}>
       <Map mapStyle={MAP_STYLE} style={StyleSheet.absoluteFill} compass={false} logo={false} attribution>
         {follow && last ? (
           <Camera center={[last.lon, last.lat]} zoom={16} duration={500} />
@@ -56,11 +77,18 @@ export function RouteMap({ points, height, follow }: { points: WalkPoint[]; heig
         ) : null}
         <GeoJSONSource id="route" data={route}>
           <Layer
-            id="route-line"
+            id="route-solid"
             type="line"
-            filter={['==', ['geometry-type'], 'LineString']}
-            paint={{ 'line-color': colors.accent, 'line-width': 5 }}
+            filter={['all', ['==', ['geometry-type'], 'LineString'], ['in', ['get', 'kind'], ['literal', SOLID]]]}
+            paint={{ 'line-color': ['get', 'color'], 'line-width': 5 }}
             layout={{ 'line-cap': 'round', 'line-join': 'round' }}
+          />
+          <Layer
+            id="route-dashed"
+            type="line"
+            filter={['all', ['==', ['geometry-type'], 'LineString'], ['in', ['get', 'kind'], ['literal', DASHED]]]}
+            paint={{ 'line-color': ['get', 'color'], 'line-width': 4, 'line-dasharray': [1.5, 1.5] }}
+            layout={{ 'line-join': 'round' }}
           />
           <Layer
             id="route-ends"
@@ -68,8 +96,8 @@ export function RouteMap({ points, height, follow }: { points: WalkPoint[]; heig
             filter={['==', ['geometry-type'], 'Point']}
             paint={{
               'circle-radius': 6,
-              'circle-color': ['case', ['==', ['get', 'end'], 1], colors.accent, '#ffffff'],
-              'circle-stroke-color': colors.accent,
+              'circle-color': ['case', ['==', ['get', 'end'], 1], theme.steps, theme.tick],
+              'circle-stroke-color': theme.steps,
               'circle-stroke-width': 3,
             }}
           />
@@ -80,5 +108,5 @@ export function RouteMap({ points, height, follow }: { points: WalkPoint[]; heig
 }
 
 const styles = StyleSheet.create({
-  frame: { borderRadius: Spacing.four, overflow: 'hidden' },
+  frame: { borderRadius: Radius.md, overflow: 'hidden' },
 });

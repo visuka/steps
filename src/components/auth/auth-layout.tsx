@@ -1,20 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { type ComponentProps, type ReactNode } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  type TextInputProps,
-  View,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, type TextInputProps, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { resolveFont, ThemedText } from '@/components/themed-text';
+import { Button } from '@/components/ui/button';
+import { Radius, Spacing, TouchTarget, Type } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 /** The full-screen frame shared by sign-in, the lock and the lock question. */
@@ -26,43 +17,42 @@ export function AuthLayout({
 }: {
   icon: ComponentProps<typeof Ionicons>['name'];
   title: string;
+  /** One short line. */
   subtitle?: string;
   children: ReactNode;
 }) {
   const theme = useTheme();
   return (
-    <ThemedView style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.surface }]}>
       <SafeAreaView style={styles.container}>
         <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
             <View style={styles.inner}>
-              <Ionicons name={icon} size={48} color={theme.accent} />
-              <ThemedText type="subtitle">{title}</ThemedText>
-              {subtitle ? <ThemedText themeColor="textSecondary">{subtitle}</ThemedText> : null}
+              <View style={[styles.mark, { backgroundColor: theme.surfaceContainerHigh }]}>
+                <Ionicons name={icon} size={32} color={theme.onSurface} />
+              </View>
+              <View style={styles.heading}>
+                <ThemedText type="headlineMedium" accessibilityRole="header">
+                  {title}
+                </ThemedText>
+                {subtitle ? (
+                  <ThemedText type="bodyLarge" themeColor="onSurfaceVariant">
+                    {subtitle}
+                  </ThemedText>
+                ) : null}
+              </View>
               {children}
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
-    </ThemedView>
+    </View>
   );
 }
 
 /** A quiet text-only action, e.g. "Not now". */
 export function TextButton({ label, onPress, disabled }: { label: string; onPress: () => void; disabled?: boolean }) {
-  const theme = useTheme();
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      accessibilityRole="button"
-      hitSlop={8}
-      style={({ pressed }) => [styles.textButton, { opacity: disabled ? 0.5 : pressed ? 0.6 : 1 }]}>
-      <ThemedText type="smallBold" style={{ color: theme.accent }}>
-        {label}
-      </ThemedText>
-    </Pressable>
-  );
+  return <Button label={label} onPress={onPress} disabled={disabled} variant="text" style={styles.textButton} />;
 }
 
 type FieldKind = 'email' | 'code';
@@ -75,8 +65,8 @@ const KIND_PROPS: Record<FieldKind, TextInputProps> = {
 };
 
 /**
- * A labelled input that tells the phone what it holds, so the keyboard can
- * offer the person's email, or the code from the email.
+ * A Material filled text field that tells the phone what it holds, so the
+ * keyboard can offer the person's email, or the code from the email.
  */
 export function Field({
   label,
@@ -86,23 +76,34 @@ export function Field({
   onSubmitEditing,
   onCard,
   editable = true,
+  supporting,
 }: {
   label: string;
   kind: FieldKind;
   value: string;
   onChangeText: (text: string) => void;
   onSubmitEditing?: () => void;
-  /** Inside a Card, whose background the default input colour would match. */
+  /** Inside a Card, whose background the default field colour would match. */
   onCard?: boolean;
   editable?: boolean;
+  /** One short line under the field. */
+  supporting?: string;
 }) {
   const theme = useTheme();
   return (
     <View style={styles.field}>
-      <ThemedText type="small" themeColor="textSecondary">
-        {label}
-      </ThemedText>
-      <View style={[styles.inputRow, { backgroundColor: onCard ? theme.background : theme.backgroundElement }]}>
+      <View
+        style={[
+          styles.box,
+          {
+            backgroundColor: onCard ? theme.surfaceContainerLowest : theme.surfaceContainerHighest,
+            borderBottomColor: theme.onSurfaceVariant,
+            opacity: editable ? 1 : 0.6,
+          },
+        ]}>
+        <ThemedText type="bodySmall" themeColor="onSurfaceVariant">
+          {label}
+        </ThemedText>
         <TextInput
           {...KIND_PROPS[kind]}
           value={value}
@@ -112,9 +113,22 @@ export function Field({
           autoCapitalize="none"
           autoCorrect={false}
           accessibilityLabel={label}
-          style={[styles.input, { color: theme.text }, kind === 'code' && styles.code]}
+          cursorColor={theme.primary}
+          selectionColor={theme.secondaryContainer}
+          placeholderTextColor={theme.onSurfaceVariant}
+          style={resolveFont([
+            kind === 'code' ? Type.numeralSmall : Type.bodyLarge,
+            styles.input,
+            { color: theme.onSurface },
+            kind === 'code' && styles.code,
+          ])}
         />
       </View>
+      {supporting ? (
+        <ThemedText type="bodySmall" themeColor="onSurfaceVariant" style={styles.supporting}>
+          {supporting}
+        </ThemedText>
+      ) : null}
     </View>
   );
 }
@@ -123,15 +137,20 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { flexGrow: 1, padding: Spacing.four, justifyContent: 'center', alignItems: 'center' },
   inner: { width: '100%', maxWidth: 440, gap: Spacing.three },
-  textButton: { alignSelf: 'center', paddingVertical: Spacing.one },
+  mark: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center' },
+  heading: { gap: Spacing.two, marginBottom: Spacing.two },
+  textButton: { alignSelf: 'center' },
   field: { gap: Spacing.one },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.two,
-    borderRadius: Spacing.two + 4,
-    paddingHorizontal: Spacing.three - 4,
+  box: {
+    minHeight: 56,
+    paddingTop: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    borderTopLeftRadius: Radius.xs,
+    borderTopRightRadius: Radius.xs,
+    borderBottomWidth: 1,
+    justifyContent: 'center',
   },
-  input: { flex: 1, fontSize: 16, paddingVertical: Spacing.three - 4 },
-  code: { fontSize: 22, letterSpacing: 6, fontVariant: ['tabular-nums'] },
+  input: { minHeight: TouchTarget - 16, paddingVertical: Spacing.one, paddingHorizontal: 0 },
+  code: { letterSpacing: 6 },
+  supporting: { paddingHorizontal: Spacing.three },
 });

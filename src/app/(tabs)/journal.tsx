@@ -1,76 +1,73 @@
-import { useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 
-import { Segmented } from '@/components/controls';
 import { BloodPressureLog } from '@/components/journal/bp-log';
 import { BodyLog } from '@/components/journal/body-log';
-import { FoodLog } from '@/components/journal/food-log';
 import { HeartLog } from '@/components/journal/heart-log';
 import { MoodLog } from '@/components/journal/mood-log';
 import { SleepLog } from '@/components/journal/sleep-log';
 import { PremiumGate } from '@/components/premium-gate';
 import { Screen } from '@/components/screen';
+import { Chip } from '@/components/ui/chip';
+import { Spacing } from '@/constants/theme';
 import { SCREEN_FEATURES } from '@/premium/premium';
 
-type Section = 'mood' | 'food' | 'sleep' | 'body';
-type BodyPart = 'bp' | 'heart' | 'weight' | 'water';
+type Part = 'sleep' | 'heart' | 'bp' | 'weight' | 'water' | 'mood';
 
-const SECTIONS: { value: Section; label: string }[] = [
-  { value: 'mood', label: 'Mood' },
-  { value: 'food', label: 'Food' },
+const PARTS: { value: Part; label: string }[] = [
   { value: 'sleep', label: 'Sleep' },
-  { value: 'body', label: 'Body' },
-];
-
-const BODY: { value: BodyPart; label: string }[] = [
-  { value: 'bp', label: 'BP' },
   { value: 'heart', label: 'Heart' },
+  { value: 'bp', label: 'Blood pressure' },
   { value: 'weight', label: 'Weight' },
   { value: 'water', label: 'Water' },
+  { value: 'mood', label: 'Mood' },
 ];
 
-/** Links can name a section ("food") or a part of Body ("bp"). */
-function target(param: unknown): { section: Section; body?: BodyPart } | null {
-  if (SECTIONS.some((s) => s.value === param)) return { section: param as Section };
-  if (BODY.some((b) => b.value === param)) return { section: 'body', body: param as BodyPart };
-  return null;
+/** Links name a part ("bp", "sleep"); "body" is the old name for the first of its parts. Food has its own tab. */
+function target(param: unknown): Part | 'food' | null {
+  if (param === 'food') return 'food';
+  if (param === 'body') return 'bp';
+  return PARTS.some((p) => p.value === param) ? (param as Part) : null;
 }
 
 export default function JournalScreen() {
+  const router = useRouter();
   const params = useLocalSearchParams<{ section?: string }>();
-  const initial = target(params.section);
-  const [section, setSection] = useState<Section>(initial?.section ?? 'mood');
-  const [body, setBody] = useState<BodyPart>(initial?.body ?? 'bp');
+  const first = target(params.section);
+  const [part, setPart] = useState<Part>(first && first !== 'food' ? first : 'sleep');
   const [lastParam, setLastParam] = useState(params.section);
-  // Links from Today ("Log food") switch the section even when the tab is already mounted.
+  // Links (Insights, notifications) switch the part even when the tab is already mounted.
   if (params.section !== lastParam) {
     setLastParam(params.section);
     const t = target(params.section);
-    if (t) {
-      setSection(t.section);
-      if (t.body) setBody(t.body);
-    }
+    if (t && t !== 'food') setPart(t);
   }
 
-  // Every section is premium; the tabs stay, so a free account can see what's in each.
-  const part = section === 'body' ? body : section;
+  // Old links to the Journal's food section go to the Food tab.
+  useEffect(() => {
+    if (params.section === 'food') router.navigate('/food');
+  }, [params.section, router]);
 
+  // Every part is premium; the chips stay, so a free account can see what's in each.
   return (
     <Screen title="Journal">
-      <Segmented options={SECTIONS} value={section} onChange={setSection} />
-      <PremiumGate feature={SCREEN_FEATURES[`journal/${part}` as const]}>
-        {section === 'mood' ? <MoodLog /> : null}
-        {section === 'food' ? <FoodLog /> : null}
-        {section === 'sleep' ? <SleepLog /> : null}
-        {section === 'body' ? (
-          <>
-            <Segmented options={BODY} value={body} onChange={setBody} />
-            {body === 'bp' ? <BloodPressureLog /> : null}
-            {body === 'heart' ? <HeartLog /> : null}
-            {body === 'weight' || body === 'water' ? <BodyLog key={body} kind={body} /> : null}
-          </>
-        ) : null}
+      <View style={styles.chips} accessibilityRole="tablist">
+        {PARTS.map((p) => (
+          <Chip key={p.value} label={p.label} selected={p.value === part} onPress={() => setPart(p.value)} />
+        ))}
+      </View>
+      <PremiumGate feature={SCREEN_FEATURES[`journal/${part}`]}>
+        {part === 'sleep' ? <SleepLog /> : null}
+        {part === 'heart' ? <HeartLog /> : null}
+        {part === 'bp' ? <BloodPressureLog /> : null}
+        {part === 'weight' || part === 'water' ? <BodyLog key={part} kind={part} /> : null}
+        {part === 'mood' ? <MoodLog /> : null}
       </PremiumGate>
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
+});

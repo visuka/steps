@@ -1,9 +1,32 @@
+/* Web preview only: the browser surfaces the app does not draw itself, in the park-track palette. */
 :root {
-  --font-display:
-    Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
-    Segoe UI Symbol, Noto Color Emoji;
-  --font-mono:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
-  --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;
+  --font-display: Barlow_400Regular, 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Telugu', system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-rounded: Barlow_500Medium, system-ui, sans-serif;
   --font-serif: Georgia, 'Times New Roman', serif;
+  color-scheme: light dark;
+  accent-color: #1d3024;
+}
+
+::selection {
+  background: #cfe2ce;
+  color: #142019;
+}
+
+:focus-visible {
+  outline: 2px solid #1d3024;
+  outline-offset: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    accent-color: #d5e4d4;
+  }
+  ::selection {
+    background: #34483a;
+    color: #e1e7df;
+  }
+  :focus-visible {
+    outline-color: #d5e4d4;
+  }
 }

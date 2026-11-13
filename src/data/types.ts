@@ -1,16 +1,56 @@
 import type { Achievement } from '@/lib/achievements';
 import type { Units } from '@/lib/format';
 import type { ReminderSettings } from '@/lib/reminders';
-import type { WalkPoint } from '@/lib/walk';
+import type { PartKind } from '@/lib/parts';
+import type { Place } from '@/lib/places';
+import type { RideEffort, WalkActivity, WalkPoint } from '@/lib/walk';
 import type { FoodItem, OwnFood } from '@/nutrition/types';
 
 export type SourceId = 'healthkit' | 'health-connect' | 'device-sensor' | 'demo';
 
 export type Sex = 'female' | 'male' | 'unspecified';
 
+/** veg ⊂ egg ⊂ nonveg: what food sources may be suggested. */
+export type Diet = 'veg' | 'egg' | 'nonveg';
+
+export type GlassMl = 200 | 250 | 300;
+
+export interface WaterSettings {
+  /** Null until the person saves one; screens then work against the suggestion. */
+  targetMl: number | null;
+  /** Add more on hot or active days. */
+  extras: boolean;
+  glassMl: GlassMl;
+  /** "Remind me if I'm behind". */
+  remind: boolean;
+  /** Reminder window, local hours: from fromHour + 1 until untilHour. */
+  fromHour: number;
+  untilHour: number;
+  /** "My doctor limits how much I drink": the target is a ceiling; no suggestion, extras or reminders. */
+  doctorLimit: boolean;
+}
+
+export interface NutritionSettings {
+  /** Null = not asked yet; counts as veg for food sources. */
+  diet: Diet | null;
+  /** Nutrient tips as notifications. Off until the person turns it on. */
+  tips: boolean;
+  /** Weekly summary notification. Off until the person turns it on. */
+  weekly: boolean;
+  hideCalories: boolean;
+  /**
+   * "My needs are different": pregnancy, breastfeeding, a doctor-guided diet.
+   * Numbers only: no Low / Too much, gap notes, sources or water suggestion.
+   * Anyone under 18 by birth year is treated the same (nutrition/targets.ts).
+   */
+  differentNeeds: boolean;
+}
+
 export interface Profile {
   heightCm: number;
   weightKg: number;
+  /** True once the person typed a weight (onboarding field changed, Settings); the default 65 kg is not theirs. */
+  weightSet: boolean;
   sex: Sex;
   birthYear: number | null;
   units: Units;
@@ -20,6 +60,8 @@ export interface Profile {
   reminders: ReminderSettings;
   /** Daily "how was today?" notification. */
   moodCheckIn: { enabled: boolean; hour: number };
+  water: WaterSettings;
+  nutrition: NutritionSettings;
   onboarded: boolean;
 }
 
@@ -134,6 +176,34 @@ export interface RecentFood {
   restaurant: string | null;
 }
 
+export type { PartKind, Place, RideEffort, WalkActivity };
+
+/** Where a walk's distance came from: the GPS route, steps x stride (indoors, or where GPS was poor), both, or nothing (an indoor ride). */
+export type DistanceSource = 'route' | 'steps' | 'mixed' | 'none';
+/** Where its steps came from: the walk's own counter, the day's minute buckets, or none (rides). */
+export type StepsSource = 'walk' | 'day' | 'none';
+
+/**
+ * The weather for a walk's own hours. Always from the forecast fetched while
+ * the app was open (no observations), so screens label it "Forecast".
+ */
+export interface WalkWeather {
+  tempC: number;
+  condition: WeatherCondition;
+  /** True for the forecast; walks saved before this was added have no flag and were a forecast too. */
+  forecast?: boolean;
+}
+
+/** Time ranges (epoch ms) on a walk, for the map and the distance note. */
+export interface WalkStretches {
+  /** Recorded indoors: steps only, no route. */
+  indoor?: [number, number][];
+  /** "GPS was weak here". */
+  weak?: [number, number][];
+  /** "Estimated from steps". */
+  fromSteps?: [number, number][];
+}
+
 export interface Walk {
   id: string;
   startedAt: number;
@@ -144,8 +214,56 @@ export interface Walk {
   steps: number | null;
   activeKcal: number;
   startPlace: string | null;
-  weather: { tempC: number; condition: WeatherCondition } | null;
+  weather: WalkWeather | null;
   updatedAt: number;
+  // The fields below are optional: walks saved before them read with the defaults in brackets.
+  /** ['walk'] */
+  activity?: WalkActivity;
+  /** Started as an indoor walk or an indoor bike ride. [false] */
+  indoor?: boolean;
+  /** The pin it started at; null once that pin is deleted. */
+  placeId?: string | null;
+  /** [null: an older walk; route if it has one, else steps] */
+  distanceFrom?: DistanceSource | null;
+  /** [null: an older walk, from the day's buckets] */
+  stepsFrom?: StepsSource | null;
+  /** Floors by stairs and lift; null without a barometer. */
+  floorsUp?: number | null;
+  floorsDown?: number | null;
+  liftUp?: number | null;
+  liftDown?: number | null;
+  /** Rides: height gained; walks: uphill outdoors. Null without a barometer. */
+  climbM?: number | null;
+  /** Best 10 s, m/s. */
+  topSpeedMs?: number | null;
+  /** Indoor rides. */
+  effort?: RideEffort | null;
+  stretches?: WalkStretches | null;
+}
+
+/** keep = on foot (adds distance, time, steps, walking kcal); cycle = cycling (distance, time, ride kcal); remove = left out. */
+export type PartChoice = 'keep' | 'cycle' | 'remove';
+
+/** A stretch of a recording that looked like a vehicle or a bicycle. */
+export interface WalkPart {
+  walkId: string;
+  /** 0, 1, 2… in time order. */
+  ord: number;
+  startT: number;
+  endT: number;
+  kind: PartKind;
+  /** Steps counted during it; null without step data. */
+  steps: number | null;
+  distanceM: number;
+  movingS: number;
+  topSpeedMs: number | null;
+  /** What it adds as walking (from its steps) or as cycling (from its speed). */
+  kcalWalk: number;
+  kcalRide: number;
+  /** Null until the person answers; then it can be undone back to null. */
+  choice: PartChoice | null;
+  /** Whether it counts while unanswered. */
+  defaultKeep: boolean;
 }
 
 /** 'manual' = typed in this app; 'health' = read from Apple Health / Health Connect. */
@@ -243,12 +361,40 @@ export interface Repository {
   saveSavedFood(food: FoodItem): Promise<void>;
   deleteSavedFood(id: string): Promise<void>;
 
-  /** Inserts or replaces the walk; replaces its route when points are given. */
-  saveWalk(walk: Walk, points?: WalkPoint[]): Promise<void>;
+  /**
+   * Inserts or replaces the walk with every column; replaces its route when
+   * points are given and its parts when parts are given (left out, they stay).
+   */
+  saveWalk(walk: Walk, points?: WalkPoint[], parts?: WalkPart[]): Promise<void>;
   /** Newest first. */
   getWalks(limit: number): Promise<Walk[]>;
+  /** The walk and every fix, each with its `part` (null on the main route). */
   getWalk(id: string): Promise<{ walk: Walk; points: WalkPoint[] } | null>;
+  /** In time order. */
+  getWalkParts(walkId: string): Promise<WalkPart[]>;
+  /**
+   * Sets a part's choice (null = undo) and recounts the walk, reading the
+   * current row and parts inside one transaction. Resolves the updated walk.
+   */
+  setPartChoice(walkId: string, ord: number, choice: PartChoice | null): Promise<Walk | null>;
+  /**
+   * Read-modify-write of a walk and its parts in one transaction; `change`
+   * gets the current row and returns the new one (and parts), or null to
+   * leave it. Resolves the walk as saved.
+   */
+  updateWalk(
+    id: string,
+    change: (walk: Walk, parts: WalkPart[]) => { walk: Walk; parts?: WalkPart[] } | null,
+  ): Promise<Walk | null>;
+  /** Removes the walk, its route and its parts. */
   deleteWalk(id: string): Promise<void>;
+
+  /** Pinned places, by name. */
+  getPlaces(): Promise<Place[]>;
+  /** Inserts or replaces by id. */
+  savePlace(place: Place): Promise<void>;
+  /** Past walks keep their start_place text; their place_id becomes null. */
+  deletePlace(id: string): Promise<void>;
 
   /** Inserts or replaces by id. */
   saveSleep(entry: SleepEntry): Promise<void>;
@@ -279,6 +425,7 @@ export interface Repository {
   getAchievements(): Promise<Achievement[]>;
   addAchievements(list: Achievement[]): Promise<void>;
 
+  /** Everything, walks, parts and pinned places included. */
   clearAll(): Promise<void>;
 }
 

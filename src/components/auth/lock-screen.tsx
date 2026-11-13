@@ -4,10 +4,8 @@ import { StyleSheet, View } from 'react-native';
 import { useAuth } from '@/auth/auth-state';
 import { AuthLayout, TextButton } from '@/components/auth/auth-layout';
 import { confirm } from '@/components/confirm';
-import { Button } from '@/components/controls';
-import { ThemedText } from '@/components/themed-text';
+import { Button, Notice, Why } from '@/components/ui';
 import { APP_NAME, SIGN_IN_MODE } from '@/constants/app';
-import { useTheme } from '@/hooks/use-theme';
 import { useLock } from '@/state/app-lock';
 
 /**
@@ -17,7 +15,6 @@ import { useLock } from '@/state/app-lock';
 export function LockScreen() {
   const { unlock } = useLock();
   const { signOut } = useAuth();
-  const theme = useTheme();
   const [failed, setFailed] = useState(false);
 
   const tryUnlock = useCallback(async () => {
@@ -40,13 +37,9 @@ export function LockScreen() {
       <AuthLayout
         icon="lock-closed"
         title={`${APP_NAME} is locked`}
-        subtitle="Use your fingerprint, face or your phone's screen lock to open it.">
-        {failed ? (
-          <ThemedText type="small" style={{ color: theme.danger }}>
-            That didn&apos;t work. Try again.
-          </ThemedText>
-        ) : null}
-        <Button label="Unlock" onPress={tryUnlock} />
+        subtitle="Open it with your fingerprint, face or screen lock.">
+        {failed ? <Notice tone="problem" text="That didn't work. Try again." /> : null}
+        <Button label="Unlock" icon="finger-print" onPress={tryUnlock} />
         {/* Phone sign-in has no sign-out: without the email there'd be no way back in. */}
         {SIGN_IN_MODE === 'passkey' ? (
           <TextButton
@@ -69,7 +62,6 @@ export function LockScreen() {
 /** Asked once on each phone, right after the first sign-in. */
 export function LockOffer() {
   const { setEnabled, markAsked } = useLock();
-  const theme = useTheme();
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
 
@@ -85,13 +77,13 @@ export function LockOffer() {
     <AuthLayout
       icon="finger-print"
       title={`Open ${APP_NAME} with your fingerprint?`}
-      subtitle="Keeps your steps, sleep, food and health readings private if someone else picks up your phone. Your face or your phone's screen-lock PIN works too.">
-      {problem ? (
-        <ThemedText type="small" style={{ color: theme.danger }}>
-          {problem}
-        </ThemedText>
-      ) : null}
-      <Button label={busy ? 'Waiting…' : 'Use fingerprint'} onPress={turnOn} disabled={busy} />
+      subtitle="Keeps your health data private if someone picks up your phone.">
+      {problem ? <Notice tone="problem" text={problem} /> : null}
+      <Button label="Use fingerprint" icon="finger-print" loading={busy} onPress={turnOn} />
+      <Why
+        title="Fingerprint lock"
+        text="Keeps your steps, sleep, food and health readings private if someone else picks up your phone. Your face or your phone's screen-lock PIN works too."
+      />
       <TextButton label="Not now" onPress={markAsked} disabled={busy} />
     </AuthLayout>
   );
