@@ -160,6 +160,9 @@ export default function RecordScreen() {
     () => (data && strideM !== null ? liveView(data, profile, strideM, polledAt) : null),
     [data, profile, strideM, polledAt],
   );
+  // Only when a poll brings new points (every 3 s), not on every 1 s clock tick:
+  // RouteMap is memoised, so the map keeps its source and camera between polls.
+  const lines = useMemo(() => (live ? routeLines(live.points, live.parts, live.walk?.stretches) : []), [live]);
   const mode = data?.mode ?? null;
 
   // "You left Home": the recorder switched to outdoors on its own.
@@ -312,7 +315,6 @@ export default function RecordScreen() {
   const hasSteps = !ride && !!data?.steps.length && w?.steps != null;
   const stairs = barometer && w && !ride ? stairsView(w) : null;
   const climb = barometer && w && (ride || w.climbM) ? climbText(w.climbM) : null;
-  const lines = live ? routeLines(live.points, live.parts, w?.stretches) : [];
   const backAt =
     phase === 'recording' &&
     !ride &&
@@ -353,13 +355,14 @@ export default function RecordScreen() {
   const title = phase === 'interrupted' ? 'Recording stopped' : recordingTitle(mode);
   const labelText = live?.label ? MOTION_LABEL_TEXT[live.label] : null;
   const dot = live?.label ? theme[labelTone(live.label)] : theme.outline;
+  const gpsSpoken = finding ? ', finding GPS' : gps === 'weak' && phase === 'recording' ? ', GPS weak' : '';
 
   return (
     <Screen
       title={title}
       onBack={() => router.back()}
       overlay={<Snackbar message={message} onDismiss={dismissMessage} />}>
-      <View style={styles.hero} accessible accessibilityLabel={`Time ${formatDuration(elapsedS)}${labelText ? `, ${labelText}` : ''}`}>
+      <View style={styles.hero} accessible accessibilityLabel={`Time ${formatDuration(elapsedS)}${labelText ? `, ${labelText}` : ''}${gpsSpoken}`}>
         <ThemedText type="numeralHero" maxFontSizeMultiplier={NumeralMaxScale} style={styles.clock}>
           {formatClock(elapsedS)}
         </ThemedText>

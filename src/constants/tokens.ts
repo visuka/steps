@@ -64,6 +64,9 @@ export interface ColorScheme {
   onFood: string;
   foodContainer: string;
   onFoodContainer: string;
+  /** Second and third marks of the food family, for a bar split three ways (carbs, protein, fat). 3:1 on the lane and cards. */
+  food2: string;
+  food3: string;
   water: string;
   onWater: string;
   waterContainer: string;
@@ -84,8 +87,14 @@ export interface ColorScheme {
   // ── Track paint ──
   /** The unfilled lane of a track or bar. */
   lane: string;
-  /** Painted tick marks, every 10%. */
+  /** Painted tick marks, every 10%. Kept for marks on neutral ground (route start dots). */
   tick: string;
+  /**
+   * Ticks on the part of a lane still to go: 3:1 against the lane, so the
+   * remaining tenths and the end of the bar can be counted. Ticks over the
+   * covered part use the tone's `on` colour (toneColors().on).
+   */
+  laneTick: string;
 
   // ── Older names, kept so every existing screen keeps working. New code uses the roles above. ──
   /** = onSurface */
@@ -157,6 +166,8 @@ const light = {
   onFood: '#FFFFFF',
   foodContainer: '#F8DAD0',
   onFoodContainer: '#3D1206',
+  food2: '#6E2A17',
+  food3: '#4A1A0D',
   water: '#2F6DAE',
   onWater: '#FFFFFF',
   waterContainer: '#D3E4F7',
@@ -172,8 +183,10 @@ const light = {
   over: '#BA1A1A',
   onOver: '#FFFFFF',
 
-  lane: '#D3DBD0',
+  // A step darker than surfaceVariant, so the lane reads on cards; every data colour still keeps 3:1 on it.
+  lane: '#C9D2C5',
   tick: '#FFFFFF',
+  laneTick: '#58635C',
 } as const;
 
 const dark = {
@@ -223,6 +236,8 @@ const dark = {
   onFood: '#3D1206',
   foodContainer: '#5A2414',
   onFoodContainer: '#FFDBCF',
+  food2: '#FFD9CC',
+  food3: '#C0603F',
   water: '#8CBDF0',
   onWater: '#0A2D52',
   waterContainer: '#133B63',
@@ -240,6 +255,7 @@ const dark = {
 
   lane: '#2C352F',
   tick: '#E1E7DF',
+  laneTick: '#95A096',
 } as const;
 
 type Roles = { [K in keyof typeof light]: string };

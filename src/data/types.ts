@@ -202,6 +202,8 @@ export interface WalkStretches {
   weak?: [number, number][];
   /** "Estimated from steps". */
   fromSteps?: [number, number][];
+  /** Top speed of the main route without its parts (m/s), so a keep/remove can recompute topSpeedMs. Only on walks with parts. */
+  mainTopSpeedMs?: number | null;
 }
 
 export interface Walk {

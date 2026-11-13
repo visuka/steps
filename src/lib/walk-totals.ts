@@ -206,7 +206,9 @@ export function buildWalk(input: BuildInput): BuiltWalk {
     stepsFrom = 'walk';
     stepsAt = (a, b) => stepsIn(rawTimeline, a, b);
   } else {
-    stepsFrom = 'none';
+    // No counter and the day's buckets are still empty (Health Connect apps
+    // sync every 10-30 min): steps unknown for now, re-read from the day later.
+    stepsFrom = 'day';
     stepsAt = null;
   }
 
@@ -361,6 +363,8 @@ export function buildWalk(input: BuildInput): BuiltWalk {
   if (indoorRanges.length) stretchInfo.indoor = indoorRanges;
   if (weak.length) stretchInfo.weak = weak;
   if (fromSteps.length) stretchInfo.fromSteps = fromSteps;
+  // Kept so a keep/remove can recompute the top speed without the points.
+  if (parts.length) stretchInfo.mainTopSpeedMs = top;
 
   let walk: BuiltWalkFields = {
     ...base,
@@ -379,7 +383,7 @@ export function buildWalk(input: BuildInput): BuiltWalk {
   const routeParts = parts.filter((p) => isCounted(p) && p.distanceM > 0);
   const routeTotal = routeM + routeParts.reduce((s, p) => s + p.distanceM, 0);
   walk.distanceFrom = distanceSource(routeTotal, stepM);
-  for (const p of routeParts) if (p.topSpeedMs !== null && (walk.topSpeedMs == null || p.topSpeedMs > walk.topSpeedMs)) walk.topSpeedMs = p.topSpeedMs;
+  walk.topSpeedMs = topWithParts(top, routeParts);
 
   // One fix per time: the end of one stretch can be the start of the next.
   const seen = new Set<number>();
@@ -463,12 +467,23 @@ export function recount<W extends Pick<Walk, 'distanceM' | 'movingS' | 'steps' |
   return addParts(foot, after, activity);
 }
 
+/** The walk's top speed: the main route's, or a counted part's when faster. */
+function topWithParts(mainTop: number | null, counted: Pick<WalkPart, 'topSpeedMs' | 'distanceM'>[]): number | null {
+  let top = mainTop;
+  for (const p of counted) if (p.distanceM > 0 && p.topSpeedMs !== null && (top === null || p.topSpeedMs > top)) top = p.topSpeedMs;
+  return top;
+}
+
 /** Sets one part's choice (null = back to unanswered) and recounts. */
 export function applyChoice(walk: Walk, parts: WalkPart[], ord: number, choice: PartChoice | null): { walk: Walk; parts: WalkPart[] } | null {
   const target = parts.find((p) => p.ord === ord);
   if (!target) return null;
   const after = parts.map((p) => (p.ord === ord ? { ...p, choice } : p));
-  return { walk: { ...recount(walk, parts, after), updatedAt: Date.now() }, parts: after };
+  const next: Walk = { ...recount(walk, parts, after), updatedAt: Date.now() };
+  // Walks saved before the main route's top was kept leave the top speed as it was.
+  const mainTop = walk.stretches?.mainTopSpeedMs;
+  if (mainTop !== undefined) next.topSpeedMs = topWithParts(mainTop, after.filter(isCounted));
+  return { walk: next, parts: after };
 }
 
 /**
@@ -485,7 +500,8 @@ export function refreshSteps(
   weightKg: number,
 ): { walk: Walk; parts: WalkPart[] } | null {
   if ((walk.activity ?? 'walk') === 'ride') return null;
-  if (walk.stepsFrom && walk.stepsFrom !== 'day') return null;
+  // 'none' on a walk: saved with no counter before the day's buckets arrived.
+  if (walk.stepsFrom === 'walk') return null;
   const freshParts = parts.map((p) => ({ ...p, steps: Math.round(stepsAt(p.startT, p.endT)) }));
   let mainSteps = 0;
   let cursor = walk.startedAt;
@@ -497,16 +513,21 @@ export function refreshSteps(
   const counted = freshParts.filter(isCounted).filter((p) => p.choice !== 'cycle');
   const steps = Math.round(mainSteps + counted.reduce((s, p) => s + (p.steps ?? 0), 0));
   if (steps === walk.steps && freshParts.every((p, i) => p.steps === parts[i].steps)) return null;
+  // Still nothing in the day's buckets: leave "unknown" rather than show 0.
+  if (walk.steps === null && steps === 0) return null;
 
-  let next: Walk = { ...walk, steps, updatedAt: Date.now() };
-  if (walk.distanceFrom === 'steps') {
+  let next: Walk = { ...walk, steps, stepsFrom: 'day', updatedAt: Date.now() };
+  // 'none': no route and no steps at save (indoors, or GPS never settled), so the distance is steps x stride too.
+  if (walk.distanceFrom === 'steps' || walk.distanceFrom === 'none') {
     // Distance and calories came from steps: they follow the new count.
     const partsDistance = freshParts.filter(isCounted).reduce((s, p) => s + p.distanceM, 0);
     const partsKcal = freshParts.filter(isCounted).reduce((s, p) => s + (p.choice === 'cycle' ? p.kcalRide : p.kcalWalk), 0);
+    const distanceM = Math.round(mainSteps * strideM + partsDistance);
     next = {
       ...next,
-      distanceM: Math.round(mainSteps * strideM + partsDistance),
+      distanceM,
       activeKcal: estimateKcalFromSteps(Math.round(mainSteps), weightKg) + partsKcal,
+      distanceFrom: walk.distanceFrom === 'none' && distanceM > 0 ? 'steps' : walk.distanceFrom,
     };
   }
   return { walk: next, parts: freshParts };

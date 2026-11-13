@@ -188,14 +188,16 @@ export async function refreshWalkSteps(
   if (walk.weather && walk.weather.forecast === undefined) {
     const day = await repo.getWeather(dayKey(new Date(walk.startedAt)));
     if (day) {
-      const weather = walkWeather(day, walk.startedAt, walk.endedAt);
+      // No hour near the walk: keep the day-summary weather it had, marked as a forecast so this runs once.
+      const weather = walkWeather(day, walk.startedAt, walk.endedAt) ?? { ...walk.weather, forecast: true };
       current = (await repo.updateWalk(walk.id, (row) => ({ walk: { ...row, weather, updatedAt: Date.now() } }))) ?? current;
     }
   }
 
   if (Date.now() - walk.endedAt > 2 * 86_400_000) return current;
   if ((walk.activity ?? 'walk') === 'ride') return current;
-  if (walk.stepsFrom === 'walk' || walk.stepsFrom === 'none') return current;
+  // 'none' on a walk means nothing was readable at save, so it's re-read too.
+  if (walk.stepsFrom === 'walk') return current;
   const buckets = await bucketsBetween(source, walk.startedAt, walk.endedAt);
   if (!buckets) return current;
   const strideM = await strideFor(repo, profile);

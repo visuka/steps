@@ -126,6 +126,20 @@ describe('building a walk', () => {
     expect(built.walk.steps).toBe(1000);
   });
 
+  it('no counter and the day not synced yet: steps unknown, re-read later with distance from steps', () => {
+    // Indoors on a phone with no step counter; Health Connect hasn't synced the minutes yet.
+    const built = buildWalk(base({ endedAt: T0 + 600_000, initialIndoor: true, modes: [{ t: T0, indoor: true }], buckets: [] }));
+    expect(built.walk).toMatchObject({ stepsFrom: 'day', steps: null, distanceM: 0, distanceFrom: 'none' });
+    const saved: Walk = { ...built.walk, id: 'w1', startPlace: null, weather: null, updatedAt: 1 };
+    // Still nothing in the buckets: stays unknown rather than 0.
+    expect(refreshSteps(saved, [], () => 0, 0.7, 70)).toBeNull();
+    const later = refreshSteps(saved, [], (a, b) => ((b - a) / 60_000) * 100, 0.7, 70)!;
+    expect(later.walk).toMatchObject({ steps: 1000, distanceM: 700, distanceFrom: 'steps', stepsFrom: 'day' });
+    expect(later.walk.activeKcal).toBe(estimateKcalFromSteps(1000, 70));
+    // A walk saved as 'none' before this fix is re-read too.
+    expect(refreshSteps({ ...saved, stepsFrom: 'none' }, [], (a, b) => ((b - a) / 60_000) * 100, 0.7, 70)?.walk.steps).toBe(1000);
+  });
+
   it('counts stairs with a barometer, and leaves them null without one', () => {
     const move = (s: number) => (s < 100 ? 0 : Math.min(6, (s - 100) * 0.2));
     const built = buildWalk(
@@ -228,6 +242,21 @@ describe('keep, cycle and remove', () => {
     expect(recount({ ...w, steps: null }, [], [part({ choice: 'keep' })]).steps).toBeNull();
   });
 
+  it('removing a fast part takes its top speed off the walk; adding it back restores it', () => {
+    const lift = part({ defaultKeep: true, topSpeedMs: 16.7 });
+    const w = { ...walk(), activity: 'ride' as const, steps: null, distanceM: 1100, activeKcal: 50, topSpeedMs: 16.7, stretches: { mainTopSpeedMs: 6 } };
+    const removed = applyChoice(w, [lift], 0, 'remove')!;
+    expect(removed.walk.topSpeedMs).toBe(6);
+    expect(applyChoice(removed.walk, removed.parts, 0, 'keep')!.walk.topSpeedMs).toBe(16.7);
+    // Saved before the main top was kept: left as it was.
+    expect(applyChoice({ ...w, stretches: null }, [lift], 0, 'remove')!.walk.topSpeedMs).toBe(16.7);
+  });
+
+  it('a built walk keeps its main top speed beside the parts', () => {
+    const built = buildWalk(walkCarWalk());
+    expect(built.walk.stretches?.mainTopSpeedMs).toBeLessThan(kmh(9));
+  });
+
   it('a ride keeps flagged parts with ride kcal', () => {
     const w = { ...walk(), activity: 'ride' as const, steps: null };
     const p = part({ defaultKeep: true });
@@ -297,6 +326,20 @@ describe('steps arriving late', () => {
     // Main time (500 s) plus the kept part (100 s) at 100 a minute.
     expect(refreshed.steps).toBe(1000);
     expect((await repo.getWalk('w1'))?.walk.steps).toBe(1000);
+  });
+});
+
+describe('weather on walks saved before the forecast flag', () => {
+  it('keeps the old weather when the day has no hour near the walk', async () => {
+    const repo = await openRepository();
+    // A 6 am walk; the day's hours start at 10.
+    const start = new Date(2026, 5, 1, 6, 0).getTime();
+    const old: Walk = { id: 'w9', startedAt: start, endedAt: start + 1_800_000, distanceM: 2000, movingS: 1800, steps: 2500, activeKcal: 90, startPlace: null, weather: { tempC: 24, condition: 'rain' }, updatedAt: 1, activity: 'walk', stepsFrom: 'walk' };
+    await repo.saveWalk(old, [], []);
+    await repo.upsertWeather({ date: '2026-06-01', tempMaxC: 30, tempMinC: 20, precipMm: 5, condition: 'rain', place: null, hours: { 10: { tempC: 27, precipMm: 0, symbol: 'clearsky_day' } }, updatedAt: 1 });
+    const source = { getStepBuckets: async () => [] } as unknown as StepSource;
+    const after = await refreshWalkSteps(repo, source, DEFAULT_PROFILE, old, []);
+    expect(after.weather).toEqual({ tempC: 24, condition: 'rain', forecast: true });
   });
 });
 

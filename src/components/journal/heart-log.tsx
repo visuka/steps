@@ -8,7 +8,7 @@ import { Card, EmptyState, SectionHeader, StatTile } from '@/components/ui';
 import { NumeralMaxScale, Spacing } from '@/constants/theme';
 import type { HeartDay } from '@/data/types';
 import { useTheme } from '@/hooks/use-theme';
-import { addDaysToKey, dayKey, weekdayShort } from '@/lib/dates';
+import { addDaysToKey, dayKey, formatDayLong, weekdayShort } from '@/lib/dates';
 import { restingWeekChange } from '@/lib/vitals-insights';
 import { useApp } from '@/state/app-state';
 import { useVitalsConnection } from '@/state/use-vitals';
@@ -90,6 +90,8 @@ export function HeartLog() {
                 }))}
                 color={theme.outline}
                 height={80}
+                name="Resting heart rate, past week"
+                describeBar={(b) => `${formatDayLong(b.key)}, ${b.value ? `${b.value} beats a minute` : 'none'}`}
               />
             ) : null}
             <ThemedText type="bodySmall" themeColor="onSurfaceVariant">

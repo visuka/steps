@@ -14,6 +14,7 @@ import android.content.pm.ServiceInfo
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
+import android.hardware.SensorEventListener2
 import android.hardware.SensorManager
 import android.location.Location
 import android.location.LocationListener
@@ -40,6 +41,8 @@ import com.google.android.gms.tasks.CancellationTokenSource
 import org.json.JSONObject
 import java.text.NumberFormat
 import java.util.Locale
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import com.google.android.gms.location.LocationRequest as GmsLocationRequest
 
 /** The pin an indoor walk started at, from the JSON the app passed. */
@@ -103,6 +106,8 @@ class WalkService : Service(), LocationListener {
   private var indoorRequestMs = 0L
   private var indoorFallback = false
   private var confirming = false
+  private var lastActivityConfirmAt = 0L
+  @Volatile private var flushLatch: CountDownLatch? = null
   private var previousOutside = false
   private val logged = mutableSetOf<String>()
 
@@ -112,7 +117,8 @@ class WalkService : Service(), LocationListener {
     }
   }
 
-  private val stepListener = object : SensorEventListener {
+  // SensorEventListener2 for onFlushCompleted: stopping waits for the batched events.
+  private val stepListener = object : SensorEventListener2 {
     override fun onSensorChanged(event: SensorEvent) {
       try {
         onStepEvent(event)
@@ -122,9 +128,13 @@ class WalkService : Service(), LocationListener {
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
+
+    override fun onFlushCompleted(sensor: Sensor?) {
+      flushLatch?.countDown()
+    }
   }
 
-  private val pressureListener = object : SensorEventListener {
+  private val pressureListener = object : SensorEventListener2 {
     override fun onSensorChanged(event: SensorEvent) {
       try {
         onPressureEvent(event)
@@ -134,6 +144,10 @@ class WalkService : Service(), LocationListener {
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
+
+    override fun onFlushCompleted(sensor: Sensor?) {
+      flushLatch?.countDown()
+    }
   }
 
   override fun onBind(intent: Intent?): IBinder? = null
@@ -190,12 +204,7 @@ class WalkService : Service(), LocationListener {
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_NOT_STICKY
 
   override fun onDestroy() {
-    try {
-      writeStepRow()
-      flushPressure()
-    } catch (e: Exception) {
-      logOnce("flush", e)
-    }
+    writePending()
     try {
       sensorManager.unregisterListener(stepListener)
       sensorManager.unregisterListener(pressureListener)
@@ -450,6 +459,50 @@ class WalkService : Service(), LocationListener {
     store.setState(StepStore.WALK_STEP_BOOT, state.bootCount)
   }
 
+  /** The last step row and pressure bucket. Main thread. */
+  private fun writePending() {
+    try {
+      writeStepRow()
+      flushPressure()
+    } catch (e: Exception) {
+      logOnce("flush", e)
+    }
+  }
+
+  /**
+   * Before stopping, off the main thread: has the sensors deliver what they
+   * batched (up to 5 s of steps), then writes the last rows on the main
+   * thread, so the app's read straight after stop sees all of it. onDestroy
+   * runs later, after the app has already read.
+   */
+  internal fun flushBeforeStop() {
+    if (Looper.myLooper() == Looper.getMainLooper()) {
+      // Can't wait here: the flush results arrive on this thread.
+      writePending()
+      return
+    }
+    try {
+      val flushed = CountDownLatch(2)
+      flushLatch = flushed
+      if (!runCatching { sensorManager.flush(stepListener) }.getOrDefault(false)) flushed.countDown()
+      if (!runCatching { sensorManager.flush(pressureListener) }.getOrDefault(false)) flushed.countDown()
+      flushed.await(FLUSH_WAIT_MS, TimeUnit.MILLISECONDS)
+    } catch (e: Exception) {
+      logOnce("sensor-flush", e)
+    } finally {
+      flushLatch = null
+    }
+    val written = CountDownLatch(1)
+    handler.post {
+      try {
+        writePending()
+      } finally {
+        written.countDown()
+      }
+    }
+    runCatching { written.await(FLUSH_WAIT_MS, TimeUnit.MILLISECONDS) }
+  }
+
   private fun writeStepRow() {
     if (pendingSteps < 0 || walkId == 0L) return
     store.addWalkSteps(walkId, pendingStepT, pendingSteps)
@@ -501,7 +554,11 @@ class WalkService : Service(), LocationListener {
   internal fun handleActivity(vehicleConf: Int, bicycleConf: Int) {
     try {
       store.setState(StepStore.WALK_LAST_ALIVE, System.currentTimeMillis())
-      if (indoor && place != null && PlaceCheck.shouldConfirmForActivity(vehicleConf, bicycleConf)) confirmFix()
+      if (!indoor || place == null || !PlaceCheck.shouldConfirmForActivity(vehicleConf, bicycleConf)) return
+      val now = System.currentTimeMillis()
+      if (confirming || !PlaceCheck.activityConfirmDue(now, lastActivityConfirmAt)) return
+      lastActivityConfirmAt = now
+      confirmFix()
     } catch (e: Exception) {
       logOnce("activity-result", e)
     }
@@ -586,6 +643,7 @@ class WalkService : Service(), LocationListener {
     private const val PRESSURE_LATENCY_US = 10_000_000
     private const val AR_INTERVAL_MS = 10_000L
     private const val AR_REQUEST_CODE = 7003
+    private const val FLUSH_WAIT_MS = 1_500L
 
     @Volatile var isRunning = false
       private set
@@ -641,6 +699,7 @@ class WalkService : Service(), LocationListener {
 
     fun stop(context: Context) {
       runCatching { StepStore.get(context).setState(StepStore.WALK_STOPPED, System.currentTimeMillis()) }
+      instance?.let { service -> runCatching { service.flushBeforeStop() } }
       context.stopService(Intent(context, WalkService::class.java))
     }
 

@@ -166,16 +166,14 @@ export async function waterWeek(repo: Repository, profile: Profile, now = new Da
     const dayFoods = foods.filter((f) => dayKey(new Date(f.loggedAt)) === day);
     const waterMl = logs.reduce((a, l) => (dayKey(new Date(l.loggedAt)) === day ? a + l.value : a), 0);
     const drinksMl = drinkMl(dayFoods, book.own, book.overrides, book.saved);
-    const t =
-      day === today && log.reached
-        ? log.reached
-        : waterTarget(profile, {
-            tempMaxC: weather.find((w) => w.date === day)?.tempMaxC ?? null,
-            steps: steps.find((s) => s.date === day)?.steps ?? null,
-            weightKnown: known,
-            numbersOnly,
-          });
     const totalMl = waterMl + drinksMl;
+    const computed = waterTarget(profile, {
+      tempMaxC: weather.find((w) => w.date === day)?.tempMaxC ?? null,
+      steps: steps.find((s) => s.date === day)?.steps ?? null,
+      weightKnown: known,
+      numbersOnly,
+    });
+    const t = day === today && computed ? stickyTarget(computed, totalMl, log).target : computed;
     out.push({ day, waterMl, drinksMl, totalMl, targetMl: t?.ml ?? null, met: Boolean(t && !t.limit && totalMl >= t.ml) });
   }
   return { days: out, metDays: out.filter((d) => d.met).length };

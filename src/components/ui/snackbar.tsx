@@ -1,17 +1,17 @@
 import { useEffect } from 'react';
-import { Pressable, StyleSheet, View, type ViewStyle } from 'react-native';
+import { AccessibilityInfo, Platform, Pressable, StyleSheet, View, type ViewStyle } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
 import { Motion, Radius, Spacing, TouchTarget } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-/** How long a snackbar stays: long enough to read and reach its action. */
-const SHOW_MS = 6000;
+import { SHOW_MS, snackbarTimeout } from './snackbar-timing';
 
 /**
  * Material 3 snackbar for brief feedback ("1 glass added · Undo"). It
- * dismisses itself; one at a time. Place it at the bottom of a screen, above
+ * dismisses itself; one at a time. With an action it honours Android's
+ * "Time to take action" setting and waits longer while a screen reader is on. Place it at the bottom of a screen, above
  * the FAB, with `style`.
  */
 export function Snackbar({
@@ -27,11 +27,32 @@ export function Snackbar({
   style?: ViewStyle;
 }) {
   const theme = useTheme();
+  const hasAction = !!action;
   useEffect(() => {
     if (!message) return;
-    const timer = setTimeout(onDismiss, SHOW_MS);
-    return () => clearTimeout(timer);
-  }, [message, onDismiss]);
+    let live = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const settle = async () => {
+      let recommended: number | null = null;
+      let screenReader = false;
+      if (hasAction) {
+        try {
+          [recommended, screenReader] = await Promise.all([
+            Platform.OS === 'android' ? AccessibilityInfo.getRecommendedTimeoutMillis(SHOW_MS) : Promise.resolve(null),
+            AccessibilityInfo.isScreenReaderEnabled(),
+          ]);
+        } catch {
+          // Fall back to the plain timeout.
+        }
+      }
+      if (live) timer = setTimeout(onDismiss, snackbarTimeout({ hasAction, recommended, screenReader }));
+    };
+    void settle();
+    return () => {
+      live = false;
+      if (timer) clearTimeout(timer);
+    };
+  }, [message, hasAction, onDismiss]);
 
   if (!message) return null;
   return (

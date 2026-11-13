@@ -75,12 +75,13 @@ export function nutrientRows(
   totals: Nutrients,
   coverage: Partial<Record<NutrientKey, number>>,
   ctx: ViewContext,
-  judged: boolean,
+  /** The day is judged; for a week, per nutrient (weekJudgedFor). */
+  judged: boolean | ((key: NutrientKey) => boolean),
   style: 'of' | 'percent',
 ): NutrientRowData[] {
   return keys.map((key) => {
     const cov = coverage[key] ?? 0;
-    const sc: StateContext = { ...ctx, coverage: cov, judged };
+    const sc: StateContext = { ...ctx, coverage: cov, judged: typeof judged === 'function' ? judged(key) : judged };
     const value = totals[key];
     const s = nutrientState(key, value, sc);
     return {

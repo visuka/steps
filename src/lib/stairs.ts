@@ -28,6 +28,9 @@ export const STAIRS = {
   STAIRS_STEPS_PER_M: 2,
   /** A gap in the readings longer than this, with 2 m of change and no steps, was a lift. */
   GAP_S: 10,
+  /** ...if it was short (weather moves under 1 m in this time) or the height moved fast enough across it. */
+  GAP_MAX_S: 180,
+  GAP_LIFT_MS: 0.1,
   HILL_RATIO: 3,
   /** Without steps: a lift moves at least this fast. */
   LIFT_MS: 0.5,
@@ -183,7 +186,11 @@ export function countStairs(samples: PressureSample[] | null | undefined, opts: 
       const first = rows[0];
       const excluded = exclude.some(([a, b]) => b >= prev.t && a <= first.t);
       const gapSteps = opts.steps ? stepsIn(opts.steps, prev.t, first.t) : 0;
-      if (!excluded && first.t - prev.t > STAIRS.GAP_S * 1000 && gapSteps < 3 && Math.abs(first.h - prev.h) >= STAIRS.MIN_M) {
+      const gapS = (first.t - prev.t) / 1000;
+      const dh = Math.abs(first.h - prev.h);
+      // A long sleep (sitting still) drifts with the weather: only a quick enough change is a lift.
+      const liftLike = gapS <= STAIRS.GAP_MAX_S || dh / gapS >= STAIRS.GAP_LIFT_MS;
+      if (!excluded && gapS > STAIRS.GAP_S && gapSteps < 3 && dh >= STAIRS.MIN_M && liftLike) {
         climbs.push({
           startT: prev.t,
           endT: first.t,

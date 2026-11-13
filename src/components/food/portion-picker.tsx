@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Chip, NumberField, Stepper } from '@/components/controls';
 import { NutrientBars } from '@/components/food/nutrient-bars';
 import { ThemedText } from '@/components/themed-text';
+import { Button as UiButton } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { gramsFor, isSavedFoodId, nutrientsFor, type PortionOverrides, unitsFor } from '@/nutrition/catalog';
@@ -170,20 +171,28 @@ export function PortionPicker({
             />
           </View>
         ) : (
-          <ThemedText type="small" themeColor="textSecondary" onPress={() => setEditing(true)} style={styles.link}>
-            1 {current.label} = {current.grams} g. Yours is different? Change
-          </ThemedText>
+          <View style={styles.inline}>
+            <ThemedText type="small" themeColor="textSecondary" style={styles.grow}>
+              1 {current.label} = {current.grams} g
+            </ThemedText>
+            <UiButton
+              variant="text"
+              compact
+              label="Change"
+              accessibilityLabel={`Change the size of 1 ${current.label}`}
+              onPress={() => setEditing(true)}
+            />
+          </View>
         )
       ) : null}
 
-      <ThemedText
-        type="small"
-        themeColor="textSecondary"
-        style={styles.link}
+      <UiButton
+        variant="text"
+        compact
+        icon={allNutrients ? 'chevron-up' : 'chevron-down'}
+        label={allNutrients ? 'Hide nutrients' : 'Show all nutrients'}
         onPress={() => setAllNutrients(!allNutrients)}
-        accessibilityRole="button">
-        {allNutrients ? 'Hide nutrients' : 'Show all nutrients'}
-      </ThemedText>
+      />
       {allNutrients ? (
         <View style={styles.section}>
           <NutrientBars nutrients={n} groups={['energy', 'macro', 'limit', 'glucose', 'vitamin', 'mineral']} />
@@ -195,14 +204,13 @@ export function PortionPicker({
 
       {hasWorking ? (
         <>
-          <ThemedText
-            type="small"
-            themeColor="textSecondary"
-            style={styles.link}
+          <UiButton
+            variant="text"
+            compact
+            icon={working ? 'chevron-up' : 'chevron-down'}
+            label={working ? 'Hide how we worked this out' : 'How we worked this out'}
             onPress={() => setWorking(!working)}
-            accessibilityRole="button">
-            {working ? 'Hide how we worked this out' : 'How we worked this out'}
-          </ThemedText>
+          />
           {working ? (
             <View style={styles.section}>
               {food.ingredients?.length ? (
@@ -253,7 +261,8 @@ const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
   portion: { gap: Spacing.two },
   section: { gap: Spacing.two },
-  link: { textDecorationLine: 'underline' },
+  inline: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
+  grow: { flex: 1 },
   actions: { flexDirection: 'row', gap: Spacing.two },
   action: { flex: 1 },
 });

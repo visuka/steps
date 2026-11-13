@@ -1,13 +1,22 @@
 import { Camera, GeoJSONSource, Layer, Map } from '@maplibre/maplibre-react-native';
+import { memo, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Radius } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 import { routeBounds, type WalkPoint } from '@/lib/walk';
 import { lineColor, type RouteLine } from '@/walks/view';
 
-/** OpenFreeMap: OpenStreetMap tiles, free with no key, commercial use allowed. */
-const MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty';
+/**
+ * OpenFreeMap: OpenStreetMap tiles, free with no key, commercial use allowed.
+ * Muted styles, one per scheme, so the route is the only saturated colour on
+ * the map (colour lives only inside the data).
+ */
+const MAP_STYLE = {
+  light: 'https://tiles.openfreemap.org/styles/positron',
+  dark: 'https://tiles.openfreemap.org/styles/dark',
+} as const;
 
 const SOLID = ['route', 'part'];
 const DASHED = ['weak', 'left-out'];
@@ -17,8 +26,11 @@ const DASHED = ['weak', 'left-out'];
  * and vehicle or cycling parts their own way; `points` alone draws one line.
  * `follow` keeps the latest point in view while recording; otherwise the map
  * frames the whole route.
+ *
+ * Memoised: a recording screen re-renders every second for its clock, and the
+ * map should only get a new source when the route itself changes.
  */
-export function RouteMap({
+export const RouteMap = memo(function RouteMap({
   points,
   lines,
   height,
@@ -30,14 +42,23 @@ export function RouteMap({
   follow?: boolean;
 }) {
   const theme = useTheme();
-  const drawn: RouteLine[] =
-    lines ?? (points && points.length >= 2 ? [{ kind: 'route', ord: null, points }] : []);
-  const all = drawn.flatMap((l) => l.points);
+  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
+  const drawn: RouteLine[] = useMemo(
+    () => lines ?? (points && points.length >= 2 ? [{ kind: 'route', ord: null, points }] : []),
+    [lines, points],
+  );
+  const all = useMemo(() => drawn.flatMap((l) => l.points), [drawn]);
   const first = all[0];
   const last = all[all.length - 1];
-  const b = routeBounds(all);
+  const b = useMemo(() => routeBounds(all), [all]);
+  const lastLon = last?.lon;
+  const lastLat = last?.lat;
+  const center = useMemo<[number, number] | null>(
+    () => (lastLon !== undefined && lastLat !== undefined ? [lastLon, lastLat] : null),
+    [lastLon, lastLat],
+  );
 
-  const route: GeoJSON.FeatureCollection = {
+  const route: GeoJSON.FeatureCollection = useMemo(() => ({
     type: 'FeatureCollection',
     features: [
       ...drawn.map((l) => ({
@@ -60,13 +81,13 @@ export function RouteMap({
           ]
         : []),
     ],
-  };
+  }), [drawn, first, last, theme]);
 
   return (
     <View style={[styles.frame, { height, backgroundColor: theme.surfaceContainerHigh }]}>
-      <Map mapStyle={MAP_STYLE} style={StyleSheet.absoluteFill} compass={false} logo={false} attribution>
-        {follow && last ? (
-          <Camera center={[last.lon, last.lat]} zoom={16} duration={500} />
+      <Map mapStyle={MAP_STYLE[scheme]} style={StyleSheet.absoluteFill} compass={false} logo={false} attribution>
+        {follow && center ? (
+          <Camera center={center} zoom={16} duration={500} />
         ) : b ? (
           <Camera
             initialViewState={{
@@ -76,6 +97,14 @@ export function RouteMap({
           />
         ) : null}
         <GeoJSONSource id="route" data={route}>
+          {/* A casing in the page colour keeps the route apart from roads and parks under it. */}
+          <Layer
+            id="route-casing"
+            type="line"
+            filter={['==', ['geometry-type'], 'LineString']}
+            paint={{ 'line-color': theme.surface, 'line-width': 9 }}
+            layout={{ 'line-cap': 'round', 'line-join': 'round' }}
+          />
           <Layer
             id="route-solid"
             type="line"
@@ -105,7 +134,7 @@ export function RouteMap({
       </Map>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   frame: { borderRadius: Radius.md, overflow: 'hidden' },

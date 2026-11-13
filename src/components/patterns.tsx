@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { type ReactNode, useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Button, Card, Notice, TickBar, Why } from '@/components/ui';
@@ -25,9 +25,9 @@ import {
 import { formatSleep, type Night, nightsByDate } from '@/lib/sleep';
 import { bpGoalComparison, restingTrend, sleepMoodComparison, sleepStepsComparison } from '@/lib/vitals-insights';
 import { locationAllowed, requestLocation } from '@/location/place';
-import { goodSources } from '@/nutrition/catalog';
-import { dailyAverage, lowestNutrients, overLimits } from '@/nutrition/day';
 import { eatingOut, MEAL_MIN_KCAL, MIN_MEALS } from '@/nutrition/eating-out';
+import { weekInsight } from '@/nutrition/insight';
+import { loadNutritionWindow, type NutritionWindow } from '@/nutrition/notes';
 import { formatNutrient, NUTRIENT } from '@/nutrition/nutrients';
 import { useApp } from '@/state/app-state';
 import { useFoodBook } from '@/state/use-food-book';
@@ -48,6 +48,8 @@ interface Data {
   nights: Night[];
   heart: HeartDay[];
   bp: BloodPressureEntry[];
+  /** The last 31 days of food, for the week verdicts and diet-aware sources. */
+  food: NutritionWindow;
 }
 
 /** What the person's own data says about when and in what conditions they walk. */
@@ -66,7 +68,7 @@ export function Patterns() {
       // Today is still in progress; it would drag every average down.
       const to = addDaysToKey(today, -1);
       const foodFrom = parseDayKey(addDaysToKey(today, -FOOD_DAYS)).getTime();
-      const [days, hourly, moods, weather, walks, allowed, foods, sleep, heart, bp] = await Promise.all([
+      const [days, hourly, moods, weather, walks, allowed, foods, sleep, heart, bp, food] = await Promise.all([
         repo.getDays(from, to),
         repo.getHourlyRange(from, to),
         repo.getMoods(from, to),
@@ -77,6 +79,7 @@ export function Patterns() {
         repo.getSleep(from, to),
         repo.getHeartDays(from, to),
         repo.getBloodPressure(parseDayKey(from).getTime(), parseDayKey(today).getTime()),
+        loadNutritionWindow(repo, profile, new Date()),
       ]);
       if (!live) return;
       setData({
@@ -84,18 +87,20 @@ export function Patterns() {
         hourly: [...hourly.values()],
         moods,
         weather,
-        walks: walks.filter((w) => dayKey(new Date(w.startedAt)) >= from),
+        // Walks only: a ride's distance and start place would skew "Recorded walks".
+        walks: walks.filter((w) => (w.activity ?? 'walk') === 'walk' && dayKey(new Date(w.startedAt)) >= from),
         foods,
         nights: nightsByDate(sleep),
         heart,
         bp,
+        food,
       });
       setHasLocation(allowed);
     })();
     return () => {
       live = false;
     };
-  }, [repo, today, dataVersion]);
+  }, [repo, profile, today, dataVersion]);
 
   if (!data) return null;
 
@@ -106,10 +111,7 @@ export function Patterns() {
   const rain = rainComparison(data.days, data.weather);
   const moodDays = data.moods.filter((m) => data.days.some((d) => d.date === m.date && d.steps > 0)).length;
 
-  const nutrition = dailyAverage(data.foods, book.own, book.overrides, book.saved);
-  const low = nutrition.days >= MIN_GROUP_DAYS ? lowestNutrients(nutrition.average) : [];
-  const over = nutrition.days >= MIN_GROUP_DAYS ? overLimits(nutrition.average) : [];
-  const sources = low[0] ? goodSources(low[0].key) : [];
+  const week = weekInsight(data.food, profile, new Date());
   const out = eatingOut(data.foods, book.nutrientsOf);
 
   const sleepSteps = sleepStepsComparison(data.days, data.nights);
@@ -180,46 +182,51 @@ export function Patterns() {
 
       <Insight
         title="Nutrition, last week"
-        why="Only counts what you log, so days with missed meals look lower than they were.">
-        {nutrition.days >= MIN_GROUP_DAYS ? (
-          low.length ? (
-            <>
-              <ThemedText type="labelLarge" themeColor="onSurfaceVariant">
-                Often low, share of the daily value
-              </ThemedText>
-              {low.map((l) => (
-                <Meter key={l.key} label={NUTRIENT[l.key].label} percent={l.percent} />
-              ))}
-              {sources.length ? (
-                <ThemedText type="bodyMedium" themeColor="onSurfaceVariant">
-                  Good for {lowerFirst(NUTRIENT[low[0].key].label)}: {sources.map((s) => s.food.name).join(', ')}
-                  {low[0].key === 'vitD' ? '; sunlight most of all' : ''}
-                </ThemedText>
-              ) : null}
-            </>
-          ) : (
-            <Notice tone="done" text="Your logged food covered every daily value we track." />
-          )
-        ) : null}
-        {over.length ? (
+        why="Full days only: most of the day's food logged, or marked “That’s all for today”. Fasting and light days are left out, so they don't pull the average down.">
+        {week.kind === 'ready' ? (
           <>
-            <ThemedText type="labelLarge" themeColor="onSurfaceVariant">
-              Over the advised limit, on average
-            </ThemedText>
-            {over.map((o) => (
-              <Meter key={o.key} label={NUTRIENT[o.key].label} percent={o.percent} over />
-            ))}
+            {week.low.length ? (
+              <>
+                <ThemedText type="labelLarge" themeColor="onSurfaceVariant">
+                  Could be higher, share of the daily need
+                </ThemedText>
+                {week.low.map((l) => (
+                  <Meter key={l.key} label={l.label} percent={l.percent} />
+                ))}
+                {week.sourcesLine ? (
+                  <ThemedText type="bodyMedium" themeColor="onSurfaceVariant">
+                    {week.sourcesLine}
+                  </ThemedText>
+                ) : null}
+              </>
+            ) : week.over.length ? null : (
+              <Notice tone="done" text="Nothing looked low on your full days this week." />
+            )}
+            {week.over.length ? (
+              <>
+                <ThemedText type="labelLarge" themeColor="onSurfaceVariant">
+                  Over the advised limit, on average
+                </ThemedText>
+                {week.over.map((o) => (
+                  <Meter key={o.key} label={o.label} percent={o.percent} over />
+                ))}
+              </>
+            ) : null}
           </>
-        ) : null}
-        {nutrition.days < MIN_GROUP_DAYS ? (
+        ) : week.kind === 'plain' ? (
           <Waiting
-            text={`Needs food logged on ${MIN_GROUP_DAYS} days. ${nutrition.days} so far this week.`}
+            text="Your week's numbers are on the Food tab."
+            action={{ label: 'Open Food', onPress: () => router.navigate('/food') }}
+          />
+        ) : (
+          <Waiting
+            text={`${week.text}. Full days so far: ${week.judgedDays} of 7.`}
             action={{
               label: 'Log food',
               onPress: () => router.navigate({ pathname: '/food', params: { add: String(Date.now()) } }),
             }}
           />
-        ) : null}
+        )}
       </Insight>
 
       <Insight
@@ -364,8 +371,6 @@ export function Patterns() {
   );
 }
 
-const lowerFirst = (s: string) => s.replace(/^\w/, (c) => c.toLowerCase());
-
 /** "12% more steps than weekdays", "about the same as weekdays". */
 function versus(c: Comparison, others: string): string {
   const change = describeChange(c.change);
@@ -460,28 +465,59 @@ function Meter({ label, percent, over }: { label: string; percent: number; over?
   );
 }
 
+/** From this text scale the label and value sit above the bar, so long labels and scripts never wrap. */
+const STACK_AT_SCALE = 1.3;
+
 function DayPartBars({ shares }: { shares: Record<string, number> }) {
   const max = Math.max(...Object.values(shares), 0.01);
+  const { fontScale } = useWindowDimensions();
+  const stacked = fontScale >= STACK_AT_SCALE;
+  // Columns grow with the text size instead of breaking "Afternoon" or "100%".
+  const labelWidth = { minWidth: Math.ceil(76 * fontScale) };
+  const valueWidth = { minWidth: Math.ceil(40 * fontScale) };
   return (
     <View style={styles.bars}>
-      {DAY_PARTS.map(({ part, label }) => (
-        <View key={part} style={styles.barRow}>
-          <ThemedText type="labelMedium" style={styles.barLabel}>
-            {label}
-          </ThemedText>
+      {DAY_PARTS.map(({ part, label }) => {
+        const pct = `${Math.round(shares[part] * 100)}%`;
+        const bar = (
           <TickBar
             value={shares[part]}
             max={max}
             height={10}
             ticks={false}
-            style={styles.barTrack}
-            accessibilityLabel={`${label}: ${Math.round(shares[part] * 100)}% of your steps`}
+            style={stacked ? undefined : styles.barTrack}
+            accessibilityLabel={`${label}: ${pct} of your steps`}
           />
-          <ThemedText type="labelMedium" themeColor="onSurfaceVariant" style={styles.barValue}>
-            {Math.round(shares[part] * 100)}%
+        );
+        const value = (
+          <ThemedText
+            type="labelMedium"
+            themeColor="onSurfaceVariant"
+            numberOfLines={1}
+            style={[styles.barValue, stacked ? null : valueWidth]}>
+            {pct}
           </ThemedText>
-        </View>
-      ))}
+        );
+        return stacked ? (
+          <View key={part} style={styles.barStack}>
+            <View style={styles.barRow}>
+              <ThemedText type="labelMedium" style={styles.flex}>
+                {label}
+              </ThemedText>
+              {value}
+            </View>
+            {bar}
+          </View>
+        ) : (
+          <View key={part} style={styles.barRow}>
+            <ThemedText type="labelMedium" numberOfLines={1} style={[styles.barLabel, labelWidth]}>
+              {label}
+            </ThemedText>
+            {bar}
+            {value}
+          </View>
+        );
+      })}
     </View>
   );
 }
@@ -512,9 +548,10 @@ const styles = StyleSheet.create({
   meter: { gap: Spacing.one },
   bars: { gap: Spacing.two },
   barRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-  barLabel: { width: 76 },
+  barStack: { gap: Spacing.one },
+  barLabel: { flexShrink: 0 },
   barTrack: { flex: 1, width: undefined },
-  barValue: { width: 40, textAlign: 'right', fontVariant: ['tabular-nums'] },
+  barValue: { flexShrink: 0, textAlign: 'right', fontVariant: ['tabular-nums'] },
   waiting: { gap: Spacing.two },
   foot: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
 });

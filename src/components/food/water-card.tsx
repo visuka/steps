@@ -31,17 +31,20 @@ export function WaterBody({ water, onAdded }: { water: WaterHook; onAdded: (a: A
   const p = s?.progress ?? null;
   const glasses = p?.glasses ?? Math.floor(total / glassMl);
   const limit = target?.limit ?? false;
+  // A doctor's limit is a ceiling, not a goal: never "of 6 glasses".
+  const glassesOf = p && !limit ? p.glassesTarget : null;
+  const glassWord = glasses === 1 ? 'glass' : 'glasses';
 
   return (
     <>
       <View style={styles.top}>
-        <View style={styles.grow} accessible accessibilityLabel={`${glasses} ${glasses === 1 ? 'glass' : 'glasses'}${p ? ` of ${p.glassesTarget}` : ''}. ${s?.progressText ?? ''}`}>
+        <View style={styles.grow} accessible accessibilityLabel={`${glasses} ${glassWord}${glassesOf !== null ? ` of ${glassesOf}` : ''}. ${s?.progressText ?? ''}`}>
           <View style={styles.numberRow}>
             <ThemedText type="numeralLarge" maxFontSizeMultiplier={NumeralMaxScale}>
               {glasses}
             </ThemedText>
             <ThemedText type="titleMedium" themeColor="onSurfaceVariant">
-              {p ? `of ${p.glassesTarget} glasses` : glasses === 1 ? 'glass' : 'glasses'}
+              {glassesOf !== null ? `of ${glassesOf} glasses` : glassWord}
             </ThemedText>
           </View>
           <ThemedText type="bodyMedium" themeColor="onSurfaceVariant">

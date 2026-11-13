@@ -58,4 +58,13 @@ class PlaceCheckTest {
     assertTrue(PlaceCheck.shouldConfirmForActivity(10, 76))
     assertFalse(PlaceCheck.shouldConfirmForActivity(70, 60))
   }
+
+  @Test
+  fun activityConfirmsAtMostEveryTwoMinutes() {
+    val t = 1_000_000L
+    assertTrue(PlaceCheck.activityConfirmDue(t, 0L))
+    assertFalse(PlaceCheck.activityConfirmDue(t + 10_000, t))
+    assertFalse(PlaceCheck.activityConfirmDue(t + 119_999, t))
+    assertTrue(PlaceCheck.activityConfirmDue(t + 120_000, t))
+  }
 }

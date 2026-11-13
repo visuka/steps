@@ -68,8 +68,13 @@ export function mergeProfile(base: Profile, patch: ProfilePatch | null | undefin
 
 export async function loadProfile(repo: Repository): Promise<Profile> {
   const stored = await repo.getKv<ProfilePatch>(PROFILE_KEY);
-  // A stored profile is the person's own; its weight only counts as typed when it says so.
-  return mergeProfile(DEFAULT_PROFILE, stored ? { ...stored, weightSet: stored.weightSet ?? false } : null);
+  // A stored profile is the person's own. Profiles saved before weightSet existed
+  // count the weight as typed when it differs from the default.
+  return mergeProfile(DEFAULT_PROFILE, stored ? { ...stored, weightSet: stored.weightSet ?? inferWeightSet(stored) } : null);
+}
+
+function inferWeightSet(stored: ProfilePatch): boolean {
+  return stored.weightKg !== undefined && stored.weightKg !== DEFAULT_PROFILE.weightKg;
 }
 
 export async function saveProfile(repo: Repository, profile: Profile): Promise<void> {

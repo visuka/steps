@@ -11,7 +11,7 @@ import { type PlaceInput, PlacePicker } from '@/components/food/place-picker';
 import { PortionPicker } from '@/components/food/portion-picker';
 import { RecipeForm } from '@/components/food/recipe-form';
 import { ThemedText } from '@/components/themed-text';
-import { IconButton, Why } from '@/components/ui';
+import { IconButton, Button as UiButton, Why } from '@/components/ui';
 import { WhenField } from '@/components/when-field';
 import { Spacing, TouchTarget } from '@/constants/theme';
 import { changeFood, deleteFood, type HealthCopy } from '@/data/entries';
@@ -537,13 +537,13 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
             ) : null}
 
             {q ? (
-              <ThemedText
-                type="small"
-                themeColor="textSecondary"
-                style={styles.link}
-                onPress={() => go({ kind: 'own', name: q })}>
-                {results.length ? 'Not here? ' : 'No match. '}Add “{q}” as your own food
-              </ThemedText>
+              <UiButton
+                variant="text"
+                compact
+                icon="add"
+                label={`${results.length ? 'Not here? ' : 'No match. '}Add “${q}” as your own food`}
+                onPress={() => go({ kind: 'own', name: q })}
+              />
             ) : recent.length ? (
               <>
                 <ThemedText type="small" themeColor="textSecondary">
@@ -560,13 +560,13 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
                 </View>
               </>
             ) : null}
-            <ThemedText
-              type="small"
-              themeColor="textSecondary"
-              style={styles.link}
-              onPress={() => go({ kind: 'recipe', name: lookup.status === 'idle' ? q : '' })}>
-              Made it yourself? Enter the recipe
-            </ThemedText>
+            <UiButton
+              variant="text"
+              compact
+              icon="create-outline"
+              label="Made it yourself? Enter the recipe"
+              onPress={() => go({ kind: 'recipe', name: lookup.status === 'idle' ? q : '' })}
+            />
           </>
         ) : null}
 
@@ -850,6 +850,7 @@ function LookedUpRow({
   const unit = food.units.some((u) => u.key === item.unit) ? item.unit : food.defaultUnit;
   const quantity = unit === item.unit ? item.quantity : 1;
   const kcal = Math.round(nutrientsFor(food, unit, quantity, overrides).kcal ?? 0);
+  const theme = useTheme();
   const where = added
     ? ' · added'
     : catalogFood(item.food.id)
@@ -862,7 +863,12 @@ function LookedUpRow({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`${food.name}, ${portionLabel(food, unit, quantity)}, ${kcal} kcal${where}`}
-      style={({ pressed }) => [styles.result, { opacity: pressed ? 0.6 : added ? 0.7 : 1 }]}>
+      android_ripple={{ color: theme.outlineVariant }}
+      style={({ pressed }) => [
+        styles.result,
+        pressed && { backgroundColor: theme.surfaceContainerHighest },
+        added && { opacity: 0.7 },
+      ]}>
       <View style={styles.entryName}>
         <ThemedText>{food.name}</ThemedText>
         <ThemedText type="small" themeColor="textSecondary">
@@ -878,8 +884,14 @@ function LookedUpRow({
 function SearchResult({ food, onPress }: { food: FoodItem; onPress: () => void }) {
   const unit = food.units.find((u) => u.key === food.defaultUnit) ?? food.units[0];
   const kcal = Math.round(((food.per100g.kcal ?? 0) * unit.grams) / 100);
+  const theme = useTheme();
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" style={({ pressed }) => [styles.result, { opacity: pressed ? 0.6 : 1 }]}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${food.name}, 1 ${unit.label}, ${kcal} kcal`}
+      android_ripple={{ color: theme.outlineVariant }}
+      style={({ pressed }) => [styles.result, pressed && { backgroundColor: theme.surfaceContainerHighest }]}>
       <ThemedText style={styles.entryName}>{food.name}</ThemedText>
       <ThemedText type="small" themeColor="textSecondary">
         1 {unit.label} · {kcal} kcal
@@ -902,10 +914,16 @@ function Busy() {
 
 const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
-  link: { textDecorationLine: 'underline' },
   lookup: { gap: Spacing.two },
   busy: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-  result: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, paddingVertical: Spacing.one },
+  // Material list rows: at least the 48 dp touch target, so a thumb lands on the result it means.
+  result: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    minHeight: TouchTarget,
+    paddingVertical: Spacing.two,
+  },
   entry: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one },
   entryMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.three, minHeight: TouchTarget },
   hintRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },

@@ -7,7 +7,7 @@ import { type DataTone, Motion, toneColors } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { standardTiming } from './motion';
-import { lapPosition, pointOnTrack, trackPath, trackShape } from './track-geometry';
+import { fitTrackHeight, INFIELD_GAP, lapPosition, pointOnTrack, trackPath, trackShape } from './track-geometry';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
@@ -34,7 +34,7 @@ export interface TrackProgressProps {
 
 /**
  * The oval running track: the covered distance painted in the data colour,
- * white ticks every 10%, and a runner dot that travels to the new position
+ * ticks every 10%, and a runner dot that travels to the new position
  * in one Material-standard move (600 ms) whenever `value` changes. Reduce
  * motion makes the move a cut. The first draw is already in place.
  */
@@ -52,6 +52,8 @@ export function TrackProgress({
   const theme = useTheme();
   const win = useWindowDimensions();
   const [measured, setMeasured] = useState(0);
+  // The infield content's own height: at large text sizes the track grows to keep it inside the lane.
+  const [content, setContent] = useState(0);
   // Until measured, assume the usual 16 dp gutters, so the first frame already has the track.
   const width = measured || Math.max(0, Math.min(win.width, 640) - 32);
   const laps = goal > 0 ? value / goal : 0;
@@ -61,7 +63,8 @@ export function TrackProgress({
     progress.value = withTiming(laps, standardTiming(Motion.duration.runner));
   }, [laps, progress]);
 
-  const height = width ? Math.min(width / aspect, maxHeight ?? Number.POSITIVE_INFINITY) : 0;
+  const base = width ? Math.min(width / aspect, maxHeight ?? Number.POSITIVE_INFINITY) : 0;
+  const height = width ? fitTrackHeight(base, content, width, lane) : 0;
   const shape = trackShape(width, height, lane);
   const runnerSize = lane - 4;
 
@@ -81,7 +84,10 @@ export function TrackProgress({
     const w = Math.round(e.nativeEvent.layout.width);
     if (w > 0) setMeasured(w);
   };
-  const fill = toneColors(theme, tone).fill;
+  const paint = toneColors(theme, tone);
+  const fill = paint.fill;
+  // Ticks over the covered part take the tone's on colour; on the lane still to go, laneTick.
+  const covered = lapPosition(laps).covered;
   const ticks = Array.from({ length: TICKS }, (_, k) => {
     const p = pointOnTrack(shape, k / TICKS);
     const half = lane / 2;
@@ -116,7 +122,7 @@ export function TrackProgress({
                 y1={t.y1}
                 x2={t.x2}
                 y2={t.y2}
-                stroke={theme.tick}
+                stroke={t.k / TICKS <= covered && covered > 0 ? paint.on : theme.laneTick}
                 strokeWidth={t.k === 0 ? 4 : 2}
               />
             ))}
@@ -135,8 +141,16 @@ export function TrackProgress({
               runnerStyle,
             ]}
           />
-          <View pointerEvents="box-none" style={[styles.infield, { margin: lane + 8 }]}>
-            {children}
+          <View pointerEvents="box-none" style={[styles.infield, { margin: lane + INFIELD_GAP }]}>
+            <View
+              pointerEvents="box-none"
+              style={styles.content}
+              onLayout={(e) => {
+                const h = Math.ceil(e.nativeEvent.layout.height);
+                if (h > 0 && h !== content) setContent(h);
+              }}>
+              {children}
+            </View>
           </View>
         </>
       ) : null}
@@ -148,4 +162,5 @@ const styles = StyleSheet.create({
   wrap: { width: '100%' },
   runner: { position: 'absolute', left: 0, top: 0, borderWidth: 2 },
   infield: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
+  content: { alignSelf: 'stretch', alignItems: 'center' },
 });

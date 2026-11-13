@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { lapPosition, pointOnTrack, trackPath, trackShape } from '../track-geometry';
+import { fitTrackHeight, lapPosition, pointOnTrack, trackPath, trackShape } from '../track-geometry';
 
 const close = (a: number, b: number) => expect(Math.abs(a - b)).toBeLessThan(1e-6);
 
@@ -73,5 +73,21 @@ describe('laps', () => {
   it('treats nonsense as the start', () => {
     expect(lapPosition(Number.NaN)).toEqual({ covered: 0, runner: 0, lap: 1 });
     expect(lapPosition(-3)).toEqual({ covered: 0, runner: 0, lap: 1 });
+  });
+});
+
+describe('fitTrackHeight', () => {
+  it('keeps the given height when the infield fits', () => {
+    expect(fitTrackHeight(206, 120, 320, 24)).toBe(206);
+    expect(fitTrackHeight(206, 0, 320, 24)).toBe(206);
+  });
+
+  it('grows the track so large text stays inside the lane', () => {
+    // 180 dp of text at font scale 2 needs 180 + 2 × (24 + 8) = 244 dp.
+    expect(fitTrackHeight(206, 180, 320, 24)).toBe(244);
+  });
+
+  it('never grows taller than the track is wide', () => {
+    expect(fitTrackHeight(135, 300, 256, 16)).toBe(256);
   });
 });

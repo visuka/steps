@@ -15,11 +15,13 @@ import {
   type NoteLog,
   noteAllowed,
   pickGapNote,
+  weekJudgedFor,
   weekReady,
   weekWaitText,
 } from '@/nutrition/gaps';
 import { nutritionPushDue, type PushLog, weekFacts, weeklySummaryDue } from '@/nutrition/notes';
 import type { NutrientKey, Nutrients } from '@/nutrition/types';
+import { nutrientRows } from '@/nutrition/view';
 
 const TODAY = '2026-11-13';
 const profile = DEFAULT_PROFILE; // 65 kg, 165 cm: a full day is 1,744 kcal
@@ -114,6 +116,24 @@ describe('week average', () => {
     expect(weekWaitText(2)).toBe('Log 2 more full days to see your week');
     expect(weekWaitText(3)).toBe('Log 1 more full day to see your week');
     expect(weekWaitText(5)).toBeNull();
+  });
+  it('never calls a nutrient low for the week from fewer than 4 days that count for it', () => {
+    // 4 days with B12 known for 79% (paneer is 21% of kcal), 1 day fully known at 1.2 µg.
+    const b12 = (d: string, cov: number): DayIntake => ({
+      day: d,
+      total: { kcal: 1800, vitB12: 1.2 },
+      coverage: { kcal: 1, vitB12: cov },
+      judged: true,
+      kcal: 1800,
+      entries: 4,
+    });
+    const week = averageOfJudged([b12('2026-11-08', 0.79), b12('2026-11-09', 0.79), b12('2026-11-10', 0.79), b12('2026-11-11', 0.79), b12('2026-11-12', 1)]);
+    expect(week.judgedDays).toBe(5);
+    expect(week.daysFor.vitB12).toBe(1);
+    expect(weekJudgedFor(week, 'vitB12')).toBe(false);
+    const ctx = { sex: 'unspecified' as const, weightKg: 65, heightCm: 165, age: 40, kcalTarget: 2000, plain: false };
+    const [row] = nutrientRows(['vitB12'], week.average, week.coverage, ctx, (k) => weekJudgedFor(week, k), 'percent');
+    expect(row.state.state).not.toBe('low');
   });
   it('builds days from entries, with coverage and the calorie-only gap', () => {
     const days = dayIntakes(

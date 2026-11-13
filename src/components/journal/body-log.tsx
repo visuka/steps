@@ -248,6 +248,7 @@ export function BodyLog({ kind }: { kind: LogKind }) {
               bars={weightTrend.map((e) => ({ key: e.id, value: e.value, label: '' }))}
               color={theme.outline}
               height={90}
+              summary={`Last ${weightTrend.length} weights, from ${format(weightTrend[0].value)} to ${format(weightTrend[weightTrend.length - 1].value)}`}
             />
           </Card>
         </>

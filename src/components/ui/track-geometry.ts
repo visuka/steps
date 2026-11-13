@@ -91,3 +91,16 @@ export function lapPosition(laps: number): { covered: number; runner: number; la
   const whole = Math.floor(t);
   return { covered: 1, runner: t - whole, lap: whole + 1 };
 }
+
+/** Space between the lane and the infield content, dp. */
+export const INFIELD_GAP = 8;
+
+/**
+ * The track's height: `base` (from width and aspect), grown so the infield
+ * content (measured, `content` dp tall) fits inside the lane at large text
+ * sizes. The oval can't be taller than it is wide, so the width caps it.
+ */
+export function fitTrackHeight(base: number, content: number, width: number, lane: number): number {
+  const needed = content > 0 ? content + 2 * (lane + INFIELD_GAP) : 0;
+  return Math.max(base, Math.min(width, needed));
+}

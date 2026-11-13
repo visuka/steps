@@ -5,6 +5,7 @@ import { BackHandler, StyleSheet, useWindowDimensions, View } from 'react-native
 import Animated, { FadeIn, LinearTransition, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { BarChart } from '@/components/bar-chart';
+import { hourName } from '@/components/bar-chart-speech';
 import { MoodPicker } from '@/components/mood-picker';
 import { PremiumGate } from '@/components/premium-gate';
 import { ThemedText } from '@/components/themed-text';
@@ -87,6 +88,9 @@ export default function TodayScreen() {
   const goal = profile.dailyGoal;
   const syncLine = `${lastSyncAt ? `Updated ${minutesAgo(lastSyncAt)}` : 'Not synced yet'} · ${source.label}`;
   const trackHeight = Math.round(Math.min((Math.min(width, 640) - Spacing.three * 2) / 1.4, height * 0.36));
+  // While a tile's detail is open the hero steps back to about a quarter of the
+  // screen, so the detail opens in the first viewport instead of under the fold.
+  const openHeight = Math.round(height * 0.25);
 
   return (
     <Screen
@@ -96,7 +100,7 @@ export default function TodayScreen() {
       refreshing={syncing}
       onRefresh={refresh}
       fab={
-        details && !premium.isLocked('food') ? (
+        details && !premium.isLocked('food') && focus === null ? (
           <ExtendedFab label="Log food" icon="add" onPress={logFood} accessibilityHint="Opens Food, ready to type" />
         ) : undefined
       }
@@ -121,7 +125,12 @@ export default function TodayScreen() {
       ) : null}
 
       <Recede dimmed={focus !== null}>
-        <StepsTrack steps={displaySteps} goal={goal} height={trackHeight} minHeight={Math.round(height * 0.4)} />
+        <StepsTrack
+          steps={displaySteps}
+          goal={goal}
+          height={tileOpen ? Math.min(trackHeight, openHeight) : trackHeight}
+          minHeight={tileOpen ? openHeight : Math.round(height * 0.4)}
+        />
       </Recede>
 
       <PremiumGate feature="today-details">
@@ -393,6 +402,8 @@ function BelowTheFold({
       <BarChart
         bars={hourly.map((value, hour) => ({ key: String(hour), value, label: HOUR_LABELS[hour] ?? '' }))}
         height={120}
+        name="Steps by hour"
+        describeBar={(b) => `${hourName(Number(b.key))}, ${formatSteps(b.value)} steps`}
       />
 
       <SectionHeader title="How are you feeling?" />

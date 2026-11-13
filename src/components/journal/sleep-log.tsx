@@ -235,6 +235,8 @@ export function SleepLog() {
               goal={FULL_NIGHT_MIN}
               tone="sleep"
               height={90}
+              name="Sleep, past week"
+              describeBar={(b) => `${formatDayLong(b.key)}, ${b.value ? formatSleep(b.value) : 'none'}`}
             />
           </Card>
 

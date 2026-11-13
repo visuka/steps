@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { type Bar, BarChart } from '@/components/bar-chart';
+import { hourName } from '@/components/bar-chart-speech';
 import { Segmented } from '@/components/controls';
 import { ThemedText } from '@/components/themed-text';
 import { Card, IconButton, StatTile, Why } from '@/components/ui';
@@ -138,6 +139,13 @@ export function HistoryView() {
           bars={bars}
           goal={range === 'day' ? undefined : profile.dailyGoal}
           onPressBar={range === 'week' || range === 'month' ? openDay : undefined}
+          name={range === 'day' ? 'Steps by hour' : range === 'year' ? 'Average steps by month' : 'Steps by day'}
+          describeBar={(b) => {
+            const steps = `${formatSteps(b.value)} steps`;
+            if (range === 'day') return `${hourName(Number(b.key))}, ${steps}`;
+            if (range === 'year') return `${monthShort(Number(b.key))}, ${steps} a day`;
+            return `${formatDayLong(b.key)}, ${steps}`;
+          }}
         />
         {range === 'week' || range === 'month' ? (
           <ThemedText type="bodySmall" themeColor="onSurfaceVariant">

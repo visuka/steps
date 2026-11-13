@@ -181,6 +181,25 @@ describe('reached sticks for the day', () => {
     // A new day starts fresh.
     expect(rollLog(first.log, '2026-11-14').reached).toBeNull();
   });
+  it('un-reaches when the glass that reached it is undone', () => {
+    const t = waterTarget(withWater({ targetMl: 2000 }), { steps: 11000 })!;
+    expect(t.ml).toBe(2250);
+    const first = stickyTarget(t, 2250, emptyReminderLog(TODAY));
+    expect(first.reached).toBe(true);
+    const undone = stickyTarget(t, 2000, first.log);
+    expect(undone).toMatchObject({ reached: false, target: { ml: 2250 } });
+    // More steps later still don't move the frozen extras.
+    const more = waterTarget(withWater({ targetMl: 2000 }), { steps: 14000 })!;
+    expect(stickyTarget(more, 2000, first.log).target.ml).toBe(2250);
+  });
+  it('drops the frozen target when the base target changes', () => {
+    const t = waterTarget(withWater({ targetMl: 2000 }))!;
+    const first = stickyTarget(t, 2000, emptyReminderLog(TODAY));
+    const raised = waterTarget(withWater({ targetMl: 3000 }))!;
+    const after = stickyTarget(raised, 2000, first.log);
+    expect(after).toMatchObject({ reached: false, target: { ml: 3000 } });
+    expect(after.log.reached).toBeNull();
+  });
   it('never says reached under a doctor\'s limit', () => {
     const t = waterTarget(withWater({ targetMl: 1500, doctorLimit: true }))!;
     expect(stickyTarget(t, 1600, emptyReminderLog(TODAY)).reached).toBe(false);

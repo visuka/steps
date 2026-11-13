@@ -68,7 +68,14 @@ describe('profile', () => {
     expect(p.water).toEqual(DEFAULT_PROFILE.water);
     expect(p.nutrition).toEqual({ diet: null, tips: false, weekly: false, hideCalories: false, differentNeeds: false });
     expect(p.reminders).toEqual({ enabled: true, startHour: 9, endHour: 20 });
-    expect(p.weightSet).toBe(false);
+    // Saved before weightSet existed: a weight other than the default was typed in.
+    expect(p.weightSet).toBe(true);
+  });
+  it('treats an old stored profile at the default weight as not typed', async () => {
+    await repo.setKv('profile', { heightCm: 170, weightKg: 65, onboarded: true });
+    expect((await loadProfile(repo)).weightSet).toBe(false);
+    await repo.setKv('profile', { heightCm: 170, weightKg: 80, weightSet: false, onboarded: true });
+    expect((await loadProfile(repo)).weightSet).toBe(false);
   });
   it('keeps nested fields when a change sets only one of them', async () => {
     const p = mergeProfile(DEFAULT_PROFILE, { water: { targetMl: 2250 }, nutrition: { diet: 'egg' } });
@@ -136,6 +143,14 @@ describe('water today', () => {
     expect((await loadWaterToday(repo, p, at(TODAY, 12), 4000)).reached).toBe(true);
     const later = await loadWaterToday(repo, p, at(TODAY, 18), 15000);
     expect(later).toMatchObject({ reached: true, target: { ml: 2000 } });
+  });
+  it('un-reaches when the water is removed, and follows a new target', async () => {
+    await repo.addLog('water', { id: 'w1', loggedAt: at(TODAY, 10).getTime(), value: 2000, healthSampleId: null });
+    expect((await loadWaterToday(repo, p, at(TODAY, 12), 4000)).reached).toBe(true);
+    const raised = mergeProfile(p, { water: { targetMl: 3000 } });
+    expect(await loadWaterToday(repo, raised, at(TODAY, 13), 4000)).toMatchObject({ reached: false, target: { ml: 3000 } });
+    await repo.deleteLog('water', 'w1');
+    expect((await loadWaterToday(repo, p, at(TODAY, 14), 4000)).reached).toBe(false);
   });
   it('counts days the target was met', async () => {
     for (const d of ['2026-11-10', '2026-11-12']) {

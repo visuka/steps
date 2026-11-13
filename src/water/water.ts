@@ -329,14 +329,21 @@ export function noteReminderSent(log: WaterReminderLog, now: number): WaterRemin
   return { ...log, sent: [...log.sent, now], open: now, lastSentAt: now, remindedDays };
 }
 
-/** Reached: the target as it was then stays for the rest of the day, so a reached day never flips back. */
+/**
+ * Once reached, the day's extras freeze: more steps or heat later don't move
+ * the target. "Reached" is still worked out from the total each time, so
+ * undoing the glass that reached it un-reaches it, and a new base target
+ * (Settings, the sheet, a new weight) drops the frozen one.
+ */
 export function stickyTarget(
   target: WaterTarget,
   totalMl: number,
   log: WaterReminderLog,
 ): { target: WaterTarget; reached: boolean; log: WaterReminderLog } {
-  if (target.limit) return { target, reached: false, log };
-  if (log.reached) return { target: log.reached, reached: true, log };
+  const frozen = log.reached && !target.limit && log.reached.base === target.base ? log.reached : null;
+  if (frozen) return { target: frozen, reached: totalMl >= frozen.ml, log };
+  const cleared = log.reached ? { ...log, reached: null } : log;
+  if (target.limit) return { target, reached: false, log: cleared };
   if (totalMl >= target.ml) return { target, reached: true, log: { ...log, reached: target } };
-  return { target, reached: false, log };
+  return { target, reached: false, log: cleared };
 }

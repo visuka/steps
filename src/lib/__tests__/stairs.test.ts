@@ -54,6 +54,13 @@ describe('stairs and lifts', () => {
     expect(r.liftUp).toBe(3);
   });
 
+  it('a 15-min sleep with 2.5 m of weather drift is not a lift', () => {
+    // Sitting still with the screen off: readings stop, and the weather moves pressure about 0.3 hPa.
+    const rows = pressureRows(1200, (s) => (s < 200 ? 0 : 2.5)).filter((p) => p.t < T0 + 150_000 || p.t > T0 + 1_050_000);
+    const r = countStairs(rows, { steps: stepTimeline(stepRows(1200, (s) => (s >= 150 && s < 1050 ? 0 : 60))) })!;
+    expect(r.floorsUp + r.floorsDown + r.liftUp + r.liftDown).toBe(0);
+  });
+
   it('ignores 2 hPa of weather over 2 hours, a 3 s door spike and ±0.06 hPa noise', () => {
     const pressure = pressureRows(7200, () => 0, {
       seed: 5,

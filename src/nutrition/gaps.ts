@@ -149,6 +149,14 @@ export function judgedAverage(
 /** True when the week has enough judged days for verdicts. */
 export const weekReady = (judgedDays: number): boolean => judgedDays >= WEEK_DAYS_NEEDED;
 
+/**
+ * A week verdict for one nutrient needs 4+ judged days that count for it
+ * (80%+ known that day), not just 4+ judged days: a week "Low" must never
+ * rest on one day's figure.
+ */
+export const weekJudgedFor = (week: Pick<JudgedAverage, 'daysFor'>, key: NutrientKey): boolean =>
+  weekReady(week.daysFor[key] ?? 0);
+
 /** For "Log 2 more full days to see your week": 0 once ready. */
 export const fullDaysNeeded = (judgedDays: number): number => Math.max(0, WEEK_DAYS_NEEDED - judgedDays);
 

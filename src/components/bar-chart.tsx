@@ -5,6 +5,8 @@ import { type DataTone, Radius, Spacing, toneColors } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { formatSteps } from '@/lib/format';
 
+import { chartSummary } from './bar-chart-speech';
+
 const LABEL_WIDTH = 40;
 
 export interface Bar {
@@ -20,6 +22,10 @@ export interface Bar {
  * stay the quiet lane; a dashed line marks the goal. With no goal every bar
  * takes the colour; `color` gives a neutral one instead, for data with no
  * colour of its own (heart rate, weight).
+ *
+ * For TalkBack: with `onPressBar` each bar is a button named by `describeBar`
+ * ("1 pm, 2,140 steps"); without it the bars are hidden and the chart is one
+ * element that says `name` and its biggest bar.
  */
 export function BarChart({
   bars,
@@ -29,6 +35,9 @@ export function BarChart({
   onPressBar,
   tone = 'steps',
   color,
+  name = 'Chart',
+  summary,
+  describeBar = (b) => `${b.label || b.key}, ${formatSteps(b.value)} steps`,
 }: {
   bars: Bar[];
   goal?: number;
@@ -37,6 +46,12 @@ export function BarChart({
   onPressBar?: (key: string) => void;
   tone?: DataTone;
   color?: string;
+  /** What the chart shows, for screen readers, e.g. "Steps by hour". */
+  name?: string;
+  /** One bar for screen readers, with its unit: "1 pm, 2,140 steps". Steps by default. */
+  describeBar?: (bar: Bar) => string;
+  /** The whole chart in one line, instead of `name` and its biggest bar. */
+  summary?: string;
 }) {
   const theme = useTheme();
   const max = Math.max(1, goal ?? 0, ...bars.map((b) => b.value));
@@ -46,7 +61,11 @@ export function BarChart({
 
   return (
     <View>
-      <View style={[styles.plot, { height, gap }]}>
+      <View
+        style={[styles.plot, { height, gap }]}
+        accessible={!onPressBar}
+        accessibilityRole={onPressBar ? undefined : 'image'}
+        accessibilityLabel={onPressBar ? undefined : (summary ?? chartSummary(name, bars, describeBar))}>
         {goalY !== null ? (
           <View style={[styles.goalLine, { top: goalY, borderColor: theme.onSurfaceVariant }]} pointerEvents="none" />
         ) : null}
@@ -54,24 +73,35 @@ export function BarChart({
           const reached = goal ? b.value >= goal : false;
           const selected = selectedKey === b.key;
           const barColor = selected ? theme.onSurface : reached || !goal ? fill : theme.lane;
+          const bar = (
+            <View
+              style={[
+                styles.bar,
+                { height: Math.max(b.value > 0 ? 3 : 0, (b.value / max) * height), backgroundColor: barColor },
+              ]}
+            />
+          );
+          if (!onPressBar) {
+            return (
+              <View key={b.key} style={styles.barSlot} accessible={false} importantForAccessibility="no-hide-descendants">
+                {bar}
+              </View>
+            );
+          }
           return (
             <Pressable
               key={b.key}
               style={styles.barSlot}
-              disabled={!onPressBar}
-              onPress={() => onPressBar?.(b.key)}
-              accessibilityLabel={`${b.label || b.key}: ${formatSteps(b.value)}`}>
-              <View
-                style={[
-                  styles.bar,
-                  { height: Math.max(b.value > 0 ? 3 : 0, (b.value / max) * height), backgroundColor: barColor },
-                ]}
-              />
+              onPress={() => onPressBar(b.key)}
+              accessibilityRole="button"
+              accessibilityState={{ selected }}
+              accessibilityLabel={describeBar(b)}>
+              {bar}
             </Pressable>
           );
         })}
       </View>
-      <View style={[styles.labels, { gap }]}>
+      <View style={[styles.labels, { gap }]} importantForAccessibility="no-hide-descendants">
         {/* Labels are wider than a thin bar, so each is centred on its bar and allowed to overhang it. */}
         {bars.map((b) => (
           <View key={b.key} style={styles.labelSlot}>

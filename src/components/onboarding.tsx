@@ -1,14 +1,14 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { type ReactNode, useState } from 'react';
-import { Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { type ReactNode, useEffect, useState } from 'react';
+import { BackHandler, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { NumberField, Segmented, Stepper } from '@/components/controls';
 import { DietChips } from '@/components/food/food-settings';
 import { ThemedText } from '@/components/themed-text';
-import { Button, Card, type IconName, Notice, Surface, ToggleRow, Why } from '@/components/ui';
+import { Button, Card, IconButton, type IconName, Notice, Surface, ToggleRow, Why } from '@/components/ui';
 import { APP_NAME } from '@/constants/app';
-import { Radius, Spacing } from '@/constants/theme';
+import { Radius, Spacing, TouchTarget } from '@/constants/theme';
 import { DEFAULT_PROFILE } from '@/data/profile';
 import type { Profile, Sex } from '@/data/types';
 import { requestMotionPermission } from '@/health/live';
@@ -47,6 +47,17 @@ export function Onboarding() {
   const set = (patch: Partial<Profile>) => setProfile((p) => ({ ...p, ...patch }));
   const next = () => setStep(STEPS[Math.min(STEPS.length - 1, STEPS.indexOf(step) + 1)]);
   const at = STEPS.indexOf(step);
+  const back = () => setStep(STEPS[Math.max(0, at - 1)]);
+
+  // System Back goes to the previous step (keeping what was entered) instead of closing the app.
+  useEffect(() => {
+    if (at === 0) return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      setStep(STEPS[at - 1]);
+      return true;
+    });
+    return () => sub.remove();
+  }, [at]);
 
   const allowAccess = async () => {
     setBusy(true);
@@ -83,13 +94,16 @@ export function Onboarding() {
               {STEPS.map((s, i) => (
                 <View
                   key={s}
-                  style={[styles.segment, { backgroundColor: i <= at ? theme.steps : theme.lane }]}
+                  style={[styles.segment, { backgroundColor: i <= at ? theme.onSurface : theme.lane }]}
                 />
               ))}
             </View>
-            <ThemedText type="labelMedium" themeColor="onSurfaceVariant">
-              Step {at + 1} of {STEPS.length}
-            </ThemedText>
+            <View style={styles.stepRow}>
+              {at > 0 ? <IconButton icon="arrow-back" accessibilityLabel="Previous step" onPress={back} disabled={busy} /> : null}
+              <ThemedText type="labelMedium" themeColor="onSurfaceVariant" importantForAccessibility="no">
+                Step {at + 1} of {STEPS.length}
+              </ThemedText>
+            </View>
 
             {step === 'welcome' ? (
               <>
@@ -300,6 +314,7 @@ const styles = StyleSheet.create({
   content: { flexGrow: 1, padding: Spacing.four, justifyContent: 'center', alignItems: 'center' },
   inner: { width: '100%', maxWidth: 520, gap: Spacing.three },
   progress: { flexDirection: 'row', gap: Spacing.one },
+  stepRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one, minHeight: TouchTarget },
   segment: { flex: 1, height: 8, borderRadius: Radius.xs },
   heading: { gap: Spacing.two, marginTop: Spacing.three, marginBottom: Spacing.one },
   mark: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.two },

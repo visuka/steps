@@ -10,7 +10,7 @@ import { addDays, addDaysToKey, dayKey, daysBetween, startOfDay } from '@/lib/da
 
 import type { PortionOverrides } from './catalog';
 import { loggedFoodIds, NOT_FOR_ME_KEY, type SourceOptions } from './diet';
-import { averageOfJudged, type DayIntake, dayIntakes, type DayMark, type DayMarks, type FoodBook, type GapNote, logNote, type NoteLog, NOTE_COOLDOWN_DAYS, NOTE_WINDOW_DAYS, pickGapNote, weekReady } from './gaps';
+import { averageOfJudged, type DayIntake, dayIntakes, type DayMark, type DayMarks, type FoodBook, type GapNote, logNote, type NoteLog, NOTE_COOLDOWN_DAYS, NOTE_WINDOW_DAYS, pickGapNote, weekJudgedFor, weekReady } from './gaps';
 import { NUTRIENTS } from './nutrients';
 import { gapNoteText, PRIVATE_TITLE, weeklySummaryText, type WeekFacts } from './note-text';
 import { nutrientState } from './state';
@@ -184,7 +184,7 @@ export function weekFacts(days: DayIntake[], profile: Profile, now: Date, waterM
       if ((n.group !== 'vitamin' && n.group !== 'mineral') || n.key === 'vitD') continue;
       const s = nutrientState(n.key, week.average[n.key], {
         coverage: week.coverage[n.key] ?? 0,
-        judged: weekReady(week.judgedDays),
+        judged: weekReady(week.judgedDays) && weekJudgedFor(week, n.key),
         sex: profile.sex,
         weightKg: profile.weightKg,
         heightCm: profile.heightCm,

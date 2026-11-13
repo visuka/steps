@@ -60,4 +60,11 @@ object PlaceCheck {
 
   /** Activity Recognition saying vehicle or bicycle (75+) asks for a confirming fix; it never switches on its own. */
   fun shouldConfirmForActivity(vehicleConf: Int, bicycleConf: Int): Boolean = vehicleConf >= 75 || bicycleConf >= 75
+
+  /** After an Activity Recognition confirm, the next one waits this long: steady false "vehicle" results would keep GPS on. */
+  const val ACTIVITY_CONFIRM_COOLDOWN_MS = 2 * 60_000L
+
+  /** Whether an Activity Recognition result may ask for another confirming fix (lastConfirmAt 0 = never asked). */
+  fun activityConfirmDue(now: Long, lastConfirmAt: Long): Boolean =
+    lastConfirmAt == 0L || now - lastConfirmAt >= ACTIVITY_CONFIRM_COOLDOWN_MS
 }

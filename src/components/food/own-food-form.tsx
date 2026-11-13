@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, NumberField, TextField } from '@/components/controls';
 import { ThemedText } from '@/components/themed-text';
+import { Button as UiButton } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { newId } from '@/data/types';
 import { NUTRIENT, NUTRIENTS } from '@/nutrition/nutrients';
@@ -65,9 +66,13 @@ export function OwnFoodForm({
         />
       ))}
       {!more ? (
-        <ThemedText type="small" themeColor="textSecondary" style={styles.link} onPress={() => setMore(true)}>
-          More: added sugar, cholesterol, vitamins, minerals
-        </ThemedText>
+        <UiButton
+          variant="text"
+          compact
+          icon="chevron-down"
+          label="More: added sugar, cholesterol, vitamins, minerals"
+          onPress={() => setMore(true)}
+        />
       ) : null}
       {children}
       <View style={styles.actions}>
@@ -96,7 +101,6 @@ export function OwnFoodForm({
 
 const styles = StyleSheet.create({
   wrap: { gap: Spacing.two + 4 },
-  link: { textDecorationLine: 'underline' },
   actions: { flexDirection: 'row', gap: Spacing.two },
   action: { flex: 1 },
 });

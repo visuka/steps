@@ -73,6 +73,28 @@ describe('colour roles', () => {
     for (const d of DATA) expect(contrast(c[d], c.lane)).toBeGreaterThanOrEqual(3);
   });
 
+  it.each(SCHEMES)('%s: the lane shows on cards, and ticks show on both parts of a track', (_name, c) => {
+    for (const bg of SURFACES.slice(0, 4)) expect(contrast(c.lane, c[bg])).toBeGreaterThanOrEqual(1.25);
+    expect(contrast(c.laneTick, c.lane)).toBeGreaterThanOrEqual(3);
+    // Ticks over the covered part are painted in the tone's on colour.
+    for (const [fill, on] of [
+      ['steps', 'onSteps'],
+      ['food', 'onFood'],
+      ['water', 'onWater'],
+      ['sleep', 'onSleep'],
+      ['near', 'onNear'],
+      ['over', 'onOver'],
+    ] as [ThemeColor, ThemeColor][])
+      expect(contrast(c[on], c[fill])).toBeGreaterThanOrEqual(3);
+  });
+
+  it.each(SCHEMES)('%s: the three food marks of a split bar each stand out 3:1 from the lane and cards', (_name, c) => {
+    for (const mark of ['food', 'food2', 'food3'] as ThemeColor[]) {
+      expect(contrast(c[mark], c.lane)).toBeGreaterThanOrEqual(3);
+      for (const bg of SURFACES.slice(0, 4)) expect(contrast(c[mark], c[bg])).toBeGreaterThanOrEqual(3);
+    }
+  });
+
   it('keeps the older names pointing at the new roles', () => {
     for (const [, c] of SCHEMES) {
       expect(c.text).toBe(c.onSurface);

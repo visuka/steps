@@ -300,8 +300,9 @@ function SplitBar({ split }: { split: EnergySplit }) {
   const theme = useTheme();
   const parts = [
     { key: 'carbs', label: 'Carbs', value: split.carbs, color: theme.food },
-    { key: 'protein', label: 'Protein', value: split.protein, color: theme.onFoodContainer },
-    { key: 'fat', label: 'Fat', value: split.fat, color: theme.foodContainer },
+    // Three marks of the red-oxide family, each 3:1 on the lane and the card (tokens.test.ts).
+    { key: 'protein', label: 'Protein', value: split.protein, color: theme.food2 },
+    { key: 'fat', label: 'Fat', value: split.fat, color: theme.food3 },
   ];
   const spoken = `Energy from carbs ${split.carbs} percent, protein ${split.protein} percent, fat ${split.fat} percent`;
   return (

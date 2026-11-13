@@ -18,11 +18,11 @@ import { PremiumGate } from '@/components/premium-gate';
 import { Screen, SectionHeader, Snackbar } from '@/components/ui';
 import type { LogEntry } from '@/data/types';
 import { dayKey } from '@/lib/dates';
-import { weekReady, weekWaitText } from '@/nutrition/gaps';
+import { weekJudgedFor, weekReady, weekWaitText } from '@/nutrition/gaps';
 import { TAB_KEY } from '@/nutrition/notes';
 import { NUTRIENT } from '@/nutrition/nutrients';
 import { dayGlBand, nutrientState } from '@/nutrition/state';
-import { energySplit, SPLIT_TEXT, splitVerdict } from '@/nutrition/targets';
+import { energySplit, needsAreDifferent, SPLIT_TEXT, splitVerdict } from '@/nutrition/targets';
 import type { NutrientKey } from '@/nutrition/types';
 import { highWatchChips, MACRO_KEYS, MINERAL_KEYS, nutrientRows, overDays, VITAMIN_KEYS, type ViewContext, WATCH_KEYS } from '@/nutrition/view';
 import { SCREEN_FEATURES } from '@/premium/premium';
@@ -222,7 +222,7 @@ function storedWeekWords(data: NutritionData, ctx: ViewContext): Partial<Record<
   const out: Partial<Record<NutrientKey, string>> = {};
   for (const key of [...VITAMIN_KEYS, ...MINERAL_KEYS]) {
     if (NUTRIENT[key].storage !== 'stored') continue;
-    const s = nutrientState(key, data.week.average[key], { ...ctx, coverage: data.week.coverage[key] ?? 0, judged: true });
+    const s = nutrientState(key, data.week.average[key], { ...ctx, coverage: data.week.coverage[key] ?? 0, judged: weekJudgedFor(data.week, key) });
     if (s.word) out[key] = s.word.toLowerCase();
   }
   return out;
@@ -239,22 +239,25 @@ function WeekView({
 }) {
   const { repo, profile, dataVersion } = useApp();
   const [waterMet, setWaterMet] = useState<number | null>(null);
+  // Same gate as the Sunday summary: only against a target the person saved.
+  const waterShown =
+    waterOn && profile.water.targetMl !== null && !profile.water.doctorLimit && !needsAreDifferent(profile, new Date().getFullYear());
 
   useEffect(() => {
-    if (!waterOn) return;
+    if (!waterShown) return;
     let live = true;
     waterWeek(repo, profile)
-      .then((w) => live && setWaterMet(w.days.some((d) => d.targetMl !== null && !profile.water.doctorLimit) ? w.metDays : null))
+      .then((w) => live && setWaterMet(w.metDays))
       .catch(() => undefined);
     return () => {
       live = false;
     };
-  }, [repo, profile, dataVersion, waterOn]);
+  }, [repo, profile, dataVersion, waterShown]);
 
   if (!data) return null;
   const { week } = data;
   const ready = weekReady(week.judgedDays);
-  const waterLine = waterMet === null ? null : `Water target met on ${waterMet} of 7 days`;
+  const waterLine = !waterShown || waterMet === null ? null : `Water target met on ${waterMet} of 7 days`;
 
   if (!ready) {
     return (
@@ -269,6 +272,7 @@ function WeekView({
   const avg = week.average;
   const cov = week.coverage;
   const group = { diet: profile.nutrition.diet, sourceOpts: data.sources, plain: ctx.plain, onNotForMe };
+  const judgedFor = (key: NutrientKey) => weekJudgedFor(week, key);
   const split = energySplit(avg, cov);
   const over: Partial<Record<NutrientKey, string>> = {};
   for (const key of WATCH_KEYS) {
@@ -286,13 +290,13 @@ function WeekView({
       {waterLine ? <NoteLine icon="water-outline" title={waterLine} /> : null}
       <MacrosCard
         {...group}
-        rows={nutrientRows(MACRO_KEYS, avg, cov, ctx, true, 'of')}
+        rows={nutrientRows(MACRO_KEYS, avg, cov, ctx, judgedFor, 'of')}
         split={split}
         splitLine={split && !ctx.plain ? SPLIT_TEXT[splitVerdict(split)] : null}
       />
-      <NutrientGroupCard {...group} title="Vitamins" why={VITAMINS_WHY} rows={nutrientRows(VITAMIN_KEYS, avg, cov, ctx, true, 'percent')} />
-      <NutrientGroupCard {...group} title="Minerals" why={MINERALS_WHY} rows={nutrientRows(MINERAL_KEYS, avg, cov, ctx, true, 'percent')} />
-      <WatchCard {...group} rows={nutrientRows(WATCH_KEYS, avg, cov, ctx, true, 'of')} extra={over} />
+      <NutrientGroupCard {...group} title="Vitamins" why={VITAMINS_WHY} rows={nutrientRows(VITAMIN_KEYS, avg, cov, ctx, judgedFor, 'percent')} />
+      <NutrientGroupCard {...group} title="Minerals" why={MINERALS_WHY} rows={nutrientRows(MINERAL_KEYS, avg, cov, ctx, judgedFor, 'percent')} />
+      <WatchCard {...group} rows={nutrientRows(WATCH_KEYS, avg, cov, ctx, judgedFor, 'of')} extra={over} />
     </>
   );
 }
