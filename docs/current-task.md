@@ -1,6 +1,6 @@
 # Current task: Build 22 — the chosen Clean+ look, hourly detail, bug fixes
 
-Status: **Approved design: Clean+ blue (14 Nov 2026).** T0 to T11 done; CI run 43591624287 gave the first screenshots. T12 review 1 and its fixes are done; CI run 43596886754 gave new screenshots. T12 review 2 done: items 19–22 for Sonnet (`docs/design/review-2.md`). Next: **Sonnet fixes review 2**, then commit, push and CI (standing OK), then **Opus review 3**.
+Status: **Approved design: Clean+ blue (14 Nov 2026).** T0 to T11 done; CI run 43591624287 gave the first screenshots. T12 review 1 and its fixes are done; CI run 43596886754 gave new screenshots. T12 review 2 done and its fixes (items 19–22) are done by Sonnet (b2b473d); CI run 43599840988 is running. Next: **Opus review 3**. New owner request: **T15** (correct a dish's ingredients and amounts, and remember them), planned below. Sonnet can start T15a now; it does not touch the review files.
 
 ## Who does what next
 
@@ -21,9 +21,12 @@ Status: **Approved design: Clean+ blue (14 Nov 2026).** T0 to T11 done; CI run 4
 | ~~Review 1 fixes~~ | done (Sonnet) | |
 | ~~T11 re-run~~ | done (CI run 43596886754) | |
 | ~~T12 review 2~~ | done | `docs/design/review-2.md` |
-| **Review 2 fixes (next)** | Sonnet | "Fix items 19–22 in docs/design/review-2.md" |
-| T11 re-run | standing OK | commit, push, run the Android workflow (publishes a pre-release) |
-| T12 review 3 | Opus | "Review the CI screenshots" |
+| ~~Review 2 fixes~~ | done (Sonnet, b2b473d) | |
+| T11 re-run | running | CI run 43599840988 |
+| **T12 review 3 (next)** | Opus | "Review the CI screenshots" |
+| **T15a** | Sonnet | "Do T15a in docs/current-task.md" |
+| T15b | Sonnet | "Do T15b in docs/current-task.md" |
+| T15 check | Opus | "Review the CI screenshots" |
 | T13 | Haiku | only after the owner's OK |
 | T14 | Sonnet | only after the owner's OK |
 
@@ -51,7 +54,7 @@ Written by Opus, 14 Nov 2026. Implement with Sonnet / Haiku as marked.
 
 ## Order
 
-T0 → T1 → T2 → T3 → T4 → T5 → (T6, T7, T8, T9, T10 can run in any order) → T11 → T12 → T13. T14 is separate.
+T0 → T1 → T2 → T3 → T4 → T5 → (T6, T7, T8, T9, T10 can run in any order) → T11 → T12 → T15a → T15b → T15 check → T13. T14 is separate.
 
 ---
 
@@ -211,6 +214,105 @@ The stopped "screens match mockups" run left 28 changed files and new folders (a
 - **Risk:** Deploy order matters (data before API). Live AWS change.
 - **Done when:** both stacks deployed, ingredient count 8,193, the test dish works.
 - **Model:** **Sonnet.** Not before the owner says yes.
+
+---
+
+## T15. The person corrects a dish's ingredients and amounts, and the app remembers it (owner, 14 Nov 2026)
+
+**What the owner asked:** the app guesses a dish's ingredients. The person must be able to fix them: change an amount, remove one that isn't there, add one that is. The next time they have the same dish, the app uses their confirmed list. The same goes for the quantity: start from a normal amount, let them change it, and remember it.
+
+**What exists today** (mapped 14 Nov 2026):
+- The food result's Edit panel already changes the unit, the quantity and what one unit weighs (`food-result.tsx` `Details` :494–643). The unit weight is kept in kv `portionOverrides`.
+- Ingredients are display only (`Ingredients` :359–413). Nothing stores a corrected list.
+- Typing the same dish again calls the server again (`food-log.tsx` `lookUp` :418–442). `pickLooked` then overwrites the saved copy with the fresh answer (`use-food-book.ts` :60–66).
+- The background refresh (`nutrition/pending.ts` :108–153, `refreshedFood`) also overwrites `ingredients`.
+- Nutrients come from the dish's `per100g`, not from its ingredients, so a changed list must be worked out again.
+
+### Decisions (Opus)
+
+1. **The person's version is its own food.**
+   - Confirming makes a new `FoodItem` with id `mine:<n>` (the next free number) and `source: 'mine'`.
+   - It keeps the original's name, aliases, category and units, and holds the edited `ingredients`.
+   - A new field `basedOn` holds the original id. `recipe` holds what was sent (below).
+   - It is kept in `saved_food`. The server's food is left as it is.
+   - So **past entries do not change**; only entries logged from now on use the person's version.
+2. **Working out the numbers:** send the edited list through the existing recipe look-up (`recipeFood`, POST `/v1/food/recipe`). No server change or deploy is needed.
+   - **What is sent:** name = the dish name. "What went in" = one line per ingredient, `"<name> <grams> g"`, in the shown order. "How you cooked it" = the dish name plus " (home)" or " (restaurant)" from `style`. Servings 1, unit = the food's default unit key.
+   - **What is kept from the answer:** `per100g`, `missing`, `pending` and `notes`. Keep the person's ingredient list exactly as they typed it, never the server's.
+   - **Pending answer:** the existing pending repeat (`pending.ts`) asks again with the same `recipe`. `refreshedFood` must **never** replace the `ingredients` of a `mine:` food, only its numbers.
+   - **Offline or an error:** keep the edit on screen, show the snackbar "Couldn't work it out. Check the connection and try again.", and save nothing.
+3. **Unit weight:** ingredient grams are for one unit ("in 1 bowl"). If the edited grams add up to a different total than the original list, one unit of the person's version weighs `original unit grams × new total ÷ old total`. Round it to the nearest 5 g, with a minimum of 5. The Edit panel's "what 1 unit weighs" stays changeable as today.
+4. **Same dish next time.** Kept in kv `myDishes`, on the phone only: `{ byFood: { [originalId]: mineId }, byText: { [normalised typed text]: mineId } }`.
+   - **Normalising:** the same way `searchFoods` does: lowercase, NFKD, anything other than letters and digits becomes a space, spaces collapsed.
+   - **On confirm:** set both. The typed text is the search text that led to the result, when there was one.
+   - **Typing:** when the normalised text is in `byText`, the person's version is the first row of the local results, labelled " · your version". This happens before any "Look up" call.
+   - **Look-up:** when a returned food's id is in `byFood`, that row shows the person's version instead, labelled " · your version". `pickLooked` must not overwrite it.
+   - **Local search:** lists a `mine:` food once, and hides its `basedOn` food.
+   - **Editing the person's version again** updates the same `mine:` food in place (it is theirs), so entries already logged with it change too. Say so under the button: "Changes every time you logged this dish".
+   - **"Use our guess again":** a text button in the Edit panel, shown only on a `mine:` food. It removes both mappings and switches this result back to the `basedOn` food. The `mine:` food stays for old entries.
+5. **Quantity next time:** a dish logged before opens at its last logged unit and quantity, not 1 of the default unit. Take them from `recentFoods`, matched by food id; for a `mine:` food, also by its `basedOn` id. A dish never logged starts at the server's suggested amount, as now.
+6. **Limits:**
+   - At least 1 ingredient and at most 30.
+   - Names are trimmed and 1–60 characters long.
+   - Grams are whole numbers from 1 to 2,000.
+   - "Use these ingredients" is disabled while anything is invalid, and the field says why under it (`s13 warn`).
+7. **Privacy:** the list goes to the food API as recipe text, as the recipe form already does. It carries no user id; the server caches recipes by text. `myDishes` and `mine:` foods stay on the phone, and nothing else is uploaded.
+
+### UI (no mockup; Clean+ tokens from `docs/design/spec.md`)
+
+- **Entry point:** on the food result, after the last ingredient row, a 48-high row **"Change ingredients"** in `s15 med` accent. It lines up with the ingredient names (x 76), like "Show all nutrients" (10.5). The Edit panel also opens it.
+- **Ingredient rows while editing:**
+  - Rows stay 48 high with the same circle and hairline.
+  - The name is `s15` ink and not editable; to rename, remove the row and add a new one.
+  - On the right, a grams field: 72 × 40, radius 12, soft fill, `s15` ink right-aligned, with "g" in `s13 muted` inside after the number, numeric keyboard.
+  - Then a remove button: the 20 close icon in muted, touch area 48 × 48, label "Remove <name>".
+  - The amount column moves left to make room. The method (" · fried") stays.
+- **Adding:** after the rows, an **"Add ingredient"** row, 48 high: a 20 plus icon in accent inside a 40 accentTint circle, then the text in `s15 med` accent.
+  - Tapping it adds a row with a name field (flex, height 40, radius 12, soft fill, `s15`, placeholder "Ingredient", focused) and an empty grams field.
+  - The new row's icon is the bowl until it is named; then the 10.5 icon rules apply.
+- **Caption:** the caption on the right of "Ingredients" becomes "Amounts in 1 <unit>" (`s13 muted`) while editing.
+- **Bottom strip while editing:** the same white strip with the 5.8 buttons: **"Cancel"** (styled like the Edit button) and **"Use these ingredients"** (filled).
+  - **While it works:** the filled button reads "Working it out…" and is disabled, and the rows can't be edited.
+  - **When done:** the screen shows the new numbers and the strip goes back to Edit / Save to <meal>. A pill **"Your version"** (the 5.6 pill: accentTint fill, accent text) sits after "You typed" in the top bar, gap 8.
+- **Cancel:** drops the edits without asking.
+- **Numbers:** nutrients and kcal change only from the answer. Nothing is guessed on the phone.
+- **Accessibility:** all text uses `maxFontSizeMultiplier` as elsewhere (10.4). Every control has an accessibility label and a 48 × 48 touch area.
+- **Design preview:** add `screen=food&edit=1` to `design-preview.tsx`: the sample result opened for editing, with the sample's five rows. Capture it in `launch-and-capture.sh` as `clean-food-edit.png` so the review can see it.
+
+### Tasks
+
+- **T15a — data and logic (Sonnet).**
+  - `src/nutrition/types.ts`: add `basedOn?: string` and the `source` value `'mine'`.
+  - New `src/nutrition/my-dishes.ts`, pure functions:
+    - `recipeTextFor(food, ingredients)`
+    - `scaledUnits(food, oldIngredients, newIngredients)`
+    - `normaliseDishText`
+    - `myDishesAfterConfirm` and `myDishesAfterReset`
+    - `mineFor(myDishes, {foodId?, text?})`
+    - `validIngredients(list)`, with the limit messages
+  - `src/state/use-food-book.ts`: load and save `myDishes`. `confirmIngredients(food, list, typedText)` calls `recipeFood`, then builds and saves the `mine:` food and the mappings. Add `useOurGuess(mineId)`.
+  - `src/nutrition/pending.ts`: `refreshedFood` keeps a `mine:` food's ingredients.
+  - `src/nutrition/catalog.ts` `searchFoods`: the person's version comes first and its `basedOn` food is hidden.
+  - `src/components/journal/food-log.tsx`: `lookUp` and `pickLooked` use the mappings, and the start quantity comes from `recentFoods`.
+  - **Tests:** in `src/nutrition/__tests__/my-dishes.test.ts` and the existing `saved-foods`, `pending` and `food-read` tests. Cover:
+    - the recipe text;
+    - unit scaling and rounding;
+    - the limits;
+    - normalised text matching;
+    - a look-up result swapped for the person's version, and `pickLooked` not overwriting it;
+    - the refresh not touching its ingredients;
+    - past entries keeping the original food;
+    - "use our guess again";
+    - the last quantity reused.
+  - **Done when:** tsc, eslint and jest pass.
+- **T15b — the screen (Sonnet).**
+  - `src/components/food/food-result.tsx`: the editing state, rows, adding, Cancel / Use these ingredients, the pill, and "Use our guess again".
+  - `food-result-layout.ts`: row widths with the field and the remove button (pure, tested).
+  - `src/app/design-preview.tsx` and `.github/scripts/launch-and-capture.sh`: the edit preview.
+  - **Done when:** the checks pass; then commit, push and run CI (standing OK).
+- **T15 check (Opus):** "Review the CI screenshots" also checks `clean-food-edit.png` against the UI section above.
+
+**Risk:** the recipe look-up for an edited list can give different numbers from the original dish even when nothing really changed, because it is a new estimate. If the person confirms an unchanged list, do nothing (no new food).
 
 ---
 
