@@ -143,3 +143,9 @@ A short entry is added at the end after each finished task: date, what was done,
 - Checks: tsc clean, eslint clean, jest 93 suites, 1,428 tests. Nothing committed; nothing seen on a device.
 - Item 15 ("Delete walk") kept as is; item 16 (real map tiles) accepted.
 - **Independent review of these fixes:** one finding confirmed, left as is. The sample pace sparkline matches the mockup's shape for points 1–5 and 8–9 but not 6–7 (app: 22, 19; mockup: 12, 22). Cause: the 6-minute car stretch is left out of the pace maths and bridged by a straight line, so the two windows over it always read slow. Matching the mockup there would need a long car leg and a redrawn sample route. For Opus (review 2): accept, or ask for the route to be redrawn.
+
+## 14 Nov 2026 — T12 review 2 (Opus)
+
+- CI run 43596886754 (all four jobs green). Review 1's items 1–13 and 18 are confirmed on the screenshots; Today matches the mockup closely, dark mode is the same as light.
+- Four items left for Sonnet (`docs/design/review-2.md`): 19, the light detail shot caught the splash (a CI timing race; the dark detail shot is fine); 20, the food result's extra "Some ingredients not counted yet" note under the nutrients; 21, the removed car part leaves a gap in the walk route (new spec rule in 6.2: draw it dashed in muted); 22, the sample route redrawn to the mockup's shape.
+- Accepted: the "Updated … · Sample day" line under the Today tiles (the owner can overrule at the final OK), and the sparkline note from the review 1 fixes.

@@ -1,6 +1,6 @@
 # Current task: Build 22 — the chosen Clean+ look, hourly detail, bug fixes
 
-Status: **Approved design: Clean+ blue (14 Nov 2026).** T0 to T11 done; CI run 43591624287 gave the first screenshots. T12 review 1 done and its fixes (items 1–13 and 18) are done by Sonnet, not yet committed. Next: the owner's OK to commit, push and re-run the Android workflow (it publishes a pre-release), then **Opus review 2**.
+Status: **Approved design: Clean+ blue (14 Nov 2026).** T0 to T11 done; CI run 43591624287 gave the first screenshots. T12 review 1 and its fixes are done; CI run 43596886754 gave new screenshots. T12 review 2 done: items 19–22 for Sonnet (`docs/design/review-2.md`). Next: **Sonnet fixes review 2**, then commit, push and CI (standing OK), then **Opus review 3**.
 
 ## Who does what next
 
@@ -19,8 +19,11 @@ Status: **Approved design: Clean+ blue (14 Nov 2026).** T0 to T11 done; CI run 4
 | ~~T11~~ | done (CI run 43591624287) | |
 | ~~T12 review 1~~ | done | `docs/design/review-1.md` |
 | ~~Review 1 fixes~~ | done (Sonnet) | |
-| **T11 re-run (next)** | owner's OK | commit, push, run the Android workflow (publishes a pre-release) |
-| T12 review 2 | Opus | "Review the CI screenshots" |
+| ~~T11 re-run~~ | done (CI run 43596886754) | |
+| ~~T12 review 2~~ | done | `docs/design/review-2.md` |
+| **Review 2 fixes (next)** | Sonnet | "Fix items 19–22 in docs/design/review-2.md" |
+| T11 re-run | standing OK | commit, push, run the Android workflow (publishes a pre-release) |
+| T12 review 3 | Opus | "Review the CI screenshots" |
 | T13 | Haiku | only after the owner's OK |
 | T14 | Sonnet | only after the owner's OK |
 

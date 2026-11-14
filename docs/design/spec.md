@@ -179,6 +179,7 @@ SVG 88 × 88, centre (44, 44), radius **36**, stroke width **10**, circumference
 
 ### 6.2 Map (Walk)
 342 × 160 drawing, source lines 300–312: ground mapLand; water mapWater in the bottom right; one block mapBlock (rx 16) with four mapDot circles; main roads white 8 wide with round caps, minor roads white 4 wide with butt caps; route accent **3 wide**, round caps and joins; start dot r 6, white fill, accent ring 2.5; end dot r 6.5, accent fill, white ring 2.5. In the app the tiles come from the map style (T8) in these colours; the route is drawn from the real points.
+**Rule (Opus, 14 Nov):** a removed part (left out) is drawn as a dashed line in muted (`outline`), dash [2, 2], 3 wide, joined to the route on both sides so the walk reads as one line; a kept part stays solid in its colour.
 
 ## 7. Screens
 
