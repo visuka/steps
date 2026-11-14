@@ -3,12 +3,14 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Chip, NumberField, Stepper } from '@/components/controls';
 import { NutrientBars } from '@/components/food/nutrient-bars';
+import { PartialNote } from '@/components/food/nutrition-view';
 import { ThemedText } from '@/components/themed-text';
 import { Button as UiButton } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { gramsFor, isSavedFoodId, nutrientsFor, type PortionOverrides, unitsFor } from '@/nutrition/catalog';
 import { formatNutrient, NUTRIENT } from '@/nutrition/nutrients';
+import { AT_LEAST } from '@/nutrition/state';
 import type { FoodItem, Nutrients } from '@/nutrition/types';
 import { glBand, glycemicIndex, type WatchOut, watchOuts } from '@/nutrition/watch';
 
@@ -67,6 +69,9 @@ export function PortionPicker({
   const watch = watchOuts(food, gramsFor(food, unit, quantity, overrides));
   const gi = glycemicIndex(food);
   const hasWorking = isSavedFoodId(food.id) || Boolean(food.ingredients?.length || food.notes?.length);
+  const missing = food.missing ?? [];
+  /** "≥ " before a figure only partly known. */
+  const least = (k: (typeof missing)[number]) => (missing.includes(k) ? AT_LEAST : '');
 
   const pickUnit = (key: string) => {
     setUnit(key);
@@ -76,14 +81,14 @@ export function PortionPicker({
 
   const macros = (['protein', 'carbs', 'fat', 'fiber'] as const)
     .filter((k) => n[k] !== undefined)
-    .map((k) => `${k === 'fiber' ? 'Fibre' : k[0].toUpperCase() + k.slice(1)} ${formatNutrient(k, n[k]!)}`)
+    .map((k) => `${k === 'fiber' ? 'Fibre' : k[0].toUpperCase() + k.slice(1)} ${least(k)}${formatNutrient(k, n[k]!)}`)
     .join(' · ');
 
   const openWatch = watch.find((w) => w.key === watchOpen);
   const watchNote = (w: WatchOut) => {
     if (w.key === 'deep-fried') return DEEP_FRIED_NOTE;
     const amount = n[w.key];
-    return `${amount === undefined ? '' : `This amount: ${formatNutrient(w.key, amount)}. `}${NUTRIENT[w.key].note}`;
+    return `${amount === undefined ? '' : `This amount: ${least(w.key)}${formatNutrient(w.key, amount)}. `}${NUTRIENT[w.key].note}`;
   };
 
   // Ingredients are given for the food's first unit (a recipe's one serving).
@@ -114,12 +119,19 @@ export function PortionPicker({
       )}
 
       <ThemedText>
+        {least('kcal')}
         {formatNutrient('kcal', n.kcal ?? 0)}
         {own ? '' : ` · ${totalGrams} g`}
       </ThemedText>
       {macros ? (
         <ThemedText type="small" themeColor="textSecondary">
           {macros}
+        </ThemedText>
+      ) : null}
+      {missing.length || food.pending ? <PartialNote /> : null}
+      {food.pending ? (
+        <ThemedText type="small" themeColor="textSecondary">
+          We’re finding the rest. It updates by itself in a while.
         </ThemedText>
       ) : null}
 
@@ -144,7 +156,8 @@ export function PortionPicker({
 
       {gi !== null && n.gl !== undefined ? (
         <ThemedText type="small" themeColor="textSecondary">
-          GI about {gi} · glycemic load {formatNutrient('gl', n.gl)} for this amount: {glBand(n.gl, 'portion')}
+          GI about {gi} · glycemic load {least('carbs')}
+          {formatNutrient('gl', n.gl)} for this amount: {glBand(n.gl, 'portion')}
         </ThemedText>
       ) : null}
 
@@ -195,7 +208,7 @@ export function PortionPicker({
       />
       {allNutrients ? (
         <View style={styles.section}>
-          <NutrientBars nutrients={n} groups={['energy', 'macro', 'limit', 'glucose', 'vitamin', 'mineral']} />
+          <NutrientBars nutrients={n} groups={['energy', 'macro', 'limit', 'glucose', 'vitamin', 'mineral']} partial={missing} />
           <ThemedText type="small" themeColor="textSecondary">
             Percent of a general adult daily value for this amount. Tap a row to see what it is.
           </ThemedText>

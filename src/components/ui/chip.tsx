@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Radius, Spacing } from '@/constants/theme';
+import { Controls, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import type { IconName } from './button';
@@ -31,7 +31,7 @@ export function Chip({ label, onPress, selected, icon, dot, disabled, accessibil
       disabled={disabled}
       hitSlop={{ top: 8, bottom: 8 }}
       accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel}
+      accessibilityLabel={accessibilityLabel ?? label}
       accessibilityState={selected === undefined ? { disabled: !!disabled } : { selected: on, disabled: !!disabled }}
       aria-selected={selected === undefined ? undefined : on}
       style={({ pressed }) => [
@@ -44,7 +44,7 @@ export function Chip({ label, onPress, selected, icon, dot, disabled, accessibil
       ]}>
       {on ? <Ionicons name="checkmark" size={18} color={fg} /> : icon ? <Ionicons name={icon} size={18} color={theme.primary} /> : null}
       {dot ? <View style={[styles.dot, { backgroundColor: dot }]} /> : null}
-      <ThemedText type="labelLarge" style={{ color: on ? fg : theme.onSurface }}>
+      <ThemedText type={Controls.chipType} style={[Controls.chipLabel, { color: on ? fg : theme.onSurface }]}>
         {label}
       </ThemedText>
     </Pressable>

@@ -155,6 +155,7 @@ function DayView({
   const t = data?.today ?? null;
   const totals = t?.total ?? {};
   const cov = t?.coverage ?? {};
+  const part = t?.partial ?? {};
   const ctx = data?.ctx;
   const judged = data?.judgedToday ?? false;
   const plain = ctx?.plain ?? false;
@@ -171,7 +172,7 @@ function DayView({
 
   return (
     <>
-      {ctx ? <CaloriesTrack eaten={Math.round(totals.kcal ?? 0)} target={ctx.kcalTarget ?? 2000} /> : null}
+      {ctx ? <CaloriesTrack eaten={Math.round(totals.kcal ?? 0)} target={ctx.kcalTarget ?? 2000} atLeast={Boolean(part.kcal)} /> : null}
       <FoodLog focusKey={focusKey} />
       {water}
       <FoodSetupCard />
@@ -188,24 +189,24 @@ function DayView({
       {t && ctx ? (
         <>
           <SectionHeader title="What today adds up to" />
-          <MacrosCard {...group} rows={nutrientRows(MACRO_KEYS, totals, cov, ctx, judged, 'of')} split={energySplit(totals, cov)} />
+          <MacrosCard {...group} rows={nutrientRows(MACRO_KEYS, totals, cov, ctx, judged, 'of', part)} split={energySplit(totals, cov)} />
           <NutrientGroupCard
             {...group}
             title="Vitamins"
             why={VITAMINS_WHY}
-            rows={nutrientRows(VITAMIN_KEYS, totals, cov, ctx, judged, 'percent')}
+            rows={nutrientRows(VITAMIN_KEYS, totals, cov, ctx, judged, 'percent', part)}
             weekWords={weekWords}
           />
           <NutrientGroupCard
             {...group}
             title="Minerals"
             why={MINERALS_WHY}
-            rows={nutrientRows(MINERAL_KEYS, totals, cov, ctx, judged, 'percent')}
+            rows={nutrientRows(MINERAL_KEYS, totals, cov, ctx, judged, 'percent', part)}
             weekWords={weekWords}
           />
           <WatchCard
             {...group}
-            rows={nutrientRows(WATCH_KEYS, totals, cov, ctx, judged, 'of')}
+            rows={nutrientRows(WATCH_KEYS, totals, cov, ctx, judged, 'of', part)}
             glLine={band ? `Glycemic load today: ${BAND[band]}` : null}
             chips={data ? highWatchChips(todayEntries, data.window.book) : []}
           />
@@ -222,7 +223,12 @@ function storedWeekWords(data: NutritionData, ctx: ViewContext): Partial<Record<
   const out: Partial<Record<NutrientKey, string>> = {};
   for (const key of [...VITAMIN_KEYS, ...MINERAL_KEYS]) {
     if (NUTRIENT[key].storage !== 'stored') continue;
-    const s = nutrientState(key, data.week.average[key], { ...ctx, coverage: data.week.coverage[key] ?? 0, judged: weekJudgedFor(data.week, key) });
+    const s = nutrientState(key, data.week.average[key], {
+      ...ctx,
+      coverage: data.week.coverage[key] ?? 0,
+      judged: weekJudgedFor(data.week, key),
+      partial: Boolean(data.week.partial[key]),
+    });
     if (s.word) out[key] = s.word.toLowerCase();
   }
   return out;
@@ -271,6 +277,7 @@ function WeekView({
   const ctx: ViewContext = { ...data.ctx, kcalTarget: data.fullKcal };
   const avg = week.average;
   const cov = week.coverage;
+  const part = week.partial;
   const group = { diet: profile.nutrition.diet, sourceOpts: data.sources, plain: ctx.plain, onNotForMe };
   const judgedFor = (key: NutrientKey) => weekJudgedFor(week, key);
   const split = energySplit(avg, cov);
@@ -286,17 +293,17 @@ function WeekView({
         title={`Average of ${week.judgedDays} full days`}
         why="A full day has most of the day’s food logged, or was marked “That’s all for today”. Fasting days and light days are left out, so they don’t pull the average down."
       />
-      <CaloriesTrack eaten={Math.round(avg.kcal ?? 0)} target={data.fullKcal} label="a day, of about" />
+      <CaloriesTrack eaten={Math.round(avg.kcal ?? 0)} target={data.fullKcal} label="a day, of about" atLeast={Boolean(part.kcal)} />
       {waterLine ? <NoteLine icon="water-outline" title={waterLine} /> : null}
       <MacrosCard
         {...group}
-        rows={nutrientRows(MACRO_KEYS, avg, cov, ctx, judgedFor, 'of')}
+        rows={nutrientRows(MACRO_KEYS, avg, cov, ctx, judgedFor, 'of', part)}
         split={split}
         splitLine={split && !ctx.plain ? SPLIT_TEXT[splitVerdict(split)] : null}
       />
-      <NutrientGroupCard {...group} title="Vitamins" why={VITAMINS_WHY} rows={nutrientRows(VITAMIN_KEYS, avg, cov, ctx, judgedFor, 'percent')} />
-      <NutrientGroupCard {...group} title="Minerals" why={MINERALS_WHY} rows={nutrientRows(MINERAL_KEYS, avg, cov, ctx, judgedFor, 'percent')} />
-      <WatchCard {...group} rows={nutrientRows(WATCH_KEYS, avg, cov, ctx, judgedFor, 'of')} extra={over} />
+      <NutrientGroupCard {...group} title="Vitamins" why={VITAMINS_WHY} rows={nutrientRows(VITAMIN_KEYS, avg, cov, ctx, judgedFor, 'percent', part)} />
+      <NutrientGroupCard {...group} title="Minerals" why={MINERALS_WHY} rows={nutrientRows(MINERAL_KEYS, avg, cov, ctx, judgedFor, 'percent', part)} />
+      <WatchCard {...group} rows={nutrientRows(WATCH_KEYS, avg, cov, ctx, judgedFor, 'of', part)} extra={over} />
     </>
   );
 }

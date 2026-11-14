@@ -9,11 +9,11 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 
 /** The five destinations, in order. Each name is a file in app/(tabs)/. */
 export const TABS: NavigationItem[] = [
-  { key: 'index', label: 'Today', icon: 'today-outline', activeIcon: 'today' },
-  { key: 'food', label: 'Food', icon: 'restaurant-outline', activeIcon: 'restaurant' },
-  { key: 'activity', label: 'Activity', icon: 'walk-outline', activeIcon: 'walk' },
-  { key: 'journal', label: 'Journal', icon: 'book-outline', activeIcon: 'book' },
-  { key: 'you', label: 'You', icon: 'person-circle-outline', activeIcon: 'person-circle' },
+  { key: 'index', label: 'Today', icon: 'today-outline', activeIcon: 'today', tone: 'steps' },
+  { key: 'food', label: 'Food', icon: 'restaurant-outline', activeIcon: 'restaurant', tone: 'food' },
+  { key: 'activity', label: 'Activity', icon: 'walk-outline', activeIcon: 'walk', tone: 'steps' },
+  { key: 'journal', label: 'Journal', icon: 'book-outline', activeIcon: 'book', tone: 'sleep' },
+  { key: 'you', label: 'You', icon: 'person-circle-outline', activeIcon: 'person-circle', tone: 'sleep' },
 ];
 
 /** On Android the bar steps aside while the keyboard is up, so a search keeps its room. */

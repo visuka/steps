@@ -33,10 +33,10 @@ describe('unknown is never zero', () => {
     expect(state('vitC', 200, { coverage: 0.5 }).state).toBe('unknown');
     expect(state('protein', 80, { coverage: 0.6 }).state).toBe('unknown');
   });
-  it('says "at least" between 80% and 100% coverage', () => {
+  it('says "≥" (at least) between 80% and 100% coverage', () => {
     const s = state('vitC', 45, { coverage: 0.85 });
     expect(s.atLeast).toBe(true);
-    expect(valueText('vitC', 45, s)).toBe('at least 45 mg');
+    expect(valueText('vitC', 45, s)).toBe('≥ 45 mg');
     expect(valueText('vitC', 45, state('vitC', 45))).toBe('45 mg');
   });
   it('removes the catalog zeros that are gaps, not measurements', () => {

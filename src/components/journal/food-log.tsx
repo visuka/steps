@@ -1,5 +1,6 @@
+import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { type EstimateItem, type EstimateResult, estimateFood, restaurantVersion } from '@/api/food-api';
 import { checkDescription, FoodApiError, unknownDishMessage } from '@/api/food-read';
@@ -40,6 +41,7 @@ import {
   type Where,
   whereOf,
 } from '@/nutrition/place';
+import { AT_LEAST, PARTIAL_NOTE } from '@/nutrition/state';
 import type { FoodItem, Nutrients } from '@/nutrition/types';
 import { useApp } from '@/state/app-state';
 import { useCaloriesToday } from '@/state/use-calories';
@@ -85,6 +87,7 @@ const unknownKey = (name: string) => `unknown:${name}`;
 export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
   const { repo, source, dataVersion, touch } = useApp();
   const theme = useTheme();
+  const router = useRouter();
   const clock = useClockStyle();
   const now = useNow();
   const { book, foods: loaded } = useCaloriesToday();
@@ -509,14 +512,22 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
       <Card title="I ate">
         {mode.kind === 'search' ? (
           <>
-            <TextField
-              key={focusKey}
-              autoFocus={focusKey !== undefined}
-              label="Search foods"
-              value={query}
-              onChangeText={changeQuery}
-              placeholder="Search: roti, dal, or “2 idli and sambar”"
-            />
+            <View style={styles.searchRow}>
+              <View style={styles.entryName}>
+                <TextField
+                  key={focusKey}
+                  autoFocus={focusKey !== undefined}
+                  label="Search foods"
+                  value={query}
+                  onChangeText={changeQuery}
+                  placeholder="Search: roti, dal, or “2 idli and sambar”"
+                />
+              </View>
+              {/* Scan a pack's barcode (app/food-scan.tsx); phones only, the web has no scanner. */}
+              {Platform.OS === 'web' ? null : (
+                <IconButton icon="barcode-outline" variant="tonal" onPress={() => router.push('/food-scan')} accessibilityLabel="Scan a barcode" />
+              )}
+            </View>
             {results.map((food) => (
               <SearchResult key={food.id} food={food} onPress={() => pickFood(food)} />
             ))}
@@ -682,14 +693,16 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
             ]
               .filter(Boolean)
               .join(' · ');
-            const note = valuesNote(f, food);
+            const partial = Boolean(food?.missing?.length || food?.pending);
+            const note = [valuesNote(f, food), partial ? PARTIAL_NOTE : null].filter(Boolean).join(' · ') || null;
+            const least = food?.missing?.includes('kcal') ? AT_LEAST : '';
             const time = formatClock(f.loggedAt, clock);
             return (
               <View key={f.id} style={styles.entry}>
                 <Pressable
                   onPress={() => startEdit(f, food)}
                   accessibilityRole="button"
-                  accessibilityLabel={`${time}, ${f.name}${detail ? `, ${detail}` : ''}, ${kcal} kcal.${note ? ` ${note}.` : ''} Tap to change or delete it.`}
+                  accessibilityLabel={`${time}, ${f.name}${detail ? `, ${detail}` : ''}, ${least ? 'at least ' : ''}${kcal} kcal.${note ? ` ${note}.` : ''} Tap to change or delete it.`}
                   style={({ pressed }) => [styles.entryMain, pressed && { opacity: 0.7 }]}>
                   <ThemedText type="small" themeColor="textSecondary" style={styles.time}>
                     {time}
@@ -707,7 +720,10 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
                       </ThemedText>
                     ) : null}
                   </View>
-                  <ThemedText style={styles.entryKcal}>{formatSteps(kcal)} kcal</ThemedText>
+                  <ThemedText style={styles.entryKcal}>
+                    {least}
+                    {formatSteps(kcal)} kcal
+                  </ThemedText>
                 </Pressable>
                 <IconButton icon="trash-outline" onPress={() => askRemove(f)} accessibilityLabel={`Delete ${f.name}`} />
               </View>
@@ -857,7 +873,9 @@ function LookedUpRow({
   const theme = useTheme();
   const where = added
     ? ' · added'
-    : catalogFood(item.food.id)
+    : food.pending || food.missing?.length
+      ? ' · some ingredients not counted yet'
+      : catalogFood(item.food.id)
       ? ' · from our food list'
       : item.cached
         ? ' · saved earlier'
@@ -931,6 +949,7 @@ const styles = StyleSheet.create({
   entry: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one },
   entryMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.three, minHeight: TouchTarget },
   hintRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
+  searchRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one },
   time: { width: 64, fontVariant: ['tabular-nums'] },
   entryName: { flex: 1 },
   entryKcal: { fontVariant: ['tabular-nums'] },

@@ -112,6 +112,42 @@ export interface FoodItem {
   restaurant?: string;
   /** Restaurant versions made from a home dish: that dish's id, to switch back to. */
   homeId?: string;
+  /**
+   * Foods from the food API: nutrients only partly known because an
+   * ingredient isn't counted yet. Their value is "at least"; a key missing
+   * from per100g is still unknown, never zero.
+   */
+  missing?: NutrientKey[];
+  /**
+   * Foods from the food API: an ingredient is queued for the server's
+   * ingredient agent. The same look-up later gives fuller values
+   * (nutrition/pending.ts repeats it).
+   */
+  pending?: boolean;
+  /** Recipes still pending: what was sent, so the look-up can be repeated. Kept on the phone only. */
+  recipe?: FoodRecipeSource;
+  /**
+   * Pending foods: when the phone got the answer (epoch ms), so the first
+   * repeat waits from then, not from when the app next opens. Phone only.
+   */
+  pendingSince?: number;
+  /** Scanned packs (api/scan-read.ts): the GTIN-14 under the barcode. Not kept in saved_food. */
+  barcode?: string;
+  /** Scanned packs: the brand on the pack. */
+  brand?: string;
+  /** Scanned packs: from Open Food Facts, or from a Steps user's label photo. */
+  origin?: 'off' | 'label';
+  /** Scanned packs: the pack size as printed ("200 g"). */
+  packText?: string;
+}
+
+/** A recipe as sent to the food API (api/food-read.ts RecipeRequest). */
+export interface FoodRecipeSource {
+  name: string;
+  ingredients: string;
+  steps: string;
+  servings?: number;
+  unit?: string;
 }
 
 /** A food the person added, with nutrients for one serving. */

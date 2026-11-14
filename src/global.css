@@ -1,32 +1,16 @@
-/* Web preview only: the browser surfaces the app does not draw itself, in the park-track palette. */
+/* Web preview only: the browser surfaces the app does not draw itself. They
+   follow no theme (the theme is picked at start-up in JavaScript), so they use
+   the browser's own colours; the app's text styles name each theme's fonts. */
 :root {
-  --font-display: Barlow_400Regular, 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Telugu', system-ui, sans-serif;
+  --font-display: 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Telugu', system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --font-rounded: Barlow_500Medium, system-ui, sans-serif;
+  --font-rounded: system-ui, sans-serif;
   --font-serif: Georgia, 'Times New Roman', serif;
   color-scheme: light dark;
-  accent-color: #1d3024;
-}
-
-::selection {
-  background: #cfe2ce;
-  color: #142019;
 }
 
 :focus-visible {
-  outline: 2px solid #1d3024;
+  /* The text colour of the focused thing: it passes on its ground in every theme. */
+  outline: 2px solid currentColor;
   outline-offset: 2px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    accent-color: #d5e4d4;
-  }
-  ::selection {
-    background: #34483a;
-    color: #e1e7df;
-  }
-  :focus-visible {
-    outline-color: #d5e4d4;
-  }
 }

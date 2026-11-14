@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import type { FoodEntry } from '@/data/types';
 import { restingKcalSoFar } from '@/lib/calories';
 import { addDaysToKey, dayKey, parseDayKey } from '@/lib/dates';
-import { dailyAverage } from '@/nutrition/day';
+import { dailyAverage, partialKeys } from '@/nutrition/day';
 import { sumNutrients } from '@/nutrition/nutrients';
 
 import { useApp } from './app-state';
@@ -40,6 +40,8 @@ export function useCaloriesToday() {
     book,
     foods,
     nutrients,
+    /** Keys today's totals know only partly ("at least"): calories among them get "≥" wherever shown. */
+    partial: partialKeys(foods, book.own, book.saved),
     /** Daily average over the days of the last week with food logged, today included. */
     week: dailyAverage(week, book.own, book.overrides, book.saved),
     /** Entries logged with calories only, which add nothing to the vitamins. */

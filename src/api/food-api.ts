@@ -3,10 +3,9 @@
  * The server only ever adds up nutrients from an ingredient table; answers are
  * checked in food-read.ts before the app uses them.
  */
-import { getLocales } from 'expo-localization';
-
 import { getAccessToken } from '@/auth/session';
 import { STEPS_API_URL } from '@/constants/app';
+import { foodCountry } from '@/lib/country-detect';
 import { lookupName, restaurantItem, type Where } from '@/nutrition/place';
 import type { FoodItem } from '@/nutrition/types';
 import { premiumRequired } from '@/premium/premium';
@@ -35,16 +34,12 @@ export type { EstimateItem, EstimateResult, RecipeRequest, RecipeResult, RecipeU
 const TIMEOUT_MS = 35_000;
 
 /**
- * The phone's region setting ("IN", "GB"), sent so dishes are worked out as
- * they're usually made there. Checked, and left out when unknown, by
- * estimateRequest and recipeRequest.
+ * The country dishes are worked out for ("IN"): the Country setting, else the
+ * phone's time zone, never its language region (lib/country.ts). Checked, and
+ * left out when unknown, by estimateRequest and recipeRequest.
  */
 function phoneRegion(): string | null {
-  try {
-    return getLocales()[0]?.regionCode ?? null;
-  } catch {
-    return null;
-  }
+  return foodCountry();
 }
 
 /**
@@ -100,8 +95,21 @@ async function post(route: FoodRoute, body: unknown): Promise<unknown> {
  * place, dishes are worked out home-style or restaurant-style; without one
  * the server goes by the text.
  */
-export async function estimateFood(description: string, where?: Where | null): Promise<EstimateResult> {
-  return readEstimate(await post('estimate', estimateRequest(description, where, phoneRegion())));
+export async function estimateFood(description: string, where?: Where | null, opts: Ask = {}): Promise<EstimateResult> {
+  const result = readEstimate(await post('estimate', estimateRequest(description, where, phoneRegion(), opts.refresh)));
+  for (const item of result.items) stampPending(item.food);
+  return result;
+}
+
+/** `refresh`: a quiet repeat of a pending food's look-up (nutrition/pending.ts), marked as one for the server. */
+export interface Ask {
+  refresh?: boolean;
+}
+
+/** A pending answer remembers when it came, so its first repeat waits from then (nutrition/pending.ts). */
+function stampPending(food: FoodItem): void {
+  if (food.pending) food.pendingSince = Date.now();
+  else delete food.pendingSince;
 }
 
 /**
@@ -114,6 +122,10 @@ export async function restaurantVersion(home: FoodItem, where: Where): Promise<E
 }
 
 /** A dish the person made → one food, per serving, worked out from its ingredients. */
-export async function recipeFood(request: RecipeRequest): Promise<RecipeResult> {
-  return readRecipe(await post('recipe', recipeRequest(request, phoneRegion())));
+export async function recipeFood(request: RecipeRequest, opts: Ask = {}): Promise<RecipeResult> {
+  const result = readRecipe(await post('recipe', recipeRequest(request, phoneRegion(), opts.refresh)));
+  // Kept with a pending recipe so the look-up can be repeated (nutrition/pending.ts).
+  if (result.food.pending) result.food.recipe = { ...request };
+  stampPending(result.food);
+  return result;
 }

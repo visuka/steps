@@ -22,6 +22,22 @@ export function entryNutrients(
   return { kcal: entry.kcal };
 }
 
+/** Nutrient keys whose totals are only "at least": some ingredient of a logged food isn't counted yet. */
+export type PartialKeys = Partial<Record<NutrientKey, true>>;
+
+/** The keys an entry knows only partly (its food's "missing"); none for calorie-only entries. */
+export function entryMissing(entry: FoodEntry, own: OwnFood[], saved: FoodItem[] = []): NutrientKey[] {
+  if (!entry.foodId || !entry.unit || entry.quantity === null) return [];
+  return findFood(entry.foodId, own, saved)?.missing ?? [];
+}
+
+/** Every key any of the entries knows only partly. */
+export function partialKeys(entries: FoodEntry[], own: OwnFood[], saved: FoodItem[] = []): PartialKeys {
+  const out: PartialKeys = {};
+  for (const e of entries) for (const k of entryMissing(e, own, saved)) out[k] = true;
+  return out;
+}
+
 /** Daily totals averaged over the days that have any food logged. */
 export function dailyAverage(
   entries: FoodEntry[],

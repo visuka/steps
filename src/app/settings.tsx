@@ -1,20 +1,24 @@
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Linking, Platform, Share, StyleSheet, View } from 'react-native';
 
 import { AccountCard } from '@/components/auth/account-card';
 import { confirm } from '@/components/confirm';
 import { NumberField, Segmented, Stepper } from '@/components/controls';
+import { CountrySheet } from '@/components/country-sheet';
+import { ThemeSheet } from '@/components/theme-sheet';
 import { ThemedText } from '@/components/themed-text';
 import { Button, Card, ListRow, Notice, Screen, SectionHeader, Surface, ToggleRow, Why } from '@/components/ui';
 import { APP_NAME, SIGN_IN_MODE } from '@/constants/app';
-import { Spacing } from '@/constants/theme';
+import { ActiveTheme, Spacing } from '@/constants/theme';
 import { profileStride } from '@/data/profile';
 import type { Sex } from '@/data/types';
 import { switchableSources } from '@/health/select-source';
 import type { StepSource } from '@/health/types';
+import { countryName } from '@/lib/country';
+import { phoneCountry } from '@/lib/country-detect';
 import { addDaysToKey, dayKey } from '@/lib/dates';
 import { cmToHeight, heightToCm, heightUnit, kgToWeight, type Units, weightToKg, weightUnit } from '@/lib/format';
 import { locationAllowed, requestLocation } from '@/location/place';
@@ -51,7 +55,7 @@ const KEEP_WHY =
     ? 'To sign you in, our server keeps only a random account number and your email, used just to get your account back if you change phones: no name, no fingerprint. Everything else stays on this phone and in your health app: steps, walks and their routes, moods, food, sleep, health readings and the weather.'
     : 'To sign you in, our server keeps only your passkey’s public key and a random account number: no email, no name, no fingerprint. Everything else stays on this phone and in your health app: steps, walks and their routes, moods, food, sleep, health readings and the weather.';
 const FOOD_WHY =
-  "When you look up a food or enter a recipe, what you type and the country your phone is set to are sent to our server and an AI service to work out what's in it, the way it's usually made where you are. When you log a dish as dine-in or ordered in, its name is sent the same way to get restaurant values. If you say it was from a restaurant, that goes too, with the restaurant's name if you gave one. It's kept without your name, so the same food is quicker for everyone next time.";
+  "When you look up a food or enter a recipe, what you type and your country (from your phone's time zone, or as set under Country) are sent to our server and an AI service to work out what's in it, the way it's usually made where you are. When you log a dish as dine-in or ordered in, its name is sent the same way to get restaurant values. If you say it was from a restaurant, that goes too, with the restaurant's name if you gave one. It's kept without your name, so the same food is quicker for everyone next time.";
 
 export default function SettingsScreen() {
   const { repo, profile, source, updateProfile, switchSource, resetAll, refresh } = useApp();
@@ -62,6 +66,11 @@ export default function SettingsScreen() {
   const [moodNotice, setMoodNotice] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [hasLocation, setHasLocation] = useState<boolean | null>(null);
+  const [countryOpen, setCountryOpen] = useState(false);
+  // Today's one-time note opens Settings with the picker already up.
+  const { appearance } = useLocalSearchParams<{ appearance?: string }>();
+  const [themeOpen, setThemeOpen] = useState(appearance === '1');
+  const detected = phoneCountry();
   const recorderReady = StepCounter?.recorderStatus() === 'ready';
   const units = profile.units;
 
@@ -156,6 +165,19 @@ export default function SettingsScreen() {
     <Screen title="Settings" onBack={() => router.back()}>
       <AccountCard />
 
+      <SectionHeader title="Appearance" />
+      <Surface level={1} style={styles.list}>
+        <ListRow
+          icon="color-palette-outline"
+          title="Look"
+          supporting={ActiveTheme.name}
+          chevron
+          onPress={() => setThemeOpen(true)}
+          accessibilityHint="Choose how the app looks"
+        />
+      </Surface>
+      <ThemeSheet visible={themeOpen} onClose={() => setThemeOpen(false)} />
+
       {/* Testers only: a look at the free app without leaving the test. */}
       {premium.canPreviewFree ? (
         <>
@@ -232,6 +254,30 @@ export default function SettingsScreen() {
           onCommit={(v) => updateProfile({ strideM: v && v > 0.3 && v < 1.5 ? v : null })}
         />
       </Card>
+      <Surface level={1} style={styles.list}>
+        <ListRow
+          icon="globe-outline"
+          title="Country"
+          supporting={
+            profile.country
+              ? (countryName(profile.country) ?? profile.country)
+              : `${countryName(detected) ?? 'Not known'} · from your phone`
+          }
+          chevron
+          onPress={() => setCountryOpen(true)}
+          accessibilityHint="Food is worked out the way it’s usually made there"
+        />
+      </Surface>
+      <CountrySheet
+        visible={countryOpen}
+        value={profile.country}
+        detected={detected}
+        onClose={() => setCountryOpen(false)}
+        onPick={(country) => {
+          setCountryOpen(false);
+          updateProfile({ country });
+        }}
+      />
 
       <SectionHeader title="Reminders" />
       <Surface level={1} style={styles.list}>

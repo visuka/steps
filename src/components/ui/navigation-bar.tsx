@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
-import { Motion, NavigationBarHeight, Radius, Spacing } from '@/constants/theme';
+import { type DataTone, Look, Motion, NavigationBarHeight, Radius, Spacing, toneColors } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import type { IconName } from './button';
@@ -17,6 +17,8 @@ export interface NavigationItem {
   icon: IconName;
   /** Filled icon, shown when it is: the second cue besides the pill. */
   activeIcon: IconName;
+  /** The area's data colour; themes with a 'tone' indicator paint the pill in its container. */
+  tone?: DataTone;
 }
 
 export interface NavigationBarProps {
@@ -36,10 +38,13 @@ export interface NavigationBarProps {
  */
 export function NavigationBar({ items, activeKey, onSelect, onReselect, bottomInset }: NavigationBarProps) {
   const theme = useTheme();
+  // Plain themes sit the bar on a tonal plate; the others on the ground with a hairline above.
+  const ground =
+    Look.tile === 'plain'
+      ? { backgroundColor: theme.surfaceContainer }
+      : { backgroundColor: theme.surface, borderTopWidth: 1, borderTopColor: theme.outlineVariant };
   return (
-    <View
-      accessibilityRole="tablist"
-      style={[styles.bar, { backgroundColor: theme.surfaceContainer, paddingBottom: bottomInset }]}>
+    <View accessibilityRole="tablist" style={[styles.bar, ground, { paddingBottom: bottomInset }]}>
       {items.map((item) => (
         <Destination
           key={item.key}
@@ -60,6 +65,9 @@ function Destination({ item, active, onPress }: { item: NavigationItem; active: 
   }, [active, grow]);
   // The pill opens from the middle, Material's own indicator motion; a cut with reduce motion.
   const pill = useAnimatedStyle(() => ({ opacity: grow.value, transform: [{ scaleX: 0.5 + grow.value / 2 }] }));
+  const toned = Look.navIndicator === 'tone' && item.tone ? toneColors(theme, item.tone) : null;
+  const pillColor = toned ? toned.container : theme.secondaryContainer;
+  const onPill = toned ? toned.onContainer : theme.onSecondaryContainer;
 
   return (
     <Pressable
@@ -70,12 +78,8 @@ function Destination({ item, active, onPress }: { item: NavigationItem; active: 
       aria-selected={active}
       style={styles.item}>
       <View style={styles.iconSlot}>
-        <Animated.View style={[styles.pill, { backgroundColor: theme.secondaryContainer }, pill]} />
-        <Ionicons
-          name={active ? item.activeIcon : item.icon}
-          size={24}
-          color={active ? theme.onSecondaryContainer : theme.onSurfaceVariant}
-        />
+        <Animated.View style={[styles.pill, { backgroundColor: pillColor }, pill]} />
+        <Ionicons name={active ? item.activeIcon : item.icon} size={24} color={active ? onPill : theme.onSurfaceVariant} />
       </View>
       <ThemedText
         type="labelMedium"

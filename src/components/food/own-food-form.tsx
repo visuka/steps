@@ -20,6 +20,7 @@ import {
   fillNote,
   mergeFill,
   NOTHING_NOTE,
+  PARTIAL_FILL_NOTE,
   STALE_NOTE,
   ZERO_NOTE,
 } from '@/nutrition/own-fill';
@@ -124,6 +125,8 @@ export function OwnFoodForm({
         setFill({ status: 'unknown', name: out.name });
       } else if (out.kind === 'zero') {
         setFill({ status: 'problem', message: ZERO_NOTE });
+      } else if (out.kind === 'partial') {
+        setFill({ status: 'problem', message: PARTIAL_FILL_NOTE });
       } else if (out.kind === 'nothing') {
         setFill({ status: 'problem', message: NOTHING_NOTE });
       } else {

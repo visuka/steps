@@ -1,3 +1,4 @@
+import { knownCountry } from '@/lib/country';
 import { DEFAULT_GOAL } from '@/lib/goals';
 import { strideMeters } from '@/lib/metrics';
 
@@ -37,6 +38,7 @@ export const DEFAULT_PROFILE: Profile = {
   moodCheckIn: { enabled: false, hour: 20 },
   water: DEFAULT_WATER,
   nutrition: DEFAULT_NUTRITION,
+  country: null,
   onboarded: false,
 };
 
@@ -70,7 +72,9 @@ export async function loadProfile(repo: Repository): Promise<Profile> {
   const stored = await repo.getKv<ProfilePatch>(PROFILE_KEY);
   // A stored profile is the person's own. Profiles saved before weightSet existed
   // count the weight as typed when it differs from the default.
-  return mergeProfile(DEFAULT_PROFILE, stored ? { ...stored, weightSet: stored.weightSet ?? inferWeightSet(stored) } : null);
+  const merged = mergeProfile(DEFAULT_PROFILE, stored ? { ...stored, weightSet: stored.weightSet ?? inferWeightSet(stored) } : null);
+  // Only a country from the list is kept; anything else goes back to the phone's.
+  return { ...merged, country: knownCountry(merged.country) };
 }
 
 function inferWeightSet(stored: ProfilePatch): boolean {

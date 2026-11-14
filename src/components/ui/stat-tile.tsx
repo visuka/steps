@@ -4,11 +4,13 @@ import { Pressable, StyleSheet, type StyleProp, View, type ViewStyle } from 'rea
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
-import { Motion, NumeralMaxScale, Radius, Spacing } from '@/constants/theme';
+import { type DataTone, Look, Motion, NumeralMaxScale, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import type { IconName } from './button';
 import { standardTiming } from './motion';
+import { tileColors } from './tile-colors';
+import { toneInk, ToneInkContext } from './tone-surface';
 
 export interface StatTileProps {
   /** One or two words: "Food", "Water". */
@@ -26,6 +28,8 @@ export interface StatTileProps {
   selected?: boolean;
   /** Another tile's detail is open: this one recedes. */
   dimmed?: boolean;
+  /** What the number is about. With the theme's 'filled' tiles the tile is painted in its container colour. */
+  tone?: DataTone;
   /** Under the number: a TickBar, a +1 button. */
   children?: ReactNode;
   accessibilityLabel?: string;
@@ -33,7 +37,11 @@ export interface StatTileProps {
   style?: StyleProp<ViewStyle>;
 }
 
-/** A number with its label, on a tonal plate. In a row they share the width. */
+/**
+ * A number with its label, on a plate. In a row they share the width. The
+ * theme's `tile` style picks the plate: its tone's container (filled), an
+ * outlined card, or a tonal surface (plain).
+ */
 export function StatTile({
   label,
   value,
@@ -43,6 +51,7 @@ export function StatTile({
   onPress,
   selected,
   dimmed,
+  tone,
   children,
   accessibilityLabel,
   accessibilityHint,
@@ -55,39 +64,46 @@ export function StatTile({
   }, [dimmed, fade]);
   const faded = useAnimatedStyle(() => ({ opacity: fade.value }));
 
+  const ink = tone && Look.tile === 'filled' ? toneInk(theme, tone) : null;
+  // Text takes the colours of the plate it is on (a selected tile is secondaryContainer).
+  const look = tileColors(theme, Look.tile, tone, !!selected);
+  const quiet = { color: look.quiet };
+
   const head = (
     <>
       <View style={styles.head}>
-        {icon ? <Ionicons name={icon} size={16} color={selected ? theme.onSecondaryContainer : theme.onSurfaceVariant} /> : null}
-        <ThemedText
-          type="labelMedium"
-          themeColor={selected ? 'onSecondaryContainer' : 'onSurfaceVariant'}
-          style={styles.label}
-          numberOfLines={1}>
+        {icon ? <Ionicons name={icon} size={16} color={look.quiet} /> : null}
+        <ThemedText type="labelMedium" style={[styles.label, quiet]} numberOfLines={1}>
           {label}
         </ThemedText>
       </View>
       <View style={styles.valueRow}>
-        <ThemedText type="numeralMedium" maxFontSizeMultiplier={NumeralMaxScale} numberOfLines={1} adjustsFontSizeToFit>
+        <ThemedText
+          type="numeralMedium"
+          style={{ color: look.text }}
+          maxFontSizeMultiplier={NumeralMaxScale}
+          numberOfLines={1}
+          adjustsFontSizeToFit>
           {value}
         </ThemedText>
         {unit ? (
-          <ThemedText type="labelMedium" themeColor="onSurfaceVariant">
+          <ThemedText type="labelMedium" style={quiet}>
             {unit}
           </ThemedText>
         ) : null}
       </View>
       {note ? (
-        <ThemedText type="bodySmall" themeColor="onSurfaceVariant" numberOfLines={2}>
+        <ThemedText type="bodySmall" style={quiet} numberOfLines={2}>
           {note}
         </ThemedText>
       ) : null}
     </>
   );
 
-  const plate = { backgroundColor: selected ? theme.secondaryContainer : theme.surfaceContainer };
-  return (
-    <Animated.View style={[styles.tile, plate, faded, style]}>
+  // Selected: a filled tile keeps its colour and gains a 2 dp ink edge; the others turn secondaryContainer.
+  const plate: ViewStyle = { backgroundColor: look.plate, borderWidth: look.borderWidth, borderColor: look.border };
+  const tile = (
+    <Animated.View style={[styles.tile, plate, ink && styles.roomy, faded, style]}>
       {onPress ? (
         <Pressable
           onPress={onPress}
@@ -106,6 +122,7 @@ export function StatTile({
       {children ? <View style={styles.extra}>{children}</View> : null}
     </Animated.View>
   );
+  return ink ? <ToneInkContext value={ink}>{tile}</ToneInkContext> : tile;
 }
 
 const styles = StyleSheet.create({
@@ -116,4 +133,6 @@ const styles = StyleSheet.create({
   label: { flexShrink: 1 },
   valueRow: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', columnGap: Spacing.one },
   extra: { paddingHorizontal: Spacing.three - 4, paddingTop: Spacing.two, paddingBottom: Spacing.three - 4 },
+  // A filled tile's 2 dp edge (clear until selected) plus 2 dp more: 16 dp inside, as the blocks are drawn.
+  roomy: { padding: Spacing.half },
 });

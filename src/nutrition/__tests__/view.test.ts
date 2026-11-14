@@ -42,9 +42,9 @@ describe('row values', () => {
     expect(vitC.valueText).toBe('45 mg · 50%');
     expect(vitC.state.word).toBe('So far');
   });
-  it('says "at least" when part of the food has no figure, and "Not known" when too little does', () => {
+  it('says "≥" when part of the food has no figure, and "Not known" when too little does', () => {
     const [a] = nutrientRows(['sodium'], { sodium: 1200 }, { sodium: 0.9 }, ctx, false, 'of');
-    expect(a.valueText).toBe('at least 1,200 of 2,000 mg');
+    expect(a.valueText).toBe('≥ 1,200 of 2,000 mg');
     const [b] = nutrientRows(['vitC'], { vitC: 45 }, { vitC: 0.5 }, ctx, true, 'percent');
     expect(b.valueText).toBe('Not known');
     expect(b.state.bar).toBe(0);

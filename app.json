@@ -47,13 +47,15 @@
         "android.permission.health.READ_BLOOD_PRESSURE",
         "android.permission.health.WRITE_BLOOD_PRESSURE",
         "android.permission.health.READ_HEALTH_DATA_IN_BACKGROUND",
-        "android.permission.health.READ_HEALTH_DATA_HISTORY"
+        "android.permission.health.READ_HEALTH_DATA_HISTORY",
+        "android.permission.CAMERA"
       ],
       "blockedPermissions": [
         "android.permission.SYSTEM_ALERT_WINDOW",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.ACCESS_BACKGROUND_LOCATION"
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -65,11 +67,11 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F4F6F0",
+          "backgroundColor": "#FFFFFF",
           "image": "./assets/images/splash-icon-light.png",
           "imageWidth": 76,
           "dark": {
-            "backgroundColor": "#0F1511",
+            "backgroundColor": "#121411",
             "image": "./assets/images/splash-icon.png"
           }
         }
@@ -143,7 +145,15 @@
         }
       ],
       "expo-localization",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Steps uses the camera to scan barcodes on food packs and to photograph nutrition labels. Photos are read once and not kept.",
+          "microphonePermission": "Steps does not record audio. The camera is used only to scan barcodes and photograph nutrition labels.",
+          "recordAudioAndroid": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

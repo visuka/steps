@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { resolveFont, ThemedText } from '@/components/themed-text';
 import { Button as UiButton, type ButtonVariant } from '@/components/ui/button';
 import { Chip as UiChip } from '@/components/ui/chip';
-import { NumeralMaxScale, Radius, Spacing, TouchTarget, Type } from '@/constants/theme';
+import { Controls, NumeralMaxScale, Radius, Spacing, TouchTarget, Type } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 /**
@@ -64,7 +64,7 @@ export function Segmented<T extends string>({
               type="labelLarge"
               themeColor={active ? 'onSecondaryContainer' : 'onSurface'}
               numberOfLines={1}
-              style={styles.segmentLabel}>
+              style={[styles.segmentLabel, Controls.buttonLabel]}>
               {o.label}
             </ThemedText>
           </Pressable>
@@ -176,7 +176,7 @@ export function NumberField({
           placeholder={placeholder}
           placeholderTextColor={theme.onSurfaceVariant}
           cursorColor={theme.primary}
-          selectionColor={theme.secondaryContainer}
+          selectionColor={theme.primaryContainer}
           style={inputStyle(theme, [styles.input, styles.numberInput])}
           accessibilityLabel={label}
         />
@@ -196,6 +196,7 @@ export function TextField({
   onEndEditing,
   maxLength,
   autoFocus,
+  keyboardType,
 }: {
   value: string;
   onChangeText: (t: string) => void;
@@ -206,6 +207,8 @@ export function TextField({
   maxLength?: number;
   /** Opens the keyboard on this field when it appears. */
   autoFocus?: boolean;
+  /** 'number-pad' for digits kept as text (a barcode number keeps its leading zeros). */
+  keyboardType?: 'default' | 'number-pad';
 }) {
   const theme = useTheme();
   return (
@@ -217,17 +220,18 @@ export function TextField({
       placeholder={placeholder}
       placeholderTextColor={theme.onSurfaceVariant}
       cursorColor={theme.primary}
-      selectionColor={theme.secondaryContainer}
+      selectionColor={theme.primaryContainer}
       multiline={multiline}
       maxLength={maxLength}
       autoFocus={autoFocus}
+      keyboardType={keyboardType}
       accessibilityLabel={label}
       style={inputStyle(theme, [styles.input, styles.textField, multiline && styles.multiline])}
     />
   );
 }
 
-/** Field colours and the Barlow face (TextInput is not a ThemedText). */
+/** Field colours and the theme's UI face (TextInput is not a ThemedText). */
 function inputStyle(theme: ReturnType<typeof useTheme>, extra: Parameters<typeof resolveFont>[0]) {
   return resolveFont([
     Type.bodyLarge,
@@ -268,7 +272,7 @@ export function Row({ label, children }: { label: string; children: React.ReactN
 }
 
 const styles = StyleSheet.create({
-  segmented: { flexDirection: 'row', borderWidth: 1, borderRadius: Radius.full, overflow: 'hidden' },
+  segmented: { flexDirection: 'row', borderWidth: 1, borderRadius: Controls.button.borderRadius, overflow: 'hidden' },
   segment: {
     flex: 1,
     minHeight: TouchTarget,

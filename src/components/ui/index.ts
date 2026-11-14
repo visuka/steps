@@ -1,5 +1,5 @@
 /**
- * The shared components of the park-track world. Screens import from here:
+ * The shared components, drawn in the active theme (constants/themes). Screens import from here:
  *   import { Screen, Card, TrackProgress, TickBar, StatTile } from '@/components/ui';
  * Colours come from useTheme(), sizes from '@/constants/theme'.
  */
@@ -17,7 +17,8 @@ export { Snackbar } from './snackbar';
 export { StatTile, type StatTileProps } from './stat-tile';
 export { Card, type ElevationLevel, Surface } from './surface';
 export { TickBar, type TickBarProps } from './tick-bar';
-export { TrackProgress, type TrackProgressProps } from './track-progress';
+export { heroAlign, TrackProgress, type TrackProgressProps } from './track-progress';
+export { PlainGround, type ToneInk, useToneInk } from './tone-surface';
 export { Dialog, type DialogProps } from './dialog';
 export { Notice, type NoticeTone } from './notice';
 export { MaterialSwitch, ToggleRow } from './toggle-row';

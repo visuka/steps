@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Pressable, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Radius, Spacing } from '@/constants/theme';
+import { Controls, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import type { IconName } from './button';
@@ -40,7 +40,7 @@ export function ExtendedFab({
         style,
       ]}>
       <Ionicons name={icon} size={24} color={theme.onPrimary} />
-      <ThemedText type="labelLarge" style={{ color: theme.onPrimary }} numberOfLines={1}>
+      <ThemedText type="labelLarge" style={[Controls.buttonLabel, { color: theme.onPrimary }]} numberOfLines={1}>
         {label}
       </ThemedText>
     </Pressable>
@@ -56,12 +56,8 @@ const styles = StyleSheet.create({
     gap: Spacing.three - 4,
     paddingLeft: Spacing.three,
     paddingRight: Spacing.four - 4,
-    borderRadius: Radius.lg,
     overflow: 'hidden',
-    // Material level 3: a soft, offset shadow, the only shadow in the app.
-    elevation: 3,
-    shadowOpacity: 0.18,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
+    // Corners and the level 3 shadow (the only shadow in the app) come from the theme.
+    ...Controls.fab,
   },
 });

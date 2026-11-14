@@ -4,6 +4,7 @@ import { type ReactNode, useCallback, useEffect, useState } from 'react';
 import { BackHandler, StyleSheet, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeIn, LinearTransition, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
+import { AppearanceNote } from '@/components/appearance-note';
 import { BarChart } from '@/components/bar-chart';
 import { hourName } from '@/components/bar-chart-speech';
 import { MoodPicker } from '@/components/mood-picker';
@@ -25,8 +26,10 @@ import {
   Why,
 } from '@/components/ui';
 import { standardTiming } from '@/components/ui/motion';
+import { useToneInk } from '@/components/ui/tone-surface';
+import { PartialNote } from '@/components/food/nutrition-view';
 import { WaterBody } from '@/components/food/water-card';
-import { Motion, NumeralMaxScale, Spacing } from '@/constants/theme';
+import { Look, Motion, NumeralMaxScale, Radius, Spacing } from '@/constants/theme';
 import type { DayWeather, LogEntry } from '@/data/types';
 import { useTheme } from '@/hooks/use-theme';
 import { addDaysToKey, dayKey, formatDayLong } from '@/lib/dates';
@@ -39,6 +42,7 @@ import { useMoodToday } from '@/state/use-mood';
 import { usePremium } from '@/state/use-premium';
 import { type AddedGlass, useWaterToday, type WaterHook } from '@/state/use-water';
 import { walkRecorder } from '@/walks/recorder';
+import { AT_LEAST, PARTIAL_NOTE } from '@/nutrition/state';
 import { dayKcalTarget } from '@/nutrition/targets';
 import { kcalBalanceText } from '@/nutrition/view';
 import { CONDITION_LABEL } from '@/weather/met';
@@ -133,6 +137,8 @@ export default function TodayScreen() {
         />
       </Recede>
 
+      <AppearanceNote />
+
       <PremiumGate feature="today-details">
         <TodayTiles
           focus={focus}
@@ -168,9 +174,10 @@ function Recede({ dimmed, children }: { dimmed: boolean; children: ReactNode }) 
   );
 }
 
-/** The hero: today's steps on the track, the goal and laps under the number. */
+/** The hero: today's steps on the track, the goal and laps under the number. Other themes draw StepsHero. */
 function StepsTrack({ steps, goal, height, minHeight }: { steps: number; goal: number; height: number; minHeight: number }) {
   const theme = useTheme();
+  if (Look.hero !== 'track') return <StepsHero steps={steps} goal={goal} />;
   const left = Math.max(0, goal - steps);
   const lap = goal > 0 ? Math.floor(steps / goal) + 1 : 1;
   return (
@@ -203,6 +210,104 @@ function StepsTrack({ steps, goal, height, minHeight }: { steps: number; goal: n
   );
 }
 
+/**
+ * Today's steps as the theme draws them (ring, bar or colour block): the
+ * number and goal, the share done as a figure too, and distance and active
+ * minutes under the bar, so nothing rests on colour alone.
+ */
+function StepsHero({ steps, goal }: { steps: number; goal: number }) {
+  const { profile, today } = useApp();
+  const left = Math.max(0, goal - steps);
+  const pct = goal > 0 ? Math.round((steps / goal) * 100) : 0;
+  const activeMin = today ? (today.activeMin ?? sumOrNull(today.briskMin, today.runMin)) : null;
+  const distance = today ? formatDistance(today.distanceM, profile.units) : '—';
+  const active = activeMin === null ? '—' : `${activeMin} min`;
+  const ring = Look.hero === 'ring';
+  const figures = ring
+    ? [
+        { value: `${pct}%`, label: 'of goal' },
+        { value: distance, label: 'distance' },
+        { value: active, label: 'active' },
+      ]
+    : [
+        { value: left === 0 ? 'Done' : formatSteps(left), label: left === 0 ? 'Goal' : 'To go' },
+        { value: distance, label: 'Distance' },
+        { value: active, label: 'Active' },
+      ];
+  return (
+    <TrackProgress
+      value={steps}
+      goal={goal}
+      accessibilityLabel={`${formatSteps(steps)} of ${formatSteps(goal)} steps, ${pct}%${left === 0 ? ', goal reached' : `, ${formatSteps(left)} to go`}`}
+      footer={<HeroFigures figures={figures} centered={ring} />}>
+      {ring ? (
+        <>
+          <ThemedText type="numeralHero" maxFontSizeMultiplier={NumeralMaxScale} numberOfLines={1} adjustsFontSizeToFit style={styles.center}>
+            {formatSteps(steps)}
+          </ThemedText>
+          <ThemedText type="labelLarge" themeColor="onSurfaceVariant" style={styles.center}>
+            of {formatSteps(goal)} steps
+          </ThemedText>
+        </>
+      ) : (
+        <>
+          <View style={styles.heroHead}>
+            <HeroIcon name="footsteps" />
+            <ThemedText type="titleMedium" style={styles.grow}>
+              Steps
+            </ThemedText>
+            <HeroPill text={`${pct}%`} />
+          </View>
+          <View style={styles.heroNumber}>
+            <ThemedText type="numeralHero" maxFontSizeMultiplier={NumeralMaxScale} numberOfLines={1} adjustsFontSizeToFit style={styles.shrink}>
+              {formatSteps(steps)}
+            </ThemedText>
+            <ThemedText type="bodyLarge" themeColor="onSurfaceVariant">
+              of {formatSteps(goal)}
+            </ThemedText>
+          </View>
+        </>
+      )}
+    </TrackProgress>
+  );
+}
+
+/** An icon in the hero's ink: the plate's on colour inside a colour block. */
+function HeroIcon({ name }: { name: 'footsteps' }) {
+  const theme = useTheme();
+  const plate = useToneInk();
+  return <Ionicons name={name} size={24} color={plate ? plate.ink : theme.onSurfaceVariant} />;
+}
+
+/** A small figure on a ground-coloured pill, e.g. "78%". */
+function HeroPill({ text }: { text: string }) {
+  const theme = useTheme();
+  const plate = useToneInk();
+  return (
+    <View style={[styles.pill, { backgroundColor: plate ? plate.lane : theme.surfaceContainerHigh }]}>
+      <ThemedText type="labelMedium">{text}</ThemedText>
+    </View>
+  );
+}
+
+/** Figures under the hero bar or ring: the number over its label, side by side. */
+function HeroFigures({ figures, centered }: { figures: { value: string; label: string }[]; centered: boolean }) {
+  return (
+    <View style={styles.figures}>
+      {figures.map((f) => (
+        <View key={f.label} style={[styles.heroFigure, centered && styles.heroFigureCentered]} accessible accessibilityLabel={`${f.label} ${f.value}`}>
+          <ThemedText type="numeralSmall" maxFontSizeMultiplier={NumeralMaxScale} numberOfLines={1} adjustsFontSizeToFit>
+            {f.value}
+          </ThemedText>
+          <ThemedText type="labelMedium" themeColor="onSurfaceVariant" numberOfLines={1}>
+            {f.label}
+          </ThemedText>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 /** One row of three tiles; tapping one opens its detail in place. */
 function TodayTiles({
   focus,
@@ -222,6 +327,11 @@ function TodayTiles({
   const { profile, today } = useApp();
   const { fontScale } = useWindowDimensions();
   const calories = useCaloriesToday();
+  // Part of a logged food isn't counted yet: the figure is a floor, said as one everywhere it shows.
+  const kcalPartial = calories.partial.kcal === true;
+  const least = kcalPartial ? AT_LEAST : '';
+  const eatenText = `${least}${formatSteps(calories.eaten)}`;
+  const eatenSpoken = `${kcalPartial ? 'at least ' : ''}${formatSteps(calories.eaten)} kcal`;
   // The day's energy, as on the Food tab's track: resting plus walking, or a fifth more. Past it stays brick, never red.
   const dayBurn = dayKcalTarget(profile, calories.active, new Date().getFullYear());
   const ws = water.status;
@@ -238,9 +348,11 @@ function TodayTiles({
       <View style={[styles.tiles, stacked && styles.tilesStacked]}>
         <StatTile
           label="Food"
+          tone="food"
           icon="restaurant-outline"
-          value={formatSteps(calories.eaten)}
+          value={eatenText}
           unit="kcal"
+          accessibilityLabel={`Food, ${eatenSpoken}${kcalPartial ? `. ${PARTIAL_NOTE}` : ''}`}
           selected={focus === 'food'}
           dimmed={focus !== null && focus !== 'food'}
           onPress={() => toggle('food')}
@@ -250,6 +362,7 @@ function TodayTiles({
         </StatTile>
         <StatTile
           label="Water"
+          tone="water"
           icon="water-outline"
           value={String(glasses)}
           unit={glassesOf ? `of ${glassesOf}` : glasses === 1 ? 'glass' : 'glasses'}
@@ -263,6 +376,7 @@ function TodayTiles({
         </StatTile>
         <StatTile
           label="Active"
+          tone="steps"
           icon="flash-outline"
           value={activeMin === null ? '—' : String(activeMin)}
           unit="min"
@@ -282,13 +396,13 @@ function TodayTiles({
             right={<IconButton icon="close" onPress={() => onFocus(null)} accessibilityLabel="Close" />}>
             {focus === 'food' ? (
               <>
-                <Figure label="Eaten" value={`${formatSteps(calories.eaten)} kcal`} />
+                <Figure label="Eaten" value={`${eatenText} kcal`} spoken={kcalPartial ? eatenSpoken : undefined} />
                 <Figure label="Burned so far" value={`${formatSteps(calories.burned)} kcal`} />
                 <TickBar
                   value={calories.eaten}
                   max={dayBurn}
                   tone="food"
-                  accessibilityLabel={`${formatSteps(calories.eaten)} of about ${formatSteps(dayBurn)} kcal`}
+                  accessibilityLabel={`${kcalPartial ? 'at least ' : ''}${formatSteps(calories.eaten)} of about ${formatSteps(dayBurn)} kcal`}
                 />
                 <View style={styles.inline}>
                   <ThemedText type="bodyMedium" themeColor="onSurfaceVariant" style={styles.grow}>
@@ -299,6 +413,7 @@ function TodayTiles({
                     text="Burned is your resting energy (what your body uses anyway) plus your walking. Both are estimates. Add your birth year in Settings to make the resting part closer."
                   />
                 </View>
+                {kcalPartial ? <PartialNote /> : null}
                 <Button label="See today's food" variant="tonal" onPress={onOpenFood} />
               </>
             ) : focus === 'water' ? (
@@ -460,9 +575,10 @@ function BelowTheFold({
   );
 }
 
-function Figure({ label, value }: { label: string; value: string }) {
+/** `spoken`, when the figure reads differently aloud: "at least 610 kcal" for "≥ 610 kcal". */
+function Figure({ label, value, spoken }: { label: string; value: string; spoken?: string }) {
   return (
-    <View style={styles.figure}>
+    <View style={styles.figure} accessible={spoken !== undefined} accessibilityLabel={spoken ? `${label}, ${spoken}` : undefined}>
       <ThemedText type="bodyLarge" themeColor="onSurfaceVariant" style={styles.grow}>
         {label}
       </ThemedText>
@@ -489,4 +605,11 @@ const styles = StyleSheet.create({
   inline: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   grow: { flex: 1 },
   buttons: { flexDirection: 'row', justifyContent: 'flex-end', gap: Spacing.two },
+  heroHead: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, minHeight: 24 },
+  heroNumber: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', columnGap: Spacing.two, marginTop: Spacing.two },
+  shrink: { flexShrink: 1 },
+  pill: { borderRadius: Radius.full, paddingHorizontal: Spacing.two, minHeight: 24, justifyContent: 'center' },
+  figures: { flexDirection: 'row', gap: Spacing.three },
+  heroFigure: { flex: 1, minWidth: 0 },
+  heroFigureCentered: { alignItems: 'center' },
 });

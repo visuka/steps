@@ -1,11 +1,5 @@
 import '@/sync/background';
 
-import { Barlow_400Regular } from '@expo-google-fonts/barlow/400Regular';
-import { Barlow_500Medium } from '@expo-google-fonts/barlow/500Medium';
-import { Barlow_600SemiBold } from '@expo-google-fonts/barlow/600SemiBold';
-import { Barlow_700Bold } from '@expo-google-fonts/barlow/700Bold';
-import { BarlowCondensed_500Medium } from '@expo-google-fonts/barlow-condensed/500Medium';
-import { BarlowCondensed_600SemiBold } from '@expo-google-fonts/barlow-condensed/600SemiBold';
 import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, type Theme, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -20,23 +14,19 @@ import { AuthScreen } from '@/components/auth/auth-screen';
 import { ConfirmHost } from '@/components/confirm-host';
 import { LockOffer, LockScreen } from '@/components/auth/lock-screen';
 import { Onboarding } from '@/components/onboarding';
-import { Colors, FontFiles, Fonts } from '@/constants/theme';
+import { ActiveTheme, Colors, Fonts } from '@/constants/theme';
+import { loadPreviewFonts } from '@/constants/themes/apply';
+import { fontMap } from '@/constants/themes/build';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { LockProvider, useLock } from '@/state/app-lock';
 import { AppProvider, useApp } from '@/state/app-state';
-import { PremiumProvider } from '@/state/use-premium';
+import { usePendingFoods } from '@/state/use-pending-foods';
+import { PremiumProvider, usePremium } from '@/state/use-premium';
 
 SplashScreen.preventAutoHideAsync();
 
-/** The two faces of the park-track world, only the weights the type scale uses. */
-const FONTS = {
-  [FontFiles.regular]: Barlow_400Regular,
-  [FontFiles.medium]: Barlow_500Medium,
-  [FontFiles.semibold]: Barlow_600SemiBold,
-  [FontFiles.bold]: Barlow_700Bold,
-  [FontFiles.numeralMedium]: BarlowCondensed_500Medium,
-  [FontFiles.numeral]: BarlowCondensed_600SemiBold,
-};
+/** The active theme's faces, only the weights its type scale uses; the splash waits for these. */
+const FONTS = fontMap(ActiveTheme);
 
 /** Fonts not loaded by then are skipped, and the system font stands in, so the splash never hangs. */
 const FONT_WAIT_MS = 3000;
@@ -103,6 +93,17 @@ export default function RootLayout() {
 }
 
 /**
+ * Foods whose values are still coming (an ingredient the server is finding)
+ * are looked up again quietly on app opens: signed in, with food look-ups.
+ */
+function PendingFoods({ signedIn }: { signedIn: boolean }) {
+  const { repo, source, touch } = useApp();
+  const premium = usePremium();
+  usePendingFoods(repo, source, signedIn && !premium.isLocked('food'), touch);
+  return null;
+}
+
+/**
  * Rendered once the database, the profile and the fonts have loaded: sign-in,
  * then the fingerprint question (once per phone), then onboarding, then the
  * app. The tabs live in (tabs)/; Settings, Insights and the walk screens are
@@ -118,7 +119,10 @@ function Gate({ fontsReady, surface }: { fontsReady: boolean; surface: string })
   const ready = access !== 'loading' && fontsReady;
 
   useEffect(() => {
-    if (ready) SplashScreen.hideAsync();
+    if (!ready) return;
+    SplashScreen.hideAsync();
+    // The other themes' faces, for the Appearance picker's previews; never in the way of start-up.
+    loadPreviewFonts();
   }, [ready]);
 
   useEffect(() => {
@@ -145,7 +149,10 @@ function Gate({ fontsReady, surface }: { fontsReady: boolean; surface: string })
   return (
     <>
       {profile.onboarded ? (
-        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: surface } }} />
+        <>
+          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: surface } }} />
+          <PendingFoods signedIn={Boolean(userId)} />
+        </>
       ) : (
         <Onboarding />
       )}

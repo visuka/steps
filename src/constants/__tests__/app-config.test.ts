@@ -1,8 +1,14 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { Colors } from '../tokens';
+import { DEFAULT_THEME_ID, themeById } from '../themes';
+import park from '../themes/park';
 
 // app.json can't hold comments: this test keeps its launch colours on the tokens.
+// The native splash is drawn before any theme loads: it takes the default theme's
+// ground (Colour blocks), the one most people start in. The icon and notification
+// accent are the brand's, and keep Park's colours.
+const Colors = park.colors;
+const Default = themeById(DEFAULT_THEME_ID).colors;
 const app = require('../../../app.json') as { expo: { android: { adaptiveIcon: { backgroundColor: string } }; plugins: unknown[] } };
 
 function plugin(name: string): Record<string, unknown> {
@@ -12,10 +18,10 @@ function plugin(name: string): Record<string, unknown> {
 }
 
 describe('launch colours in app.json', () => {
-  it('splash uses the surface of each scheme', () => {
+  it('splash uses the default theme’s surface in each scheme', () => {
     const splash = plugin('expo-splash-screen') as { backgroundColor: string; dark: { backgroundColor: string } };
-    expect(splash.backgroundColor).toBe(Colors.light.surface);
-    expect(splash.dark.backgroundColor).toBe(Colors.dark.surface);
+    expect(splash.backgroundColor).toBe(Default.light.surface);
+    expect(splash.dark.backgroundColor).toBe(Default.dark.surface);
   });
 
   it('notification accent is the steps colour', () => {

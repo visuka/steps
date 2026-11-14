@@ -1,8 +1,14 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { Colors, type ColorScheme, contrast, Module, Spacing, type ThemeColor, TypeScale } from '../tokens';
+import { tileColors } from '../../components/ui/tile-colors';
+import { THEMES } from '../themes';
+import park from '../themes/park';
+import { type ColorScheme, contrast, Module, Spacing, type ThemeColor, TYPE_ROLES } from '../tokens';
 
-const SCHEMES = Object.entries(Colors) as [string, ColorScheme][];
+/** Every theme in both schemes, e.g. "d light". A dark-only theme is checked twice; that's fine. */
+const SCHEMES = THEMES.flatMap((t) =>
+  (['light', 'dark'] as const).map((s) => [`${t.id} ${s}`, t.colors[s]] as [string, ColorScheme]),
+);
 const SURFACES: ThemeColor[] = [
   'surface',
   'surfaceContainerLowest',
@@ -40,10 +46,10 @@ const TEXT_PAIRS: [ThemeColor, ThemeColor][] = [
 ];
 
 describe('colour roles', () => {
-  it('light and dark define the same roles, all as #RRGGBB', () => {
-    const keys = Object.keys(Colors.light).sort();
-    expect(Object.keys(Colors.dark).sort()).toEqual(keys);
-    for (const [, scheme] of SCHEMES) {
+  it('every scheme of every theme defines the same roles, all as #RRGGBB', () => {
+    const keys = Object.keys(park.colors.light).sort();
+    for (const [name, scheme] of SCHEMES) {
+      expect({ name, keys: Object.keys(scheme).sort() }).toEqual({ name, keys });
       for (const value of Object.values(scheme)) expect(value).toMatch(/^#[0-9A-F]{6}$/i);
     }
   });
@@ -62,6 +68,24 @@ describe('colour roles', () => {
     }
   });
 
+  it.each(SCHEMES)('%s: a stat tile’s number, label, unit and note pass AA on its plate, selected or not', (_name, c) => {
+    for (const look of ['filled', 'outlined', 'plain'] as const)
+      for (const tone of [undefined, 'steps', 'food', 'water', 'sleep'] as const)
+        for (const selected of [false, true]) {
+          const t = tileColors(c, look, tone, selected);
+          const at = `${look} ${tone ?? 'untoned'}${selected ? ' selected' : ''}`;
+          expect({ at, text: contrast(t.text, t.plate) >= 4.5, quiet: contrast(t.quiet, t.plate) >= 4.5 }).toEqual({
+            at,
+            text: true,
+            quiet: true,
+          });
+        }
+  });
+
+  it.each(SCHEMES)('%s: text stays readable on the text-selection highlight', (_name, c) => {
+    expect(contrast(c.onSurface, c.primaryContainer)).toBeGreaterThanOrEqual(4.5);
+  });
+
   it.each(SCHEMES)('%s: outlines and data marks stand out 3:1 from every surface', (_name, c) => {
     for (const bg of SURFACES.slice(0, 4)) {
       expect(contrast(c.outline, c[bg])).toBeGreaterThanOrEqual(3);
@@ -76,6 +100,8 @@ describe('colour roles', () => {
   it.each(SCHEMES)('%s: the lane shows on cards, and ticks show on both parts of a track', (_name, c) => {
     for (const bg of SURFACES.slice(0, 4)) expect(contrast(c.lane, c[bg])).toBeGreaterThanOrEqual(1.25);
     expect(contrast(c.laneTick, c.lane)).toBeGreaterThanOrEqual(3);
+    // Inside a filled block the lane is the surface colour; its ticks still read.
+    expect(contrast(c.laneTick, c.surface)).toBeGreaterThanOrEqual(3);
     // Ticks over the covered part are painted in the tone's on colour.
     for (const [fill, on] of [
       ['steps', 'onSteps'],
@@ -86,6 +112,11 @@ describe('colour roles', () => {
       ['over', 'onOver'],
     ] as [ThemeColor, ThemeColor][])
       expect(contrast(c[on], c[fill])).toBeGreaterThanOrEqual(3);
+  });
+
+  it.each(SCHEMES)('%s: on a filled tile, its ink reads on the ground-coloured button and bar lane', (_name, c) => {
+    for (const ink of ['onStepsContainer', 'onFoodContainer', 'onWaterContainer', 'onSleepContainer', 'onNearContainer'] as ThemeColor[])
+      expect({ ink, ok: contrast(c[ink], c.surface) >= 4.5 }).toEqual({ ink, ok: true });
   });
 
   it.each(SCHEMES)('%s: the three food marks of a split bar each stand out 3:1 from the lane and cards', (_name, c) => {
@@ -112,13 +143,21 @@ describe('grid and type', () => {
     for (const [key, v] of Object.entries(Spacing)) if (key !== 'half') expect(v % (Module / 2)).toBe(0);
   });
 
-  it('big numerals sit on whole 8 dp modules', () => {
-    for (const spec of Object.values(TypeScale)) {
-      if ('numeral' in spec) {
+  it('park: big numerals sit on whole 8 dp modules', () => {
+    for (const spec of Object.values(park.type)) {
+      if (spec.numeral) {
         expect(spec.size % Module).toBe(0);
         expect(spec.line % Module).toBe(0);
       }
-      expect(spec.line).toBeGreaterThanOrEqual(spec.size);
+    }
+  });
+
+  it.each(THEMES.map((t) => [t.id, t] as const))('%s: every type role is set, lines clear their size, numerals on the 4 dp half-module', (_id, t) => {
+    expect(Object.keys(t.type).sort()).toEqual([...TYPE_ROLES].sort());
+    for (const role of TYPE_ROLES) {
+      const spec = t.type[role];
+      expect({ role, ok: spec.line >= spec.size && spec.size >= 11 }).toEqual({ role, ok: true });
+      if (spec.numeral) expect(spec.line % (Module / 2)).toBe(0);
     }
   });
 });

@@ -3,10 +3,11 @@ import { type LayoutChangeEvent, StyleSheet, useWindowDimensions, View, type Vie
 import Animated, { useAnimatedProps, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import Svg, { Line, Path } from 'react-native-svg';
 
-import { type DataTone, Motion, toneColors } from '@/constants/theme';
+import { type DataTone, Look, Motion, toneColors } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { standardTiming } from './motion';
+import { ProgressHero } from './progress-hero';
 import { fitTrackHeight, INFIELD_GAP, lapPosition, pointOnTrack, trackPath, trackShape } from './track-geometry';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
@@ -29,7 +30,21 @@ export interface TrackProgressProps {
   accessibilityLabel: string;
   /** The infield: the big number and what sits under it. */
   children?: ReactNode;
+  /** Under a ring or bar hero: a row of figures (distance, minutes). The oval track has none. */
+  footer?: ReactNode;
   style?: ViewStyle;
+}
+
+/** How the hero's text lines up: centred in a track or ring, from the left over a bar. */
+export const heroAlign: 'center' | 'left' = Look.hero === 'track' || Look.hero === 'ring' ? 'center' : 'left';
+
+/**
+ * A progress hero, drawn as the theme's `hero` says: the oval running track
+ * (below), a ring, a bar, or a bar on a block of the tone's colour
+ * (progress-hero.tsx). Today's steps and Food's day energy use it.
+ */
+export function TrackProgress(props: TrackProgressProps) {
+  return Look.hero === 'track' ? <OvalTrack {...props} /> : <ProgressHero {...props} />;
 }
 
 /**
@@ -38,7 +53,7 @@ export interface TrackProgressProps {
  * in one Material-standard move (600 ms) whenever `value` changes. Reduce
  * motion makes the move a cut. The first draw is already in place.
  */
-export function TrackProgress({
+function OvalTrack({
   value,
   goal,
   tone = 'steps',

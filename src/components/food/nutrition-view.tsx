@@ -5,6 +5,7 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
 import { Button, Card, Chip, type IconName, Surface, TickBar, TrackProgress, Why } from '@/components/ui';
+import { heroAlign } from '@/components/ui/track-progress';
 import { type ColorScheme, type DataTone, Motion, NumeralMaxScale, Radius, Spacing, TouchTarget } from '@/constants/theme';
 import type { Diet } from '@/data/types';
 import { useTheme } from '@/hooks/use-theme';
@@ -13,7 +14,7 @@ import { type SourceOptions, sourcesFor } from '@/nutrition/diet';
 import type { DayMark, GapNote } from '@/nutrition/gaps';
 import { gapNoteText, NOTE_FOOTER } from '@/nutrition/note-text';
 import { NUTRIENT } from '@/nutrition/nutrients';
-import { LIMIT_KEYS, type NutrientState, type NutrientStateKind } from '@/nutrition/state';
+import { AT_LEAST, LIMIT_KEYS, type NutrientState, type NutrientStateKind, PARTIAL_NOTE } from '@/nutrition/state';
 import type { EnergySplit } from '@/nutrition/targets';
 import type { NutrientKey } from '@/nutrition/types';
 import { amountNumber, attentionFirst, collapsedRows, groupSummary, kcalBalanceText, type NutrientRowData } from '@/nutrition/view';
@@ -22,26 +23,40 @@ import { DietChips } from './food-settings';
 
 // ── calories ─────────────────────────────────────────────────────────────
 
-/** The day's energy on a red-oxide track; past the target it starts a second lap, never red. */
-export function CaloriesTrack({ eaten, target, label = 'of about' }: { eaten: number; target: number; label?: string }) {
+/**
+ * The day's energy on a red-oxide track; past the target it starts a second lap, never red.
+ * `atLeast`: some ingredient isn't counted yet, so the figure is a floor ("≥").
+ */
+export function CaloriesTrack({
+  eaten,
+  target,
+  label = 'of about',
+  atLeast = false,
+}: {
+  eaten: number;
+  target: number;
+  label?: string;
+  atLeast?: boolean;
+}) {
   return (
-    <Card>
+    <Card tone="food">
       <TrackProgress
         value={eaten}
         goal={target}
         tone="food"
         aspect={1.9}
         maxHeight={184}
-        accessibilityLabel={`${formatSteps(eaten)} kcal ${label} ${formatSteps(target)}. ${kcalBalanceText(eaten, target)}`}>
+        accessibilityLabel={`${atLeast ? 'at least ' : ''}${formatSteps(eaten)} kcal ${label} ${formatSteps(target)}. ${kcalBalanceText(eaten, target)}${atLeast ? `. ${PARTIAL_NOTE}` : ''}`}>
         <ThemedText
           type="numeralLarge"
           maxFontSizeMultiplier={NumeralMaxScale}
           numberOfLines={1}
           adjustsFontSizeToFit
-          style={styles.center}>
+          style={{ textAlign: heroAlign }}>
+          {atLeast ? AT_LEAST : ''}
           {formatSteps(eaten)}
         </ThemedText>
-        <ThemedText type="labelLarge" themeColor="onSurfaceVariant" style={styles.center} numberOfLines={1}>
+        <ThemedText type="labelLarge" themeColor="onSurfaceVariant" style={{ textAlign: heroAlign }} numberOfLines={1}>
           kcal {label} {formatSteps(target)}
         </ThemedText>
       </TrackProgress>
@@ -54,11 +69,28 @@ export function CaloriesTrack({ eaten, target, label = 'of about' }: { eaten: nu
           text="About what your body uses in a day: its resting energy, plus your walking or a fifth more for moving about, whichever is more. It is an estimate. Add your birth year in Settings to make it closer."
         />
       </View>
+      {atLeast ? <PartialNote /> : null}
     </Card>
   );
 }
 
 // ── bars and rows ────────────────────────────────────────────────────────
+
+/** Beside "≥" figures: a part of some food isn't counted yet. Never hidden, never shown as complete. */
+export function PartialNote() {
+  const theme = useTheme();
+  return (
+    <View style={styles.partial}>
+      <Ionicons name="hourglass-outline" size={16} color={theme.onSurfaceVariant} />
+      <ThemedText type="bodySmall" themeColor="onSurfaceVariant" style={styles.grow}>
+        {AT_LEAST}
+        {PARTIAL_NOTE}
+      </ThemedText>
+    </View>
+  );
+}
+
+const anyPartial = (rows: NutrientRowData[]) => rows.some((r) => r.partial && r.state.state !== 'unknown');
 
 const STATE_ICON: Partial<Record<NutrientStateKind, IconName>> = {
   ok: 'checkmark-circle-outline',
@@ -170,6 +202,7 @@ function RowDetail({
   }
   if (info.storage === 'stored') lines.push('Your body stores this, so the week counts more');
   if (weekWord) lines.push(`This week: ${weekWord}`);
+  if (row.partial) lines.push(`${PARTIAL_NOTE}: the figure can only go up`);
   if (row.coverage > 0 && row.coverage < 1) lines.push(`Known for ${Math.round(row.coverage * 100)}% of what you ate`);
   const showSources = !plain && !isLimit && !['kcal', 'carbs', 'fat'].includes(row.key);
   const sources = showSources ? sourcesFor(row.key, diet, { ...sourceOpts, limit: 5 }) : null;
@@ -270,6 +303,7 @@ export function NutrientGroupCard({ title, why, ...group }: GroupProps & { title
           {summary}
         </ThemedText>
       ) : null}
+      {anyPartial(group.rows) ? <PartialNote /> : null}
       {shown.length ? <Rows {...group} rows={shown} /> : null}
       <Button
         label={all ? 'Show fewer' : `Show all ${group.rows.length}`}
@@ -289,6 +323,7 @@ export function MacrosCard({ split, splitLine, ...group }: GroupProps & { split:
   return (
     <Card title="Macros">
       <Rows {...group} />
+      {anyPartial(group.rows) ? <PartialNote /> : null}
       {split ? <SplitBar split={split} /> : null}
       {splitLine ? <ThemedText type="titleSmall">{splitLine}</ThemedText> : null}
     </Card>
@@ -354,6 +389,7 @@ export function WatchCard({ glLine, chips, ...group }: GroupProps & { glLine?: s
         />
       }>
       <Rows {...group} />
+      {anyPartial(group.rows) ? <PartialNote /> : null}
       {glLine ? <ThemedText type="bodyMedium">{glLine}</ThemedText> : null}
       {chips?.length ? (
         <View style={styles.chips}>
@@ -471,6 +507,7 @@ const styles = StyleSheet.create({
   center: { textAlign: 'center', alignSelf: 'center' },
   grow: { flex: 1 },
   inline: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
+  partial: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one },
   rows: { gap: Spacing.one, marginHorizontal: -Spacing.two },
   row: { gap: Spacing.one, paddingHorizontal: Spacing.two, paddingVertical: Spacing.two, borderRadius: Radius.sm, minHeight: TouchTarget },
   rowTop: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, flexWrap: 'wrap' },

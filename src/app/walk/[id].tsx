@@ -126,7 +126,7 @@ function WalkDetailScreen() {
 
   const tile = (label: string, text: string, icon: IconName, note?: string) => {
     const [value, unit] = splitUnit(text);
-    return <StatTile key={label} label={label} value={value} unit={unit} icon={icon} note={note} />;
+    return <StatTile key={label} label={label} value={value} unit={unit} icon={icon} note={note} tone="steps" />;
   };
   const distance = tile('Distance', formatDistance(walk.distanceM, profile.units), 'navigate-outline');
   const kcal = tile('Active kcal', formatSteps(walk.activeKcal), 'flame-outline', 'Estimated');

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { PartialNote } from '@/components/food/nutrition-view';
 import { ThemedText } from '@/components/themed-text';
 import { TickBar } from '@/components/ui/tick-bar';
 import { Spacing } from '@/constants/theme';
@@ -14,6 +15,7 @@ import {
   percentOfDaily,
   percentOfLimit,
 } from '@/nutrition/nutrients';
+import { AT_LEAST, PARTIAL_NOTE } from '@/nutrition/state';
 import type { NutrientKey, Nutrients } from '@/nutrition/types';
 import { glBand } from '@/nutrition/watch';
 
@@ -34,6 +36,7 @@ export function NutrientBars({
   keys,
   average,
   glScale = 'portion',
+  partial = [],
 }: {
   /** A heading, shown only when there is a row to show. */
   title?: string;
@@ -49,6 +52,8 @@ export function NutrientBars({
   average?: Nutrients;
   /** Whether the glycemic load is a whole day's or one portion's. */
   glScale?: 'day' | 'portion';
+  /** Nutrients only partly known (the food's "missing"): shown as "≥", never as complete. */
+  partial?: readonly NutrientKey[];
 }) {
   const [open, setOpen] = useState<NutrientKey | null>(null);
 
@@ -76,7 +81,7 @@ export function NutrientBars({
       {rows.map((n) => {
         const today = nutrients[n.key];
         const week = average && n.storage === 'stored' ? average[n.key] : undefined;
-        const row = describe(n, today, week, glScale);
+        const row = atLeast(describe(n, today, week, glScale), today !== undefined && partial.includes(n.key));
         const isOpen = open === n.key;
         return (
           <Pressable
@@ -111,8 +116,20 @@ export function NutrientBars({
           </Pressable>
         );
       })}
+      {rows.some((n) => nutrients[n.key] !== undefined && partial.includes(n.key)) ? <PartialNote /> : null}
     </View>
   );
+}
+
+/** A row whose figure is only a floor: "≥ 12 mg · 20%", said as "at least". */
+function atLeast(row: Row, partial: boolean): Row {
+  if (!partial) return row;
+  return {
+    ...row,
+    shown: `${AT_LEAST}${row.shown}`,
+    spoken: `at least ${row.spoken}`,
+    note: `${row.note} ${PARTIAL_NOTE}, so this can only go up.`,
+  };
 }
 
 interface Row {

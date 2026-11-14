@@ -8,6 +8,7 @@ import { Motion, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { decelerateEasing, useReducedMotion } from './motion';
+import { PlainGround } from './tone-surface';
 
 export interface SheetProps {
   visible: boolean;
@@ -34,31 +35,33 @@ export function Sheet({ visible, onClose, title, children }: SheetProps) {
       navigationBarTranslucent
       animationType={reduced ? 'none' : 'fade'}
       onRequestClose={onClose}>
-      <View style={styles.root}>
-        <Pressable
-          style={[StyleSheet.absoluteFill, { backgroundColor: `${theme.scrim}52` }]}
-          onPress={onClose}
-          accessibilityRole="button"
-          accessibilityLabel="Close"
-        />
-        <Animated.View
-          entering={reduced ? undefined : SlideInDown.duration(Motion.duration.medium).easing(decelerateEasing)}
-          style={[
-            styles.sheet,
-            { backgroundColor: theme.surfaceContainerLow, paddingBottom: insets.bottom + Spacing.four },
-          ]}
-          accessibilityViewIsModal>
-          <View style={[styles.handle, { backgroundColor: theme.onSurfaceVariant }]} />
-          {title ? (
-            <ThemedText type="titleLarge" accessibilityRole="header" style={styles.title}>
-              {title}
-            </ThemedText>
-          ) : null}
-          <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-            {children}
-          </ScrollView>
-        </Animated.View>
-      </View>
+      <PlainGround>
+        <View style={styles.root}>
+          <Pressable
+            style={[StyleSheet.absoluteFill, { backgroundColor: `${theme.scrim}52` }]}
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel="Close"
+          />
+          <Animated.View
+            entering={reduced ? undefined : SlideInDown.duration(Motion.duration.medium).easing(decelerateEasing)}
+            style={[
+              styles.sheet,
+              { backgroundColor: theme.surfaceContainerLow, paddingBottom: insets.bottom + Spacing.four },
+            ]}
+            accessibilityViewIsModal>
+            <View style={[styles.handle, { backgroundColor: theme.onSurfaceVariant }]} />
+            {title ? (
+              <ThemedText type="titleLarge" accessibilityRole="header" style={styles.title}>
+                {title}
+              </ThemedText>
+            ) : null}
+            <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+              {children}
+            </ScrollView>
+          </Animated.View>
+        </View>
+      </PlainGround>
     </Modal>
   );
 }

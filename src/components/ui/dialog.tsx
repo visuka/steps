@@ -7,6 +7,7 @@ import { useTheme } from '@/hooks/use-theme';
 
 import { Button } from './button';
 import { useReducedMotion } from './motion';
+import { PlainGround } from './tone-surface';
 
 export interface DialogProps {
   visible: boolean;
@@ -49,32 +50,34 @@ export function Dialog({
       navigationBarTranslucent
       animationType={reduced ? 'none' : 'fade'}
       onRequestClose={onCancel}>
-      <View style={styles.root}>
-        <Pressable
-          style={[StyleSheet.absoluteFill, { backgroundColor: `${theme.scrim}52` }]}
-          onPress={onCancel}
-          accessibilityRole="button"
-          accessibilityLabel={cancelLabel}
-        />
-        <View
-          style={[styles.dialog, { backgroundColor: theme.surfaceContainerHigh }]}
-          accessibilityViewIsModal
-          accessibilityRole="alert">
-          <ThemedText type="headlineSmall" accessibilityRole="header">
-            {title}
-          </ThemedText>
-          {message ? (
-            <ThemedText type="bodyMedium" themeColor="onSurfaceVariant">
-              {message}
+      <PlainGround>
+        <View style={styles.root}>
+          <Pressable
+            style={[StyleSheet.absoluteFill, { backgroundColor: `${theme.scrim}52` }]}
+            onPress={onCancel}
+            accessibilityRole="button"
+            accessibilityLabel={cancelLabel}
+          />
+          <View
+            style={[styles.dialog, { backgroundColor: theme.surfaceContainerHigh }]}
+            accessibilityViewIsModal
+            accessibilityRole="alert">
+            <ThemedText type="headlineSmall" accessibilityRole="header">
+              {title}
             </ThemedText>
-          ) : null}
-          {children}
-          <View style={styles.actions}>
-            <Button label={cancelLabel} variant="text" compact onPress={onCancel} />
-            <Button label={confirmLabel} variant="text" danger={danger} compact onPress={onConfirm} />
+            {message ? (
+              <ThemedText type="bodyMedium" themeColor="onSurfaceVariant">
+                {message}
+              </ThemedText>
+            ) : null}
+            {children}
+            <View style={styles.actions}>
+              <Button label={cancelLabel} variant="text" compact onPress={onCancel} />
+              <Button label={confirmLabel} variant="text" danger={danger} compact onPress={onConfirm} />
+            </View>
           </View>
         </View>
-      </View>
+      </PlainGround>
     </Modal>
   );
 }

@@ -7,6 +7,7 @@ import type { DaySummary, Profile, Repository, SourceId } from '@/data/types';
 import { watchLiveSteps } from '@/health/live';
 import { getSource, onAppStart } from '@/health/select-source';
 import type { StepSource } from '@/health/types';
+import { setChosenCountry } from '@/lib/country-detect';
 import { addDays, dayKey, startOfDay } from '@/lib/dates';
 import { addSample, type LiveSample, liveStepsSince, type Shown, stepsToShow } from '@/lib/live-steps';
 import { registerBackgroundSync, SOURCE_KEY } from '@/sync/background';
@@ -96,6 +97,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         r.getKv<number>(LAST_SYNC_KEY),
       ]);
       if (cancelled) return;
+      // Food look-ups use the Country setting: it is set wherever the profile is, never in an effect,
+      // which would run after the children's (PendingFoods may already be asking).
+      setChosenCountry(p.country);
       setProfile(p);
       setSource(getSource(sourceId));
       // Until the first sync nothing says what the stored row covers, so live steps aren't added to it.
@@ -211,6 +215,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!repo) return;
       const next = mergeProfile(profile, patch);
       await saveProfile(repo, next);
+      setChosenCountry(next.country);
       setProfile(next);
     },
     [repo, profile],
@@ -223,6 +228,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await repo.setKv(SOURCE_KEY, s.id);
       await saveProfile(repo, next);
       setSource(s);
+      setChosenCountry(next.country);
       setProfile(next);
     },
     [repo],
@@ -258,6 +264,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setShown(null);
     applyToday(null, startOfDay(new Date()).getTime());
     setLastSyncAt(null);
+    setChosenCountry(DEFAULT_PROFILE.country);
     setProfile(DEFAULT_PROFILE);
     setDataVersion((v) => v + 1);
   }, [repo, applyToday]);

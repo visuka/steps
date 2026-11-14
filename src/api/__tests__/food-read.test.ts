@@ -295,6 +295,14 @@ describe('the phone’s country', () => {
     expect(countryCode(44)).toBeUndefined();
   });
 
+  it('marks a quiet repeat of a pending look-up as a refresh', () => {
+    expect(estimateRequest('pulusu', null, 'IN', true)).toEqual({ description: 'pulusu', country: 'IN', refresh: true });
+    expect(estimateRequest('pulusu', null, 'IN')).not.toHaveProperty('refresh');
+    const r = { name: 'Pulusu', ingredients: '100 g dried anchovy', steps: 'Simmer' };
+    expect(recipeRequest(r, 'IN', true)).toMatchObject({ name: 'Pulusu', country: 'IN', refresh: true });
+    expect(recipeRequest(r, 'IN')).not.toHaveProperty('refresh');
+  });
+
   it('goes with an estimate, with or without a place', () => {
     expect(estimateRequest(' fish and chips ', null, 'GB')).toEqual({ description: 'fish and chips', country: 'GB' });
     expect(estimateRequest('biryani', { place: 'dine-in', restaurant: 'Paradise' }, 'in')).toEqual({

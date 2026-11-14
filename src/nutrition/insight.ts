@@ -51,12 +51,12 @@ export function weekInsight(
     label: r.label,
     percent: r.state.percent ?? 0,
   });
-  const low = nutrientRows(LOW_KEYS, week.average, week.coverage, ctx, judgedFor, 'percent')
+  const low = nutrientRows(LOW_KEYS, week.average, week.coverage, ctx, judgedFor, 'percent', week.partial)
     .filter((r) => r.state.state === 'low')
     .sort((a, b) => (a.state.percent ?? 0) - (b.state.percent ?? 0))
     .slice(0, max)
     .map(toRow);
-  const over = nutrientRows(WATCH_KEYS, week.average, week.coverage, ctx, judgedFor, 'of')
+  const over = nutrientRows(WATCH_KEYS, week.average, week.coverage, ctx, judgedFor, 'of', week.partial)
     .filter((r) => r.state.state === 'over')
     .sort((a, b) => (b.state.percent ?? 0) - (a.state.percent ?? 0))
     .map(toRow);

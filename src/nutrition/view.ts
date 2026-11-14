@@ -10,7 +10,8 @@ import { formatSteps } from '@/lib/format';
 import { findFood, gramsFor, type PortionOverrides } from './catalog';
 import type { DayIntake } from './gaps';
 import { NUTRIENT, nutrientNumber, NUTRIENTS } from './nutrients';
-import { LIMIT_KEYS, nutrientState, type NutrientState, type NutrientStateKind, spokenNutrient, SHOW_COVERAGE, type StateContext, valueText } from './state';
+import type { PartialKeys } from './day';
+import { AT_LEAST, LIMIT_KEYS, nutrientState, type NutrientState, type NutrientStateKind, spokenNutrient, SHOW_COVERAGE, type StateContext, valueText } from './state';
 import { ageIn, dayKcalTarget, needsAreDifferent, type TargetContext } from './targets';
 import type { FoodItem, NutrientKey, Nutrients, OwnFood } from './types';
 import { watchOuts } from './watch';
@@ -44,8 +45,10 @@ export interface NutrientRowData {
   label: string;
   value: number | undefined;
   coverage: number;
+  /** Some ingredient isn't counted yet: the value is "≥". */
+  partial: boolean;
   state: NutrientState;
-  /** "45 mg · 50%", "62 of 54 g", "at least 1,200 of 2,000 mg", "Not known". */
+  /** "45 mg · 50%", "62 of 54 g", "≥ 1,200 of 2,000 mg", "Not known". */
   valueText: string;
   /** What TalkBack says for the row. */
   spoken: string;
@@ -56,11 +59,11 @@ export function amountNumber(key: NutrientKey, value: number): string {
   return value >= 1000 ? formatSteps(value) : nutrientNumber(key, value);
 }
 
-/** "62 of 54 g" (macros and limits) or "45 mg · 50%" (vitamins and minerals); "Not known" when unknown. */
+/** "62 of 54 g" (macros and limits) or "45 mg · 50%" (vitamins and minerals), "≥" before a floor; "Not known" when unknown. */
 export function rowValueText(key: NutrientKey, value: number | undefined, s: NutrientState, style: 'of' | 'percent'): string {
   if (value === undefined || s.state === 'unknown') return valueText(key, value, s);
   const unit = NUTRIENT[key].unit ? ` ${NUTRIENT[key].unit}` : '';
-  const least = s.atLeast ? 'at least ' : '';
+  const least = s.atLeast ? AT_LEAST : '';
   if (style === 'of') {
     const full = LIMIT_KEYS.includes(key) ? s.target.limit : s.target.daily;
     if (full) return `${least}${amountNumber(key, value)} of ${amountNumber(key, full)}${unit}`;
@@ -78,10 +81,18 @@ export function nutrientRows(
   /** The day is judged; for a week, per nutrient (weekJudgedFor). */
   judged: boolean | ((key: NutrientKey) => boolean),
   style: 'of' | 'percent',
+  /** Keys only partly known (an ingredient not counted yet): shown as "≥", never as complete. */
+  partial: PartialKeys = {},
 ): NutrientRowData[] {
   return keys.map((key) => {
     const cov = coverage[key] ?? 0;
-    const sc: StateContext = { ...ctx, coverage: cov, judged: typeof judged === 'function' ? judged(key) : judged };
+    const isPartial = Boolean(partial[key]);
+    const sc: StateContext = {
+      ...ctx,
+      coverage: cov,
+      judged: typeof judged === 'function' ? judged(key) : judged,
+      partial: isPartial,
+    };
     const value = totals[key];
     const s = nutrientState(key, value, sc);
     return {
@@ -89,6 +100,7 @@ export function nutrientRows(
       label: NUTRIENT[key].label,
       value,
       coverage: cov,
+      partial: isPartial,
       state: s,
       valueText: rowValueText(key, value, s, style),
       spoken: spokenNutrient(key, value, s),

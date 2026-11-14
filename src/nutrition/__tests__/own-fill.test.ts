@@ -122,6 +122,25 @@ describe('fillFromEstimate', () => {
     expect(out.nutrients.potassium).toBeUndefined();
   });
 
+  it('fills nothing while a part is still pending or its calories are only "at least"', () => {
+    const pending = { ...bhujia, pending: true, missing: ['iron'] };
+    expect(fillFromEstimate(answer([{ food: pending, unit: 'packet', quantity: 1 }])).kind).toBe('partial');
+    const floorKcal = { ...bhujia, missing: ['kcal', 'iron'] };
+    expect(
+      fillFromEstimate(answer([{ food: milk, unit: 'glass', quantity: 1 }, { food: floorKcal, unit: 'packet', quantity: 1 }])).kind,
+    ).toBe('partial');
+  });
+
+  it('leaves partly known nutrients unknown instead of saving floors', () => {
+    const partly = { ...bhujia, missing: ['iron', 'vitC'] };
+    const out = fillFromEstimate(answer([{ food: partly, unit: 'packet', quantity: 1 }]));
+    if (out.kind !== 'filled') throw new Error('not filled');
+    expect(out.nutrients.iron).toBeUndefined();
+    expect(out.nutrients.vitC).toBeUndefined();
+    expect(out.nutrients.kcal).toBe(224);
+    expect(out.nutrients.sodium).toBeCloseTo(360);
+  });
+
   it('ignores a zero-calorie part when checking what is known', () => {
     const water = food('ai:water', { kcal: 0 }, [{ key: 'glass', label: 'glass', grams: 250 }]);
     const out = fillFromEstimate(

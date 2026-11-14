@@ -114,7 +114,7 @@ export function Field({
           autoCorrect={false}
           accessibilityLabel={label}
           cursorColor={theme.primary}
-          selectionColor={theme.secondaryContainer}
+          selectionColor={theme.primaryContainer}
           placeholderTextColor={theme.onSurfaceVariant}
           style={resolveFont([
             kind === 'code' ? Type.numeralSmall : Type.bodyLarge,

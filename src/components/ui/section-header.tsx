@@ -8,6 +8,7 @@ import { useTheme } from '@/hooks/use-theme';
 
 import { Button } from './button';
 import { Sheet } from './sheet';
+import { useToneInk } from './tone-surface';
 
 /**
  * A small "Why?" that opens the longer explanation in a sheet, so the
@@ -16,6 +17,7 @@ import { Sheet } from './sheet';
  */
 export function Why({ title, text, label = 'Why?' }: { title: string; text: string; label?: string }) {
   const theme = useTheme();
+  const plate = useToneInk();
   const [open, setOpen] = useState(false);
   const icon = label === '(i)';
   return (
@@ -27,7 +29,7 @@ export function Why({ title, text, label = 'Why?' }: { title: string; text: stri
         hitSlop={8}
         style={icon ? styles.info : styles.why}>
         {icon ? (
-          <Ionicons name="information-circle-outline" size={24} color={theme.onSurfaceVariant} />
+          <Ionicons name="information-circle-outline" size={24} color={plate ? plate.ink : theme.onSurfaceVariant} />
         ) : (
           <ThemedText type="labelLarge" themeColor="primary" style={styles.underline}>
             {label}

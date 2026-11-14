@@ -8,7 +8,7 @@ import type { FoodEntry, Profile } from '@/data/types';
 import { addDaysToKey, dayKey, daysBetween } from '@/lib/dates';
 
 import type { PortionOverrides } from './catalog';
-import { entryNutrients } from './day';
+import { entryNutrients, type PartialKeys, partialKeys } from './day';
 import { NUTRIENT, NUTRIENTS, sumNutrients } from './nutrients';
 import { coverage, coverageAll, SHOW_COVERAGE } from './state';
 import { ageIn, fiberTarget, fullDayKcal, needsAreDifferent, proteinTarget, lowLine } from './targets';
@@ -65,6 +65,8 @@ export interface DayIntake {
   day: string;
   total: Nutrients;
   coverage: Partial<Record<NutrientKey, number>>;
+  /** Keys whose total is only "at least": an ingredient of a logged food isn't counted yet. */
+  partial?: PartialKeys;
   judged: boolean;
   kcal: number;
   entries: number;
@@ -95,7 +97,15 @@ export function dayIntakes(
     const nutrients = list.map((e) => entryNutrients(e, book.own, book.overrides, book.saved));
     const mark = opts.marks?.[day];
     const judged = day === today ? isJudgedToday(list, full, mark, opts.now) : day < today && isJudgedDay(list, full, mark);
-    return { day, total: sumNutrients(nutrients), coverage: coverageAll(nutrients), judged, kcal: loggedKcal(list), entries: list.length };
+    return {
+      day,
+      total: sumNutrients(nutrients),
+      coverage: coverageAll(nutrients),
+      partial: partialKeys(list, book.own, book.saved),
+      judged,
+      kcal: loggedKcal(list),
+      entries: list.length,
+    };
   });
 }
 
@@ -107,6 +117,8 @@ export interface JudgedAverage {
   coverage: Partial<Record<NutrientKey, number>>;
   /** Per nutrient, how many judged days its average is over. */
   daysFor: Partial<Record<NutrientKey, number>>;
+  /** Keys whose average rests on a day with an ingredient not counted yet: "at least". */
+  partial: PartialKeys;
 }
 
 /** Averages judged days only; dailyAverage() (all days with food) stays as it is for other uses. */
@@ -115,15 +127,17 @@ export function averageOfJudged(days: DayIntake[]): JudgedAverage {
   const average: Nutrients = {};
   const cov: Partial<Record<NutrientKey, number>> = {};
   const daysFor: Partial<Record<NutrientKey, number>> = {};
+  const partial: PartialKeys = {};
   const kcal = judged.reduce((a, d) => a + d.kcal, 0);
   for (const key of Object.keys(NUTRIENT) as NutrientKey[]) {
     const counted = judged.filter((d) => d.total[key] !== undefined && (d.coverage[key] ?? 0) >= SHOW_COVERAGE);
     if (counted.length) average[key] = counted.reduce((a, d) => a + (d.total[key] ?? 0), 0) / counted.length;
+    if (counted.some((d) => d.partial?.[key])) partial[key] = true;
     daysFor[key] = counted.length;
     const known = judged.reduce((a, d) => a + d.kcal * (d.coverage[key] ?? 0), 0);
     cov[key] = kcal > 0 ? known / kcal : judged.some((d) => (d.coverage[key] ?? 0) > 0) ? 1 : 0;
   }
-  return { judgedDays: judged.length, average, coverage: cov, daysFor };
+  return { judgedDays: judged.length, average, coverage: cov, daysFor, partial };
 }
 
 /**
@@ -213,9 +227,13 @@ function noteDaily(key: NutrientKey, profile: Profile, year: number): number | u
   return NUTRIENT[key].daily;
 }
 
-/** Days a note may rest on: judged, with figures for 95%+ of the day's energy. */
+/**
+ * Days a note may rest on: judged, with figures for 95%+ of the day's energy,
+ * and none of them only "at least" (a low note must not rest on an ingredient
+ * that isn't counted yet).
+ */
 const counted = (days: DayIntake[], key: NutrientKey) =>
-  days.filter((d) => d.judged && d.total[key] !== undefined && (d.coverage[key] ?? 0) >= NOTE_COVERAGE);
+  days.filter((d) => d.judged && d.total[key] !== undefined && (d.coverage[key] ?? 0) >= NOTE_COVERAGE && !d.partial?.[key]);
 
 const mean = (days: DayIntake[], key: NutrientKey) => days.reduce((a, d) => a + (d.total[key] ?? 0), 0) / days.length;
 
@@ -305,9 +323,12 @@ export function logNote(log: NoteLog, key: NutrientKey, today: string): NoteLog 
 }
 
 /** Totals for one day's entries, for screens that need just one day. */
-export function dayTotals(entries: FoodEntry[], book: FoodBook): { total: Nutrients; coverage: Partial<Record<NutrientKey, number>> } {
+export function dayTotals(
+  entries: FoodEntry[],
+  book: FoodBook,
+): { total: Nutrients; coverage: Partial<Record<NutrientKey, number>>; partial: PartialKeys } {
   const nutrients = entries.map((e) => entryNutrients(e, book.own, book.overrides, book.saved));
-  return { total: sumNutrients(nutrients), coverage: coverageAll(nutrients) };
+  return { total: sumNutrients(nutrients), coverage: coverageAll(nutrients), partial: partialKeys(entries, book.own, book.saved) };
 }
 
 export { coverage };

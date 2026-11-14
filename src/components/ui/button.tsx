@@ -3,8 +3,10 @@ import type { ComponentProps } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, type StyleProp, View, type ViewStyle } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Radius, Spacing, TouchTarget } from '@/constants/theme';
+import { Controls, Spacing, TouchTarget } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+
+import { useToneInk } from './tone-surface';
 
 export type IconName = ComponentProps<typeof Ionicons>['name'];
 export type ButtonVariant = 'filled' | 'tonal' | 'outlined' | 'text';
@@ -27,7 +29,10 @@ export interface ButtonProps {
   style?: StyleProp<ViewStyle>;
 }
 
-/** Material 3 common button, 48 dp tall so it is easy to hit. */
+/**
+ * Material 3 common button, at least 48 dp tall so it is easy to hit. The
+ * theme sets its corners, height and label case (Controls, themes/build.ts).
+ */
 export function Button({
   label,
   onPress,
@@ -42,6 +47,7 @@ export function Button({
   style,
 }: ButtonProps) {
   const theme = useTheme();
+  const plate = useToneInk();
   const off = disabled || loading;
   const look = {
     filled: { bg: danger ? theme.error : theme.primary, fg: danger ? theme.onError : theme.onPrimary, border: undefined },
@@ -53,6 +59,10 @@ export function Button({
     outlined: { bg: 'transparent', fg: danger ? theme.error : theme.primary, border: theme.outline },
     text: { bg: 'transparent', fg: danger ? theme.error : theme.primary, border: undefined },
   }[variant];
+  // On a tone plate (a filled tile) a tonal button is a ground-coloured pill with the plate's ink,
+  // and text and outlined buttons take the ink too.
+  if (plate && !danger && variant === 'tonal') Object.assign(look, { bg: plate.lane, fg: plate.ink });
+  else if (plate && !danger && variant !== 'filled') Object.assign(look, { fg: plate.ink });
   // Disabled, per Material: on-surface at 12% behind, 38% for the label.
   const bg = off && variant !== 'text' && variant !== 'outlined' ? `${theme.onSurface}1F` : look.bg;
   const fg = off ? `${theme.onSurface}61` : look.fg;
@@ -80,7 +90,7 @@ export function Button({
       ) : (
         <View style={styles.inner}>
           {icon ? <Ionicons name={icon} size={18} color={fg} /> : null}
-          <ThemedText type="labelLarge" style={[styles.label, { color: fg }]} numberOfLines={2}>
+          <ThemedText type="labelLarge" style={[styles.label, Controls.buttonLabel, { color: fg }]} numberOfLines={2}>
             {label}
           </ThemedText>
         </View>
@@ -129,10 +139,9 @@ export function IconButton({
 
 const styles = StyleSheet.create({
   button: {
-    minHeight: TouchTarget,
+    ...Controls.button,
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.two,
-    borderRadius: Radius.full,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -142,5 +151,5 @@ const styles = StyleSheet.create({
   inner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   label: { textAlign: 'center', flexShrink: 1 },
   iconTarget: { width: TouchTarget, height: TouchTarget, alignItems: 'center', justifyContent: 'center' },
-  iconMark: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  iconMark: { width: 40, height: 40, ...Controls.iconMark, alignItems: 'center', justifyContent: 'center' },
 });

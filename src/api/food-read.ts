@@ -11,7 +11,7 @@ import { APP_NAME } from '@/constants/app';
 import { OWN_PREFIX } from '@/nutrition/catalog';
 import { NUTRIENTS } from '@/nutrition/nutrients';
 import { cleanRestaurant, isPlace, type Where, whereOf } from '@/nutrition/place';
-import type { FoodCategory, FoodFlag, FoodIngredient, FoodItem, FoodUnit, NutrientKey, Nutrients } from '@/nutrition/types';
+import type { FoodCategory, FoodFlag, FoodIngredient, FoodItem, FoodRecipeSource, FoodUnit, NutrientKey, Nutrients } from '@/nutrition/types';
 
 /** The server's limits (stepsinfra food/handler.py and recipe.py), checked here first. */
 export const ESTIMATE_MAX_CHARS = 200;
@@ -196,10 +196,17 @@ export function countryCode(region: unknown): string | undefined {
  * The restaurant goes only with dine-in or delivery. `region`: the phone's
  * region, so dishes are worked out as they're usually made there.
  */
-export function estimateRequest(description: string, where?: Where | null, region?: unknown): Record<string, string> {
-  const body: Record<string, string> = { description: description.trim() };
+export function estimateRequest(
+  description: string,
+  where?: Where | null,
+  region?: unknown,
+  refresh = false,
+): Record<string, string | boolean> {
+  const body: Record<string, string | boolean> = { description: description.trim() };
   const country = countryCode(region);
   if (country) body.country = country;
+  // A quiet repeat of a pending food's look-up (nutrition/pending.ts), so the server can tell it from a new one.
+  if (refresh) body.refresh = true;
   if (!where) return body;
   const w = whereOf(where.place, where.restaurant);
   body.place = w.place;
@@ -207,8 +214,8 @@ export function estimateRequest(description: string, where?: Where | null, regio
   return body;
 }
 
-/** The body for POST /v1/food/recipe: servings and unit only when given, the country as for estimateRequest. */
-export function recipeRequest(request: RecipeRequest, region?: unknown): Record<string, unknown> {
+/** The body for POST /v1/food/recipe: servings and unit only when given, the country and refresh as for estimateRequest. */
+export function recipeRequest(request: RecipeRequest, region?: unknown, refresh = false): Record<string, unknown> {
   const body: Record<string, unknown> = {
     name: request.name.trim(),
     ingredients: request.ingredients.trim(),
@@ -218,6 +225,7 @@ export function recipeRequest(request: RecipeRequest, region?: unknown): Record<
   if (request.unit !== undefined) body.unit = request.unit;
   const country = countryCode(region);
   if (country) body.country = country;
+  if (refresh) body.refresh = true;
   return body;
 }
 
@@ -274,6 +282,27 @@ export function readNutrients(v: unknown): Nutrients {
     if (n !== null) out[key] = n;
   }
   return out;
+}
+
+/** Nutrient keys only partly known ("missing" in the answer): known keys, each once. */
+export function readMissing(v: unknown): NutrientKey[] {
+  const out: NutrientKey[] = [];
+  for (const k of list(v, NUTRIENT_MAX.size)) {
+    if (typeof k === 'string' && NUTRIENT_MAX.has(k as NutrientKey) && !out.includes(k as NutrientKey)) out.push(k as NutrientKey);
+  }
+  return out;
+}
+
+/** A kept recipe request (FoodItem.recipe), checked against the server's limits; null when it can't be sent again. */
+function readRecipeSource(v: unknown): FoodRecipeSource | null {
+  if (!isObject(v)) return null;
+  const { name, ingredients, steps, servings, unit } = v;
+  if (typeof name !== 'string' || typeof ingredients !== 'string' || typeof steps !== 'string') return null;
+  const source: FoodRecipeSource = { name, ingredients, steps };
+  if (servings !== undefined) source.servings = servings as number;
+  if (unit !== undefined) source.unit = unit as string;
+  if (unit !== undefined && !(RECIPE_UNITS as readonly unknown[]).includes(unit)) return null;
+  return checkRecipe(source as RecipeRequest) === null ? source : null;
 }
 
 /** Every category but 'own', which only the person's own foods may have. */
@@ -369,6 +398,15 @@ export function readFoodItem(v: unknown): FoodItem | null {
   if (ingredients.length) food.ingredients = ingredients;
   const notes = readNotes(v.notes);
   if (notes.length) food.notes = notes;
+  const missing = readMissing(v.missing);
+  if (missing.length) food.missing = missing;
+  if (v.pending === true) {
+    food.pending = true;
+    const recipe = readRecipeSource(v.recipe);
+    if (recipe) food.recipe = recipe;
+    const since = v.pendingSince;
+    if (typeof since === 'number' && Number.isFinite(since) && since > 0) food.pendingSince = since;
+  }
   // The phone's own notes on a saved food (FoodItem), checked like the rest.
   if (v.style === 'home' || v.style === 'restaurant') food.style = v.style;
   if (food.style === 'restaurant') {
@@ -390,7 +428,16 @@ function serverFood(v: unknown): FoodItem | null {
   delete food.style;
   delete food.restaurant;
   delete food.homeId;
+  delete food.recipe;
   return food;
+}
+
+/** "missing" and "pending" sent beside a food rather than in it: taken in too. */
+function itemMarks(food: FoodItem, raw: Record<string, unknown>): void {
+  const missing = [...(food.missing ?? [])];
+  for (const k of readMissing(raw.missing)) if (!missing.includes(k)) missing.push(k);
+  if (missing.length) food.missing = missing;
+  if (raw.pending === true) food.pending = true;
 }
 
 /** Ingredient amounts of two parts of a meal added up, by name. */
@@ -417,6 +464,7 @@ export function readEstimate(body: unknown): EstimateResult {
     if (!isObject(raw)) continue;
     const food = serverFood(raw.food);
     if (!food) continue;
+    itemMarks(food, raw);
     const askedUnit = text(raw.unit, 24);
     const known = food.units.some((u) => u.key === askedUnit);
     const unit = known ? askedUnit! : food.defaultUnit;
@@ -433,6 +481,7 @@ export function readEstimate(body: unknown): EstimateResult {
       same.quantity = Math.min(most, same.quantity + quantity);
       same.ingredients = addIngredients(same.ingredients, ingredients);
       same.cached = same.cached && cached;
+      itemMarks(same.food, { missing: food.missing, pending: food.pending });
       continue;
     }
     items.push({ food, unit, quantity, ingredients, cached, style });
@@ -449,6 +498,7 @@ export function readRecipe(body: unknown): RecipeResult {
   if (!isObject(body)) throw badAnswer();
   const food = serverFood(body.food);
   if (!food) throw badAnswer();
+  itemMarks(food, body);
   const servings = number(body.servings, 1, RECIPE_MAX_SERVINGS);
   const cooked = number(body.cookedGrams, 0, 30_000);
   return {

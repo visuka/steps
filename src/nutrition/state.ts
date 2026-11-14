@@ -42,7 +42,7 @@ export interface NutrientState {
   bar: number;
   /** Where to draw the low-line tick, 0–100, when there is one. */
   lowTick: number | null;
-  /** Known for 80–99% of what was eaten: show "at least 45 mg". */
+  /** Known for 80–99% of what was eaten, or some ingredient isn't counted yet: show "≥ 45 mg". */
   atLeast: boolean;
   target: Target;
 }
@@ -88,7 +88,14 @@ export interface StateContext extends TargetContext {
   judged: boolean;
   /** "My needs are different" or under 18: numbers only. */
   plain?: boolean;
+  /** Some ingredient of the food isn't counted yet: the value is a floor ("≥"), never complete. */
+  partial?: boolean;
 }
+
+/** The word for a floor under the low line: it may well be enough once everything is counted. */
+export const PARTIAL_WORD = 'Not all counted';
+/** The short note wherever a "≥" figure is shown. */
+export const PARTIAL_NOTE = 'Some ingredients not counted yet';
 
 /** The first rule that applies wins (see the nutrition spec). */
 export function nutrientState(key: NutrientKey, value: number | undefined, ctx: StateContext): NutrientState {
@@ -106,7 +113,7 @@ export function nutrientState(key: NutrientKey, value: number | undefined, ctx: 
       percent,
       bar: percent === null ? 0 : Math.max(0, Math.min(100, percent)),
       lowTick,
-      atLeast: known && ctx.coverage < 1,
+      atLeast: known && (ctx.coverage < 1 || Boolean(ctx.partial)),
       target,
     };
   };
@@ -131,8 +138,9 @@ export function nutrientState(key: NutrientKey, value: number | undefined, ctx: 
   if (target.low === undefined) return make('none');
   if (value >= target.low) return make('ok');
 
-  // 5. Under the line.
+  // 5. Under the line. A floor under it says nothing yet: an ingredient isn't counted.
   if (key === 'vitD') return make('sun');
+  if (ctx.partial) return make('soFar', PARTIAL_WORD);
   if (!ctx.judged) return make('soFar');
   return make('low', info.ai ? 'Could be higher' : WORD.low);
 }
@@ -167,12 +175,15 @@ export function coverageAll(entries: Nutrients[]): Partial<Record<NutrientKey, n
 
 const UNIT_SPOKEN: Record<string, string> = { mg: 'milligrams', 'µg': 'micrograms', g: 'grams', kcal: 'calories', '': '' };
 
-/** "45 mg", or "at least 45 mg" when part of the food has no figure; "Not known" when unknown. */
+/** Before a figure that is only a floor: "≥ 45 mg". Screen readers get "at least" (spokenNutrient). */
+export const AT_LEAST = '≥ ';
+
+/** "45 mg", or "≥ 45 mg" when part of the food has no figure; "Not known" when unknown. */
 export function valueText(key: NutrientKey, value: number | undefined, s: NutrientState): string {
   if (value === undefined || s.state === 'unknown') return 'Not known';
   const unit = NUTRIENT[key].unit;
   const text = unit ? `${nutrientNumber(key, value)} ${unit}` : nutrientNumber(key, value);
-  return s.atLeast ? `at least ${text}` : text;
+  return s.atLeast ? `${AT_LEAST}${text}` : text;
 }
 
 /** For TalkBack: "Vitamin C, 45 milligrams, 50 percent of daily need, low". */

@@ -62,6 +62,11 @@ export interface Profile {
   moodCheckIn: { enabled: boolean; hour: number };
   water: WaterSettings;
   nutrition: NutritionSettings;
+  /**
+   * The country food look-ups are worked out for (ISO alpha-2, "IN"), set
+   * under Settings; null = from the phone's time zone (lib/country.ts).
+   */
+  country: string | null;
   onboarded: boolean;
 }
 

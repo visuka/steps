@@ -73,6 +73,12 @@ export type FillOutcome =
   | { kind: 'unknown'; name: string }
   /** It came out at 0 calories, which the form can't save. */
   | { kind: 'zero' }
+  /**
+   * Part of it isn't counted yet (an ingredient still being found, or its
+   * calories only "at least"): an own food has no "at least" and is never
+   * looked up again, so nothing is filled.
+   */
+  | { kind: 'partial' }
   | { kind: 'nothing' };
 
 /**
@@ -80,12 +86,18 @@ export type FillOutcome =
  * by its grams (unit grams × quantity, with the person's own portion sizes),
  * and several items ("milk, whey, banana") are added up, since together they
  * are the one thing the person named. A part the server couldn't work out
- * would leave the total short, so then nothing is filled.
+ * would leave the total short, so then nothing is filled. The same goes for
+ * a food still pending, or with its calories only partly known; other
+ * partly known nutrients ("missing") are left out, so they stay unknown
+ * rather than become fixed numbers that are really floors.
  */
 export function fillFromEstimate(result: EstimateResult, overrides: PortionOverrides = {}): FillOutcome {
   if (result.unknown.length) return { kind: 'unknown', name: result.unknown[0] };
   if (!result.items.length) return { kind: 'nothing' };
+  const missing = new Set(result.items.flatMap((i) => i.food.missing ?? []));
+  if (missing.has('kcal') || result.items.some((i) => i.food.pending)) return { kind: 'partial' };
   const total = addUp(result.items.map((i) => nutrientsFor(i.food, i.unit, i.quantity, overrides)));
+  for (const k of missing) delete total[k];
   if (total.kcal === undefined || total.kcal < 0) return { kind: 'nothing' };
   // 0 kcal (water, black tea) can't be saved as an own food, so say so plainly.
   if (Math.round(total.kcal) === 0) return { kind: 'zero' };
@@ -163,4 +175,6 @@ export function fillNote(filledFor: string | null, current: string): string | nu
 }
 
 export const ZERO_NOTE = 'That came out at 0 calories, so there’s nothing to add. If it has calories, type them from the label.';
+export const PARTIAL_FILL_NOTE =
+  'Some of its ingredients aren’t counted yet, so the values would be too low. Try again later, or type the values in yourself.';
 export const NOTHING_NOTE = 'We couldn’t work that out. Try a clearer name, or type the values in yourself.';

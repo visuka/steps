@@ -1,15 +1,18 @@
 /**
- * Design tokens for the park-track world (.impeccable/surfaces/src-app-tabs-index-tsx.md).
+ * Design tokens shared by every theme: the shape of a colour scheme, the
+ * type scale and the radius scale, plus the 8 dp grid, motion and contrast
+ * helpers. Each theme's own values live in constants/themes/<id>.ts.
  *
  * Plain data with no React Native, so jest can check the contrast. Screens
- * import these through '@/constants/theme' and read the colours with
- * useTheme(), which picks the light or dark scheme.
+ * import these through '@/constants/theme' (which picks the active theme)
+ * and read the colours with useTheme(), which picks the light or dark scheme.
  *
- * Rules every screen keeps:
- * - Chrome is neutral: ink on lime-wash by day, lime-wash on night-park green-black by night.
- * - Colour lives only inside the data: steps (lawn green), food (red-oxide brick),
- *   water (morning-sky blue), sleep (dusk indigo), near (marigold, near the limit),
- *   over (Material error red, too much). Text stays ink; colour is never the only signal.
+ * Rules every theme and screen keeps:
+ * - Colour belongs to the data: steps, food, water, sleep, near (near the limit),
+ *   over (too much). A theme may paint whole tiles in a data colour's container
+ *   (tile: 'filled'); text on it is that container's `on` colour.
+ * - Colour is never the only signal: a number, a label or an icon says it too.
+ * - Body text 4.5:1, large text and marks 3:1 (__tests__/tokens.test.ts, every theme and scheme).
  * - Flat colour only: no gradients, glass, glow or shimmer.
  * - Elevation is tonal: a raised thing sits on a higher surfaceContainer role, not a shadow.
  */
@@ -119,148 +122,22 @@ export interface ColorScheme {
   warning: string;
 }
 
-const light = {
-  primary: '#1D3024',
-  onPrimary: '#F4F6F0',
-  primaryContainer: '#D3E3D2',
-  onPrimaryContainer: '#0F2416',
-  secondary: '#4E5F54',
-  onSecondary: '#FFFFFF',
-  secondaryContainer: '#CFE2CE',
-  onSecondaryContainer: '#0F2416',
-  tertiary: '#2B7A36',
-  onTertiary: '#FFFFFF',
-  tertiaryContainer: '#CFEACB',
-  onTertiaryContainer: '#0D3313',
-  error: '#BA1A1A',
-  onError: '#FFFFFF',
-  errorContainer: '#FFDAD6',
-  onErrorContainer: '#410002',
-  background: '#F4F6F0',
-  onBackground: '#142019',
-  surface: '#F4F6F0',
-  onSurface: '#142019',
-  surfaceVariant: '#DCE2D8',
-  onSurfaceVariant: '#434E47',
-  surfaceDim: '#D4DAD0',
-  surfaceBright: '#F4F6F0',
-  surfaceContainerLowest: '#FBFCF8',
-  surfaceContainerLow: '#EEF1EA',
-  surfaceContainer: '#E8ECE4',
-  surfaceContainerHigh: '#E2E7DE',
-  surfaceContainerHighest: '#DCE2D8',
-  inverseSurface: '#2A332D',
-  inverseOnSurface: '#EDF1E9',
-  inversePrimary: '#A9CDB0',
-  outline: '#6F7A72',
-  outlineVariant: '#C2CBC0',
-  surfaceTint: '#1D3024',
-  shadow: '#000000',
-  scrim: '#000000',
+/** The colour roles a theme writes; the older alias names are filled in by schemeFromRoles. */
+export type AliasRole =
+  | 'text'
+  | 'textSecondary'
+  | 'backgroundElement'
+  | 'backgroundSelected'
+  | 'accent'
+  | 'accentSoft'
+  | 'onAccent'
+  | 'track'
+  | 'danger'
+  | 'warning';
+export type SchemeRoles = Omit<ColorScheme, AliasRole>;
 
-  steps: '#2B7A36',
-  onSteps: '#FFFFFF',
-  stepsContainer: '#CFEACB',
-  onStepsContainer: '#0D3313',
-  food: '#A3462B',
-  onFood: '#FFFFFF',
-  foodContainer: '#F8DAD0',
-  onFoodContainer: '#3D1206',
-  food2: '#6E2A17',
-  food3: '#4A1A0D',
-  water: '#2F6DAE',
-  onWater: '#FFFFFF',
-  waterContainer: '#D3E4F7',
-  onWaterContainer: '#0A2D52',
-  sleep: '#4A4EA3',
-  onSleep: '#FFFFFF',
-  sleepContainer: '#E0E0FA',
-  onSleepContainer: '#15175A',
-  near: '#9A5B00',
-  onNear: '#FFFFFF',
-  nearContainer: '#FBE3B5',
-  onNearContainer: '#3A2400',
-  over: '#BA1A1A',
-  onOver: '#FFFFFF',
-
-  // A step darker than surfaceVariant, so the lane reads on cards; every data colour still keeps 3:1 on it.
-  lane: '#C9D2C5',
-  tick: '#FFFFFF',
-  laneTick: '#58635C',
-} as const;
-
-const dark = {
-  primary: '#D5E4D4',
-  onPrimary: '#14251A',
-  primaryContainer: '#2C3B30',
-  onPrimaryContainer: '#D5E4D4',
-  secondary: '#B7C9B9',
-  onSecondary: '#233428',
-  secondaryContainer: '#34483A',
-  onSecondaryContainer: '#D2E6D3',
-  tertiary: '#7CC77E',
-  onTertiary: '#0A2E10',
-  tertiaryContainer: '#1F4724',
-  onTertiaryContainer: '#C3EFC1',
-  error: '#FFB4AB',
-  onError: '#690005',
-  errorContainer: '#93000A',
-  onErrorContainer: '#FFDAD6',
-  background: '#0F1511',
-  onBackground: '#E1E7DF',
-  surface: '#0F1511',
-  onSurface: '#E1E7DF',
-  surfaceVariant: '#303832',
-  onSurfaceVariant: '#BDC8BD',
-  surfaceDim: '#0F1511',
-  surfaceBright: '#353C36',
-  surfaceContainerLowest: '#0A0F0C',
-  surfaceContainerLow: '#171E19',
-  surfaceContainer: '#1B231D',
-  surfaceContainerHigh: '#252D27',
-  surfaceContainerHighest: '#303832',
-  inverseSurface: '#E1E7DF',
-  inverseOnSurface: '#2A322C',
-  inversePrimary: '#2F5A3A',
-  outline: '#879288',
-  outlineVariant: '#3F4842',
-  surfaceTint: '#D5E4D4',
-  shadow: '#000000',
-  scrim: '#000000',
-
-  steps: '#7CC77E',
-  onSteps: '#0A2E10',
-  stepsContainer: '#1F4724',
-  onStepsContainer: '#C3EFC1',
-  food: '#E58A6E',
-  onFood: '#3D1206',
-  foodContainer: '#5A2414',
-  onFoodContainer: '#FFDBCF',
-  food2: '#FFD9CC',
-  food3: '#C0603F',
-  water: '#8CBDF0',
-  onWater: '#0A2D52',
-  waterContainer: '#133B63',
-  onWaterContainer: '#D3E4F7',
-  sleep: '#A9ACF2',
-  onSleep: '#15175A',
-  sleepContainer: '#2E3170',
-  onSleepContainer: '#E0E0FF',
-  near: '#F2B33D',
-  onNear: '#3A2400',
-  nearContainer: '#5A3D00',
-  onNearContainer: '#FFDEA6',
-  over: '#FFB4AB',
-  onOver: '#690005',
-
-  lane: '#2C352F',
-  tick: '#E1E7DF',
-  laneTick: '#95A096',
-} as const;
-
-type Roles = { [K in keyof typeof light]: string };
-
-function withAliases(s: Roles): ColorScheme {
+/** A full ColorScheme from a theme's roles, with the older names pointing at the new roles. */
+export function schemeFromRoles(s: SchemeRoles): ColorScheme {
   return {
     ...s,
     text: s.onSurface,
@@ -276,13 +153,8 @@ function withAliases(s: Roles): ColorScheme {
   };
 }
 
-export const Colors: { light: ColorScheme; dark: ColorScheme } = {
-  light: withAliases(light),
-  dark: withAliases(dark),
-};
-
 export type ThemeColor = keyof ColorScheme;
-export type SchemeName = keyof typeof Colors;
+export type SchemeName = 'light' | 'dark';
 
 /** What a piece of data is about; picks its colour. */
 export type DataTone = 'steps' | 'food' | 'water' | 'sleep' | 'near' | 'over';
@@ -321,22 +193,22 @@ export const Spacing = {
   six: 64,
 } as const;
 
-/** Material 3 shape scale, dp. */
-export const Radius = {
-  none: 0,
+/** Material 3 shape scale, dp. Each theme sets its own values (park: 4, 8, 12, 16, 28). */
+export interface RadiusScale {
+  none: number;
   /** Text fields, small marks. */
-  xs: 4,
+  xs: number;
   /** Chips, tick bars, snackbars. */
-  sm: 8,
+  sm: number;
   /** Cards and tiles. */
-  md: 12,
+  md: number;
   /** The FAB. */
-  lg: 16,
+  lg: number;
   /** Sheets and dialogs. */
-  xl: 28,
+  xl: number;
   /** Buttons, the navigation indicator. */
-  full: 999,
-} as const;
+  full: number;
+}
 
 /** Tonal elevation: which surface role a raised thing sits on. */
 export const Elevation = {
@@ -371,7 +243,7 @@ export const Motion = {
 /**
  * Material 3 type scale in sp (React Native font sizes follow the phone's
  * text-size setting). Weights are named, not numbered: theme.ts turns each
- * into the loaded font file, so Android never fakes a bold.
+ * into the theme's loaded font file, so Android never fakes a bold.
  */
 export type FontWeightName = 'regular' | 'medium' | 'semibold' | 'bold';
 export interface TypeSpec {
@@ -379,37 +251,42 @@ export interface TypeSpec {
   line: number;
   weight: FontWeightName;
   tracking: number;
-  /** Condensed numerals (track markers) instead of the UI face. */
+  /** The theme's numeral face (park: condensed) instead of the UI face. */
   numeral?: true;
+  /**
+   * Titles set in the numeral face, without tabular figures: C's Fraunces
+   * headings, so its `bold` UI weight can stay Inter.
+   */
+  display?: true;
 }
 
-export const TypeScale = {
-  displayLarge: { size: 57, line: 64, weight: 'medium', tracking: -0.25 },
-  displayMedium: { size: 45, line: 52, weight: 'medium', tracking: 0 },
-  displaySmall: { size: 36, line: 44, weight: 'medium', tracking: 0 },
-  headlineLarge: { size: 32, line: 40, weight: 'semibold', tracking: 0 },
-  headlineMedium: { size: 28, line: 36, weight: 'semibold', tracking: 0 },
-  headlineSmall: { size: 24, line: 32, weight: 'semibold', tracking: 0 },
-  titleLarge: { size: 22, line: 28, weight: 'semibold', tracking: 0 },
-  titleMedium: { size: 16, line: 24, weight: 'semibold', tracking: 0.15 },
-  titleSmall: { size: 14, line: 20, weight: 'semibold', tracking: 0.1 },
-  bodyLarge: { size: 16, line: 24, weight: 'regular', tracking: 0.25 },
-  bodyMedium: { size: 14, line: 20, weight: 'regular', tracking: 0.25 },
-  bodySmall: { size: 12, line: 16, weight: 'regular', tracking: 0.4 },
-  labelLarge: { size: 14, line: 20, weight: 'semibold', tracking: 0.1 },
-  labelMedium: { size: 12, line: 16, weight: 'semibold', tracking: 0.5 },
-  labelSmall: { size: 11, line: 16, weight: 'semibold', tracking: 0.5 },
-  /** Today's steps in the track's infield. 9 modules on 10. */
-  numeralHero: { size: 72, line: 80, weight: 'semibold', tracking: 0, numeral: true },
-  /** 6 on 7 modules. */
-  numeralLarge: { size: 48, line: 56, weight: 'semibold', tracking: 0, numeral: true },
-  /** 4 on 5 modules: stat tiles. */
-  numeralMedium: { size: 32, line: 40, weight: 'semibold', tracking: 0, numeral: true },
-  /** 3 on 4 modules. */
-  numeralSmall: { size: 24, line: 32, weight: 'medium', tracking: 0, numeral: true },
-} as const satisfies Record<string, TypeSpec>;
+/** Every role of the type scale; each theme gives a TypeSpec for each. */
+export const TYPE_ROLES = [
+  'displayLarge',
+  'displayMedium',
+  'displaySmall',
+  'headlineLarge',
+  'headlineMedium',
+  'headlineSmall',
+  'titleLarge',
+  'titleMedium',
+  'titleSmall',
+  'bodyLarge',
+  'bodyMedium',
+  'bodySmall',
+  'labelLarge',
+  'labelMedium',
+  'labelSmall',
+  /** Today's steps (the hero). */
+  'numeralHero',
+  'numeralLarge',
+  /** Stat tiles. */
+  'numeralMedium',
+  'numeralSmall',
+] as const;
 
-export type TypeRole = keyof typeof TypeScale;
+export type TypeRole = (typeof TYPE_ROLES)[number];
+export type TypeScaleShape = Record<TypeRole, TypeSpec>;
 
 // ── contrast, for the tests and for anyone picking a pair ──
 

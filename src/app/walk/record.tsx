@@ -328,7 +328,7 @@ export default function RecordScreen() {
 
   const tile = (label: string, text: string, icon: IconName, note?: string) => {
     const [value, unit] = splitUnit(text);
-    return <StatTile key={label} label={label} value={value} unit={unit} icon={icon} note={note} />;
+    return <StatTile key={label} label={label} value={value} unit={unit} icon={icon} note={note} tone="steps" />;
   };
 
   const tiles = !w
