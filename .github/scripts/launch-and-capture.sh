@@ -63,6 +63,8 @@ capture() {
     sleep 0.5
   done
   sleep 2
+  # The emulator's launcher once hung and put its "isn't responding" box over the shot (run 43599840988).
+  adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true
   start=$SECONDS
   while [ $((SECONDS - start)) -lt 8 ]; do
     sleep 0.5
@@ -73,9 +75,14 @@ capture() {
     prev="$cur"
   done
   mv "$out.tmp" "$out"
+  if adb shell dumpsys window | grep -q "Application Not Responding"; then
+    echo "::warning::$out: a system dialog was on screen"
+  fi
   echo "Captured $out"
 }
 
+# Stop the emulator's own apps from showing "isn't responding" boxes over the shots (review 3, item 23).
+adb shell settings put global hide_error_dialogs 1 || true
 adb shell cmd uimode night no
 for screen in today food walk detail; do
   capture clean "$screen" "smoke/clean-$screen.png"
