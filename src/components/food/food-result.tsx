@@ -862,7 +862,7 @@ const styles = StyleSheet.create({
   nutrientGroup: { marginTop: RESULT.nutrientGroupTop },
   // "Change ingredients" lines up with the ingredient names (x 76: 24 margin + circle 40 + gap 12).
   changeRow: { paddingLeft: RESULT.circle + RESULT.ingredientGap },
-  changeIngredients: { minHeight: RESULT.ingredientRowHeight, alignSelf: 'flex-start' },
+  changeIngredients: { minHeight: RESULT.ingredientRowHeight, alignSelf: 'flex-start', marginLeft: -Spacing.three },
   changeNote: { marginTop: -CLEAN_SPEC.space.s8 },
   showAll: { minHeight: RESULT.showAllHeight, alignSelf: 'flex-start' },
   panel: { marginTop: Spacing.three, gap: Spacing.three },
