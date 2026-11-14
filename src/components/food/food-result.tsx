@@ -865,7 +865,8 @@ const styles = StyleSheet.create({
   changeRow: { paddingLeft: RESULT.circle + RESULT.ingredientGap },
   changeIngredients: { minHeight: RESULT.ingredientRowHeight, alignSelf: 'flex-start', marginLeft: -Spacing.three },
   changeNote: { marginTop: -CLEAN_SPEC.space.s8 },
-  showAll: { minHeight: RESULT.showAllHeight, alignSelf: 'flex-start' },
+  // The button's own side padding is pulled back so its text lines up with the text above it.
+  showAll: { minHeight: RESULT.showAllHeight, alignSelf: 'flex-start', marginLeft: -Spacing.three },
   panel: { marginTop: Spacing.three, gap: Spacing.three },
   footerWrap: { width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },
   footer: {
