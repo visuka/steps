@@ -28,6 +28,7 @@ Status: **Approved design: Clean+ blue (14 Nov 2026).** T0 to T11 done; CI run 4
 | ~~T12 review 4~~ | done | `docs/design/review-4.md`: item 24 for Haiku |
 | **Review 4 fix (next)** | Haiku | "Fix item 24 in docs/design/review-4.md" |
 | T12 review 5 | Opus | "Review the CI screenshots", then the owner's final OK |
+| T17 (later) | owner + Opus | fast design loop: planned after T12/T15 are seen |
 | **T15a** | Sonnet | "Do T15a in docs/current-task.md" |
 | T15b | Sonnet | "Do T15b in docs/current-task.md" |
 | T15 check | Opus | "Review the CI screenshots" |
@@ -57,10 +58,14 @@ Written by Opus, 14 Nov 2026. Implement with Sonnet / Haiku as marked.
 - The look is always light. The phone's dark mode must not change it.
 - Read `docs/design.md` and `docs/architecture.md` first. Never edit `docs/design.md` (Opus only).
 - After finishing a task, append a short entry to `docs/completed-tasks.md` (date, task id, what changed, test counts, anything left open).
+- **Keep changes cheap (owner, 14 Nov 2026; see T17).** New code must not make later design changes harder:
+  - A screen or component only draws. Loading, saving and multi-step flows (API call, Health copy, repo write) go in a hook or a plain function in the feature folder, with a jest test. Never add new `repo.*`, `@/api` or Health calls inside a `.tsx` view.
+  - Every new size, colour, radius or gap goes in the theme (`src/constants/themes/`) or `clean-spec.ts`, never inline in a component.
+  - When a task adds or moves a design value or a screen's view file, add one line for it to `docs/design/map.md` (once T17 has created it).
 
 ## Order
 
-T0 → T1 → T2 → T3 → T4 → T5 → (T6, T7, T8, T9, T10 can run in any order) → T11 → T12 → T15a → T15b → T15 check → T13. T14 is separate. T16 (walk buddies) starts after T15.
+T0 → T1 → T2 → T3 → T4 → T5 → (T6, T7, T8, T9, T10 can run in any order) → T11 → T12 → T15a → T15b → T15 check → T13. T14 is separate. T16 (walk buddies) starts after T15. T17 (fast design loop) is planned with the owner once T12 and T15 are seen.
 
 ---
 
@@ -288,6 +293,12 @@ The stopped "screens match mockups" run left 28 changed files and new folders (a
 ### Tasks
 
 - **T15a — data and logic (Sonnet).**
+  - **First (keep changes cheap, T17):** move the food flows out of the screens into new `src/nutrition/log-food.ts`, plain functions with injected `repo`, `source` and API calls:
+    - `logFood(deps, input)`: write the local row first, then the Health copy; if the Health copy fails, keep the row and return a notice. This replaces the inline saves in `components/journal/food-log.tsx` (`save`, about lines 196–231) and `components/food/scan-screen.tsx` (about 127–141). It fixes the Health sample left behind when the local insert fails.
+    - `lookUpFood(deps, text)`: `checkDescription`, `estimateFood` and the error mapping now in `food-log.tsx` `lookUp` (about 418–442). Keep the stale-answer guard in the component.
+    - The restaurant version step (`versionFor`, about 251–280) as `restaurantVersionFor(deps, …)`.
+    - The components call these; behaviour and texts stay the same. Tests in `src/nutrition/__tests__/log-food.test.ts` with `memoryRepository` and a fake source.
+    - The T15 mappings below then go into these functions, not into the component.
   - `src/nutrition/types.ts`: add `basedOn?: string` and the `source` value `'mine'`.
   - New `src/nutrition/my-dishes.ts`, pure functions:
     - `recipeTextFor(food, ingredients)`
@@ -366,6 +377,7 @@ The stopped "screens match mockups" run left 28 changed files and new folders (a
   - the Clean+ sizes for each;
   - tests and the CI preview shots.
   - It also splits the build into Sonnet tasks.
+  - Follow "Keep changes cheap" in the rules: every Buddies screen is a view fed by a hook (`useBuddies`, `useChat` …); the API calls live in the feature folder, never in a `.tsx` view.
 - **T16a — server (Sonnet), needs the owner's OK to deploy.** The `stepsinfra` stacks and Lambdas from T16-0, with tests. This is a live AWS change, like T14.
 - **T16b — app: handle, 18+, find, requests, block and report (Sonnet).**
 - **T16c — app: chat and push (Sonnet).**
@@ -375,6 +387,40 @@ The stopped "screens match mockups" run left 28 changed files and new folders (a
 **Not in scope:** groups, public feeds, comments, photos, live location, and walking together in real time. These can come later as separate requests.
 
 **Open before T16a:** the owner's OK to deploy the new stacks, and who reviews reports (the owner's email for the queue alert).
+
+---
+
+## T17. Fast, low-token design loop (owner, 14 Nov 2026; planned after T12/T15 are seen)
+
+**Why:** the owner wants design changes in minutes with the fewest tokens. Today one round is a 24-minute CI run (18.7 of it the APK build) plus a full Opus review and a Sonnet or Haiku fix, and the Clean+ change took four rounds. CI on this public repo is free; the cost is the AI work around each round.
+
+**Goal:** a recolour or value change in 2–5 minutes, solid colour cards in 5–10 minutes, rearranging one main screen in 10–20 minutes, by one cheap model in one session. CI runs only as a background check after the owner's OK.
+
+### Setup (once)
+
+1. **Live preview.** Add `.claude/launch.json` with a `web` entry (`npx expo start --web`, its port) so `preview_start` opens the design preview in the browser pane: `/design-preview?screen=today|food|walk|detail&theme=<id>`. Check that Today, Food result, Walk and Detail render as on Android with the sample day (`data/db.web.ts`). The walk map does not run on the web: show a static picture of the sample route in the map card when `Platform.OS === 'web'` (preview only).
+2. **Design map** `docs/design/map.md`: one line per thing a person may want to change → the file and the value or component that controls it. At least:
+   - every Clean+ colour role and where it shows;
+   - fonts and the type scale;
+   - each Today card, the hero, the week strip, the food kcal card, the ingredient and nutrient rows, the walk stat cards, the map card, Parts and the nav: which view file and which `clean-spec.ts` values;
+   - the order of the cards on each screen (the line in the view file);
+   - how to add a new look (copy a theme file, register it in `themes/index.ts`).
+   Keep it under about 150 lines, so reading it costs little. A model making a design change reads only this file, then the files it names.
+3. **Per-card colour tokens** (for colour blocks): a small set in the theme (`card.food`, `card.water`, `card.sleep`, `card.walk`, `card.hero`, `card.kcal`, `card.stat`, each a fill and an ink), read by those components. Clean+ keeps today's values, so no look changes.
+4. **Data out of the views still mixed** (audit, 14 Nov): the Food result's state and effects, `food-log.tsx`, `walk/record.tsx`, the journal logs, `activity.tsx`, `patterns.tsx`. Today and Walk already have this split. Done step by step; T15a does `food-log.tsx` first (see T15).
+
+### Each design change after setup
+
+1. The owner says the change in one line.
+2. One model: Haiku for value changes, Sonnet for rearranging. No Opus hand-off, no subagents, no workflows (ultracode off).
+3. Read `docs/design/map.md`, edit only the files it names.
+4. Check with one half-scale screenshot of the changed screen in the preview (`computer` screenshot, `scale: 0.5`), and send it to the owner.
+5. On the owner's OK: commit and push with a one-line message, start CI, and do not wait for it. No review file and no task-doc update for a design tweak.
+6. Opus is used only for a new look or a new layout.
+
+**Trade-off the owner accepted:** the web preview is close to Android but not identical (fonts, shadows, map); small differences found by the background CI are fixed afterwards.
+
+**Tasks:** T17a setup 1–2 (Sonnet), T17b setup 3 (Sonnet), T17 check (Opus: one half-scale shot per screen against the CI shots).
 
 ---
 
