@@ -11,9 +11,9 @@
  * - outline is lifted to #7A8088 (the mockup's #3A414A borders are 1.6:1);
  *   #2E3339 stays as outlineVariant for hairlines and dividers.
  * - the lane is #2D3238 (mockup #2A2F35) so it shows 1.25:1 on a #1B1E22 card.
- * - the selected segment uses secondaryContainer (the sage nav pill,
- *   #2F3D32) instead of the mockup's chalk-white pill.
  * - near (amber) is not in the mockup; it is a warmer, stronger amber than food.
+ * The selected segment is the mockup's chalk pill with ground-coloured ink
+ * (style.segment).
  */
 
 import { Manrope_400Regular } from '@expo-google-fonts/manrope/400Regular';
@@ -119,16 +119,16 @@ const type: TypeScaleShape = {
   /** List rows: "Dried anchovy", "Sodium". */
   bodyMedium: { size: 14, line: 20, weight: 'medium', tracking: 0 },
   bodySmall: { size: 12, line: 16, weight: 'medium', tracking: 0 },
-  /** Buttons: 16 at 800. */
+  /** Main buttons: 16 at 800. */
   labelLarge: { size: 16, line: 20, weight: 'bold', tracking: 0 },
-  /** Small caps-style labels ("FOOD", "INGREDIENTS") and navigation. */
-  labelMedium: { size: 12, line: 16, weight: 'semibold', tracking: 0.8 },
-  labelSmall: { size: 12, line: 16, weight: 'medium', tracking: 0.4 },
+  /** Tile notes ("of 1,900 kcal", "last night"), navigation: 12/16 at 600. */
+  labelMedium: { size: 12, line: 16, weight: 'medium', tracking: 0 },
+  labelSmall: { size: 12, line: 16, weight: 'medium', tracking: 0 },
   /** Today's steps inside the ring. */
   numeralHero: { size: 48, line: 52, weight: 'bold', tracking: -1.5, numeral: true },
   /** The kcal of a dish, a walk's distance. */
   numeralLarge: { size: 48, line: 52, weight: 'bold', tracking: -1.5, numeral: true },
-  /** Food and sleep tiles, walk stats. */
+  /** Food and sleep tiles, ring stats, walk stats: 22/28 at 800. */
   numeralMedium: { size: 22, line: 28, weight: 'bold', tracking: 0, numeral: true },
   /** A macro's grams. */
   numeralSmall: { size: 16, line: 20, weight: 'bold', tracking: 0, numeral: true },
@@ -163,9 +163,7 @@ const theme: ThemeDef = {
   },
   type,
   radius,
-  /**
-   * B: pill buttons and a 28 dp pill FAB, flat on the matte ground.
-   */
+  /** B: pill buttons, 56 dp main actions, 48 dp row buttons with 14 dp labels at 700, flat on the matte ground. */
   style: {
     tile: 'plain',
     hero: 'ring',
@@ -178,6 +176,62 @@ const theme: ThemeDef = {
     chipCase: 'none',
     fabRadius: radius.lg,
     fabShadow: false,
+    actionHeight: 56,
+    compactLabel: { size: 14, line: 20, weight: 'semibold' },
+    filledRole: 'primary',
+    // "+1 glass", "Keep", "Edit": graphite with the mockup's #3A414A edge (the label carries the button).
+    outlined: { border: '#3A414A', fill: 'surfaceContainerHigh', ink: 'onSurface' },
+    // "INGREDIENTS", "PARTS": 12/16 at 700, 0.08em, capitals.
+    overline: { size: 12, line: 16, weight: 'semibold', tracking: 0.96, case: 'upper', color: 'onSurfaceVariant' },
+    // "TODAY": 12/16 at 600, 0.08em, capitals.
+    kicker: { size: 12, line: 16, weight: 'medium', tracking: 0.96, case: 'upper', color: 'onSurfaceVariant' },
+    segment: {
+      height: 56,
+      well: 'surfaceContainer',
+      wellBorder: null,
+      radius: 28,
+      pad: 4,
+      selected: 'onSurface',
+      onSelected: 'surface',
+      selectedBorder: null,
+      selectedRadius: 24,
+      idle: 'onSurfaceVariant',
+      divider: null,
+      check: false,
+      label: { size: 14, weight: 'medium', selectedWeight: 'bold' },
+    },
+    nav: {
+      height: 80,
+      background: 'surfaceContainer',
+      border: 'surfaceContainerHigh',
+      pill: 'secondaryContainer',
+      onPill: 'primary',
+      pillWidth: 56,
+      active: 'onSurface',
+      idle: 'onSurfaceVariant',
+      label: { size: 12, line: 16, weight: 'medium', activeWeight: 'bold' },
+    },
+  },
+  // The mockup's map: graphite land, slightly lighter streets, the sage route.
+  map: {
+    base: 'dark',
+    land: '#1B1E22',
+    road: '#262B31',
+    minorRoad: '#22262B',
+    park: '#1F2621',
+    water: '#1A2129',
+    building: '#202328',
+    label: '#A3A09A',
+    border: null,
+    radius: 24,
+    height: 176,
+    route: '#A3C4A4',
+    routeWidth: 4,
+    casing: null,
+    start: '#121417',
+    startRing: '#ECEAE6',
+    end: '#A3C4A4',
+    endRing: '#121417',
   },
 };
 

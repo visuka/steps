@@ -1,5 +1,5 @@
 /**
- * C, Ink and saffron (app-look/project/C-Ink.dc.html).
+ * C, Ink and saffron (app-look/project/C-Ink.dc.html). Light only, as mocked.
  *
  * Calm and editorial: warm paper, indigo ink, one saffron highlight. Areas are
  * set apart by hairlines and small saffron overlines, not by coloured plates.
@@ -8,12 +8,12 @@
  * ink outlines. Inter for the interface, Fraunces 600 for numbers and titles.
  *
  * Changes from the mockup, so every pair passes the contrast tests:
- * - The bar saffron #C9821B is 2.9:1 on paper and 2.3:1 on the lane, so the
- *   steps mark is the deeper saffron #A0640E (4.4:1 on paper, 3.2:1 on the lane).
  * - The empty lane #E4DDD0 is only 1.23:1 on paper, so it is #D9D1C2 (1.38:1).
- * - The mockup shows no water, sleep or warning marks and no dark scheme;
- *   those are designed here in the same ink, slate and rust family. Dark is
- *   "ink at night": paper-coloured text on deep indigo, saffron lifted.
+ * - The bar saffron #C9821B is 2.9:1 on paper and 2.3:1 on that lane, so the
+ *   steps mark is the same saffron darkened just enough: #A26916 (4.2:1 on
+ *   paper, 3.0:1 on the lane). The map's end dot keeps #C9821B (ink ring).
+ * - The mockup shows no water, sleep or warning marks; those are designed
+ *   here in the same ink, slate and rust family.
  *
  * Fraunces titles: display, headline and titleLarge are marked `display`, so
  * they are set in the numeral face (Fraunces 600). `bold` is Inter 600 (the
@@ -73,7 +73,7 @@ const light: SchemeRoles = {
   shadow: '#000000',
   scrim: '#000000',
 
-  steps: '#A0640E',
+  steps: '#A26916',
   onSteps: '#FFFFFF',
   stepsContainer: '#F3E3C4',
   onStepsContainer: '#5A3A08',
@@ -105,75 +105,6 @@ const light: SchemeRoles = {
   laneTick: '#6E675B',
 };
 
-const dark: SchemeRoles = {
-  primary: '#EDE7DB',
-  onPrimary: '#1F2A44',
-  primaryContainer: '#2E3A58',
-  onPrimaryContainer: '#E3E6EE',
-  secondary: '#B9BCC8',
-  onSecondary: '#232A3B',
-  secondaryContainer: '#3E3527',
-  onSecondaryContainer: '#F2E6CF',
-  tertiary: '#E6B35A',
-  onTertiary: '#3A2604',
-  tertiaryContainer: '#4A3610',
-  onTertiaryContainer: '#F5E3BF',
-  error: '#F2A48C',
-  onError: '#4A1608',
-  errorContainer: '#5C2414',
-  onErrorContainer: '#F8D9CE',
-  background: '#161C2C',
-  onBackground: '#EDE7DB',
-  surface: '#161C2C',
-  onSurface: '#EDE7DB',
-  surfaceVariant: '#323A4F',
-  onSurfaceVariant: '#B9BCC8',
-  surfaceDim: '#161C2C',
-  surfaceBright: '#363E54',
-  surfaceContainerLowest: '#10151F',
-  surfaceContainerLow: '#1B2232',
-  surfaceContainer: '#1F2637',
-  surfaceContainerHigh: '#283044',
-  surfaceContainerHighest: '#323A4F',
-  inverseSurface: '#EDE7DB',
-  inverseOnSurface: '#1F2A44',
-  inversePrimary: '#8A5A12',
-  outline: '#8C93A6',
-  outlineVariant: '#343C51',
-  surfaceTint: '#EDE7DB',
-  shadow: '#000000',
-  scrim: '#000000',
-
-  steps: '#E3A43F',
-  onSteps: '#2A1A02',
-  stepsContainer: '#4A3610',
-  onStepsContainer: '#F5E3BF',
-  food: '#C9D0E2',
-  onFood: '#1F2A44',
-  foodContainer: '#2E3A58',
-  onFoodContainer: '#E3E6EE',
-  food2: '#8FA0C4',
-  food3: '#D9A869',
-  water: '#8DB8E6',
-  onWater: '#102A46',
-  waterContainer: '#1E3A5A',
-  onWaterContainer: '#DCE6F0',
-  sleep: '#C4AEE0',
-  onSleep: '#2E2045',
-  sleepContainer: '#3A2E52',
-  onSleepContainer: '#E6DFEE',
-  near: '#E8BE6A',
-  onNear: '#3A2604',
-  nearContainer: '#4A3610',
-  onNearContainer: '#F5E3BF',
-  over: '#F2A48C',
-  onOver: '#4A1608',
-
-  lane: '#3A4359',
-  tick: '#161C2C',
-  laneTick: '#A3A8B8',
-};
-
 /**
  * From the mockup: titles Fraunces 600 at 22/28, body Inter 400 at 16/24 and
  * 14/20, labels Inter 600, overlines and navigation 12/16, big numerals
@@ -203,8 +134,8 @@ const type: TypeScaleShape = {
   labelLarge: { size: 16, line: 24, weight: 'semibold', tracking: 0 },
   /** Chips and segmented buttons: 14/20 at 600. */
   labelMedium: { size: 14, line: 20, weight: 'semibold', tracking: 0 },
-  /** Navigation labels and the small overlines (the mockup sets those in capitals, 0.12em). */
-  labelSmall: { size: 12, line: 16, weight: 'semibold', tracking: 0.5 },
+  /** Navigation labels: 12/16 at 500 (600 selected). The overlines are style.overline. */
+  labelSmall: { size: 12, line: 16, weight: 'medium', tracking: 0 },
   /** Today's steps. */
   numeralHero: { size: 48, line: 56, weight: 'semibold', tracking: 0, numeral: true },
   /** A dish's kcal, the walk's distance. */
@@ -225,12 +156,14 @@ const radius: RadiusScale = {
   full: 999,
 };
 
+const scheme = schemeFromRoles(light);
+
 const theme: ThemeDef = {
   id: 'c',
   name: 'Ink and saffron',
   description: 'Paper and ink, with saffron for the numbers that matter.',
-  mode: 'system',
-  colors: { light: schemeFromRoles(light), dark: schemeFromRoles(dark) },
+  mode: 'light',
+  colors: { light: scheme, dark: scheme },
   fonts: {
     regular: { family: 'Inter_400Regular', source: Inter_400Regular },
     medium: { family: 'Inter_500Medium', source: Inter_500Medium },
@@ -241,9 +174,7 @@ const theme: ThemeDef = {
   },
   type,
   radius,
-  /**
-   * C: 12 dp corners on every button and the FAB (the mockup's squared ink buttons), flat.
-   */
+  /** C: 12 dp corners on every button (the mockup's squared ink buttons), 56 dp main actions, flat. */
   style: {
     tile: 'outlined',
     hero: 'bar',
@@ -256,6 +187,61 @@ const theme: ThemeDef = {
     chipCase: 'none',
     fabRadius: 12,
     fabShadow: false,
+    actionHeight: 56,
+    compactLabel: { size: 14, line: 20, weight: 'semibold' },
+    filledRole: 'primary',
+    outlined: { border: 'primary', fill: null, ink: 'primary' },
+    // "STEPS", "INGREDIENTS", "RECENT": saffron small capitals, 12/16 at 600, 0.12em.
+    overline: { size: 12, line: 16, weight: 'semibold', tracking: 1.44, case: 'upper', color: 'tertiary' },
+    // "FRI, 14 NOV" over "Today".
+    kicker: { size: 12, line: 16, weight: 'semibold', tracking: 1.44, case: 'upper', color: 'tertiary' },
+    segment: {
+      height: 58,
+      well: null,
+      wellBorder: 'outlineVariant',
+      radius: 12,
+      pad: 4,
+      selected: 'primary',
+      onSelected: 'onPrimary',
+      selectedBorder: null,
+      selectedRadius: 8,
+      idle: 'onSurfaceVariant',
+      divider: null,
+      check: false,
+      label: { size: 14, weight: 'medium', selectedWeight: 'semibold' },
+    },
+    nav: {
+      height: 80,
+      background: 'surface',
+      border: 'outlineVariant',
+      pill: 'secondaryContainer',
+      onPill: 'onSurface',
+      pillWidth: 56,
+      active: 'onSurface',
+      idle: 'onSurfaceVariant',
+      label: { size: 12, line: 16, weight: 'medium', activeWeight: 'semibold' },
+    },
+  },
+  // The mockup's map: warm paper land, sand streets, a sage park, the ink route.
+  map: {
+    base: 'light',
+    land: '#EEE8DC',
+    road: '#E0D8C9',
+    minorRoad: '#E0D8C9',
+    park: '#DFE2D0',
+    water: '#D9E0E2',
+    building: '#E6DFD2',
+    label: '#4E5465',
+    border: '#DCD5C8',
+    radius: 12,
+    height: 176,
+    route: '#1F2A44',
+    routeWidth: 4,
+    casing: null,
+    start: '#F7F4EE',
+    startRing: '#1F2A44',
+    end: '#C9821B',
+    endRing: '#1F2A44',
   },
 };
 

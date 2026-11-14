@@ -8,6 +8,8 @@
  * theme when it is not there.
  */
 
+import { previewLaunch } from '@/design-preview/launch';
+
 import { DEFAULT_THEME_ID, THEME_IDS, type ThemeId } from './types';
 
 export const THEME_KEY = 'appearance.theme';
@@ -47,9 +49,17 @@ export function writeThemeId(store: ThemeStore | null, id: ThemeId): boolean {
 
 let device: ThemeStore | null | undefined;
 
-/** The phone's key-value store, or null where there is none (jest, a web preview without SQLite). */
+/**
+ * The phone's key-value store, or null where there is none (jest, a web
+ * preview without SQLite) and in a design-preview run, which must never read
+ * or save the person's choices (design-preview/launch.ts).
+ */
 export function deviceStore(): ThemeStore | null {
   if (device !== undefined) return device;
+  if (previewLaunch()) {
+    device = null;
+    return device;
+  }
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const kv = require('expo-sqlite/kv-store') as { default: ThemeStore };

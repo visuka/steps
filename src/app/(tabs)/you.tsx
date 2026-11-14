@@ -137,6 +137,13 @@ export default function YouScreen() {
       <SectionHeader title="More" />
       <Surface level={1} style={styles.list}>
         <ListRow
+          icon="book-outline"
+          title="Journal"
+          supporting="Your days: steps, food, sleep, notes"
+          chevron
+          onPress={() => router.navigate('/journal')}
+        />
+        <ListRow
           icon="analytics-outline"
           title="Insights"
           supporting="What helps you walk more"

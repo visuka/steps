@@ -20,7 +20,7 @@ import { refreshWeather } from '@/weather/refresh';
 
 import { StepCounter } from '../../modules/step-counter';
 
-interface AppContextValue {
+export interface AppContextValue {
   repo: Repository;
   profile: Profile;
   source: StepSource;
@@ -291,6 +291,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     touch,
     resetAll,
   };
+  return <AppContext value={value}>{children}</AppContext>;
+}
+
+/**
+ * The design preview only (app/design-preview.tsx): the screens over a fixed
+ * value made of sample data (design-preview/providers.tsx), in place of
+ * AppProvider, so nothing on the phone is read, synced or written.
+ */
+export function PreviewAppProvider({ value, children }: { value: AppContextValue; children: ReactNode }) {
   return <AppContext value={value}>{children}</AppContext>;
 }
 

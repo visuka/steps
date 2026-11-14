@@ -1,5 +1,5 @@
 /**
- * D, Colour blocks (app-look/project/D-Blocks.dc.html). The default theme.
+ * D, Colour blocks (app-look/project/D-Blocks.dc.html). The default theme. Light only, as mocked.
  *
  * Cheerful solid tiles: every area has its own colour, so it is found at a
  * glance. Steps are leaf green, food apricot, water sky, sleep lavender, each
@@ -7,8 +7,9 @@
  * white with warm-grey plates; the one main button is deep forest.
  * Plus Jakarta Sans throughout, numerals at 800 with tabular figures.
  *
- * Dark: the same four blocks as deep saturated plates with their pale tint as
- * text, on a warm near-black ground; marks lift to light tints.
+ * Today as drawn: the leaf steps block, food and water blocks side by side
+ * (water with a white "+ 1 glass" pill), a lilac sleep strip, the walk row
+ * outlined, and a full-width forest "Log food" button.
  */
 
 import { PlusJakartaSans_500Medium } from '@expo-google-fonts/plus-jakarta-sans/500Medium';
@@ -91,75 +92,6 @@ const light: SchemeRoles = {
   laneTick: '#5C6058',
 };
 
-const dark: SchemeRoles = {
-  primary: '#CDEBC6',
-  onPrimary: '#12361A',
-  primaryContainer: '#1F4A26',
-  onPrimaryContainer: '#CDEBC6',
-  secondary: '#B4CCB3',
-  onSecondary: '#1F3322',
-  secondaryContainer: '#1F4A26',
-  onSecondaryContainer: '#CDEBC6',
-  tertiary: '#BBA9FF',
-  onTertiary: '#2C1F5E',
-  tertiaryContainer: '#3A2C78',
-  onTertiaryContainer: '#E3DAFF',
-  error: '#FFB4AB',
-  onError: '#690005',
-  errorContainer: '#93000A',
-  onErrorContainer: '#FFDAD6',
-  background: '#121411',
-  onBackground: '#E4E3DD',
-  surface: '#121411',
-  onSurface: '#E4E3DD',
-  surfaceVariant: '#333531',
-  onSurfaceVariant: '#C4C7BE',
-  surfaceDim: '#121411',
-  surfaceBright: '#383A35',
-  surfaceContainerLowest: '#0D0F0C',
-  surfaceContainerLow: '#1A1C19',
-  surfaceContainer: '#1E201D',
-  surfaceContainerHigh: '#282A27',
-  surfaceContainerHighest: '#333531',
-  inverseSurface: '#E4E3DD',
-  inverseOnSurface: '#2F312D',
-  inversePrimary: '#2C6E36',
-  outline: '#8E9288',
-  outlineVariant: '#43483F',
-  surfaceTint: '#CDEBC6',
-  shadow: '#000000',
-  scrim: '#000000',
-
-  steps: '#8FD08A',
-  onSteps: '#0B2E12',
-  stepsContainer: '#1F4A26',
-  onStepsContainer: '#CDEBC6',
-  food: '#F2A36E',
-  onFood: '#4A2004',
-  foodContainer: '#5A2A06',
-  onFoodContainer: '#FFD9BF',
-  food2: '#FFD9BF',
-  food3: '#C97A44',
-  water: '#8CC4FF',
-  onWater: '#0B3A66',
-  waterContainer: '#0E3A63',
-  onWaterContainer: '#CFE6FF',
-  sleep: '#BBA9FF',
-  onSleep: '#2C1F5E',
-  sleepContainer: '#3A2C78',
-  onSleepContainer: '#E3DAFF',
-  near: '#F2B33D',
-  onNear: '#3D2800',
-  nearContainer: '#5A3D00',
-  onNearContainer: '#FFE2B0',
-  over: '#FFB4AB',
-  onOver: '#690005',
-
-  lane: '#393C36',
-  tick: '#E4E3DD',
-  laneTick: '#A3A69C',
-};
-
 /**
  * From the mockup: titles 800, labels 700, body 500 (Jakarta has no light
  * look at 400 on a phone). Weight names map to files in `fonts` below:
@@ -183,9 +115,9 @@ const type: TypeScaleShape = {
   bodySmall: { size: 13, line: 16, weight: 'regular', tracking: 0 },
   /** Buttons: 16 at 800. */
   labelLarge: { size: 16, line: 20, weight: 'bold', tracking: 0 },
-  /** Tile labels, chips, navigation. */
-  labelMedium: { size: 13, line: 16, weight: 'semibold', tracking: 0 },
-  labelSmall: { size: 12, line: 16, weight: 'semibold', tracking: 0 },
+  /** Tile notes ("of 1,900 kcal", "Distance"), navigation: 13/16 at 500. */
+  labelMedium: { size: 13, line: 16, weight: 'regular', tracking: 0 },
+  labelSmall: { size: 13, line: 16, weight: 'regular', tracking: 0 },
   /** Today's steps on the leaf block. */
   numeralHero: { size: 48, line: 52, weight: 'semibold', tracking: -1, numeral: true },
   /** The kcal on the food block. */
@@ -207,12 +139,14 @@ const radius: RadiusScale = {
   full: 999,
 };
 
+const scheme = schemeFromRoles(light);
+
 const theme: ThemeDef = {
   id: 'd',
   name: 'Colour blocks',
   description: 'Cheerful solid tiles. Every area has its own colour, so you find it at a glance.',
-  mode: 'system',
-  colors: { light: schemeFromRoles(light), dark: schemeFromRoles(dark) },
+  mode: 'light',
+  colors: { light: scheme, dark: scheme },
   fonts: {
     regular: { family: 'PlusJakartaSans_500Medium', source: PlusJakartaSans_500Medium },
     medium: { family: 'PlusJakartaSans_600SemiBold', source: PlusJakartaSans_600SemiBold },
@@ -223,9 +157,7 @@ const theme: ThemeDef = {
   },
   type,
   radius,
-  /**
-   * D: pill buttons and a 28 dp pill FAB, flat like the blocks.
-   */
+  /** D: pill buttons, 56 dp main actions, labels 16 at 800, flat like the blocks. */
   style: {
     tile: 'filled',
     hero: 'block',
@@ -238,6 +170,63 @@ const theme: ThemeDef = {
     chipCase: 'none',
     fabRadius: radius.lg,
     fabShadow: false,
+    actionHeight: 56,
+    compactLabel: { size: 16, line: 20, weight: 'bold' },
+    filledRole: 'primary',
+    // "Edit", "Keep": white with the mockup's #C4C7BF edge (the label carries the button).
+    outlined: { border: '#C4C7BF', fill: '#FFFFFF', ink: 'onSurface' },
+    // "Ingredients", "Parts": 16/24 at 700, as written.
+    overline: { size: 16, line: 24, weight: 'semibold', tracking: 0, case: 'none', color: 'onSurface' },
+    // "Fri, 14 Nov" over "Today": 16/20 at 500.
+    kicker: { size: 16, line: 20, weight: 'regular', tracking: 0, case: 'none', color: 'onSurfaceVariant' },
+    segment: {
+      height: 56,
+      well: 'surfaceContainer',
+      wellBorder: null,
+      radius: 28,
+      pad: 4,
+      selected: 'stepsContainer',
+      onSelected: 'onStepsContainer',
+      selectedBorder: null,
+      selectedRadius: 24,
+      idle: '#3D403A',
+      divider: null,
+      check: true,
+      label: { size: 16, weight: 'semibold', selectedWeight: 'bold' },
+    },
+    nav: {
+      height: 80,
+      background: 'surface',
+      border: 'surfaceVariant',
+      pill: 'tone',
+      onPill: 'tone',
+      pillWidth: 64,
+      active: 'onSurface',
+      idle: 'onSurfaceVariant',
+      label: { size: 13, line: 16, weight: 'regular', activeWeight: 'bold' },
+    },
+  },
+  // The mockup's map: pale sage land, white streets, a leaf park, the green route;
+  // the end dot is forest with a white centre (white fill, forest ring).
+  map: {
+    base: 'light',
+    land: '#EEF1EA',
+    road: '#FFFFFF',
+    minorRoad: '#FFFFFF',
+    park: '#DCEAD4',
+    water: '#D6E7F5',
+    building: '#E4E8DF',
+    label: '#565A53',
+    border: null,
+    radius: 28,
+    height: 168,
+    route: '#2C6E36',
+    routeWidth: 6,
+    casing: null,
+    start: '#FFFFFF',
+    startRing: '#2C6E36',
+    end: '#FFFFFF',
+    endRing: '#12361A',
   },
 };
 

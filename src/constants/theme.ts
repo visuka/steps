@@ -29,7 +29,7 @@ export const ActiveTheme: ThemeDef = activeTheme();
 /** The theme's switches for the shared components (tile, hero, bar, navIndicator, numeralTabular). */
 export const Look = ActiveTheme.style;
 
-/** How the theme treats light and dark: 'system', or always one of them. */
+/** The one scheme the theme keeps, 'light' or 'dark'; no theme follows the phone. */
 export const ThemeMode = ActiveTheme.mode;
 
 export const Colors: { light: ColorScheme; dark: ColorScheme } = ActiveTheme.colors;

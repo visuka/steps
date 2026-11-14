@@ -185,11 +185,23 @@ jobs:
           api-level: 35
           arch: x86_64
           target: google_apis
+          # 1080 x 2400 at 420 dpi, a common phone: the design-preview photos match the mockups' 390 x 844 dp.
+          profile: pixel_6
           disable-animations: true
           script: bash .github/scripts/launch-and-capture.sh app-release.apk
 
+      # Mockup and app side by side (smoke/compare-*.png) for a person to look at.
+      # Evidence only: nothing here may fail the job.
+      - name: Compare screenshots with the mockup
+        if: always()
+        continue-on-error: true
+        run: |
+          python3 -m pip install pillow
+          python3 .github/scripts/side-by-side.py smoke docs/design/clean-plus.png smoke
+
       - uses: actions/upload-artifact@v4
         if: always()
+        continue-on-error: true
         with:
           name: smoke-test
           path: smoke/

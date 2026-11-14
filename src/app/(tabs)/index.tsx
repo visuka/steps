@@ -1,501 +1,227 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { useFocusEffect, useIsFocused, useRouter } from 'expo-router';
-import { type ReactNode, useCallback, useEffect, useState } from 'react';
-import { BackHandler, StyleSheet, useWindowDimensions, View } from 'react-native';
-import Animated, { FadeIn, LinearTransition, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { type Href, useFocusEffect, useRouter } from 'expo-router';
+import { type ComponentRef, useCallback, useEffect, useRef, useState } from 'react';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppearanceNote } from '@/components/appearance-note';
-import { BarChart } from '@/components/bar-chart';
-import { hourName } from '@/components/bar-chart-speech';
 import { MoodPicker } from '@/components/mood-picker';
-import { PremiumGate } from '@/components/premium-gate';
+import { PremiumCard } from '@/components/premium-gate';
 import { ThemedText } from '@/components/themed-text';
-import {
-  Button,
-  Card,
-  ExtendedFab,
-  IconButton,
-  ListRow,
-  Screen,
-  SectionHeader,
-  Snackbar,
-  StatTile,
-  Surface,
-  TickBar,
-  TrackProgress,
-  Why,
-} from '@/components/ui';
-import { standardTiming } from '@/components/ui/motion';
-import { useToneInk } from '@/components/ui/tone-surface';
-import { PartialNote } from '@/components/food/nutrition-view';
-import { WaterBody } from '@/components/food/water-card';
-import { Look, Motion, NumeralMaxScale, Radius, Spacing } from '@/constants/theme';
-import type { DayWeather, LogEntry } from '@/data/types';
+import { Button, Card, SectionHeader, Snackbar, Why } from '@/components/ui';
+import { distanceOf, heroSpoken, percentOf, untimedNote } from '@/components/today/model';
+import { detailRoute, type DetailKind, walkingLine } from '@/components/today/today-actions';
+import { TodayClean } from '@/components/today/today-clean';
+import { TODAY_LAYOUT } from '@/components/today/today-layout';
+import { useActiveWalk } from '@/components/today/use-active-walk';
+import { useTodayExtras } from '@/components/today/use-today-extras';
+import type { TodayFrameLook, TodayView } from '@/components/today/view';
+import { WalkingCard } from '@/components/today/walking-card';
+import { MaxContentWidth, Spacing } from '@/constants/theme';
+import type { LogEntry } from '@/data/types';
 import { useTheme } from '@/hooks/use-theme';
-import { addDaysToKey, dayKey, formatDayLong } from '@/lib/dates';
-import { formatDistance, formatSteps, formatTemp, minutesAgo } from '@/lib/format';
+import { addDaysToKey, dayKey } from '@/lib/dates';
+import { formatSteps, minutesAgo } from '@/lib/format';
 import { SUGGESTION_DAYS, suggestGoal } from '@/lib/goals';
 import { locationAllowed, requestLocation } from '@/location/place';
+import { PARTIAL_NOTE } from '@/nutrition/state';
+import { dayKcalTarget } from '@/nutrition/targets';
 import { useApp } from '@/state/app-state';
-import { useCaloriesToday } from '@/state/use-calories';
+import { useTodayKcal } from '@/state/use-calories';
 import { useMoodToday } from '@/state/use-mood';
 import { usePremium } from '@/state/use-premium';
-import { type AddedGlass, useWaterToday, type WaterHook } from '@/state/use-water';
-import { walkRecorder } from '@/walks/recorder';
-import { AT_LEAST, PARTIAL_NOTE } from '@/nutrition/state';
-import { dayKcalTarget } from '@/nutrition/targets';
-import { kcalBalanceText } from '@/nutrition/view';
-import { CONDITION_LABEL } from '@/weather/met';
+import { type AddedGlass, useWaterToday } from '@/state/use-water';
 
 const WEATHER_PROMPT_KEY = 'weatherPromptDismissed';
-const HOUR_LABELS: Record<number, string> = { 0: '12a', 6: '6a', 12: '12p', 18: '6p' };
 
-type Tile = 'food' | 'water' | 'active';
-
+/**
+ * Today: the Clean+ Today (components/today/today-clean.tsx) for every look,
+ * handed the same data, taps and premium lock. The first screen is the
+ * greeting, week strip, steps hero (with its hour chart) and tiles; the mood
+ * check-in, goal suggestion and weather offer follow below. The status bar
+ * keeps a strip of the page colour, so nothing scrolls under the clock.
+ */
 export default function TodayScreen() {
-  const { source, profile, displaySteps, lastSyncAt, syncing, refresh, updateProfile } = useApp();
+  const { source, profile, today, displaySteps, lastSyncAt, syncing, refresh, updateProfile } = useApp();
+  const theme = useTheme();
   const router = useRouter();
+  const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
   const premium = usePremium();
-  const { width, height } = useWindowDimensions();
-  // Free: today's steps and the goal on the track; everything else on Today is premium.
+  const insets = useSafeAreaInsets();
+  // today-clean adds the 24 dp under the status bar; the safe-area inset is added here.
+  const look: TodayFrameLook = { background: theme.surface, gutter: TODAY_LAYOUT.sideMargin };
   const details = !premium.isLocked('today-details');
   const todayKey = dayKey(new Date());
-  const [walking, setWalking] = useState(false);
-  const [focus, setFocus] = useState<Tile | null>(null);
   const [snack, setSnack] = useState<{ text: string; undo?: LogEntry } | null>(null);
-  // The same water as the Food tab's card: one glass is the person's glass size (water/add.ts).
+  // Counts each time Today comes into view: food, sleep, the walk and the active walk are read again then.
+  const [visits, setVisits] = useState(0);
   const water = useWaterToday(details && !premium.isLocked('body'));
+  const kcal = useTodayKcal(visits);
+  const extras = useTodayExtras(visits);
+  const activeWalk = useActiveWalk(visits);
 
   useFocusEffect(
     useCallback(() => {
-      walkRecorder.active().then((id) => setWalking(id !== null));
+      setVisits((n) => n + 1);
     }, []),
   );
-
-  // An open tile closes on Back before Back leaves the screen.
-  const onScreen = useIsFocused();
-  const tileOpen = focus !== null;
-  useEffect(() => {
-    if (!tileOpen || !onScreen) return;
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      setFocus(null);
-      return true;
-    });
-    return () => sub.remove();
-  }, [tileOpen, onScreen]);
 
   const showAdded = (a: AddedGlass | null) =>
     setSnack(a ? { text: a.text, undo: a.entry } : { text: "Couldn't save that. Try again." });
   const addGlass = async () => showAdded(await water.add());
 
-  const logFood = () => router.navigate({ pathname: '/food', params: { add: String(Date.now()) } });
+  // Only today's row: after midnight the one in memory can still be yesterday's until the next sync.
+  const activeKcal = today?.date === todayKey ? today.activeKcal : 0;
   const goal = profile.dailyGoal;
+  const steps = displaySteps;
+  const pct = percentOf(steps, goal);
+  const distance = today ? distanceOf(today.distanceM, profile.units) : null;
+  // Only today's row, as with activeKcal.
+  const untimedSteps = today?.date === todayKey ? today.untimedSteps : 0;
+  const activeMin = today ? (today.activeMin ?? sumOrNull(today.briskMin, today.runMin)) : null;
+  const dayBurn = dayKcalTarget(profile, activeKcal, new Date().getFullYear());
+  const eatenText = formatSteps(kcal.eaten);
+  const ws = water.status;
+  const glasses = ws?.progress?.glasses ?? Math.floor(((ws?.waterMl ?? 0) + (ws?.drinksMl ?? 0)) / profile.water.glassMl);
+  const glassesOf = ws?.progress && !ws.target?.limit ? ws.progress.glassesTarget : null;
   const syncLine = `${lastSyncAt ? `Updated ${minutesAgo(lastSyncAt)}` : 'Not synced yet'} · ${source.label}`;
-  const trackHeight = Math.round(Math.min((Math.min(width, 640) - Spacing.three * 2) / 1.4, height * 0.36));
-  // While a tile's detail is open the hero steps back to about a quarter of the
-  // screen, so the detail opens in the first viewport instead of under the fold.
-  const openHeight = Math.round(height * 0.25);
+
+  // A tap on a tile or the hero: its detail screen (the Walk tile: its walk). The Water plus circle adds a glass (addGlass).
+  const open = (kind: DetailKind) => {
+    const target = detailRoute(kind, extras.walk?.id ?? null);
+    if (!target) return;
+    // /detail/<kind> is not in the typed routes: cast.
+    const href = target as unknown as Href;
+    if (target.pathname.startsWith('/detail') || target.pathname.startsWith('/walk')) router.push(href);
+    else router.navigate(href);
+  };
+
+  const view: TodayView = {
+    dateLabel: extras.dateLabel,
+    name: extras.name,
+    initial: extras.initial,
+    steps,
+    goal,
+    pct,
+    stepsSpoken: heroSpoken(steps, goal, distance, activeMin, extras.distanceUnit),
+    distance,
+    distanceUnit: extras.distanceUnit,
+    activeMin,
+    hourly: extras.hourly,
+    nowHour: extras.nowHour,
+    details,
+    food: {
+      text: eatenText,
+      target: formatSteps(dayBurn),
+      share: dayBurn > 0 ? kcal.eaten / dayBurn : 0,
+      partial: kcal.partial,
+      spoken: `Food, ${kcal.partial ? 'at least ' : ''}${eatenText} of about ${formatSteps(dayBurn)} kcal${kcal.partial ? `. ${PARTIAL_NOTE}` : ''}`,
+    },
+    water: {
+      glasses,
+      of: glassesOf,
+      spoken: `Water, ${glasses} ${glasses === 1 ? 'glass' : 'glasses'}${glassesOf ? ` of ${glassesOf}` : ''}`,
+    },
+    sleep: extras.sleep,
+    sleepSpoken: extras.sleepSpoken,
+    walk: extras.walk,
+    walkSpoken: extras.walkSpoken,
+    week: extras.week,
+    on: {
+      food: () => open('food'),
+      water: () => open('water'),
+      addGlass,
+      sleep: () => open('sleep'),
+      walk: () => open('walk'),
+      steps: () => open('steps'),
+      // The locked tiles have no screen of their own: the premium card below them is the target.
+      premium: () => scroll.current?.scrollToEnd({ animated: true }),
+      profile: () => router.navigate('/you'),
+      // The Journal takes no day yet, so a tapped day opens the Journal itself.
+      calendar: () => router.navigate('/journal'),
+    },
+    slots: {
+      walking: activeWalk ? (
+        <WalkingCard
+          line={walkingLine(activeWalk.elapsedS, activeWalk.distanceM, profile.units)}
+          onPress={() => router.push('/walk/record')}
+        />
+      ) : null,
+      note: (style) => <AppearanceNote style={style} />,
+      below: (
+        <BelowTheFold
+          weatherDay={todayKey}
+          untimed={untimedNote(untimedSteps)}
+          onGoal={(dailyGoal) => updateProfile({ dailyGoal })}
+          onLocation={refresh}
+        />
+      ),
+      locked: details ? null : <PremiumCard />,
+    },
+  };
 
   return (
-    <Screen
-      title={formatDayLong(todayKey)}
-      titleSize="small"
-      subtitle={syncLine}
-      refreshing={syncing}
-      onRefresh={refresh}
-      fab={
-        details && !premium.isLocked('food') && focus === null ? (
-          <ExtendedFab label="Log food" icon="add" onPress={logFood} accessibilityHint="Opens Food, ready to type" />
-        ) : undefined
-      }
-      overlay={
+    <View style={[styles.screen, { backgroundColor: look.background }]}>
+      <ScrollView
+        ref={scroll}
+        contentContainerStyle={{ paddingTop: insets.top }}
+        keyboardShouldPersistTaps="handled"
+        refreshControl={
+          <RefreshControl
+            refreshing={syncing}
+            onRefresh={refresh}
+            colors={[theme.primary]}
+            tintColor={theme.primary}
+            progressBackgroundColor={theme.surfaceContainerHigh}
+            progressViewOffset={insets.top}
+          />
+        }>
+        <TodayClean v={view} look={look} />
+        <View style={[styles.foot, { paddingHorizontal: look.gutter }]}>
+          <ThemedText type="bodySmall" themeColor="onSurfaceVariant">
+            {syncLine}
+          </ThemedText>
+        </View>
+      </ScrollView>
+      {/* The status bar's strip: content scrolls under it, never under the clock. */}
+      <View pointerEvents="none" style={[styles.statusInset, { height: insets.top, backgroundColor: look.background }]} />
+      <View pointerEvents="box-none" style={[styles.snack, { left: look.gutter, right: look.gutter }]}>
         <Snackbar
           message={snack?.text ?? null}
           action={snack?.undo ? { label: 'Undo', onPress: () => water.undo(snack.undo!) } : undefined}
           onDismiss={() => setSnack(null)}
         />
-      }>
-      {/* A walk started with premium can always be got back to and finished. */}
-      {walking ? (
-        <Surface level={3}>
-          <ListRow
-            icon="walk"
-            title="Walk in progress"
-            supporting="Tap to see it or finish"
-            chevron
-            onPress={() => router.push('/walk/record')}
-          />
-        </Surface>
-      ) : null}
-
-      <Recede dimmed={focus !== null}>
-        <StepsTrack
-          steps={displaySteps}
-          goal={goal}
-          height={tileOpen ? Math.min(trackHeight, openHeight) : trackHeight}
-          minHeight={tileOpen ? openHeight : Math.round(height * 0.4)}
-        />
-      </Recede>
-
-      <AppearanceNote />
-
-      <PremiumGate feature="today-details">
-        <TodayTiles
-          focus={focus}
-          onFocus={setFocus}
-          water={water}
-          onAddGlass={addGlass}
-          onAdded={showAdded}
-          onOpenFood={() => router.navigate('/food')}
-        />
-        <Recede dimmed={focus !== null}>
-          <BelowTheFold
-            weatherDay={todayKey}
-            onGoal={(dailyGoal) => updateProfile({ dailyGoal })}
-            onLocation={refresh}
-          />
-        </Recede>
-      </PremiumGate>
-    </Screen>
-  );
-}
-
-/** Fades the rest back while a tile's detail is open. */
-function Recede({ dimmed, children }: { dimmed: boolean; children: ReactNode }) {
-  const fade = useSharedValue(dimmed ? 0.4 : 1);
-  useEffect(() => {
-    fade.value = withTiming(dimmed ? 0.4 : 1, standardTiming(Motion.duration.short));
-  }, [dimmed, fade]);
-  const style = useAnimatedStyle(() => ({ opacity: fade.value }));
-  return (
-    <Animated.View style={[styles.recede, style]} pointerEvents={dimmed ? 'none' : 'auto'}>
-      {children}
-    </Animated.View>
-  );
-}
-
-/** The hero: today's steps on the track, the goal and laps under the number. Other themes draw StepsHero. */
-function StepsTrack({ steps, goal, height, minHeight }: { steps: number; goal: number; height: number; minHeight: number }) {
-  const theme = useTheme();
-  if (Look.hero !== 'track') return <StepsHero steps={steps} goal={goal} />;
-  const left = Math.max(0, goal - steps);
-  const lap = goal > 0 ? Math.floor(steps / goal) + 1 : 1;
-  return (
-    <View style={[styles.hero, { minHeight: Math.max(minHeight, height + Spacing.five) }]}>
-      <TrackProgress
-        value={steps}
-        goal={goal}
-        aspect={1.4}
-        maxHeight={height}
-        accessibilityLabel={`${formatSteps(steps)} of ${formatSteps(goal)} steps${left === 0 ? ', goal reached' : `, ${formatSteps(left)} to go`}`}>
-        <ThemedText
-          type="numeralHero"
-          maxFontSizeMultiplier={NumeralMaxScale}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          style={styles.center}>
-          {formatSteps(steps)}
-        </ThemedText>
-        <ThemedText type="labelLarge" themeColor="onSurfaceVariant" style={styles.center}>
-          of {formatSteps(goal)} steps
-        </ThemedText>
-        <View style={styles.lapRow}>
-          {left === 0 ? <Ionicons name="checkmark-circle" size={16} color={theme.onSurface} /> : null}
-          <ThemedText type="labelMedium" style={styles.center}>
-            {left === 0 ? `Goal done · lap ${lap}` : `${formatSteps(left)} to go`}
-          </ThemedText>
-        </View>
-      </TrackProgress>
-    </View>
-  );
-}
-
-/**
- * Today's steps as the theme draws them (ring, bar or colour block): the
- * number and goal, the share done as a figure too, and distance and active
- * minutes under the bar, so nothing rests on colour alone.
- */
-function StepsHero({ steps, goal }: { steps: number; goal: number }) {
-  const { profile, today } = useApp();
-  const left = Math.max(0, goal - steps);
-  const pct = goal > 0 ? Math.round((steps / goal) * 100) : 0;
-  const activeMin = today ? (today.activeMin ?? sumOrNull(today.briskMin, today.runMin)) : null;
-  const distance = today ? formatDistance(today.distanceM, profile.units) : '—';
-  const active = activeMin === null ? '—' : `${activeMin} min`;
-  const ring = Look.hero === 'ring';
-  const figures = ring
-    ? [
-        { value: `${pct}%`, label: 'of goal' },
-        { value: distance, label: 'distance' },
-        { value: active, label: 'active' },
-      ]
-    : [
-        { value: left === 0 ? 'Done' : formatSteps(left), label: left === 0 ? 'Goal' : 'To go' },
-        { value: distance, label: 'Distance' },
-        { value: active, label: 'Active' },
-      ];
-  return (
-    <TrackProgress
-      value={steps}
-      goal={goal}
-      accessibilityLabel={`${formatSteps(steps)} of ${formatSteps(goal)} steps, ${pct}%${left === 0 ? ', goal reached' : `, ${formatSteps(left)} to go`}`}
-      footer={<HeroFigures figures={figures} centered={ring} />}>
-      {ring ? (
-        <>
-          <ThemedText type="numeralHero" maxFontSizeMultiplier={NumeralMaxScale} numberOfLines={1} adjustsFontSizeToFit style={styles.center}>
-            {formatSteps(steps)}
-          </ThemedText>
-          <ThemedText type="labelLarge" themeColor="onSurfaceVariant" style={styles.center}>
-            of {formatSteps(goal)} steps
-          </ThemedText>
-        </>
-      ) : (
-        <>
-          <View style={styles.heroHead}>
-            <HeroIcon name="footsteps" />
-            <ThemedText type="titleMedium" style={styles.grow}>
-              Steps
-            </ThemedText>
-            <HeroPill text={`${pct}%`} />
-          </View>
-          <View style={styles.heroNumber}>
-            <ThemedText type="numeralHero" maxFontSizeMultiplier={NumeralMaxScale} numberOfLines={1} adjustsFontSizeToFit style={styles.shrink}>
-              {formatSteps(steps)}
-            </ThemedText>
-            <ThemedText type="bodyLarge" themeColor="onSurfaceVariant">
-              of {formatSteps(goal)}
-            </ThemedText>
-          </View>
-        </>
-      )}
-    </TrackProgress>
-  );
-}
-
-/** An icon in the hero's ink: the plate's on colour inside a colour block. */
-function HeroIcon({ name }: { name: 'footsteps' }) {
-  const theme = useTheme();
-  const plate = useToneInk();
-  return <Ionicons name={name} size={24} color={plate ? plate.ink : theme.onSurfaceVariant} />;
-}
-
-/** A small figure on a ground-coloured pill, e.g. "78%". */
-function HeroPill({ text }: { text: string }) {
-  const theme = useTheme();
-  const plate = useToneInk();
-  return (
-    <View style={[styles.pill, { backgroundColor: plate ? plate.lane : theme.surfaceContainerHigh }]}>
-      <ThemedText type="labelMedium">{text}</ThemedText>
-    </View>
-  );
-}
-
-/** Figures under the hero bar or ring: the number over its label, side by side. */
-function HeroFigures({ figures, centered }: { figures: { value: string; label: string }[]; centered: boolean }) {
-  return (
-    <View style={styles.figures}>
-      {figures.map((f) => (
-        <View key={f.label} style={[styles.heroFigure, centered && styles.heroFigureCentered]} accessible accessibilityLabel={`${f.label} ${f.value}`}>
-          <ThemedText type="numeralSmall" maxFontSizeMultiplier={NumeralMaxScale} numberOfLines={1} adjustsFontSizeToFit>
-            {f.value}
-          </ThemedText>
-          <ThemedText type="labelMedium" themeColor="onSurfaceVariant" numberOfLines={1}>
-            {f.label}
-          </ThemedText>
-        </View>
-      ))}
-    </View>
-  );
-}
-
-/** One row of three tiles; tapping one opens its detail in place. */
-function TodayTiles({
-  focus,
-  onFocus,
-  water,
-  onAddGlass,
-  onAdded,
-  onOpenFood,
-}: {
-  focus: Tile | null;
-  onFocus: (t: Tile | null) => void;
-  water: WaterHook;
-  onAddGlass: () => void;
-  onAdded: (a: AddedGlass | null) => void;
-  onOpenFood: () => void;
-}) {
-  const { profile, today } = useApp();
-  const { fontScale } = useWindowDimensions();
-  const calories = useCaloriesToday();
-  // Part of a logged food isn't counted yet: the figure is a floor, said as one everywhere it shows.
-  const kcalPartial = calories.partial.kcal === true;
-  const least = kcalPartial ? AT_LEAST : '';
-  const eatenText = `${least}${formatSteps(calories.eaten)}`;
-  const eatenSpoken = `${kcalPartial ? 'at least ' : ''}${formatSteps(calories.eaten)} kcal`;
-  // The day's energy, as on the Food tab's track: resting plus walking, or a fifth more. Past it stays brick, never red.
-  const dayBurn = dayKcalTarget(profile, calories.active, new Date().getFullYear());
-  const ws = water.status;
-  const glasses = ws?.progress?.glasses ?? Math.floor(((ws?.waterMl ?? 0) + (ws?.drinksMl ?? 0)) / profile.water.glassMl);
-  const glassesOf = ws?.progress && !ws.target?.limit ? ws.progress.glassesTarget : null;
-  const activeMin = today ? (today.activeMin ?? sumOrNull(today.briskMin, today.runMin)) : null;
-  // Large text: the tiles stack so nothing is cut off.
-  const stacked = fontScale >= 1.4;
-  const toggle = (t: Tile) => onFocus(focus === t ? null : t);
-  const tileStyle = stacked ? styles.tileStacked : styles.tileThird;
-
-  return (
-    <Animated.View layout={LinearTransition.duration(Motion.duration.medium)} style={styles.tilesBlock}>
-      <View style={[styles.tiles, stacked && styles.tilesStacked]}>
-        <StatTile
-          label="Food"
-          tone="food"
-          icon="restaurant-outline"
-          value={eatenText}
-          unit="kcal"
-          accessibilityLabel={`Food, ${eatenSpoken}${kcalPartial ? `. ${PARTIAL_NOTE}` : ''}`}
-          selected={focus === 'food'}
-          dimmed={focus !== null && focus !== 'food'}
-          onPress={() => toggle('food')}
-          accessibilityHint="Shows eaten and burned"
-          style={tileStyle}>
-          <TickBar value={calories.eaten} max={dayBurn} tone="food" height={8} />
-        </StatTile>
-        <StatTile
-          label="Water"
-          tone="water"
-          icon="water-outline"
-          value={String(glasses)}
-          unit={glassesOf ? `of ${glassesOf}` : glasses === 1 ? 'glass' : 'glasses'}
-          accessibilityLabel={`Water, ${glasses} ${glasses === 1 ? 'glass' : 'glasses'}${glassesOf ? ` of ${glassesOf}` : ''}`}
-          selected={focus === 'water'}
-          dimmed={focus !== null && focus !== 'water'}
-          onPress={() => toggle('water')}
-          accessibilityHint="Shows today's water"
-          style={tileStyle}>
-          <Button label="+1" variant="tonal" onPress={onAddGlass} accessibilityLabel="Add a glass of water" />
-        </StatTile>
-        <StatTile
-          label="Active"
-          tone="steps"
-          icon="flash-outline"
-          value={activeMin === null ? '—' : String(activeMin)}
-          unit="min"
-          selected={focus === 'active'}
-          dimmed={focus !== null && focus !== 'active'}
-          onPress={() => toggle('active')}
-          accessibilityHint="Shows minutes on the move and distance"
-          style={tileStyle}
-        />
       </View>
-
-      {focus ? (
-        <Animated.View entering={FadeIn.duration(Motion.duration.short)} key={focus}>
-          <Card
-            level={3}
-            title={focus === 'food' ? 'Food today' : focus === 'water' ? 'Water today' : 'On the move today'}
-            right={<IconButton icon="close" onPress={() => onFocus(null)} accessibilityLabel="Close" />}>
-            {focus === 'food' ? (
-              <>
-                <Figure label="Eaten" value={`${eatenText} kcal`} spoken={kcalPartial ? eatenSpoken : undefined} />
-                <Figure label="Burned so far" value={`${formatSteps(calories.burned)} kcal`} />
-                <TickBar
-                  value={calories.eaten}
-                  max={dayBurn}
-                  tone="food"
-                  accessibilityLabel={`${kcalPartial ? 'at least ' : ''}${formatSteps(calories.eaten)} of about ${formatSteps(dayBurn)} kcal`}
-                />
-                <View style={styles.inline}>
-                  <ThemedText type="bodyMedium" themeColor="onSurfaceVariant" style={styles.grow}>
-                    {`${kcalBalanceText(calories.eaten, dayBurn)} · of about ${formatSteps(dayBurn)}`}
-                  </ThemedText>
-                  <Why
-                    title="Burned"
-                    text="Burned is your resting energy (what your body uses anyway) plus your walking. Both are estimates. Add your birth year in Settings to make the resting part closer."
-                  />
-                </View>
-                {kcalPartial ? <PartialNote /> : null}
-                <Button label="See today's food" variant="tonal" onPress={onOpenFood} />
-              </>
-            ) : focus === 'water' ? (
-              <WaterBody water={water} onAdded={onAdded} />
-            ) : (
-              <ActiveDetail />
-            )}
-          </Card>
-        </Animated.View>
-      ) : null}
-    </Animated.View>
+    </View>
   );
 }
 
-function ActiveDetail() {
-  const { profile, today, repo, dataVersion } = useApp();
-  const router = useRouter();
-  const [weather, setWeather] = useState<DayWeather | null>(null);
-  const todayKey = dayKey(new Date());
-  useEffect(() => {
-    let live = true;
-    repo.getWeather(todayKey).then((w) => live && setWeather(w));
-    return () => {
-      live = false;
-    };
-  }, [repo, todayKey, dataVersion]);
-
-  const min = (v: number | null | undefined) => (v == null ? '—' : `${v} min`);
-  return (
-    <>
-      <Figure label="Walking" value={min(today?.walkMin)} />
-      <Figure label="Brisk" value={min(today?.briskMin)} />
-      <Figure label="Running" value={min(today?.runMin)} />
-      <Figure label="Distance" value={today ? formatDistance(today.distanceM, profile.units) : '—'} />
-      {today?.floors != null ? <Figure label="Floors" value={String(today.floors)} /> : null}
-      {weather ? (
-        <Figure
-          label="Weather"
-          value={`${formatTemp(weather.tempMaxC, profile.units)}, ${CONDITION_LABEL[weather.condition]}`}
-        />
-      ) : null}
-      <View style={styles.inline}>
-        <ThemedText type="bodyMedium" themeColor="onSurfaceVariant" style={styles.grow}>
-          Active = brisk walking and running
-        </ThemedText>
-        <Why
-          title="Minutes on the move"
-          text="Walking is 60 to 99 steps a minute, brisk is 100 to 139, running is 140 or more. Active minutes count brisk walking and running."
-        />
-      </View>
-      <Button label="Open Activity" variant="tonal" onPress={() => router.navigate('/activity')} />
-    </>
-  );
-}
-
-/** Steps by the hour, the mood check-in, a goal suggestion and the weather offer: below the first screen. */
+/** The untimed-steps note, the mood check-in, a goal suggestion and the weather offer: what follows the tiles. */
 function BelowTheFold({
   weatherDay,
+  untimed,
   onGoal,
   onLocation,
 }: {
   weatherDay: string;
+  /** The untimed-steps note, or null when every step has a time. */
+  untimed: string | null;
   onGoal: (goal: number) => void;
   onLocation: () => void;
 }) {
-  const { repo, profile, today, dataVersion } = useApp();
+  const { repo, profile, dataVersion } = useApp();
   const { mood, setMood, reminderOff, turnOnReminder } = useMoodToday();
-  const [hourly, setHourly] = useState<number[]>(new Array(24).fill(0));
   const [suggestion, setSuggestion] = useState<number | null>(null);
   const [askLocation, setAskLocation] = useState(false);
 
   useEffect(() => {
     let live = true;
     (async () => {
-      const [h, recent, allowed, dismissed] = await Promise.all([
-        repo.getHourly(weatherDay),
+      const [recent, allowed, dismissed] = await Promise.all([
         repo.getDays(addDaysToKey(weatherDay, -SUGGESTION_DAYS), addDaysToKey(weatherDay, -1)),
         locationAllowed(),
         repo.getKv<boolean>(WEATHER_PROMPT_KEY),
       ]);
       if (!live) return;
-      setHourly(h);
       setSuggestion(suggestGoal(recent.map((d) => d.steps), profile.dailyGoal));
       setAskLocation(!allowed && !dismissed);
     })();
@@ -506,21 +232,11 @@ function BelowTheFold({
 
   return (
     <>
-      <SectionHeader
-        title="By hour"
-        why={
-          today?.untimedSteps
-            ? `${formatSteps(today.untimedSteps)} of today's steps came with no time, so they're in the total but in no hour. Settings → Step check shows why.`
-            : undefined
-        }
-      />
-      <BarChart
-        bars={hourly.map((value, hour) => ({ key: String(hour), value, label: HOUR_LABELS[hour] ?? '' }))}
-        height={120}
-        name="Steps by hour"
-        describeBar={(b) => `${hourName(Number(b.key))}, ${formatSteps(b.value)} steps`}
-      />
-
+      {untimed ? (
+        <ThemedText type="bodySmall" themeColor="onSurfaceVariant">
+          {untimed}
+        </ThemedText>
+      ) : null}
       <SectionHeader title="How are you feeling?" />
       <MoodPicker value={mood?.mood ?? null} onChange={setMood} />
       {mood && reminderOff ? (
@@ -575,41 +291,16 @@ function BelowTheFold({
   );
 }
 
-/** `spoken`, when the figure reads differently aloud: "at least 610 kcal" for "≥ 610 kcal". */
-function Figure({ label, value, spoken }: { label: string; value: string; spoken?: string }) {
-  return (
-    <View style={styles.figure} accessible={spoken !== undefined} accessibilityLabel={spoken ? `${label}, ${spoken}` : undefined}>
-      <ThemedText type="bodyLarge" themeColor="onSurfaceVariant" style={styles.grow}>
-        {label}
-      </ThemedText>
-      <ThemedText type="titleMedium">{value}</ThemedText>
-    </View>
-  );
-}
-
 function sumOrNull(a: number | null, b: number | null): number | null {
   return a === null || b === null ? null : a + b;
 }
 
 const styles = StyleSheet.create({
-  recede: { gap: Spacing.three },
-  hero: { justifyContent: 'center' },
-  center: { textAlign: 'center' },
-  lapRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one, marginTop: Spacing.one },
-  tilesBlock: { gap: Spacing.two },
-  tiles: { flexDirection: 'row', gap: Spacing.two },
-  tilesStacked: { flexDirection: 'column' },
-  tileThird: { flexBasis: 0, minWidth: 0 },
-  tileStacked: { flexBasis: 'auto' },
-  figure: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.two },
+  screen: { flex: 1 },
+  foot: { width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center', paddingTop: Spacing.two, paddingBottom: Spacing.five },
+  statusInset: { position: 'absolute', top: 0, left: 0, right: 0 },
+  snack: { position: 'absolute', bottom: Spacing.three },
   inline: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   grow: { flex: 1 },
   buttons: { flexDirection: 'row', justifyContent: 'flex-end', gap: Spacing.two },
-  heroHead: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, minHeight: 24 },
-  heroNumber: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', columnGap: Spacing.two, marginTop: Spacing.two },
-  shrink: { flexShrink: 1 },
-  pill: { borderRadius: Radius.full, paddingHorizontal: Spacing.two, minHeight: 24, justifyContent: 'center' },
-  figures: { flexDirection: 'row', gap: Spacing.three },
-  heroFigure: { flex: 1, minWidth: 0 },
-  heroFigureCentered: { alignItems: 'center' },
 });

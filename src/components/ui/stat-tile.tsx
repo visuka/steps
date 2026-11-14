@@ -4,13 +4,24 @@ import { Pressable, StyleSheet, type StyleProp, View, type ViewStyle } from 'rea
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
-import { type DataTone, Look, Motion, NumeralMaxScale, Radius, Spacing } from '@/constants/theme';
+import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
+import type { DataTone } from '@/constants/theme';
+import { Motion } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import type { IconName } from './button';
 import { standardTiming } from './motion';
+import { pressedColor } from './surface-style';
+import {
+  TILE_STYLE,
+  tileAccessibilityLabel,
+  tileBottomPadding,
+  type TileValueStyle,
+  valueIsMuted,
+  valueTypeRole,
+  valueWithUnit,
+} from './stat-tile-style';
 import { tileColors } from './tile-colors';
-import { toneInk, ToneInkContext } from './tone-surface';
 
 export interface StatTileProps {
   /** One or two words: "Food", "Water". */
@@ -28,19 +39,26 @@ export interface StatTileProps {
   selected?: boolean;
   /** Another tile's detail is open: this one recedes. */
   dimmed?: boolean;
-  /** What the number is about. With the theme's 'filled' tiles the tile is painted in its container colour. */
+  /** What the number is about. Accepted for callers; the Clean+ tile is white in every look, so it paints nothing. */
   tone?: DataTone;
+  /** 'muted' draws the value as quiet body text (a missing value such as "No walk yet"); 'mutedValue' keeps the value size in the muted colour. */
+  valueStyle?: TileValueStyle;
   /** Under the number: a TickBar, a +1 button. */
   children?: ReactNode;
+  /** Clean+: replaces the icon circle at the left of the header row (an IconCircle). */
+  iconCircle?: ReactNode;
+  /** Clean+: the right of the header row: a chevron, a plus circle, a pill. */
+  trailing?: ReactNode;
   accessibilityLabel?: string;
   accessibilityHint?: string;
   style?: StyleProp<ViewStyle>;
 }
 
 /**
- * A number with its label, on a plate. In a row they share the width. The
- * theme's `tile` style picks the plate: its tone's container (filled), an
- * outlined card, or a tonal surface (plain).
+ * A number with its label on a white card with the card shadow, laid out as
+ * spec 5.5 in every look (looks differ only in colours and fonts): a 40 dp
+ * header row, the label, the value with its unit nested inline, then the bar.
+ * In a row the tiles share the width. The 146 dp height is a minimum.
  */
 export function StatTile({
   label,
@@ -51,8 +69,10 @@ export function StatTile({
   onPress,
   selected,
   dimmed,
-  tone,
+  valueStyle = 'default',
   children,
+  iconCircle,
+  trailing,
   accessibilityLabel,
   accessibilityHint,
   style,
@@ -64,75 +84,90 @@ export function StatTile({
   }, [dimmed, fade]);
   const faded = useAnimatedStyle(() => ({ opacity: fade.value }));
 
-  const ink = tone && Look.tile === 'filled' ? toneInk(theme, tone) : null;
   // Text takes the colours of the plate it is on (a selected tile is secondaryContainer).
-  const look = tileColors(theme, Look.tile, tone, !!selected);
+  const look = tileColors(theme, 'plain', undefined, !!selected);
   const quiet = { color: look.quiet };
 
-  const head = (
+  const parts = valueWithUnit(value, unit);
+  const faceColor = valueIsMuted(valueStyle) ? look.quiet : look.text;
+  const inner = (
     <>
-      <View style={styles.head}>
-        {icon ? <Ionicons name={icon} size={16} color={look.quiet} /> : null}
-        <ThemedText type="labelMedium" style={[styles.label, quiet]} numberOfLines={1}>
-          {label}
-        </ThemedText>
+      <View style={styles.cleanHeader}>
+        {iconCircle ??
+          (icon ? (
+            <View style={[styles.circle, { backgroundColor: theme.primaryContainer }]}>
+              <Ionicons name={icon} size={CLEAN_SPEC.icon.size} color={theme.primary} />
+            </View>
+          ) : (
+            <View />
+          ))}
+        {trailing}
       </View>
-      <View style={styles.valueRow}>
-        <ThemedText
-          type="numeralMedium"
-          style={{ color: look.text }}
-          maxFontSizeMultiplier={NumeralMaxScale}
-          numberOfLines={1}
-          adjustsFontSizeToFit>
-          {value}
-        </ThemedText>
-        {unit ? (
-          <ThemedText type="labelMedium" style={quiet}>
-            {unit}
+      <ThemedText type="bodySmall" style={[styles.cleanLabel, quiet]} maxFontSizeMultiplier={1.3}>
+        {label}
+      </ThemedText>
+      <ThemedText type={valueTypeRole(valueStyle)} style={{ color: faceColor }} maxFontSizeMultiplier={1.3}>
+        {parts.value}
+        {parts.unit ? (
+          <ThemedText type="bodySmall" style={quiet} maxFontSizeMultiplier={1.3}>
+            {parts.unit}
           </ThemedText>
         ) : null}
-      </View>
+      </ThemedText>
       {note ? (
-        <ThemedText type="bodySmall" style={quiet} numberOfLines={2}>
+        <ThemedText type="bodySmall" style={[styles.cleanNote, quiet]} maxFontSizeMultiplier={1.3}>
           {note}
         </ThemedText>
       ) : null}
+      {children ? <View style={styles.cleanExtra}>{children}</View> : null}
     </>
   );
-
-  // Selected: a filled tile keeps its colour and gains a 2 dp ink edge; the others turn secondaryContainer.
-  const plate: ViewStyle = { backgroundColor: look.plate, borderWidth: look.borderWidth, borderColor: look.border };
-  const tile = (
-    <Animated.View style={[styles.tile, plate, ink && styles.roomy, faded, style]}>
+  const bottomPad = { paddingBottom: tileBottomPadding(!!note, !!children) };
+  const shape: ViewStyle = {
+    backgroundColor: selected ? look.plate : theme.surfaceContainerLowest,
+    boxShadow: TILE_STYLE.boxShadow,
+  };
+  return (
+    <Animated.View style={[styles.cleanTile, shape, faded, style]}>
       {onPress ? (
         <Pressable
           onPress={onPress}
           accessibilityRole="button"
-          accessibilityLabel={accessibilityLabel ?? `${label}, ${value}${unit ? ` ${unit}` : ''}`}
+          accessibilityLabel={accessibilityLabel ?? tileAccessibilityLabel(label, value, unit)}
           accessibilityHint={accessibilityHint}
-          accessibilityState={{ expanded: !!selected }}
-          style={[styles.press, !children && styles.pressAlone]}>
-          {head}
+          accessibilityState={selected === undefined ? undefined : { expanded: selected }}
+          android_ripple={{ color: pressedColor(theme.onSurface), foreground: true }}
+          style={[styles.cleanPress, bottomPad]}>
+          {inner}
         </Pressable>
       ) : (
-        <View style={[styles.press, !children && styles.pressAlone]} accessible accessibilityLabel={accessibilityLabel}>
-          {head}
+        <View style={[styles.cleanPress, bottomPad]} accessible accessibilityLabel={accessibilityLabel ?? tileAccessibilityLabel(label, value, unit, note)}>
+          {inner}
         </View>
       )}
-      {children ? <View style={styles.extra}>{children}</View> : null}
     </Animated.View>
   );
-  return ink ? <ToneInkContext value={ink}>{tile}</ToneInkContext> : tile;
 }
 
 const styles = StyleSheet.create({
-  tile: { flexGrow: 1, flexBasis: '45%', borderRadius: Radius.md, overflow: 'hidden' },
-  press: { paddingHorizontal: Spacing.three - 4, paddingTop: Spacing.three - 4, gap: Spacing.one, flexGrow: 1 },
-  pressAlone: { paddingBottom: Spacing.three - 4 },
-  head: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one },
-  label: { flexShrink: 1 },
-  valueRow: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', columnGap: Spacing.one },
-  extra: { paddingHorizontal: Spacing.three - 4, paddingTop: Spacing.two, paddingBottom: Spacing.three - 4 },
-  // A filled tile's 2 dp edge (clear until selected) plus 2 dp more: 16 dp inside, as the blocks are drawn.
-  roomy: { padding: Spacing.half },
+  // Clean+ (spec 5.5): the shadow sits on this layer, so the clip is on the inner one.
+  cleanTile: { flexGrow: 1, flexBasis: '45%', borderRadius: TILE_STYLE.radius },
+  cleanPress: {
+    flexGrow: 1,
+    minHeight: TILE_STYLE.minHeight,
+    padding: TILE_STYLE.padding,
+    borderRadius: TILE_STYLE.radius,
+    overflow: 'hidden',
+  },
+  cleanHeader: { minHeight: TILE_STYLE.headerHeight, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  circle: {
+    width: TILE_STYLE.headerHeight,
+    height: TILE_STYLE.headerHeight,
+    borderRadius: TILE_STYLE.circleRadius,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cleanLabel: { marginTop: TILE_STYLE.labelGap },
+  cleanNote: { marginTop: TILE_STYLE.noteGap },
+  cleanExtra: { marginTop: TILE_STYLE.extraGap },
 });

@@ -2,7 +2,7 @@
  * Park: the park-track world (.impeccable/surfaces/src-app-tabs-index-tsx.md).
  * The app's first look, kept as a theme so nothing is lost.
  *
- * - Chrome is neutral: ink on lime-wash by day, lime-wash on night-park green-black by night.
+ * - Chrome is neutral: ink on lime-wash. Light only; its dark scheme was dropped in build 22 (no look follows the phone's dark mode).
  * - Colour lives only inside the data: steps (lawn green), food (red-oxide brick),
  *   water (morning-sky blue), sleep (dusk indigo), near (marigold, near the limit),
  *   over (Material error red, too much).
@@ -89,75 +89,6 @@ const light: SchemeRoles = {
   laneTick: '#58635C',
 };
 
-const dark: SchemeRoles = {
-  primary: '#D5E4D4',
-  onPrimary: '#14251A',
-  primaryContainer: '#2C3B30',
-  onPrimaryContainer: '#D5E4D4',
-  secondary: '#B7C9B9',
-  onSecondary: '#233428',
-  secondaryContainer: '#34483A',
-  onSecondaryContainer: '#D2E6D3',
-  tertiary: '#7CC77E',
-  onTertiary: '#0A2E10',
-  tertiaryContainer: '#1F4724',
-  onTertiaryContainer: '#C3EFC1',
-  error: '#FFB4AB',
-  onError: '#690005',
-  errorContainer: '#93000A',
-  onErrorContainer: '#FFDAD6',
-  background: '#0F1511',
-  onBackground: '#E1E7DF',
-  surface: '#0F1511',
-  onSurface: '#E1E7DF',
-  surfaceVariant: '#303832',
-  onSurfaceVariant: '#BDC8BD',
-  surfaceDim: '#0F1511',
-  surfaceBright: '#353C36',
-  surfaceContainerLowest: '#0A0F0C',
-  surfaceContainerLow: '#171E19',
-  surfaceContainer: '#1B231D',
-  surfaceContainerHigh: '#252D27',
-  surfaceContainerHighest: '#303832',
-  inverseSurface: '#E1E7DF',
-  inverseOnSurface: '#2A322C',
-  inversePrimary: '#2F5A3A',
-  outline: '#879288',
-  outlineVariant: '#3F4842',
-  surfaceTint: '#D5E4D4',
-  shadow: '#000000',
-  scrim: '#000000',
-
-  steps: '#7CC77E',
-  onSteps: '#0A2E10',
-  stepsContainer: '#1F4724',
-  onStepsContainer: '#C3EFC1',
-  food: '#E58A6E',
-  onFood: '#3D1206',
-  foodContainer: '#5A2414',
-  onFoodContainer: '#FFDBCF',
-  food2: '#FFD9CC',
-  food3: '#C0603F',
-  water: '#8CBDF0',
-  onWater: '#0A2D52',
-  waterContainer: '#133B63',
-  onWaterContainer: '#D3E4F7',
-  sleep: '#A9ACF2',
-  onSleep: '#15175A',
-  sleepContainer: '#2E3170',
-  onSleepContainer: '#E0E0FF',
-  near: '#F2B33D',
-  onNear: '#3A2400',
-  nearContainer: '#5A3D00',
-  onNearContainer: '#FFDEA6',
-  over: '#FFB4AB',
-  onOver: '#690005',
-
-  lane: '#2C352F',
-  tick: '#E1E7DF',
-  laneTick: '#95A096',
-};
-
 /** Material 3 type scale; the numerals sit on whole 8 dp modules. */
 export const ParkType: TypeScaleShape = {
   displayLarge: { size: 57, line: 64, weight: 'medium', tracking: -0.25 },
@@ -196,12 +127,14 @@ export const ParkRadius: RadiusScale = {
   full: 999,
 };
 
+const parkScheme = schemeFromRoles(light);
+
 const park: ThemeDef = {
   id: 'park',
   name: 'Park',
   description: 'The running track. Calm greens, the oval lap on Today.',
-  mode: 'system',
-  colors: { light: schemeFromRoles(light), dark: schemeFromRoles(dark) },
+  mode: 'light',
+  colors: { light: parkScheme, dark: parkScheme },
   fonts: {
     regular: { family: 'Barlow_400Regular', source: Barlow_400Regular },
     medium: { family: 'Barlow_500Medium', source: Barlow_500Medium },

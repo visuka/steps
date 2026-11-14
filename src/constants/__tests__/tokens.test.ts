@@ -97,8 +97,12 @@ describe('colour roles', () => {
     for (const d of DATA) expect(contrast(c[d], c.lane)).toBeGreaterThanOrEqual(3);
   });
 
-  it.each(SCHEMES)('%s: the lane shows on cards, and ticks show on both parts of a track', (_name, c) => {
-    for (const bg of SURFACES.slice(0, 4)) expect(contrast(c.lane, c[bg])).toBeGreaterThanOrEqual(1.25);
+  it.each(SCHEMES)('%s: the lane shows on cards, and ticks show on both parts of a track', (name, c) => {
+    // Clean+ draws its bar tracks in the mockup's hair (#EEF0F3, 1.14:1 on white): the owner's
+    // rule is that the app matches the approved mockup (Opus, 14 Nov 2026). The marks on it keep 3:1.
+    // The mockup draws bars only on white cards, so Clean+ is checked on white.
+    const clean = name.startsWith('clean ');
+    for (const bg of SURFACES.slice(0, clean ? 2 : 4)) expect(contrast(c.lane, c[bg])).toBeGreaterThanOrEqual(clean ? 1.1 : 1.25);
     expect(contrast(c.laneTick, c.lane)).toBeGreaterThanOrEqual(3);
     // Inside a filled block the lane is the surface colour; its ticks still read.
     expect(contrast(c.laneTick, c.surface)).toBeGreaterThanOrEqual(3);

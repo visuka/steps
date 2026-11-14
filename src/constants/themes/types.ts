@@ -12,14 +12,14 @@
  * scripts fall back to the phone's Noto fonts; sizes follow the phone's text size.
  */
 
-import type { ColorScheme, RadiusScale, TypeScaleShape } from '../tokens';
+import type { ColorScheme, FontWeightName, RadiusScale, ThemeColor, TypeScaleShape } from '../tokens';
 
-/** In the order the Appearance picker shows them. */
-export const THEME_IDS = ['park', 'a', 'b', 'c', 'd', 'e', 'f'] as const;
+/** In the order the Appearance picker shows them: Clean+ first. */
+export const THEME_IDS = ['clean', 'park', 'a', 'b', 'c', 'd', 'e', 'f'] as const;
 export type ThemeId = (typeof THEME_IDS)[number];
 
-/** Colour blocks. */
-export const DEFAULT_THEME_ID: ThemeId = 'd';
+/** Clean+ (blue). */
+export const DEFAULT_THEME_ID: ThemeId = 'clean';
 
 /** One loaded font file: the family name screens ask for, and the file. */
 export interface ThemeFont {
@@ -107,6 +107,29 @@ export interface ThemeStyle {
   fabRadius?: number;
   /** The FAB's level 3 shadow. The flat mockups (A to F) draw none. Default true. */
   fabShadow?: boolean;
+  /*
+   * The options below reproduce each mockup (app-look/project). All are
+   * optional; left out, a component keeps park's look.
+   */
+  /** Height of the full-width main action buttons ("Log food", "Save to lunch", "Edit" beside it), dp. A to F: 56. */
+  actionHeight?: number;
+  /**
+   * Label of the smaller in-row buttons ("+ 1 glass", "Keep"); the full-width
+   * action buttons use labelLarge. Weight names as in the type scale.
+   */
+  compactLabel?: { size: number; line: number; weight: FontWeightName };
+  /** The colour pair filled buttons and the FAB paint with. Default 'primary'. F: 'tertiary' (its orange, ink label). */
+  filledRole?: 'primary' | 'tertiary';
+  /** Outlined buttons ("Edit", "Keep", "+ 1 glass"): edge, fill (null: none) and label. Default: outline, none, primary. */
+  outlined?: { border: ColorRef; fill: ColorRef | null; ink: ColorRef };
+  /** Section labels: "Ingredients", "Parts", "Nutrients · at least" (B, C, F: small tracked capitals). */
+  overline?: LabelSpec;
+  /** The small line above Today's title: B and F "TODAY", C "FRI, 14 NOV", D "Fri, 14 Nov". */
+  kicker?: LabelSpec;
+  /** The Walk / Run / Cycle segmented control. */
+  segment?: SegmentLook;
+  /** The navigation bar. */
+  nav?: NavLook;
 }
 
 /** 'none' keeps a label as written; 'upper' draws it in capitals. */
@@ -119,14 +142,134 @@ export interface ThemeDef {
   /** One short line under the name. */
   description: string;
   /**
-   * 'system' follows the phone's light or dark setting; 'light' and 'dark'
-   * keep that scheme always. A dark-only theme sets 'dark' and gives its dark
-   * scheme as both `colors.light` and `colors.dark` (and the reverse for light-only).
+   * The scheme the theme keeps always; no theme follows the phone's light or
+   * dark setting. A dark-only theme sets 'dark' and gives its dark scheme as
+   * both `colors.light` and `colors.dark` (and the reverse for light-only).
    */
-  mode: 'system' | 'light' | 'dark';
+  mode: 'light' | 'dark';
   colors: { light: ColorScheme; dark: ColorScheme };
   fonts: ThemeFonts;
   type: TypeScaleShape;
   radius: RadiusScale;
   style: ThemeStyle;
+  /** F's dark block. */
+  block?: BlockColors;
+  /** Walk map colours (one-scheme themes; mapColorsOf in build.ts). */
+  map?: MapColors;
 }
+
+/** A colour role, or a hex the mockup draws that no role holds. */
+export type ColorRef = ThemeColor | `#${string}`;
+
+/** A text style outside the type scale, with its case and colour. */
+export interface LabelSpec {
+  size: number;
+  line: number;
+  weight: FontWeightName;
+  /** dp. */
+  tracking: number;
+  case: LabelCase;
+  color: ColorRef;
+}
+
+/** The Walk / Run / Cycle segmented control, as drawn in each mockup. */
+export interface SegmentLook {
+  /** The control's height, dp (the well, including its padding). */
+  height: number;
+  /** The well behind the segments (null: none) and its edge (null: none). */
+  well: ColorRef | null;
+  wellBorder: ColorRef | null;
+  radius: number;
+  /** Inset between the well and the segments, and between segments, dp. 0 for F's divided box. */
+  pad: number;
+  selected: ColorRef;
+  onSelected: ColorRef;
+  selectedBorder: ColorRef | null;
+  selectedRadius: number;
+  /** Label colour of the segments not selected. */
+  idle: ColorRef;
+  /** A 1 dp line between segments (F), or null. */
+  divider: ColorRef | null;
+  /** A check mark before the selected label (D). */
+  check: boolean;
+  label: { size: number; weight: FontWeightName; selectedWeight: FontWeightName };
+}
+
+/** The navigation bar. */
+export interface NavLook {
+  height: number;
+  background: ColorRef;
+  /** The 1 dp line on top. */
+  border: ColorRef;
+  /** The selected pill: a colour, or 'tone' for each tab's data container (D). */
+  pill: ColorRef | 'tone';
+  /** The selected icon's colour on the pill ('tone': the tone's ink). */
+  onPill: ColorRef | 'tone';
+  pillWidth: number;
+  /** Label colour of the selected and other tabs. */
+  active: ColorRef;
+  idle: ColorRef;
+  label: { size: number; line: number; weight: FontWeightName; activeWeight: FontWeightName };
+}
+
+/**
+ * A dark block on a light page (F's black hero, food and walk blocks). On
+ * `plate`: `text` and `quiet` 4.5:1, marks 3:1 (__tests__/themes.test.ts).
+ */
+export interface BlockColors {
+  plate: string;
+  text: string;
+  /** Labels and units on the block. */
+  quiet: string;
+  /** Hairlines between stats. */
+  rule: string;
+  /** The unfilled part of a bar. */
+  lane: string;
+  /** The progress mark (steps), and the second and third marks of a split bar. */
+  mark: string;
+  mark2: string;
+  mark3: string;
+  /** The percentage chip. */
+  chip: string;
+  onChip: string;
+  /** The 7-day chart: days at or over the average, under it, and the dashed average line. */
+  barHigh: string;
+  barLow: string;
+  average: string;
+}
+
+/**
+ * Walk map colours for a theme that keeps one scheme (the mockup's map): the
+ * tiles are restyled with these and the route drawn as shown. A theme
+ * without `map` (park) uses the OpenFreeMap style for the scheme and its
+ * steps colour (mapColorsOf in build.ts).
+ */
+export interface MapColors {
+  /** The OpenFreeMap style the tiles start from. */
+  base: 'light' | 'dark';
+  land: string;
+  /** Main and minor streets. */
+  road: string;
+  minorRoad: string;
+  park: string;
+  water: string;
+  building: string;
+  /** Place and street names. */
+  label: string;
+  /** The map frame's 1 dp edge, or null. */
+  border: string | null;
+  radius: number;
+  /** The mockup's map height on the walk screen, dp. */
+  height: number;
+  route: string;
+  routeWidth: number;
+  /** A line under the route in this colour, 4 dp wider, or null (the mockups draw none). */
+  casing: string | null;
+  /** The start dot: fill and ring. */
+  start: string;
+  startRing: string;
+  /** The end dot: fill and ring. */
+  end: string;
+  endRing: string;
+}
+

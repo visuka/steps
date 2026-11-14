@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { type BottomTabBarProps, Tabs } from 'expo-router/js-tabs';
 import { useEffect, useState } from 'react';
 import { Keyboard, Platform } from 'react-native';
@@ -7,14 +8,27 @@ import { useReducedMotion } from '@/components/ui/motion';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
-/** The five destinations, in order. Each name is a file in app/(tabs)/. */
+/** Where the Log food button goes: Food, with a new `add` value so the keyboard opens on the search. */
+export const LOG_FOOD_KEY = 'log-food';
+
+/**
+ * The bar, in order (icons as the mockup's nav): Today, Food, the Log food
+ * button in the middle, Activity, You. Journal has no slot; it stays a hidden
+ * route (see HIDDEN_ROUTES) and opens from the You tab.
+ */
 export const TABS: NavigationItem[] = [
-  { key: 'index', label: 'Today', icon: 'today-outline', activeIcon: 'today', tone: 'steps' },
-  { key: 'food', label: 'Food', icon: 'restaurant-outline', activeIcon: 'restaurant', tone: 'food' },
-  { key: 'activity', label: 'Activity', icon: 'walk-outline', activeIcon: 'walk', tone: 'steps' },
-  { key: 'journal', label: 'Journal', icon: 'book-outline', activeIcon: 'book', tone: 'sleep' },
-  { key: 'you', label: 'You', icon: 'person-circle-outline', activeIcon: 'person-circle', tone: 'sleep' },
+  { key: 'index', label: 'Today', specIcon: 'today' },
+  { key: 'food', label: 'Food', specIcon: 'bowl' },
+  { key: LOG_FOOD_KEY, label: 'Log food', specIcon: 'plus', fab: true },
+  { key: 'activity', label: 'Activity', specIcon: 'pulse' },
+  { key: 'you', label: 'You', specIcon: 'person' },
 ];
+
+/** Routes of the tabs navigator that have no slot in the bar but can still be opened. */
+export const HIDDEN_ROUTES = ['journal'] as const;
+
+/** Tabs that are real routes (the Log food button is an action, not a route). */
+const ROUTE_TABS = TABS.filter((t) => !t.fab);
 
 /** On Android the bar steps aside while the keyboard is up, so a search keeps its room. */
 function useKeyboardUp(): boolean {
@@ -33,10 +47,16 @@ function useKeyboardUp(): boolean {
 
 function TabBar({ state, emitter, navigateToTab, insets }: BottomTabBarProps) {
   const keyboardUp = useKeyboardUp();
+  const router = useRouter();
   const focused = state.routes[state.index];
   if (keyboardUp) return null;
 
   const press = (name: string) => {
+    if (name === LOG_FOOD_KEY) {
+      // The same target Today's Log food used: Food with a fresh `add`, which opens the keyboard on the search.
+      router.navigate({ pathname: '/food', params: { add: String(Date.now()) } });
+      return;
+    }
     const route = state.routes.find((r) => r.name === name);
     if (!route) return;
     // Pressing the open tab again lets its screen scroll to the top.
@@ -47,7 +67,7 @@ function TabBar({ state, emitter, navigateToTab, insets }: BottomTabBarProps) {
   return (
     <NavigationBar
       items={TABS}
-      activeKey={TABS.some((t) => t.key === focused.name) ? focused.name : null}
+      activeKey={ROUTE_TABS.some((t) => t.key === focused.name) ? focused.name : null}
       onSelect={press}
       onReselect={press}
       bottomInset={insets.bottom}
@@ -56,7 +76,8 @@ function TabBar({ state, emitter, navigateToTab, insets }: BottomTabBarProps) {
 }
 
 /**
- * The Material 3 navigation bar with Today, Food, Activity, Journal and You.
+ * The Clean+ navigation bar: Today, Food, Log food, Activity and You, icons only.
+ * Journal is a hidden route (href null) reached from the You tab.
  * Tabs move with a short shift (Material's shared axis), or cut with reduce motion.
  * System Back from any tab returns to Today, then leaves the app.
  */
@@ -72,8 +93,11 @@ export default function AppTabs() {
         animation: reduced ? 'none' : 'shift',
         sceneStyle: { backgroundColor: Colors[dark ? 'dark' : 'light'].surface },
       }}>
-      {TABS.map((t) => (
+      {ROUTE_TABS.map((t) => (
         <Tabs.Screen key={t.key} name={t.key} options={{ title: t.label }} />
+      ))}
+      {HIDDEN_ROUTES.map((name) => (
+        <Tabs.Screen key={name} name={name} options={{ title: 'Journal', href: null }} />
       ))}
     </Tabs>
   );

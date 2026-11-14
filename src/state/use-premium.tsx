@@ -75,6 +75,22 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
   return <PremiumContext value={store}>{children}</PremiumContext>;
 }
 
+/**
+ * The design preview only (app/design-preview.tsx), in place of
+ * PremiumProvider: a store that keeps nothing and never asks the server, and
+ * no mood check-in scheduling. With PreviewAuthProvider's previewSkipped,
+ * usePremium reads every feature as open.
+ */
+export function PreviewPremiumProvider({ children }: { children: ReactNode }) {
+  const [store] = useState(() =>
+    createPremiumStore({
+      storage: { getKv: async () => null, setKv: async () => undefined },
+      fetchState: async () => null,
+    }),
+  );
+  return <PremiumContext value={store}>{children}</PremiumContext>;
+}
+
 export interface Premium extends PremiumSnapshot {
   isLocked(feature: Feature): boolean;
   /** Asks the server now ("Check again"). */

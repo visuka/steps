@@ -1,24 +1,28 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useEffect } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
-import { ThemedText } from '@/components/themed-text';
-import { type DataTone, Look, Motion, NavigationBarHeight, Radius, Spacing, toneColors } from '@/constants/theme';
+import { type DataTone } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import type { IconName } from './button';
-import { standardTiming } from './motion';
+import { SpecIcon, type SpecIconName } from './icons';
+import { NAV, SLOT_VISUAL_HEIGHT, barHeight, fabTopInWrapper, slotTouch, wrapperHeight } from './nav-style';
+import { pressedColorOnAccent } from './surface-style';
 
 export interface NavigationItem {
   key: string;
+  /** Spoken by TalkBack; the bar shows no text. */
   label: string;
-  /** Outline icon, shown when the destination is not selected. */
-  icon: IconName;
-  /** Filled icon, shown when it is: the second cue besides the pill. */
-  activeIcon: IconName;
-  /** The area's data colour; themes with a 'tone' indicator paint the pill in its container. */
+  /** Outline icon (Ionicons) for existing callers. */
+  icon?: IconName;
+  /** Selected icon (Ionicons) for existing callers: selection is also shown by colour and the dot. */
+  activeIcon?: IconName;
+  /** A Clean+ icon; wins over `icon` / `activeIcon` when given. */
+  specIcon?: SpecIconName;
+  /** Kept for existing callers; the Clean+ bar paints every selection in primary. */
   tone?: DataTone;
+  /** The middle "Log food" button: a 56 dp primary circle with a plus, lifted above the bar. */
+  fab?: boolean;
 }
 
 export interface NavigationBarProps {
@@ -32,43 +36,61 @@ export interface NavigationBarProps {
 }
 
 /**
- * Material 3 navigation bar: 3 to 5 destinations, icon and label always
- * shown, the selected one in a 64 × 32 dp pill. 80 dp tall plus the
- * system bar inset; the bar grows with large text instead of clipping.
+ * The Clean+ bottom bar (spec 5.7): 72 dp plus the system inset, white with a
+ * hairline above, icons only with a dot under the selected one. Each slot is
+ * 48 wide and has a touch area of at least 48 x 48; the labels are spoken only.
  */
 export function NavigationBar({ items, activeKey, onSelect, onReselect, bottomInset }: NavigationBarProps) {
   const theme = useTheme();
-  // Plain themes sit the bar on a tonal plate; the others on the ground with a hairline above.
-  const ground =
-    Look.tile === 'plain'
-      ? { backgroundColor: theme.surfaceContainer }
-      : { backgroundColor: theme.surface, borderTopWidth: 1, borderTopColor: theme.outlineVariant };
+  const fabItem = items.find((item) => item.fab);
   return (
-    <View accessibilityRole="tablist" style={[styles.bar, ground, { paddingBottom: bottomInset }]}>
-      {items.map((item) => (
-        <Destination
-          key={item.key}
-          item={item}
-          active={item.key === activeKey}
-          onPress={() => (item.key === activeKey ? onReselect?.(item.key) : onSelect(item.key))}
-        />
-      ))}
+    // Transparent wrapper: the lifted FAB must lie inside a parent for Android to deliver its touches.
+    // box-none lets the empty overhang pass touches to what is behind.
+    <View pointerEvents="box-none" style={{ height: wrapperHeight(bottomInset) }}>
+      <View
+        accessibilityRole="tablist"
+        style={[
+          styles.bar,
+          {
+            backgroundColor: theme.surface,
+            borderTopColor: theme.outlineVariant,
+            height: barHeight(bottomInset),
+            paddingBottom: bottomInset,
+          },
+        ]}>
+        {items.map((item) =>
+          item.fab ? (
+            <View key={item.key} style={styles.slotFrame} />
+          ) : (
+            <Destination
+              key={item.key}
+              item={item}
+              active={item.key === activeKey}
+              onPress={() => (item.key === activeKey ? onReselect?.(item.key) : onSelect(item.key))}
+            />
+          ),
+        )}
+      </View>
+      {fabItem ? (
+        <View pointerEvents="box-none" style={[styles.fabRow, { top: fabTopInWrapper(bottomInset) }]}>
+          <Pressable
+            onPress={() => (fabItem.key === activeKey ? onReselect?.(fabItem.key) : onSelect(fabItem.key))}
+            accessibilityRole="button"
+            accessibilityLabel={fabItem.label}
+            android_ripple={{ color: pressedColorOnAccent(theme.onPrimary), foreground: true }}
+            style={[styles.fab, { backgroundColor: theme.primary, boxShadow: NAV.fabShadow }]}>
+            <SpecIcon name={fabItem.specIcon ?? 'plus'} color={theme.onPrimary} size={NAV.fabIconSize} />
+          </Pressable>
+        </View>
+      ) : null}
     </View>
   );
 }
 
 function Destination({ item, active, onPress }: { item: NavigationItem; active: boolean; onPress: () => void }) {
   const theme = useTheme();
-  const grow = useSharedValue(active ? 1 : 0);
-  useEffect(() => {
-    grow.value = withTiming(active ? 1 : 0, standardTiming(Motion.duration.short));
-  }, [active, grow]);
-  // The pill opens from the middle, Material's own indicator motion; a cut with reduce motion.
-  const pill = useAnimatedStyle(() => ({ opacity: grow.value, transform: [{ scaleX: 0.5 + grow.value / 2 }] }));
-  const toned = Look.navIndicator === 'tone' && item.tone ? toneColors(theme, item.tone) : null;
-  const pillColor = toned ? toned.container : theme.secondaryContainer;
-  const onPill = toned ? toned.onContainer : theme.onSecondaryContainer;
-
+  const color = active ? theme.primary : theme.onSurfaceVariant;
+  const ionicon = active ? (item.activeIcon ?? item.icon) : item.icon;
   return (
     <Pressable
       onPress={onPress}
@@ -76,36 +98,45 @@ function Destination({ item, active, onPress }: { item: NavigationItem; active: 
       accessibilityLabel={item.label}
       accessibilityState={{ selected: active }}
       aria-selected={active}
-      style={styles.item}>
-      <View style={styles.iconSlot}>
-        <Animated.View style={[styles.pill, { backgroundColor: pillColor }, pill]} />
-        <Ionicons name={active ? item.activeIcon : item.icon} size={24} color={active ? onPill : theme.onSurfaceVariant} />
+      style={styles.touch}>
+      <View style={styles.visual}>
+        {item.specIcon ? (
+          <SpecIcon name={item.specIcon} color={color} size={NAV.iconSize} />
+        ) : ionicon ? (
+          <Ionicons name={ionicon} size={NAV.iconSize} color={color} />
+        ) : null}
+        <View style={[styles.dot, { backgroundColor: active ? theme.primary : 'transparent' }]} />
       </View>
-      <ThemedText
-        type="labelMedium"
-        themeColor={active ? 'onSurface' : 'onSurfaceVariant'}
-        maxFontSizeMultiplier={1.5}
-        numberOfLines={1}
-        style={[styles.label, active && styles.labelActive]}>
-        {item.label}
-      </ThemedText>
     </Pressable>
   );
 }
 
+const touch = slotTouch();
+
 const styles = StyleSheet.create({
-  bar: { flexDirection: 'row', minHeight: NavigationBarHeight },
-  item: {
-    flex: 1,
-    minHeight: NavigationBarHeight,
+  bar: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingTop: Spacing.three - 4,
-    paddingBottom: Spacing.three,
-    gap: Spacing.one,
+    justifyContent: 'space-around',
+    paddingHorizontal: NAV.sidePadding,
+    borderTopWidth: NAV.hairline,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
-  iconSlot: { width: 64, height: 32, alignItems: 'center', justifyContent: 'center' },
-  pill: { ...StyleSheet.absoluteFill, borderRadius: Radius.full },
-  label: { textAlign: 'center', paddingHorizontal: Spacing.half },
-  labelActive: { fontWeight: '700' },
+  // The touch area is larger than the drawn slot; the pictures do not change.
+  touch: { width: touch.width, height: touch.height, alignItems: 'center', justifyContent: 'center' },
+  visual: { width: NAV.slotWidth, height: SLOT_VISUAL_HEIGHT, alignItems: 'center', gap: NAV.iconDotGap },
+  dot: { width: NAV.dot, height: NAV.dot, borderRadius: NAV.dotRadius },
+  slotFrame: { width: NAV.slotWidth, height: touch.height },
+  // Full-width row at the wrapper's top; the FAB is centred in it.
+  fabRow: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
+  fab: {
+    width: NAV.fab,
+    height: NAV.fab,
+    borderRadius: NAV.fabRadius,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

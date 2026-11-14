@@ -7,9 +7,9 @@
 
 import type { TextStyle, ViewStyle } from 'react-native';
 
-import type { FontWeightName, TypeRole, TypeSpec } from '../tokens';
+import type { ColorScheme, FontWeightName, ThemeColor, TypeRole, TypeSpec } from '../tokens';
 import { TouchTarget, TYPE_ROLES } from '../tokens';
-import type { LabelCase, ThemeDef } from './types';
+import type { ColorRef, LabelCase, MapColors, ThemeDef } from './types';
 
 /**
  * None of the theme faces has Indian scripts: Android draws those with the
@@ -134,6 +134,8 @@ export function buildType(theme: ThemeDef, fonts: FontSet): Record<TypeRole, Tex
 export interface ControlStyles {
   /** Common buttons: corner radius and minimum height (at least the 48 dp target). */
   button: { borderRadius: number; minHeight: number };
+  /** Full-width main action buttons ("Log food", "Save to lunch"): taller where the mockup draws them so. */
+  action: { borderRadius: number; minHeight: number };
   /** Common and segmented button labels: capitals or as written. */
   buttonLabel: TextStyle;
   /** The 40 dp mark of a tonal or filled icon button. */
@@ -161,6 +163,10 @@ export function buildControls(theme: ThemeDef): ControlStyles {
   const shadow = s.fabShadow ?? true;
   return {
     button: { borderRadius: buttonRadius, minHeight: Math.max(TouchTarget, s.buttonHeight ?? TouchTarget) },
+    action: {
+      borderRadius: buttonRadius,
+      minHeight: Math.max(TouchTarget, s.actionHeight ?? s.buttonHeight ?? TouchTarget),
+    },
     buttonLabel: caseStyle(s.buttonCase),
     iconMark: { borderRadius: Math.min(buttonRadius, ICON_MARK / 2) },
     chipType: s.chipCase === 'upper' ? 'labelMedium' : 'labelLarge',
@@ -178,4 +184,39 @@ export function buildControls(theme: ThemeDef): ControlStyles {
 /** The theme's font files by family name, for expo-font. */
 export function fontMap(theme: ThemeDef): Record<string, number | string> {
   return Object.fromEntries(Object.values(theme.fonts).map((f) => [f.family, f.source]));
+}
+
+/** A colour reference (a role name or a hex) as a colour in the scheme. */
+export function resolveColor(c: ColorScheme, ref: ColorRef): string {
+  return ref.startsWith('#') ? ref : c[ref as ThemeColor];
+}
+
+/**
+ * The walk map's colours: the theme's own (the mockup's map), or, for a theme
+ * without them (park), the OpenFreeMap style for the scheme with the route in
+ * steps colour.
+ */
+export function mapColorsOf(theme: ThemeDef, scheme: 'light' | 'dark', radius = theme.radius.md): MapColors {
+  if (theme.map) return theme.map;
+  const c = theme.colors[scheme];
+  return {
+    base: scheme,
+    land: c.surfaceContainerHigh,
+    road: c.surfaceContainerLowest,
+    minorRoad: c.surfaceContainerLow,
+    park: c.stepsContainer,
+    water: c.waterContainer,
+    building: c.surfaceContainerHighest,
+    label: c.onSurfaceVariant,
+    border: null,
+    radius,
+    height: 176,
+    route: c.steps,
+    routeWidth: 5,
+    casing: c.surface,
+    start: c.tick,
+    startRing: c.steps,
+    end: c.steps,
+    endRing: c.steps,
+  };
 }

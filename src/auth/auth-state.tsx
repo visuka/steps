@@ -240,6 +240,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return <AuthContext value={value}>{children}</AuthContext>;
 }
 
+/** Every account action in the design preview: there is no account there. */
+const noAccount = (): Promise<never> => Promise.reject(new Error('No account in the design preview'));
+
+const PREVIEW_AUTH: AuthContextValue = {
+  status: 'signed-out',
+  userId: null,
+  notice: null,
+  signIn: noAccount,
+  createAccount: noAccount,
+  signOut: noAccount,
+  deleteAccount: noAccount,
+  previewSkipped: true,
+  skipForPreview: () => undefined,
+  restore: IDLE,
+  retryRestore: noAccount,
+  createPhoneAccount: noAccount,
+  sendEmailCode: noAccount,
+  confirmEmail: noAccount,
+  startRecovery: noAccount,
+  finishRecovery: noAccount,
+  confirmingEmail: null,
+  doneWithFirstEmail: () => undefined,
+};
+
+/**
+ * The design preview only (app/design-preview.tsx), in place of AuthProvider:
+ * nobody signed in, the secure store never read, and previewSkipped on, so
+ * usePremium opens every screen as for a tester.
+ */
+export function PreviewAuthProvider({ children }: { children: ReactNode }) {
+  return <AuthContext value={PREVIEW_AUTH}>{children}</AuthContext>;
+}
+
 export function useAuth(): AuthContextValue {
   const ctx = use(AuthContext);
   if (!ctx) throw new Error('useAuth must be used inside AuthProvider');

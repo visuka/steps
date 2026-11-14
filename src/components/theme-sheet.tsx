@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, useColorScheme as usePhoneScheme, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Notice, Sheet } from '@/components/ui';
@@ -63,8 +63,7 @@ export function ThemeSheet({ visible, onClose }: { visible: boolean; onClose: ()
 
 function ThemeRow({ t, current, busy, onPress }: { t: ThemeDef; current: boolean; busy: boolean; onPress: () => void }) {
   const theme = useTheme();
-  const phone = usePhoneScheme() === 'dark' ? 'dark' : 'light';
-  const c = t.colors[t.mode === 'system' ? phone : t.mode];
+  const c = t.colors[t.mode];
   return (
     <Pressable
       onPress={onPress}

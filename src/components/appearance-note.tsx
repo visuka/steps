@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Button, Card } from '@/components/ui';
@@ -23,7 +23,8 @@ function seenBefore(): boolean {
  * marked seen the first time it shows, so it never comes back; it stays for
  * this visit until closed. Choosing opens Settings with the picker up.
  */
-export function AppearanceNote() {
+/** `style` places the card (the themed Todays set their own margins). */
+export function AppearanceNote({ style }: { style?: StyleProp<ViewStyle> } = {}) {
   const router = useRouter();
   const [show, setShow] = useState(() => !seenBefore());
 
@@ -38,23 +39,25 @@ export function AppearanceNote() {
 
   if (!show) return null;
   return (
-    <Card title={`This look is ${ActiveTheme.name}`}>
-      <ThemedText type="bodyMedium" themeColor="onSurfaceVariant">
-        There are seven to choose from, the Park track among them. Change it any time in Settings → Appearance.
-      </ThemedText>
-      <View style={styles.buttons}>
-        <Button label="Not now" variant="text" compact onPress={() => setShow(false)} />
-        <Button
-          label="Choose a look"
-          variant="tonal"
-          compact
-          onPress={() => {
-            setShow(false);
-            router.push({ pathname: '/settings', params: { appearance: '1' } });
-          }}
-        />
-      </View>
-    </Card>
+    <View style={style}>
+      <Card title={`This look is ${ActiveTheme.name}`}>
+        <ThemedText type="bodyMedium" themeColor="onSurfaceVariant">
+          There are eight to choose from, Clean+ the one you start with. Change it any time in Settings → Appearance.
+        </ThemedText>
+        <View style={styles.buttons}>
+          <Button label="Not now" variant="text" compact onPress={() => setShow(false)} />
+          <Button
+            label="Choose a look"
+            variant="tonal"
+            compact
+            onPress={() => {
+              setShow(false);
+              router.push({ pathname: '/settings', params: { appearance: '1' } });
+            }}
+          />
+        </View>
+      </Card>
+    </View>
   );
 }
 

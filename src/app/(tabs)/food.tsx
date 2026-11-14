@@ -1,7 +1,9 @@
-import { useLocalSearchParams } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { type ReactNode, useCallback, useEffect, useState } from 'react';
+import { View } from 'react-native';
 
 import { Segmented } from '@/components/controls';
+import { FoodResultHostView } from '@/components/food/food-result-host';
 import { FoodSetupCard } from '@/components/food/food-settings';
 import {
   CaloriesTrack,
@@ -15,7 +17,7 @@ import {
 import { WaterCard } from '@/components/food/water-card';
 import { FoodLog } from '@/components/journal/food-log';
 import { PremiumGate } from '@/components/premium-gate';
-import { Screen, SectionHeader, Snackbar } from '@/components/ui';
+import { BAR_FAB_CLEARANCE, Screen, SectionHeader, Snackbar } from '@/components/ui';
 import type { LogEntry } from '@/data/types';
 import { dayKey } from '@/lib/dates';
 import { weekJudgedFor, weekReady, weekWaitText } from '@/nutrition/gaps';
@@ -27,6 +29,7 @@ import type { NutrientKey } from '@/nutrition/types';
 import { highWatchChips, MACRO_KEYS, MINERAL_KEYS, nutrientRows, overDays, VITAMIN_KEYS, type ViewContext, WATCH_KEYS } from '@/nutrition/view';
 import { SCREEN_FEATURES } from '@/premium/premium';
 import { useApp } from '@/state/app-state';
+import { useTodayKcal } from '@/state/use-calories';
 import { type NutritionData, useNutrition } from '@/state/use-nutrition';
 import { usePremium } from '@/state/use-premium';
 import { type AddedGlass, useWaterToday } from '@/state/use-water';
@@ -62,6 +65,14 @@ function FoodScreen({ focusKey }: { focusKey?: string }) {
   const waterOn = !premium.isLocked('body');
   const water = useWaterToday(waterOn);
   const nutrition = useNutrition();
+  // Same figure as Today, read again each time the tab comes into view.
+  const [visits, setVisits] = useState(0);
+  useFocusEffect(
+    useCallback(() => {
+      setVisits((n) => n + 1);
+    }, []),
+  );
+  const kcal = useTodayKcal(visits);
   const [tab, setTabState] = useState<Tab>('day');
   const [snack, setSnack] = useState<Snack | null>(null);
   const [lastKey, setLastKey] = useState(focusKey);
@@ -107,36 +118,43 @@ function FoodScreen({ focusKey }: { focusKey?: string }) {
     [nutrition],
   );
 
+  // A food result opens as a screen of its own over the tab, as on the mockups (FoodLog).
   return (
-    <Screen
-      title="Food"
-      overlay={<Snackbar message={snack?.text ?? null} action={snack?.action} onDismiss={() => setSnack(null)} />}>
-      <Segmented<Tab>
-        options={[
-          { value: 'day', label: 'Today' },
-          { value: 'week', label: 'This week' },
-        ]}
-        value={tab}
-        onChange={setTab}
-      />
-      {tab === 'day' ? (
-        <DayView
-          data={nutrition.data}
-          focusKey={focusKey}
-          water={waterOn ? <WaterCard water={water} onAdded={onAdded} /> : null}
-          onMark={nutrition.markToday}
-          onDismissNote={nutrition.dismissNote}
-          onNotForMe={onNotForMe}
+    <FoodResultHostView>
+      <Screen
+        title="Food"
+        overlay={<Snackbar message={snack?.text ?? null} action={snack?.action} onDismiss={() => setSnack(null)} />}>
+        <Segmented<Tab>
+          options={[
+            { value: 'day', label: 'Today' },
+            { value: 'week', label: 'This week' },
+          ]}
+          value={tab}
+          onChange={setTab}
         />
-      ) : (
-        <WeekView data={nutrition.data} waterOn={waterOn} onNotForMe={onNotForMe} />
-      )}
-    </Screen>
+        {tab === 'day' ? (
+          <DayView
+            data={nutrition.data}
+            kcal={kcal}
+            focusKey={focusKey}
+            water={waterOn ? <WaterCard water={water} onAdded={onAdded} /> : null}
+            onMark={nutrition.markToday}
+            onDismissNote={nutrition.dismissNote}
+            onNotForMe={onNotForMe}
+          />
+        ) : (
+          <WeekView data={nutrition.data} waterOn={waterOn} onNotForMe={onNotForMe} />
+        )}
+        {/* T10: the last chart clears the bar's Log-food FAB when scrolled to the end. */}
+        <View style={{ height: BAR_FAB_CLEARANCE }} />
+      </Screen>
+    </FoodResultHostView>
   );
 }
 
 function DayView({
   data,
+  kcal,
   focusKey,
   water,
   onMark,
@@ -144,6 +162,7 @@ function DayView({
   onNotForMe,
 }: {
   data: NutritionData | null;
+  kcal: ReturnType<typeof useTodayKcal>;
   focusKey?: string;
   water: ReactNode;
   onMark: ReturnType<typeof useNutrition>['markToday'];
@@ -172,7 +191,7 @@ function DayView({
 
   return (
     <>
-      {ctx ? <CaloriesTrack eaten={Math.round(totals.kcal ?? 0)} target={ctx.kcalTarget ?? 2000} atLeast={Boolean(part.kcal)} /> : null}
+      {ctx ? <CaloriesTrack eaten={kcal.eaten} target={ctx.kcalTarget ?? 2000} atLeast={kcal.partial} /> : null}
       <FoodLog focusKey={focusKey} />
       {water}
       <FoodSetupCard />

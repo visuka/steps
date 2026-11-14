@@ -6,6 +6,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
 import { useEffect, useState } from 'react';
+import { Appearance } from 'react-native';
 
 import { AuthProvider, useAccess, useAuth } from '@/auth/auth-state';
 import { claimLocalData } from '@/auth/owner';
@@ -14,9 +15,14 @@ import { AuthScreen } from '@/components/auth/auth-screen';
 import { ConfirmHost } from '@/components/confirm-host';
 import { LockOffer, LockScreen } from '@/components/auth/lock-screen';
 import { Onboarding } from '@/components/onboarding';
-import { ActiveTheme, Colors, Fonts } from '@/constants/theme';
+import { ActiveTheme, Colors, Fonts, ThemeMode } from '@/constants/theme';
 import { loadPreviewFonts } from '@/constants/themes/apply';
 import { fontMap } from '@/constants/themes/build';
+import { CLEAN_FONT_FILES } from '@/constants/themes/fonts';
+import { installPreviewClock } from '@/design-preview/clock';
+import { previewLaunch } from '@/design-preview/launch';
+import { SampleDataProvider } from '@/design-preview/providers';
+import { SAMPLE_NOW } from '@/design-preview/sample';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { LockProvider, useLock } from '@/state/app-lock';
 import { AppProvider, useApp } from '@/state/app-state';
@@ -25,8 +31,19 @@ import { PremiumProvider, usePremium } from '@/state/use-premium';
 
 SplashScreen.preventAutoHideAsync();
 
-/** The active theme's faces, only the weights its type scale uses; the splash waits for these. */
-const FONTS = fontMap(ActiveTheme);
+/**
+ * Native parts (the date and time pickers, alerts) take the theme's own scheme, never the
+ * phone's: Night's stay dark, the light looks' stay light. A theme change restarts the app,
+ * so setting it once per run is enough.
+ */
+Appearance.setColorScheme(ThemeMode);
+
+/** Started by the design preview's link: sample day, sample clock, the link's theme (design-preview/launch.ts). */
+const PREVIEW = previewLaunch() !== null;
+if (PREVIEW) installPreviewClock(SAMPLE_NOW);
+
+/** The active theme's faces, plus the Clean+ faces (Poppins and Telugu); the splash waits for these. */
+const FONTS = { ...fontMap(ActiveTheme), ...CLEAN_FONT_FILES };
 
 /** Fonts not loaded by then are skipped, and the system font stands in, so the splash never hangs. */
 const FONT_WAIT_MS = 3000;
@@ -75,6 +92,16 @@ export default function RootLayout() {
     SystemUI.setBackgroundColorAsync(surface).catch(() => undefined);
   }, [surface]);
 
+  if (PREVIEW) {
+    return (
+      <ThemeProvider value={navigationTheme(dark)}>
+        <StatusBar style={dark ? 'light' : 'dark'} />
+        <PreviewGate fontsReady={fontsReady} surface={surface} />
+        <ConfirmHost />
+      </ThemeProvider>
+    );
+  }
+
   return (
     <ThemeProvider value={navigationTheme(dark)}>
       <StatusBar style={dark ? 'light' : 'dark'} />
@@ -89,6 +116,23 @@ export default function RootLayout() {
         </AppProvider>
       </AuthProvider>
     </ThemeProvider>
+  );
+}
+
+/**
+ * A run started by the design preview's link (app/design-preview.tsx): no
+ * sign-in, lock or onboarding, and every screen over the sample day only, so
+ * nothing on the phone is read or written. Never in a normal run.
+ */
+function PreviewGate({ fontsReady, surface }: { fontsReady: boolean; surface: string }) {
+  useEffect(() => {
+    if (fontsReady) SplashScreen.hideAsync();
+  }, [fontsReady]);
+  if (!fontsReady) return null;
+  return (
+    <SampleDataProvider>
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: surface } }} />
+    </SampleDataProvider>
   );
 }
 

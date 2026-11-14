@@ -1,9 +1,6 @@
-import { useColorScheme as usePhoneScheme } from 'react-native';
-
 import { ThemeMode } from '@/constants/theme';
 
-/** The phone's light or dark setting, unless the theme keeps one scheme always (Night is dark). */
+/** The theme's scheme: every look keeps one (Clean+ and A, C to F are light, Night is dark), whatever the phone says. */
 export function useColorScheme() {
-  const phone = usePhoneScheme();
-  return ThemeMode === 'system' ? phone : ThemeMode;
+  return ThemeMode;
 }

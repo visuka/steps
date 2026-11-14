@@ -1,16 +1,18 @@
 /**
- * A, Daylight (app-look/project/Main.dc.html).
+ * A, Daylight (app-look/project/Main.dc.html). Light only, as mocked.
  *
  * Crisp white, one deep teal, big calm numbers; quiet like a banking app.
- * White cards with a hairline edge on a pale grey ground, the steps ring and
- * every main action in deep teal #0F6E64, secondary text in slate #5B636B.
+ * White cards with a hairline edge on a pale grey ground (#F6F7F8 on Today,
+ * white on a food result and a walk), the steps ring, every bar and every
+ * main action in the one teal #0F6E64, secondary text in slate #5B636B.
  * Inter throughout, numerals at 700 (hero) and 600 with tabular figures.
  *
- * The mockup draws every mark in the one teal. Food, water and sleep get
- * their own quiet hues here (amber-brown, blue, indigo) so charts that show
- * several at once stay readable; steps keep the teal.
+ * Every data mark is the one teal, as drawn (food bar, water dots, macro
+ * bars); food, water and sleep are told apart by their labels and icons.
  *
- * Dark: the same layout on a cool near-black, teal lifted to a light mint.
+ * Changes from the mockup, for the contrast rules:
+ * - the lane is #CFD5DA (mockup #E7EBED, 1.1:1 on the grey ground) so it
+ *   shows 1.25:1 on every card and the teal stays 3:1 on it.
  */
 
 import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
@@ -21,21 +23,23 @@ import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold';
 import { type RadiusScale, schemeFromRoles, type SchemeRoles, type TypeScaleShape } from '../tokens';
 import type { ThemeDef } from './types';
 
+const TEAL = '#0F6E64';
+
 const light: SchemeRoles = {
   // The one teal: the ring, "Log food", "Save to lunch", outlined buttons.
-  primary: '#0F6E64',
+  primary: TEAL,
   onPrimary: '#FFFFFF',
   primaryContainer: '#DDEFEB',
   onPrimaryContainer: '#0A4A43',
   secondary: '#4A5259',
   onSecondary: '#FFFFFF',
-  // The navigation pill and the selected segment's tint.
+  // The navigation pill.
   secondaryContainer: '#DDEFEB',
   onSecondaryContainer: '#0A4A43',
-  tertiary: '#4F46A0',
+  tertiary: '#4A5259',
   onTertiary: '#FFFFFF',
-  tertiaryContainer: '#E6E3F7',
-  onTertiaryContainer: '#2E2770',
+  tertiaryContainer: '#EDEFF1',
+  onTertiaryContainer: '#101418',
   error: '#B3261E',
   onError: '#FFFFFF',
   errorContainer: '#FCEDEC',
@@ -50,40 +54,41 @@ const light: SchemeRoles = {
   surfaceDim: '#D9DEE2',
   surfaceBright: '#FFFFFF',
   surfaceContainerLowest: '#FFFFFF',
-  // Icon plates and the "1 bowl" chip.
+  // Icon plates, the "1 bowl" chip and the segmented control's well.
   surfaceContainerLow: '#F1F3F4',
-  surfaceContainer: '#EEF0F2',
-  surfaceContainerHigh: '#E9ECEE',
+  surfaceContainer: '#EDEFF1',
+  surfaceContainerHigh: '#E7EBED',
   surfaceContainerHighest: '#E1E6E8',
   inverseSurface: '#2A3036',
-  inverseOnSurface: '#EEF0F2',
+  inverseOnSurface: '#EDEFF1',
   inversePrimary: '#7FD3C6',
   outline: '#737C84',
-  // The card and nav-bar hairline.
+  // The card, row and nav-bar hairline.
   outlineVariant: '#E5E8EB',
-  surfaceTint: '#0F6E64',
+  surfaceTint: TEAL,
   shadow: '#000000',
   scrim: '#000000',
 
-  steps: '#0F6E64',
+  steps: TEAL,
   onSteps: '#FFFFFF',
   stepsContainer: '#DDEFEB',
   onStepsContainer: '#0A4A43',
-  food: '#9A4F14',
+  // Food, water and sleep marks: the same teal, as drawn.
+  food: TEAL,
   onFood: '#FFFFFF',
-  foodContainer: '#FBEBDD',
-  onFoodContainer: '#663005',
-  food2: '#6B3A12',
-  food3: '#3F230C',
-  water: '#1D5F9E',
+  foodContainer: '#DDEFEB',
+  onFoodContainer: '#0A4A43',
+  food2: '#0A4A43',
+  food3: '#5B636B',
+  water: TEAL,
   onWater: '#FFFFFF',
-  waterContainer: '#DDEBF8',
-  onWaterContainer: '#0E3A63',
-  sleep: '#5348A6',
+  waterContainer: '#DDEFEB',
+  onWaterContainer: '#0A4A43',
+  sleep: TEAL,
   onSleep: '#FFFFFF',
-  sleepContainer: '#E6E3F7',
-  onSleepContainer: '#2E2770',
-  // The sodium row: brown on cream with a "High" label.
+  sleepContainer: '#DDEFEB',
+  onSleepContainer: '#0A4A43',
+  // The sodium row: brown on cream, with a brown "High" chip.
   near: '#7A4300',
   onNear: '#FFFFFF',
   nearContainer: '#FBF1E1',
@@ -91,120 +96,51 @@ const light: SchemeRoles = {
   over: '#B3261E',
   onOver: '#FFFFFF',
 
-  // A touch darker than the mockup's #E7EBED so the lane still shows on grey cards.
   lane: '#CFD5DA',
   tick: '#FFFFFF',
   laneTick: '#5B636B',
 };
 
-const dark: SchemeRoles = {
-  primary: '#72CFC1',
-  onPrimary: '#00382F',
-  primaryContainer: '#0F4F47',
-  onPrimaryContainer: '#BDEDE5',
-  secondary: '#B3C2C8',
-  onSecondary: '#1E2A2F',
-  secondaryContainer: '#1F3F3A',
-  onSecondaryContainer: '#BDEDE5',
-  tertiary: '#BBB4F2',
-  onTertiary: '#2A2468',
-  tertiaryContainer: '#3A3480',
-  onTertiaryContainer: '#E3E0FF',
-  error: '#FFB4AB',
-  onError: '#690005',
-  errorContainer: '#93000A',
-  onErrorContainer: '#FFDAD6',
-  background: '#0F1316',
-  onBackground: '#E6E9EC',
-  surface: '#0F1316',
-  onSurface: '#E6E9EC',
-  surfaceVariant: '#2E353A',
-  onSurfaceVariant: '#A9B2B9',
-  surfaceDim: '#0F1316',
-  surfaceBright: '#353C42',
-  surfaceContainerLowest: '#0A0D10',
-  surfaceContainerLow: '#161B1F',
-  surfaceContainer: '#1B2024',
-  surfaceContainerHigh: '#242A2F',
-  surfaceContainerHighest: '#2E353A',
-  inverseSurface: '#E6E9EC',
-  inverseOnSurface: '#2A3036',
-  inversePrimary: '#0F6E64',
-  outline: '#8A939A',
-  outlineVariant: '#343B41',
-  surfaceTint: '#72CFC1',
-  shadow: '#000000',
-  scrim: '#000000',
-
-  steps: '#72CFC1',
-  onSteps: '#00382F',
-  stepsContainer: '#0F4F47',
-  onStepsContainer: '#BDEDE5',
-  food: '#F0A56C',
-  onFood: '#4A2004',
-  foodContainer: '#5A2A06',
-  onFoodContainer: '#FFDCC2',
-  food2: '#FFD9BF',
-  food3: '#C98048',
-  water: '#8EC1F5',
-  onWater: '#0B3A66',
-  waterContainer: '#0E3A63',
-  onWaterContainer: '#D3E6FA',
-  sleep: '#BBB4F2',
-  onSleep: '#2A2468',
-  sleepContainer: '#3A3480',
-  onSleepContainer: '#E3E0FF',
-  near: '#F2B33D',
-  onNear: '#3D2800',
-  nearContainer: '#5A3D00',
-  onNearContainer: '#FFE2B0',
-  over: '#FFB4AB',
-  onOver: '#690005',
-
-  lane: '#353C42',
-  tick: '#E6E9EC',
-  laneTick: '#9AA3AA',
-};
-
 /**
- * From the mockup: 13 labels, 15 body, 18 row values and titles, 24 date
- * and stat numbers, 48 for the big numbers. Titles 600, body 400.
- * Numerals: weight medium maps to Inter 600 (stat numbers), bold to 700 (hero).
- * Tracking: the mockup's -0.01em and -0.03em, in dp.
+ * The mockup's scale: 13/16 labels, 15/20 body, 18/24 row values, titles and
+ * buttons, 24/32 the date and stat numbers, 48/48 the big numbers. Titles
+ * 600, body 400. Tracking: -0.01em and -0.03em, in dp.
  */
 const type: TypeScaleShape = {
-  displayLarge: { size: 57, line: 64, weight: 'bold', tracking: -1.2 },
-  displayMedium: { size: 45, line: 52, weight: 'bold', tracking: -0.9 },
-  displaySmall: { size: 36, line: 44, weight: 'bold', tracking: -0.7 },
-  headlineLarge: { size: 32, line: 40, weight: 'semibold', tracking: -0.3 },
-  headlineMedium: { size: 28, line: 36, weight: 'semibold', tracking: -0.3 },
-  /** "Fri, 14 Nov". */
+  displayLarge: { size: 57, line: 64, weight: 'bold', tracking: -1.7 },
+  displayMedium: { size: 45, line: 52, weight: 'bold', tracking: -1.35 },
+  displaySmall: { size: 36, line: 44, weight: 'bold', tracking: -1.08 },
+  headlineLarge: { size: 32, line: 40, weight: 'semibold', tracking: -0.32 },
+  headlineMedium: { size: 28, line: 36, weight: 'semibold', tracking: -0.28 },
+  /** "Fri, 14 Nov": 24/32 at 600, -0.01em. */
   headlineSmall: { size: 24, line: 32, weight: 'semibold', tracking: -0.24 },
-  /** The dish name, "Morning walk · 7:10 am", row values. */
+  /** The dish name, "Morning walk · 7:10 am", row values: 18/24 at 600. */
   titleLarge: { size: 18, line: 24, weight: 'semibold', tracking: 0 },
-  titleMedium: { size: 16, line: 24, weight: 'semibold', tracking: 0 },
-  /** Section labels: "Ingredients", "Parts". */
+  /** "Walk 28 min" row, "6 h 50 m": 18/24 at 500. */
+  titleMedium: { size: 18, line: 24, weight: 'medium', tracking: 0 },
+  /** Section labels: "Ingredients", "Parts": 13/16 at 600. */
   titleSmall: { size: 13, line: 16, weight: 'semibold', tracking: 0 },
-  bodyLarge: { size: 16, line: 24, weight: 'regular', tracking: 0 },
-  /** Row text: "Food", "Morning walk", ingredient lines. */
+  bodyLarge: { size: 15, line: 24, weight: 'regular', tracking: 0 },
+  /** Row text: "Food", "Morning walk", ingredient lines: 15/20. */
   bodyMedium: { size: 15, line: 20, weight: 'regular', tracking: 0 },
+  /** "of goal", "distance", the note line: 13/16. */
   bodySmall: { size: 13, line: 16, weight: 'regular', tracking: 0 },
-  /** Buttons: 15 to 18 at 600 in the mockup. */
-  labelLarge: { size: 16, line: 20, weight: 'semibold', tracking: 0 },
-  /** Navigation, "of goal", "distance". */
+  /** Main buttons: 18 at 600. */
+  labelLarge: { size: 18, line: 24, weight: 'semibold', tracking: 0 },
+  /** Navigation, chips: 13/16 at 600. */
   labelMedium: { size: 13, line: 16, weight: 'semibold', tracking: 0 },
-  labelSmall: { size: 12, line: 16, weight: 'medium', tracking: 0 },
-  /** 6,240 inside the ring. */
-  numeralHero: { size: 48, line: 52, weight: 'bold', tracking: -1.4, numeral: true },
+  labelSmall: { size: 13, line: 16, weight: 'regular', tracking: 0 },
+  /** 6,240 inside the ring: 48/48 at 700, -0.03em. */
+  numeralHero: { size: 48, line: 48, weight: 'bold', tracking: -1.44, numeral: true },
   /** 412 kcal. */
-  numeralLarge: { size: 48, line: 52, weight: 'bold', tracking: -1.4, numeral: true },
-  /** 78 %, 4.6 km, 13:55 /km. */
+  numeralLarge: { size: 48, line: 48, weight: 'bold', tracking: -1.44, numeral: true },
+  /** 78 %, 4.6 km, 2.3 km, 13:55 /km: 24/32 at 600, -0.01em. */
   numeralMedium: { size: 24, line: 32, weight: 'medium', tracking: -0.24, numeral: true },
-  /** 1,280 kcal, 38 g, 6 h 50 m. */
+  /** 1,280 kcal, 38 g: 18/24 at 600. */
   numeralSmall: { size: 18, line: 24, weight: 'medium', tracking: 0, numeral: true },
 };
 
-/** 24 dp cards, 12 dp icon plates and rows, 16 dp chips, 28 dp for the 56 dp buttons. */
+/** 24 dp cards, 12 dp icon plates, 16 dp chips, 20 dp map and segments, 28 dp for the 56 dp buttons. */
 const radius: RadiusScale = {
   none: 0,
   xs: 12,
@@ -215,12 +151,14 @@ const radius: RadiusScale = {
   full: 999,
 };
 
+const scheme = schemeFromRoles(light);
+
 const theme: ThemeDef = {
   id: 'a',
   name: 'Daylight',
   description: 'Clean and bright. White cards, a ring for steps.',
-  mode: 'system',
-  colors: { light: schemeFromRoles(light), dark: schemeFromRoles(dark) },
+  mode: 'light',
+  colors: { light: scheme, dark: scheme },
   fonts: {
     regular: { family: 'Inter_400Regular', source: Inter_400Regular },
     medium: { family: 'Inter_500Medium', source: Inter_500Medium },
@@ -231,9 +169,7 @@ const theme: ThemeDef = {
   },
   type,
   radius,
-  /**
-   * A: pill buttons 48 dp (56 in the mockup's bottom bar), the Log food FAB a 28 dp pill, flat.
-   */
+  /** A: pill buttons, 56 dp main actions with 18 dp labels, 48 dp row buttons with 15 dp labels, flat. */
   style: {
     tile: 'outlined',
     hero: 'ring',
@@ -246,6 +182,58 @@ const theme: ThemeDef = {
     chipCase: 'none',
     fabRadius: radius.lg,
     fabShadow: false,
+    actionHeight: 56,
+    compactLabel: { size: 15, line: 20, weight: 'semibold' },
+    filledRole: 'primary',
+    outlined: { border: 'primary', fill: '#FFFFFF', ink: 'primary' },
+    overline: { size: 13, line: 16, weight: 'semibold', tracking: 0, case: 'none', color: 'onSurfaceVariant' },
+    segment: {
+      height: 48,
+      well: 'surfaceContainerLow',
+      wellBorder: null,
+      radius: 24,
+      pad: 4,
+      selected: '#FFFFFF',
+      onSelected: 'primary',
+      selectedBorder: '#DDE2E5',
+      selectedRadius: 20,
+      idle: 'onSurfaceVariant',
+      divider: null,
+      check: false,
+      label: { size: 15, weight: 'medium', selectedWeight: 'semibold' },
+    },
+    nav: {
+      height: 80,
+      background: '#FFFFFF',
+      border: 'outlineVariant',
+      pill: 'primaryContainer',
+      onPill: 'primary',
+      pillWidth: 56,
+      active: 'primary',
+      idle: 'onSurfaceVariant',
+      label: { size: 13, line: 16, weight: 'regular', activeWeight: 'semibold' },
+    },
+  },
+  // The mockup's map: grey land, white streets, a pale green park, the teal route.
+  map: {
+    base: 'light',
+    land: '#F1F3F4',
+    road: '#FFFFFF',
+    minorRoad: '#FFFFFF',
+    park: '#E4EBE8',
+    water: '#DCE7EC',
+    building: '#E7EBED',
+    label: '#5B636B',
+    border: '#E5E8EB',
+    radius: 20,
+    height: 184,
+    route: TEAL,
+    routeWidth: 4,
+    casing: null,
+    start: '#FFFFFF',
+    startRing: TEAL,
+    end: TEAL,
+    endRing: '#FFFFFF',
   },
 };
 

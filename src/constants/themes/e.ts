@@ -1,5 +1,5 @@
 /**
- * E, Calm and large (app-look/project/E-Calm.dc.html).
+ * E, Calm and large (app-look/project/E-Calm.dc.html). Light only, as mocked.
  *
  * Big, clear and unhurried; made first for parents 55+. A warm parchment
  * ground with white cards edged in a 1 dp sand line, one deep green for the
@@ -7,8 +7,8 @@
  * sleep. Figtree throughout: body 18, labels 16 at the least, titles 24,
  * the steps hero 72, all numbers in tabular figures.
  *
- * The mockup shows light only. Dark is designed to match: the same hues
- * lifted to soft tints on a warm near-black, cards still outlined.
+ * Changes from the mockup, for the contrast rules: the lane is the frame
+ * sand #D6CDBE (the mockup's #E9E3D8 is too faint on the parchment ground).
  */
 
 import { Figtree_400Regular } from '@expo-google-fonts/figtree/400Regular';
@@ -98,75 +98,6 @@ const light: SchemeRoles = {
   laneTick: '#6A6155',
 };
 
-const dark: SchemeRoles = {
-  primary: '#A8D3BC',
-  onPrimary: '#0F2E21',
-  primaryContainer: '#24453A',
-  onPrimaryContainer: '#CDE9DA',
-  secondary: '#B6CABE',
-  onSecondary: '#20352A',
-  secondaryContainer: '#2C4A3D',
-  onSecondaryContainer: '#D6E6DC',
-  tertiary: '#9CC3F0',
-  onTertiary: '#0E2F55',
-  tertiaryContainer: '#183A60',
-  onTertiaryContainer: '#D6E6FA',
-  error: '#FFB4AB',
-  onError: '#690005',
-  errorContainer: '#7A1D16',
-  onErrorContainer: '#FFDAD6',
-  background: '#171512',
-  onBackground: '#ECE6DC',
-  surface: '#171512',
-  onSurface: '#ECE6DC',
-  surfaceVariant: '#3A352E',
-  onSurfaceVariant: '#C9BFB0',
-  surfaceDim: '#171512',
-  surfaceBright: '#3D3832',
-  surfaceContainerLowest: '#110F0D',
-  surfaceContainerLow: '#1F1C18',
-  surfaceContainer: '#24211C',
-  surfaceContainerHigh: '#2E2A24',
-  surfaceContainerHighest: '#3A352E',
-  inverseSurface: '#ECE6DC',
-  inverseOnSurface: '#34302A',
-  inversePrimary: '#1E4D3A',
-  outline: '#9A9082',
-  outlineVariant: '#4A443C',
-  surfaceTint: '#A8D3BC',
-  shadow: '#000000',
-  scrim: '#000000',
-
-  steps: '#8CC9A8',
-  onSteps: '#0F2E21',
-  stepsContainer: '#24453A',
-  onStepsContainer: '#D6E6DC',
-  food: '#F0A07E',
-  onFood: '#4A1C08',
-  foodContainer: '#5A2A16',
-  onFoodContainer: '#F6DDD0',
-  food2: '#E3C27A',
-  food3: '#F6DDD0',
-  water: '#9CC3F0',
-  onWater: '#0E2F55',
-  waterContainer: '#183A60',
-  onWaterContainer: '#D6E6FA',
-  sleep: '#CFC4B6',
-  onSleep: '#2E2822',
-  sleepContainer: '#3E3730',
-  onSleepContainer: '#ECE4D8',
-  near: '#F2B84B',
-  onNear: '#3D2800',
-  nearContainer: '#5A3F00',
-  onNearContainer: '#FFE2B0',
-  over: '#FFB4AB',
-  onOver: '#690005',
-
-  lane: '#3E3932',
-  tick: '#ECE6DC',
-  laneTick: '#A39A8C',
-};
-
 /**
  * From the mockup: body 18, labels and secondary lines 16 (never smaller),
  * card titles 18 at 700, screen titles 24, buttons 18 at 700, the steps
@@ -182,7 +113,8 @@ const type: TypeScaleShape = {
   headlineMedium: { size: 28, line: 36, weight: 'bold', tracking: 0 },
   /** "Fri, 14 Nov", "Morning walk · 7:10 am". */
   headlineSmall: { size: 24, line: 32, weight: 'bold', tracking: 0 },
-  titleLarge: { size: 22, line: 28, weight: 'bold', tracking: 0 },
+  /** The typed dish: 18/26 at 700. */
+  titleLarge: { size: 18, line: 26, weight: 'bold', tracking: 0 },
   /** Card titles: "Ingredients", "Nutrients, at least". */
   titleMedium: { size: 18, line: 24, weight: 'bold', tracking: 0 },
   /** "Steps today", list row names. */
@@ -196,7 +128,7 @@ const type: TypeScaleShape = {
   /** Tile labels, navigation. */
   labelMedium: { size: 16, line: 24, weight: 'semibold', tracking: 0 },
   /** Chips and badges. */
-  labelSmall: { size: 16, line: 22, weight: 'semibold', tracking: 0 },
+  labelSmall: { size: 16, line: 22, weight: 'regular', tracking: 0 },
   /** Today's steps. */
   numeralHero: { size: 72, line: 72, weight: 'bold', tracking: -1, numeral: true },
   /** A walk's distance. */
@@ -218,12 +150,14 @@ const radius: RadiusScale = {
   full: 999,
 };
 
+const scheme = schemeFromRoles(light);
+
 const theme: ThemeDef = {
   id: 'e',
   name: 'Calm and large',
   description: 'Bigger text and plenty of room. Soft and easy to read.',
-  mode: 'system',
-  colors: { light: schemeFromRoles(light), dark: schemeFromRoles(dark) },
+  mode: 'light',
+  colors: { light: scheme, dark: scheme },
   fonts: {
     regular: { family: 'Figtree_400Regular', source: Figtree_400Regular },
     medium: { family: 'Figtree_600SemiBold', source: Figtree_600SemiBold },
@@ -234,9 +168,7 @@ const theme: ThemeDef = {
   },
   type,
   radius,
-  /**
-   * E: big 56 dp buttons with 20 dp corners, the FAB the same, flat.
-   */
+  /** E: big 56 dp buttons with 20 dp corners and 18 dp labels at 700, flat. */
   style: {
     tile: 'outlined',
     hero: 'bar',
@@ -249,6 +181,59 @@ const theme: ThemeDef = {
     chipCase: 'none',
     fabRadius: radius.lg,
     fabShadow: false,
+    actionHeight: 56,
+    compactLabel: { size: 18, line: 24, weight: 'bold' },
+    filledRole: 'primary',
+    outlined: { border: 'primary', fill: '#FFFFFF', ink: 'primary' },
+    // Card titles: "Ingredients", "Nutrients, at least": 18/24 at 700.
+    overline: { size: 18, line: 24, weight: 'bold', tracking: 0, case: 'none', color: 'onSurface' },
+    segment: {
+      height: 56,
+      well: 'surfaceContainerHigh',
+      wellBorder: null,
+      radius: 20,
+      pad: 4,
+      selected: '#FFFFFF',
+      onSelected: 'primary',
+      selectedBorder: 'primary',
+      selectedRadius: 16,
+      idle: '#4A4038',
+      divider: null,
+      check: false,
+      label: { size: 18, weight: 'semibold', selectedWeight: 'bold' },
+    },
+    nav: {
+      height: 72,
+      background: '#FFFFFF',
+      border: 'outlineVariant',
+      pill: 'secondaryContainer',
+      onPill: 'primary',
+      pillWidth: 56,
+      active: 'primary',
+      idle: 'onSurfaceVariant',
+      label: { size: 16, line: 20, weight: 'semibold', activeWeight: 'bold' },
+    },
+  },
+  // The mockup's map: parchment land, white streets, thin sand lanes, the deep green route.
+  map: {
+    base: 'light',
+    land: '#ECE6DA',
+    road: '#FFFFFF',
+    minorRoad: '#DDD5C7',
+    park: '#DCE3D2',
+    water: '#D5E1EA',
+    building: '#E4DDD0',
+    label: '#5E5649',
+    border: '#E3DBCD',
+    radius: 20,
+    height: 160,
+    route: '#1E4D3A',
+    routeWidth: 6,
+    casing: null,
+    start: '#FFFFFF',
+    startRing: '#1E4D3A',
+    end: '#1E4D3A',
+    endRing: '#FFFFFF',
   },
 };
 

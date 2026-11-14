@@ -29,7 +29,8 @@ import type {
 
 const STORAGE_KEY = 'steps-preview-db';
 
-interface Snapshot {
+/** Everything the memory repository holds; the web preview keeps it in localStorage. */
+export interface Snapshot {
   kv: [string, string][];
   days: [string, DaySummary][];
   hours: [string, number[]][];
@@ -63,7 +64,15 @@ export async function openRepository(): Promise<Repository> {
   } catch {
     saved = null;
   }
+  return memoryRepository(saved, storage());
+}
 
+/**
+ * A repository in memory, starting from `saved`. The web preview mirrors it
+ * to localStorage (`store`); the design preview (app/design-preview.tsx)
+ * passes its sample data and no store, so nothing is kept anywhere.
+ */
+export function memoryRepository(saved: Snapshot | null, store: Pick<Storage, 'setItem'> | null = null): Repository {
   const kv = new Map<string, string>(saved?.kv);
   // Rows saved before untimed steps and pace minutes existed.
   const days = new Map<string, DaySummary>(
@@ -88,7 +97,6 @@ export async function openRepository(): Promise<Repository> {
   // Backfill writes hundreds of rows in a burst; save once after it settles.
   let flushTimer: ReturnType<typeof setTimeout> | null = null;
   const persist = () => {
-    const store = storage();
     if (!store || flushTimer) return;
     flushTimer = setTimeout(() => {
       flushTimer = null;

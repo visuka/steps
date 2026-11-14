@@ -6,15 +6,17 @@ import { ThemedText } from '@/components/themed-text';
 import { Controls, Spacing, TouchTarget } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
+import { BUTTON_STYLE, rippleKind } from './button-style';
+import { pressedColor, pressedColorOnAccent } from './surface-style';
 import { useToneInk } from './tone-surface';
 
 export type IconName = ComponentProps<typeof Ionicons>['name'];
-export type ButtonVariant = 'filled' | 'tonal' | 'outlined' | 'text';
+export type ButtonVariant = 'filled' | 'tonal' | 'secondary' | 'outlined' | 'text';
 
 export interface ButtonProps {
   label: string;
   onPress: () => void;
-  /** filled: the one main action; tonal: next most; outlined and text: the rest. */
+  /** filled: the one main action; tonal: next most; secondary: soft grey fill and ink label (Clean+ "Edit"); outlined and text: the rest. */
   variant?: ButtonVariant;
   /** Destructive actions (delete) use the error colour. */
   danger?: boolean;
@@ -30,8 +32,10 @@ export interface ButtonProps {
 }
 
 /**
- * Material 3 common button, at least 48 dp tall so it is easy to hit. The
- * theme sets its corners, height and label case (Controls, themes/build.ts).
+ * Common button, at least 48 dp tall so it is easy to hit (spec 5.8: 48, radius 16,
+ * label 15/22 medium). The theme sets its corners, height and label case
+ * (Controls, themes/build.ts). Disabled is the same colours at 0.4 opacity and
+ * pressed is a ripple only (spec 10.3).
  */
 export function Button({
   label,
@@ -56,16 +60,21 @@ export function Button({
       fg: danger ? theme.onErrorContainer : theme.onSecondaryContainer,
       border: undefined,
     },
+    secondary: {
+      bg: danger ? theme.errorContainer : theme.surfaceContainer,
+      fg: danger ? theme.onErrorContainer : theme.onSurface,
+      border: undefined,
+    },
     outlined: { bg: 'transparent', fg: danger ? theme.error : theme.primary, border: theme.outline },
     text: { bg: 'transparent', fg: danger ? theme.error : theme.primary, border: undefined },
   }[variant];
   // On a tone plate (a filled tile) a tonal button is a ground-coloured pill with the plate's ink,
   // and text and outlined buttons take the ink too.
-  if (plate && !danger && variant === 'tonal') Object.assign(look, { bg: plate.lane, fg: plate.ink });
+  if (plate && !danger && (variant === 'tonal' || variant === 'secondary')) Object.assign(look, { bg: plate.lane, fg: plate.ink });
   else if (plate && !danger && variant !== 'filled') Object.assign(look, { fg: plate.ink });
-  // Disabled, per Material: on-surface at 12% behind, 38% for the label.
-  const bg = off && variant !== 'text' && variant !== 'outlined' ? `${theme.onSurface}1F` : look.bg;
-  const fg = off ? `${theme.onSurface}61` : look.fg;
+  const bg = look.bg;
+  const fg = look.fg;
+  const ripple = rippleKind(variant) === 'onAccent' ? pressedColorOnAccent(look.fg) : pressedColor(theme.onSurface);
 
   return (
     <Pressable
@@ -75,22 +84,26 @@ export function Button({
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: !!off, busy: !!loading }}
-      android_ripple={{ color: `${look.fg}29`, foreground: true }}
-      style={({ pressed }) => [
+      android_ripple={{ color: ripple, foreground: true }}
+      style={[
         styles.button,
         variant === 'text' && styles.textButton,
         compact && styles.compact,
         { backgroundColor: bg },
-        look.border ? { borderWidth: 1, borderColor: off ? `${theme.onSurface}1F` : look.border } : null,
-        pressed && { opacity: 0.88 },
+        look.border ? { borderWidth: 1, borderColor: look.border } : null,
+        off && { opacity: BUTTON_STYLE.disabledOpacity },
         style,
       ]}>
       {loading ? (
         <ActivityIndicator size="small" color={fg} />
       ) : (
         <View style={styles.inner}>
-          {icon ? <Ionicons name={icon} size={18} color={fg} /> : null}
-          <ThemedText type="labelLarge" style={[styles.label, Controls.buttonLabel, { color: fg }]} numberOfLines={2}>
+          {icon ? <Ionicons name={icon} size={BUTTON_STYLE.iconSize} color={fg} /> : null}
+          <ThemedText
+            type="labelLarge"
+            maxFontSizeMultiplier={1.3}
+            style={[styles.label, Controls.buttonLabel, { color: fg }]}
+            numberOfLines={2}>
             {label}
           </ThemedText>
         </View>
@@ -140,15 +153,15 @@ export function IconButton({
 const styles = StyleSheet.create({
   button: {
     ...Controls.button,
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two,
+    paddingHorizontal: BUTTON_STYLE.paddingHorizontal,
+    paddingVertical: BUTTON_STYLE.paddingVertical,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
   },
   textButton: { paddingHorizontal: Spacing.three },
   compact: { alignSelf: 'flex-start' },
-  inner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
+  inner: { flexDirection: 'row', alignItems: 'center', gap: BUTTON_STYLE.iconGap },
   label: { textAlign: 'center', flexShrink: 1 },
   iconTarget: { width: TouchTarget, height: TouchTarget, alignItems: 'center', justifyContent: 'center' },
   iconMark: { width: 40, height: 40, ...Controls.iconMark, alignItems: 'center', justifyContent: 'center' },

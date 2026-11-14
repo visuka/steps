@@ -9,6 +9,9 @@ import { confirmDelete } from '@/components/confirm';
 import { Button, Chip, NumberField, TextField } from '@/components/controls';
 import { OwnFoodForm } from '@/components/food/own-food-form';
 import { type PlaceInput, PlacePicker } from '@/components/food/place-picker';
+import { FoodResult, FoodResultScreen } from '@/components/food/food-result';
+import { mealWord } from '@/components/food/food-result-format';
+import { useFoodResultLayer, useHasFoodResultHost } from '@/components/food/food-result-host';
 import { PortionPicker } from '@/components/food/portion-picker';
 import { RecipeForm } from '@/components/food/recipe-form';
 import { ThemedText } from '@/components/themed-text';
@@ -504,6 +507,42 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
     );
   };
 
+  // The result is a screen of its own over the Food tab (food-result-host.tsx); a log with no host
+  // around it shows it here in the card. The words in their own
+  // script are the food's first alias written in another script ("ఎండు చేపల గుడ్డు కూర").
+  const covers = useHasFoodResultHost();
+  const Result = covers ? FoodResultScreen : FoodResult;
+  const pickResult =
+    mode.kind === 'pick' ? (
+      <Result
+        key={mode.food.id}
+        query={mode.lookup && lookup.status === 'done' ? lookup.query : null}
+        food={mode.food}
+        overrides={book.overrides}
+        initialUnit={mode.unit}
+        initialQuantity={mode.quantity}
+        showWorking={mode.working}
+        script={scriptOf(mode.food)}
+        actionLabel={`Save to ${mealWord(eatenAt ?? now)}`}
+        busy={busy}
+        onCancel={() => (mode.lookup ? setMode({ kind: 'search' }) : reset())}
+        onSetPortion={(unit, grams) => book.setPortion(mode.food, unit, grams)}
+        onDone={(unit, quantity) =>
+          once(async () => {
+            const part = mode.lookup;
+            await logFood(mode.food, unit, quantity, asksPlace(mode.food) ? here : HOME);
+            if (part) doneWithPart(part);
+            else reset();
+          })
+        }>
+        <WhenField value={eatenAt ?? now} onChange={setEatenAt} />
+        {asksPlace(mode.food) ? (
+          <PlacePicker value={placeIn} onChange={choosePlace} restaurants={restaurants} note={lookupNote(mode.food)} />
+        ) : null}
+      </Result>
+    ) : null;
+  useFoodResultLayer(covers ? pickResult : null);
+
   const results = mode.kind === 'search' ? searchFoods(query, book.own, book.saved) : [];
   const q = query.trim();
 
@@ -581,32 +620,7 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
           </>
         ) : null}
 
-        {mode.kind === 'pick' ? (
-          <PortionPicker
-            key={mode.food.id}
-            food={mode.food}
-            overrides={book.overrides}
-            initialUnit={mode.unit}
-            initialQuantity={mode.quantity}
-            showWorking={mode.working}
-            actionLabel="Add"
-            busy={busy}
-            onCancel={() => (mode.lookup ? setMode({ kind: 'search' }) : reset())}
-            onSetPortion={(unit, grams) => book.setPortion(mode.food, unit, grams)}
-            onDone={(unit, quantity) =>
-              once(async () => {
-                const part = mode.lookup;
-                await logFood(mode.food, unit, quantity, asksPlace(mode.food) ? here : HOME);
-                if (part) doneWithPart(part);
-                else reset();
-              })
-            }>
-            <WhenField value={eatenAt ?? now} onChange={setEatenAt} />
-            {asksPlace(mode.food) ? (
-              <PlacePicker value={placeIn} onChange={choosePlace} restaurants={restaurants} note={lookupNote(mode.food)} />
-            ) : null}
-          </PortionPicker>
-        ) : null}
+        {covers ? null : pickResult}
 
         {mode.kind === 'own' ? (
           <OwnFoodForm
@@ -957,3 +971,8 @@ const styles = StyleSheet.create({
   days: { flexDirection: 'row', gap: Spacing.two },
   dayButton: { flex: 1 },
 });
+
+/** The food's name in its own script (an alias in a non-Latin script), for the result's second line. */
+function scriptOf(food: { aliases: string[] }): string | null {
+  return food.aliases.find((a) => /[^\s\u0021-\u024F\u1E00-\u1EFF\u2000-\u206F]/.test(a)) ?? null;
+}

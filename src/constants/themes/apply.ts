@@ -9,7 +9,6 @@
 import { reloadAppAsync } from 'expo';
 import * as Font from 'expo-font';
 import * as SystemUI from 'expo-system-ui';
-import { Appearance } from 'react-native';
 
 import { deviceStore, writeThemeId } from './choice';
 import { fontMap } from './build';
@@ -31,7 +30,7 @@ export type ApplyResult = 'failed' | 'reopen';
 export async function applyTheme(id: ThemeId): Promise<ApplyResult> {
   if (!writeThemeId(deviceStore(), id)) return 'failed';
   // Until the new run draws, the window shows through: give it the new theme's ground now.
-  await SystemUI.setBackgroundColorAsync(groundOf(themeById(id), Appearance.getColorScheme())).catch(() => undefined);
+  await SystemUI.setBackgroundColorAsync(groundOf(themeById(id))).catch(() => undefined);
   try {
     await reloadAppAsync(`Theme changed to ${id}`);
   } catch {

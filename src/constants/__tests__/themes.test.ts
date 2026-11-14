@@ -12,8 +12,21 @@ import {
   type ThemeStore,
   writeThemeId,
 } from '../themes';
-import { buildControls, buildFonts, buildType, faceForWeight, fontMap, numeralFontOf, uiFontOf } from '../themes/build';
-import { TouchTarget, TYPE_ROLES } from '../tokens';
+import {
+  buildControls,
+  buildFonts,
+  buildType,
+  faceForWeight,
+  fontMap,
+  mapColorsOf,
+  numeralFontOf,
+  resolveColor,
+  uiFontOf,
+} from '../themes/build';
+import { CLEAN_OFF_SPEC } from '../themes/clean';
+import { CLEAN_SPEC } from '../themes/clean-spec';
+import type { ColorRef } from '../themes/types';
+import { contrast, TouchTarget, TYPE_ROLES } from '../tokens';
 
 /** An in-memory stand-in for expo-sqlite/kv-store. */
 function memoryStore(initial: Record<string, string> = {}): ThemeStore & { data: Record<string, string> } {
@@ -37,20 +50,22 @@ const broken: ThemeStore = {
 };
 
 describe('theme registry', () => {
-  it('lists park, a, b, c, d, e, f in that order, each once', () => {
-    expect(THEMES.map((t) => t.id)).toEqual(['park', 'a', 'b', 'c', 'd', 'e', 'f']);
+  it('lists clean, park, a, b, c, d, e, f in that order, each once', () => {
+    expect(THEMES.map((t) => t.id)).toEqual(['clean', 'park', 'a', 'b', 'c', 'd', 'e', 'f']);
     expect(THEMES.map((t) => t.id)).toEqual([...THEME_IDS]);
   });
 
-  it('defaults to Colour blocks', () => {
-    expect(DEFAULT_THEME_ID).toBe('d');
+  it('defaults to Clean+, and the other looks stay selectable', () => {
+    expect(DEFAULT_THEME_ID).toBe('clean');
+    expect(themeById('clean').name).toBe('Clean+');
     expect(themeById('d').name).toBe('Colour blocks');
+    expect(THEME_IDS).toHaveLength(8);
   });
 
   it.each(THEMES.map((t) => [t.id, t] as const))('%s is complete', (_id, t) => {
     expect(t.name.length).toBeGreaterThan(0);
     expect(t.description.length).toBeGreaterThan(0);
-    expect(['system', 'light', 'dark']).toContain(t.mode);
+    expect(['light', 'dark']).toContain(t.mode);
     for (const face of Object.values(t.fonts)) {
       expect(face.family).toMatch(/^[A-Za-z]+_\d{3}[A-Za-z]+$/);
       expect(face.source).toBeDefined();
@@ -64,12 +79,12 @@ describe('theme registry', () => {
     expect(typeof t.style.numeralTabular).toBe('boolean');
   });
 
-  it('the window behind a restart takes the new theme’s ground for the phone’s scheme', () => {
-    expect(groundOf(themeById('d'), 'light')).toBe('#FFFFFF');
-    expect(groundOf(themeById('d'), 'dark')).toBe(themeById('d').colors.dark.surface);
-    expect(groundOf(themeById('d'), null)).toBe('#FFFFFF');
-    // Night is dark only: dark ground on a light phone too.
-    expect(groundOf(themeById('b'), 'light')).toBe(themeById('b').colors.dark.surface);
+  it('the window behind a restart takes the new theme\u2019s ground, whatever the phone says', () => {
+    expect(groundOf(themeById('clean'))).toBe('#FFFFFF');
+    expect(groundOf(themeById('d'))).toBe('#FFFFFF');
+    // Night is dark only.
+    expect(groundOf(themeById('b'))).toBe(themeById('b').colors.dark.surface);
+    for (const t of THEMES) expect(groundOf(t)).toBe(t.colors[t.mode].surface);
   });
 
   it('a one-scheme theme gives that scheme as both light and dark', () => {
@@ -80,7 +95,7 @@ describe('theme registry', () => {
   });
 
   // The font stub gives each export its own name, so this checks the file, not just the label.
-  it.each(THEMES.map((t) => [t.id, t] as const))('%s: every face is loaded under its own file’s name', (_id, t) => {
+  it.each(THEMES.map((t) => [t.id, t] as const))('%s: every face is loaded under its own fileï¿½s name', (_id, t) => {
     for (const [weight, face] of Object.entries(t.fonts))
       expect({ weight, family: face.family }).toEqual({ weight, family: face.source });
   });
@@ -95,15 +110,107 @@ describe('theme registry', () => {
   });
 });
 
-describe('saved choice', () => {
-  it('reads the default when nothing is saved, the store is missing, or it fails', () => {
-    expect(readThemeId(memoryStore())).toBe('d');
-    expect(readThemeId(null)).toBe('d');
-    expect(readThemeId(broken)).toBe('d');
+describe('mockup looks', () => {
+  it('Clean+, Park, A, C, D, E and F are light, B is dark; none follows the phone', () => {
+    for (const id of ['clean', 'park', 'a', 'c', 'd', 'e', 'f'] as const) {
+      expect(themeById(id).mode).toBe('light');
+      expect(themeById(id).colors.dark).toEqual(themeById(id).colors.light);
+    }
+    expect(themeById('b').mode).toBe('dark');
+    expect(themeById('b').colors.light).toEqual(themeById('b').colors.dark);
   });
 
-  it('ignores an unknown saved value', () => {
-    expect(readThemeId(memoryStore({ [THEME_KEY]: 'neon' }))).toBe('d');
+  it('every look except Park has its map', () => {
+    for (const id of ['clean', 'a', 'b', 'c', 'd', 'e', 'f'] as const) {
+      const t = themeById(id);
+      expect(t.map).toBeDefined();
+      expect(mapColorsOf(t, 'light')).toBe(t.map);
+    }
+    // Park has no map of its own: the OpenFreeMap light style, since it is light only.
+    expect(mapColorsOf(themeById('park'), 'light').base).toBe('light');
+  });
+
+  it('nothing is in capitals except small labels', () => {
+    for (const t of THEMES) {
+      for (const spec of [t.style.overline, t.style.kicker]) if (spec?.case === 'upper') expect(spec.size).toBeLessThanOrEqual(12);
+      expect(t.style.buttonCase ?? 'none').toBe('none');
+      expect(t.style.chipCase ?? 'none').toBe('none');
+    }
+  });
+
+  it('colour references name a role or a #RRGGBB colour', () => {
+    const roles = Object.keys(themeById('park').colors.light);
+    for (const t of THEMES) {
+      const s = t.style;
+      const refs = [
+        s.outlined?.border,
+        s.outlined?.fill,
+        s.outlined?.ink,
+        s.overline?.color,
+        s.kicker?.color,
+        s.segment?.well,
+        s.segment?.wellBorder,
+        s.segment?.selected,
+        s.segment?.onSelected,
+        s.segment?.selectedBorder,
+        s.segment?.idle,
+        s.segment?.divider,
+        s.nav?.background,
+        s.nav?.border,
+        s.nav?.pill,
+        s.nav?.onPill,
+        s.nav?.active,
+        s.nav?.idle,
+      ].filter((r): r is ColorRef => typeof r === 'string' && r !== 'tone');
+      for (const r of refs) expect({ id: t.id, r, ok: /^#[0-9A-F]{6}$/i.test(r) || roles.includes(r) }).toEqual({ id: t.id, r, ok: true });
+    }
+  });
+
+  it('labels, segments, nav labels and button labels read on their plates (4.5:1)', () => {
+    for (const t of THEMES) {
+      const c = t.colors.light;
+      const at = (r: string) => resolveColor(c, r as ColorRef);
+      const s = t.style;
+      const pairs: [string, string, string][] = [];
+      for (const spec of [s.overline, s.kicker]) if (spec) pairs.push(['label', spec.color, 'surface']);
+      if (s.segment) {
+        pairs.push(['segment selected', s.segment.onSelected, s.segment.selected]);
+        pairs.push(['segment idle', s.segment.idle, s.segment.well ?? 'surface']);
+      }
+      if (s.nav) {
+        pairs.push(['nav active', s.nav.active, s.nav.background]);
+        pairs.push(['nav idle', s.nav.idle, s.nav.background]);
+      }
+      if (s.outlined) pairs.push(['outlined', s.outlined.ink, s.outlined.fill ?? 'surface']);
+      if (s.filledRole === 'tertiary') pairs.push(['filled', 'onTertiary', 'tertiary']);
+      for (const [what, fg, bg] of pairs)
+        expect({ id: t.id, what, ok: contrast(at(fg), at(bg)) >= 4.5 }).toEqual({ id: t.id, what, ok: true });
+    }
+  });
+
+  it("F's dark block: text 4.5:1, marks 3:1, the mark apart from its lane", () => {
+    const b = themeById('f').block!;
+    for (const fg of [b.text, b.quiet]) expect(contrast(fg, b.plate)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(b.onChip, b.chip)).toBeGreaterThanOrEqual(4.5);
+    for (const m of [b.mark, b.mark2, b.mark3, b.barHigh, b.barLow, b.average]) expect(contrast(m, b.plate)).toBeGreaterThanOrEqual(3);
+    expect(contrast(b.mark, b.lane)).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe('saved choice', () => {
+  it('reads Clean+ when nothing is saved, the store is missing, or it fails', () => {
+    expect(readThemeId(memoryStore())).toBe('clean');
+    expect(readThemeId(null)).toBe('clean');
+    expect(readThemeId(broken)).toBe('clean');
+  });
+
+  it('an unknown saved id loads Clean+; a saved look is kept', () => {
+    expect(readThemeId(memoryStore({ [THEME_KEY]: 'neon' }))).toBe('clean');
+    expect(activeTheme(memoryStore({ [THEME_KEY]: 'neon' })).id).toBe('clean');
+    for (const id of ['park', 'a', 'b', 'c', 'd', 'e', 'f'] as const) {
+      expect(readThemeId(memoryStore({ [THEME_KEY]: id }))).toBe(id);
+      expect(activeTheme(memoryStore({ [THEME_KEY]: id })).id).toBe(id);
+    }
   });
 
   it('writes and reads back each theme', () => {
@@ -246,11 +353,17 @@ describe('button, chip and FAB shapes', () => {
     for (const id of ['park', 'a', 'b', 'c', 'd', 'f'] as const) expect(controls(id).button.minHeight).toBe(48);
   });
 
-  it('F sets chips in small capitals; buttons keep sentence case everywhere, as drawn', () => {
-    expect(controls('f').chipLabel).toEqual({ textTransform: 'uppercase' });
-    expect(controls('f').chipType).toBe('labelMedium');
-    for (const t of THEMES) expect(buildControls(t).buttonLabel).toEqual({});
-    for (const id of ['park', 'a', 'b', 'c', 'd', 'e'] as const) expect(controls(id).chipLabel).toEqual({});
+  it('chips and buttons keep sentence case everywhere, as drawn', () => {
+    for (const t of THEMES) {
+      expect(buildControls(t).buttonLabel).toEqual({});
+      expect(buildControls(t).chipLabel).toEqual({});
+      expect(buildControls(t).chipType).toBe('labelLarge');
+    }
+  });
+
+  it('the mockup themes draw 56 dp main action buttons', () => {
+    for (const id of ['a', 'b', 'c', 'd', 'e', 'f'] as const) expect(controls(id).action.minHeight).toBe(56);
+    expect(controls('park').action.minHeight).toBe(48);
   });
 
   it('the mockup themes draw a flat FAB', () => {
@@ -268,5 +381,94 @@ describe('button, chip and FAB shapes', () => {
     expect(c.iconMark.borderRadius).toBe(8);
     expect(c.buttonLabel).toEqual({ textTransform: 'uppercase' });
     expect(c.fab).toMatchObject({ elevation: 0, shadowOpacity: 0 });
+  });
+});
+
+describe('Clean+ equals the spec', () => {
+  const t = themeById('clean');
+  const scheme = t.colors.light;
+
+  it('uses the spec colours for the roles they name', () => {
+    const k = CLEAN_SPEC.colors;
+    expect(scheme.primary).toBe(k.accent);
+    expect(scheme.steps).toBe(k.accent);
+    expect(scheme.water).toBe(k.accent);
+    expect(scheme.food).toBe(k.warm);
+    expect(scheme.foodContainer).toBe(k.warmTint);
+    expect(scheme.sleep).toBe(k.indigo);
+    expect(scheme.sleepContainer).toBe(k.indigoTint);
+    expect(scheme.over).toBe(k.warn);
+    expect(scheme.onSurface).toBe(k.ink);
+    expect(scheme.onSurfaceVariant).toBe(k.muted);
+    expect(scheme.surface).toBe(k.white);
+    expect(scheme.outlineVariant).toBe(k.hair);
+  });
+
+  it('is light and the same with the phone in dark mode', () => {
+    expect(t.mode).toBe('light');
+    expect(t.colors.dark).toEqual(t.colors.light);
+    expect(groundOf(t)).toBe(CLEAN_SPEC.colors.white);
+  });
+
+  it('sets the spec type: Poppins 300/400/500, sizes and lines', () => {
+    const fonts = buildFonts(t, 'android');
+    const type = buildType(t, fonts);
+    const sp = CLEAN_SPEC.type;
+    expect(type.bodyLarge).toMatchObject({ fontFamily: 'Poppins_400Regular', fontSize: sp.body.size, lineHeight: sp.body.lineHeight });
+    expect(type.bodySmall).toMatchObject({ fontFamily: 'Poppins_400Regular', fontSize: sp.caption.size, lineHeight: sp.caption.lineHeight });
+    expect(type.titleMedium).toMatchObject({ fontFamily: 'Poppins_500Medium', fontSize: sp.value.size, lineHeight: sp.value.lineHeight });
+    expect(type.titleLarge).toMatchObject({ fontFamily: 'Poppins_500Medium', fontSize: sp.title.size, lineHeight: sp.title.lineHeight });
+    expect(type.numeralHero).toMatchObject({
+      fontFamily: 'Poppins_300Light',
+      fontSize: sp.display.size,
+      lineHeight: sp.display.lineHeight,
+      letterSpacing: sp.display.letterSpacing,
+    });
+    for (const face of Object.values(t.fonts)) expect(face.family).toMatch(/^Poppins_(300Light|400Regular|500Medium)$/);
+  });
+
+  it('takes its radii, map and buttons from the spec', () => {
+    const r = CLEAN_SPEC.radius;
+    // Roles as tokens.ts defines them: md cards and tiles, lg the FAB.
+    expect(t.radius.md).toBe(r.card);
+    expect(t.radius.lg).toBe(r.fab);
+    expect(t.radius.sm).toBe(r.pill);
+    expect(t.style.buttonRadius).toBe(r.button);
+    expect(t.style.buttonHeight).toBe(CLEAN_SPEC.sizes.button.height);
+    expect(t.map).toMatchObject({
+      land: CLEAN_SPEC.colors.mapLand,
+      water: CLEAN_SPEC.colors.mapWater,
+      route: CLEAN_SPEC.colors.accent,
+      radius: r.map,
+      height: CLEAN_SPEC.sizes.map.height,
+    });
+  });
+
+  it('every colour is a spec colour or one of the approved exceptions', () => {
+    const allowed = new Set<string>([...Object.values(CLEAN_SPEC.colors), ...CLEAN_OFF_SPEC]);
+    for (const [role, hex] of Object.entries(scheme)) expect({ role, ok: allowed.has(hex) }).toEqual({ role, ok: true });
+    expect(scheme.lane).toBe(CLEAN_SPEC.colors.hair);
+  });
+
+  it('every type role is one of the spec steps, in its face', () => {
+    const fonts = buildFonts(t, 'android');
+    const built = buildType(t, fonts);
+    const sp = CLEAN_SPEC.type;
+    const steps = [sp.caption, sp.body, sp.value, sp.title, sp.display];
+    const face = { 300: 'Poppins_300Light', 400: 'Poppins_400Regular', 500: 'Poppins_500Medium' } as const;
+    for (const role of TYPE_ROLES) {
+      const b = built[role];
+      const step = steps.find((s) => s.size === b.fontSize && s.lineHeight === b.lineHeight);
+      expect({ role, step: Boolean(step) }).toEqual({ role, step: true });
+      // Size and line fix the step; the face is the step's weight, except body-size labels and titles at 500.
+      if (step === sp.display || step === sp.caption || step === sp.title || step === sp.value)
+        expect({ role, face: b.fontFamily }).toEqual({ role, face: face[step.weight] });
+      else expect({ role, ok: [face[400], face[500]].includes(b.fontFamily as never) }).toEqual({ role, ok: true });
+    }
+    expect(built.headlineMedium).toMatchObject({ fontSize: 22, lineHeight: 30 });
+  });
+
+  it('loads only the weights the spec uses', () => {
+    expect(Object.keys(fontMap(t)).sort()).toEqual(['Poppins_300Light', 'Poppins_400Regular', 'Poppins_500Medium']);
   });
 });
