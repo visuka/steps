@@ -163,3 +163,9 @@ A short entry is added at the end after each finished task: date, what was done,
 - CI run 43599840988 (b2b473d, all jobs green). Every shot is covered by the emulator's "Pixel Launcher isn't responding" box. Under it, review 2's fixes show: the walk route has the mockup's shape with the car part dotted and no gap, the food list ends at Vitamin A, the light detail shot is the real screen.
 - Item 23 (Haiku): the capture script hides and closes system dialogs. One more clean run is needed (review 4).
 - Planned the same day: T15 (correct a dish's ingredients and amounts) and T16 (walk buddies; owner chose area-only nearby, chat after accept, totals for buddies only, 18+).
+
+## 14 Nov 2026 — T12 review 4 (Opus)
+
+- CI run 43612325716 (1219365, all jobs green). Item 23 worked: no system dialog in any shot, no warning in the log.
+- Today (light and dark), the food result and the detail screen match the mockup and spec. The walk route and the dotted car part match.
+- Item 24 (Haiku): the sample walk's legs had very different speeds (0.88 and 1.95 m/s), so the pace sparkline climbs at the end. Fix the car times (7:25–7:31) and scale the route so the on-foot length is 2,300 m; this also fixes the distance mismatch noted in the review 2 fixes.

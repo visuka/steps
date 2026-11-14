@@ -1,6 +1,6 @@
 # Current task: Build 22 — the chosen Clean+ look, hourly detail, bug fixes
 
-Status: **Approved design: Clean+ blue (14 Nov 2026).** T0 to T11 done; CI run 43591624287 gave the first screenshots. T12 review 1 and its fixes are done; CI run 43596886754 gave new screenshots. T12 review 2 done and its fixes (items 19–22) are done by Sonnet (b2b473d); CI run 43599840988 is running. Next: **Opus review 3**. New owner request: **T15** (correct a dish's ingredients and amounts, and remember them), planned below. Sonnet can start T15a now; it does not touch the review files.
+Status: **Approved design: Clean+ blue (14 Nov 2026).** T0 to T11 done; CI run 43591624287 gave the first screenshots. T12 review 1 and its fixes are done; CI run 43596886754 gave new screenshots. T12 review 2 done and its fixes (items 19–22) are done by Sonnet (b2b473d); Review 3 (item 23, Haiku) is done. Review 4 (CI run 43612325716) is clean apart from the walk's pace sparkline: item 24 for Haiku in `docs/design/review-4.md`. Then **Opus review 5**, then the owner's final design OK. New owner request: **T15** (correct a dish's ingredients and amounts, and remember them), planned below. Sonnet can start T15a now; it does not touch the review files.
 
 ## Who does what next
 
@@ -24,8 +24,10 @@ Status: **Approved design: Clean+ blue (14 Nov 2026).** T0 to T11 done; CI run 4
 | ~~Review 2 fixes~~ | done (Sonnet, b2b473d) | |
 | T11 re-run | running | CI run 43599840988 |
 | ~~T12 review 3~~ | done | `docs/design/review-3.md`: item 23 for Haiku |
-| **Review 3 fix (next)** | Haiku | "Fix item 23 in docs/design/review-3.md" |
-| T12 review 4 | Opus | "Review the CI screenshots" |
+| ~~Review 3 fix~~ | done (Haiku, 1219365) | |
+| ~~T12 review 4~~ | done | `docs/design/review-4.md`: item 24 for Haiku |
+| **Review 4 fix (next)** | Haiku | "Fix item 24 in docs/design/review-4.md" |
+| T12 review 5 | Opus | "Review the CI screenshots", then the owner's final OK |
 | **T15a** | Sonnet | "Do T15a in docs/current-task.md" |
 | T15b | Sonnet | "Do T15b in docs/current-task.md" |
 | T15 check | Opus | "Review the CI screenshots" |
