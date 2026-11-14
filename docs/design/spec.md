@@ -225,6 +225,7 @@ All are 24-unit viewBox shapes, drawn with `fill="none"`, stroke 1.5, round caps
 | gauge (Pace) | `path M4.5 16.5a8 8 0 1 1 15 0` · `path M12 13.5l3.5-4` · `circle cx12 cy13.5 r1` |
 | stairs (Floors) | `path M4 19h4v-4h4v-4h4V7h4` |
 | speed | `path M5 17a8 8 0 1 1 14 0` · `path M12 13l4-4` · `path M12 13h.01` |
+| close (Remove an ingredient) | `path M6 6l12 12M18 6L6 18` |
 
 Icons used for ingredients other than the five drawn (rice, dal, milk …) are not in the mockup: see "Not drawn".
 

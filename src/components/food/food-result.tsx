@@ -7,18 +7,21 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFoodResultCovering } from '@/components/food/food-result-cover';
 import { Chip, NumberField, Button as OldButton, Stepper } from '@/components/controls';
 import { ThemedText } from '@/components/themed-text';
-import { Button as UiButton, Chip as UiChip, Donut, IconCircle, NutrientRow, SpecIcon } from '@/components/ui';
+import { Button as UiButton, Chip as UiChip, Donut, IconCircle, NutrientRow, Pill, SpecIcon } from '@/components/ui';
 import { donutColors } from '@/components/ui/donut-geometry';
 import { MaxContentWidth, NumeralMaxScale, Spacing } from '@/constants/theme';
 import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
 import { TELUGU_FONT } from '@/constants/themes/fonts';
 import { useTheme } from '@/hooks/use-theme';
 import { gramsFor, isSavedFoodId, nutrientsFor, type PortionOverrides, unitsFor } from '@/nutrition/catalog';
+import { isMine } from '@/nutrition/my-dishes';
 import { NUTRIENT } from '@/nutrition/nutrients';
 import { PARTIAL_NOTE } from '@/nutrition/state';
 import type { FoodItem, NutrientKey, Nutrients } from '@/nutrition/types';
 import { glBand, glycemicIndex, type WatchOut, watchOuts } from '@/nutrition/watch';
 
+import { addEditRow, type EditRow, editList, editProblem, editRowsFrom, patchEditRow, removeEditRow } from './food-result-edit';
+import { EditIngredientRows } from './food-result-edit-rows';
 import {
   FLAG_KEYS,
   gramsText,
@@ -61,6 +64,15 @@ export interface FoodResultProps {
   onDone: (unit: string, quantity: number, nutrients: Nutrients) => void;
   onCancel: () => void;
   onSetPortion: (unit: string, grams: number) => void;
+  /**
+   * The person corrected the ingredients (T15): the list to work out. Resolves with null when
+   * their version is kept, or the words to show when it was not. Without it the list can't be edited.
+   */
+  onChangeIngredients?: (list: { name: string; grams: number }[], now: { unit: string; quantity: number }) => Promise<string | null>;
+  /** Open with the ingredient list already being edited (the design preview's edit=1). */
+  startEditing?: boolean;
+  /** "Use our guess again", on the person's own version (T15). */
+  onUseOurGuess?: () => void;
   /** Extra controls under the preview, e.g. when it was eaten. */
   children?: ReactNode;
 }
@@ -130,12 +142,21 @@ function Result({
   onDone,
   onCancel,
   onSetPortion,
+  onChangeIngredients,
+  onUseOurGuess,
+  startEditing,
   children,
 }: FoodResultProps & { screen?: boolean; onBack?: () => void }) {
   const theme = useTheme();
   const s = useResultState(food, overrides, initialUnit, initialQuantity);
   const [editing, setEditing] = useState(Boolean(showWorking));
   const [watchOpen, setWatchOpen] = useState<NutrientKey | null>(null);
+  // The ingredient list while it is edited: null when it is not.
+  const [rows, setRows] = useState<EditRow[] | null>(() =>
+    startEditing && onChangeIngredients ? editRowsFrom(food.ingredients ?? []) : null,
+  );
+  const [working, setWorking] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
   const insets = useSafeAreaInsets();
   // The tab bar carries the bottom inset, unless it has stepped aside for this result (food-result-cover.ts).
   const barHidden = useFoodResultCovering();
@@ -163,17 +184,61 @@ function Result({
     return () => sub.remove();
   }, [screen, onScreen]);
 
+  const startEdit = () => {
+    setMessage(null);
+    setRows(editRowsFrom(food.ingredients ?? []));
+  };
+  const problem = rows ? editProblem(rows) : null;
+  const confirmEdit = async () => {
+    if (!rows || !onChangeIngredients || working || problem) return;
+    setWorking(true);
+    setMessage(null);
+    try {
+      const said = await onChangeIngredients(editList(rows), { unit: s.unit, quantity: s.quantity });
+      if (said === null) setRows(null);
+      else setMessage(said);
+    } catch {
+      setMessage(COULD_NOT);
+    } finally {
+      setWorking(false);
+    }
+  };
+
   const body = (
     <>
-      <TopBar s={s} typed={Boolean(query)} onBack={back} onPortion={() => setEditing(!editing)} />
+      <TopBar s={s} typed={Boolean(query)} mine={isMine(food)} onBack={back} onPortion={() => setEditing(!editing)} />
       <Title query={query} script={script} food={food} />
       <Hero s={s} />
       {editing ? (
-        <Details s={s} food={food} showWorking={showWorking} onSetPortion={onSetPortion}>
+        <Details
+          s={s}
+          food={food}
+          showWorking={showWorking}
+          onSetPortion={onSetPortion}
+          onUseOurGuess={onUseOurGuess}
+          onChangeIngredients={onChangeIngredients && !rows ? startEdit : undefined}>
           {children}
         </Details>
       ) : null}
-      <Ingredients food={food} s={s} />
+      <Ingredients
+        food={food}
+        s={s}
+        edit={
+          rows
+            ? {
+                rows,
+                working,
+                problem,
+                message,
+                onName: (key, name) => setRows((r) => (r ? patchEditRow(r, key, { name }) : r)),
+                onGrams: (key, grams) => setRows((r) => (r ? patchEditRow(r, key, { grams }) : r)),
+                onRemove: (key) => setRows((r) => (r ? removeEditRow(r, key) : r)),
+                onAdd: () => setRows((r) => (r ? addEditRow(r) : r)),
+              }
+            : null
+        }
+        onStartEdit={onChangeIngredients ? startEdit : undefined}
+      />
       <NutrientList s={s} open={watchOpen} onToggle={(k) => setWatchOpen(watchOpen === k ? null : k)} />
     </>
   );
@@ -188,16 +253,30 @@ function Result({
           borderTopColor: theme.outlineVariant,
         },
       ]}>
-      <UiButton
-        variant="secondary"
-        label="Edit"
-        disabled={busy}
-        accessibilityLabel="Edit the portion and details"
-        accessibilityHint={editing ? 'Hides the portion and details' : 'Shows the portion and details'}
-        onPress={() => setEditing(!editing)}
-        style={styles.edit}
-      />
-      <UiButton label={actionLabel} disabled={busy} onPress={() => onDone(s.unit, s.quantity, s.n)} style={styles.save} />
+      {rows ? (
+        <>
+          <UiButton variant="secondary" label="Cancel" disabled={working} onPress={() => setRows(null)} style={styles.edit} />
+          <UiButton
+            label={working ? 'Working it out…' : 'Use these ingredients'}
+            disabled={working || problem !== null}
+            onPress={confirmEdit}
+            style={styles.save}
+          />
+        </>
+      ) : (
+        <>
+          <UiButton
+            variant="secondary"
+            label="Edit"
+            disabled={busy}
+            accessibilityLabel="Edit the portion and details"
+            accessibilityHint={editing ? 'Hides the portion and details' : 'Shows the portion and details'}
+            onPress={() => setEditing(!editing)}
+            style={styles.edit}
+          />
+          <UiButton label={actionLabel} disabled={busy} onPress={() => onDone(s.unit, s.quantity, s.n)} style={styles.save} />
+        </>
+      )}
     </View>
   );
 
@@ -232,29 +311,45 @@ function Result({
 
 const same = (x: string, y: string) => x.trim().toLowerCase() === y.trim().toLowerCase();
 
-function TopBar({ s, typed, onBack, onPortion }: { s: ResultState; typed: boolean; onBack: () => void; onPortion: () => void }) {
+function TopBar({
+  s,
+  typed,
+  mine,
+  onBack,
+  onPortion,
+}: {
+  s: ResultState;
+  typed: boolean;
+  /** The person's own version of the dish (T15). */
+  mine: boolean;
+  onBack: () => void;
+  onPortion: () => void;
+}) {
   const theme = useTheme();
   const portion = portionText(s.quantity, s.unit, s.current.label);
   return (
     <View style={styles.topBar}>
-      <Pressable
-        onPress={onBack}
-        accessibilityRole="button"
-        accessibilityLabel="Back"
-        hitSlop={{ top: 4, bottom: 4, left: 14, right: 14 }}
-        style={styles.back}>
-        <SpecIcon name="chevron-left" color={theme.onSurface} />
-        {typed ? (
-          <ThemedText
-            type="bodySmall"
-            themeColor="onSurfaceVariant"
-            maxFontSizeMultiplier={NumeralMaxScale}
-            accessibilityElementsHidden
-            importantForAccessibility="no">
-            You typed
-          </ThemedText>
-        ) : null}
-      </Pressable>
+      <View style={styles.backGroup}>
+        <Pressable
+          onPress={onBack}
+          accessibilityRole="button"
+          accessibilityLabel="Back"
+          hitSlop={{ top: 4, bottom: 4, left: 14, right: 14 }}
+          style={styles.back}>
+          <SpecIcon name="chevron-left" color={theme.onSurface} />
+          {typed ? (
+            <ThemedText
+              type="bodySmall"
+              themeColor="onSurfaceVariant"
+              maxFontSizeMultiplier={NumeralMaxScale}
+              accessibilityElementsHidden
+              importantForAccessibility="no">
+              You typed
+            </ThemedText>
+          ) : null}
+        </Pressable>
+        {mine ? <Pill label="Your version" /> : null}
+      </View>
       <UiChip label={portion} trailingIcon="chevron-down" onPress={onPortion} accessibilityLabel={`Portion: ${portion}. Change it`} />
     </View>
   );
@@ -356,11 +451,24 @@ function Hero({ s }: { s: ResultState }) {
 
 // ── ingredients ──────────────────────────────────────────────────────────
 
-function Ingredients({ food, s }: { food: FoodItem; s: ResultState }) {
+interface EditView {
+  rows: EditRow[];
+  working: boolean;
+  /** Why Use these ingredients is off, or null. */
+  problem: string | null;
+  /** The last try could not be worked out. */
+  message: string | null;
+  onName: (key: string, name: string) => void;
+  onGrams: (key: string, grams: string) => void;
+  onRemove: (key: string) => void;
+  onAdd: () => void;
+}
+
+function Ingredients({ food, s, edit, onStartEdit }: { food: FoodItem; s: ResultState; edit: EditView | null; onStartEdit?: () => void }) {
   const theme = useTheme();
   const { width, fontScale } = useContentWidth();
   const list = food.ingredients ?? [];
-  if (!list.length) return null;
+  if (!list.length && !edit) return null;
   // Ingredients are given for the food's first unit (a recipe's one serving).
   const per = food.units[0];
   const perOther = per && !(s.unit === per.key && s.quantity === 1) ? ` · in 1 ${per.label}` : '';
@@ -370,13 +478,41 @@ function Ingredients({ food, s }: { food: FoodItem; s: ResultState }) {
         <ThemedText type="labelLarge" accessibilityRole="header" maxFontSizeMultiplier={NumeralMaxScale} style={styles.shrink}>
           Ingredients{perOther}
         </ThemedText>
-        {food.pending ? (
+        {edit ? (
+          <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={NumeralMaxScale} style={styles.pendingNote}>
+            Amounts in 1 {per?.label ?? 'serving'}
+          </ThemedText>
+        ) : food.pending ? (
           <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={NumeralMaxScale} style={styles.pendingNote}>
             Some ingredients still being added
           </ThemedText>
         ) : null}
       </View>
-      {list.map((ing, index) => {
+      {edit ? (
+        <>
+          <EditIngredientRows
+            rows={edit.rows}
+            width={width}
+            fontScale={fontScale}
+            locked={edit.working}
+            onName={edit.onName}
+            onGrams={edit.onGrams}
+            onRemove={edit.onRemove}
+            onAdd={edit.onAdd}
+          />
+          {edit.problem ? (
+            <ThemedText type="bodySmall" maxFontSizeMultiplier={NumeralMaxScale} accessibilityLiveRegion="polite" style={{ color: theme.error }}>
+              {edit.problem}
+            </ThemedText>
+          ) : null}
+          {edit.message ? (
+            <ThemedText type="bodySmall" maxFontSizeMultiplier={NumeralMaxScale} accessibilityLiveRegion="polite" style={{ color: theme.error }}>
+              {edit.message}
+            </ThemedText>
+          ) : null}
+        </>
+      ) : null}
+      {edit ? null : list.map((ing, index) => {
         const line = ingredientLine(ing.name);
         const grams = gramsText(ing.grams);
         const last = index === list.length - 1;
@@ -408,6 +544,23 @@ function Ingredients({ food, s }: { food: FoodItem; s: ResultState }) {
           </View>
         );
       })}
+      {edit || !onStartEdit ? null : (
+        <View style={styles.changeRow}>
+          <UiButton
+            variant="text"
+            compact
+            label="Change ingredients"
+            accessibilityLabel="Change the ingredients and amounts"
+            onPress={onStartEdit}
+            style={styles.changeIngredients}
+          />
+          {isMine(food) ? (
+            <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={NumeralMaxScale} style={styles.changeNote}>
+              Changes every time you logged this dish
+            </ThemedText>
+          ) : null}
+        </View>
+      )}
     </View>
   );
 }
@@ -496,12 +649,16 @@ function Details({
   food,
   showWorking,
   onSetPortion,
+  onUseOurGuess,
+  onChangeIngredients,
   children,
 }: {
   s: ResultState;
   food: FoodItem;
   showWorking?: boolean;
   onSetPortion: (unit: string, grams: number) => void;
+  onUseOurGuess?: () => void;
+  onChangeIngredients?: () => void;
   children?: ReactNode;
 }) {
   const [editingSize, setEditingSize] = useState(false);
@@ -585,6 +742,20 @@ function Details({
         )
       ) : null}
 
+      {onChangeIngredients && food.ingredients?.length ? (
+        <UiButton variant="text" compact label="Change ingredients" onPress={onChangeIngredients} style={styles.showAll} />
+      ) : null}
+      {onUseOurGuess && isMine(food) ? (
+        <UiButton
+          variant="text"
+          compact
+          label="Use our guess again"
+          accessibilityHint="Goes back to the ingredients we first worked out. Your version stays on past entries"
+          onPress={onUseOurGuess}
+          style={styles.showAll}
+        />
+      ) : null}
+
       {children}
 
       {others.length ? (
@@ -642,6 +813,8 @@ function Details({
   );
 }
 
+const COULD_NOT = "Couldn't work it out. Check the connection and try again.";
+
 const DEEP_FRIED_NOTE = 'Cooked in a lot of hot oil, so it soaks some up: more fat and calories than the same food made another way.';
 
 const styles = StyleSheet.create({
@@ -652,6 +825,7 @@ const styles = StyleSheet.create({
   column: { width: '100%', maxWidth: MaxContentWidth },
   topBar: { minHeight: RESULT.topBarHeight, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   // The chevron's left edge sits at x = 20: margin-left -4 on the 24 margin.
+  backGroup: { flexDirection: 'row', alignItems: 'center', gap: CLEAN_SPEC.space.s8, flexShrink: 1 },
   back: { minHeight: RESULT.topBarHeight, flexDirection: 'row', alignItems: 'center', gap: CLEAN_SPEC.space.s8, marginLeft: -4 },
   title: { marginTop: RESULT.titleGap },
   telugu: {
@@ -686,6 +860,10 @@ const styles = StyleSheet.create({
   ingPart: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: RESULT.ingredientGap, paddingVertical: 4 },
   nutrients: { marginTop: RESULT.nutrientsGap },
   nutrientGroup: { marginTop: RESULT.nutrientGroupTop },
+  // "Change ingredients" lines up with the ingredient names (x 76: 24 margin + circle 40 + gap 12).
+  changeRow: { paddingLeft: RESULT.circle + RESULT.ingredientGap },
+  changeIngredients: { minHeight: RESULT.ingredientRowHeight, alignSelf: 'flex-start' },
+  changeNote: { marginTop: -CLEAN_SPEC.space.s8 },
   showAll: { minHeight: RESULT.showAllHeight, alignSelf: 'flex-start' },
   panel: { marginTop: Spacing.three, gap: Spacing.three },
   footerWrap: { width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },

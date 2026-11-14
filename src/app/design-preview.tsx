@@ -38,7 +38,7 @@ const TAB_OF: Record<Exclude<PreviewScreen, 'detail' | 'food'>, string> = { toda
 export default function DesignPreviewRoute() {
   const raw = useLocalSearchParams();
   const params = parsePreviewParams(raw);
-  const shown = params && params.theme === ActiveTheme.id ? `${params.theme} ${params.screen}` : 'refused';
+  const shown = params && params.theme === ActiveTheme.id ? `${params.theme} ${params.screen}${params.edit ? ' edit' : ''}` : 'refused';
 
   // CI waits for this line in logcat before photographing (.github/scripts/launch-and-capture.sh).
   useEffect(() => {
@@ -63,7 +63,7 @@ export default function DesignPreviewRoute() {
     return (
       <SampleDataProvider>
         <View style={styles.fill}>
-          <PreviewScreenBody screen="food" />
+          <PreviewScreenBody screen="food" edit={params.edit} />
         </View>
       </SampleDataProvider>
     );
@@ -88,7 +88,7 @@ function DetailPreview({ kind }: { kind: SeriesKind }) {
   return <Detail kind={kind} firstDay={dayKey(new Date())} />;
 }
 
-function PreviewScreenBody({ screen }: { screen: PreviewScreen }) {
+function PreviewScreenBody({ screen, edit }: { screen: PreviewScreen; edit?: boolean }) {
   const router = useRouter();
   const back = () => (router.canGoBack() ? router.back() : undefined);
   switch (screen) {
@@ -107,6 +107,9 @@ function PreviewScreenBody({ screen }: { screen: PreviewScreen }) {
           onDone={() => undefined}
           onCancel={back}
           onSetPortion={() => undefined}
+          // Nothing is worked out in the preview: the editor opens, and Use these ingredients just closes it.
+          onChangeIngredients={async () => null}
+          startEditing={edit}
         />
       );
     case 'walk':

@@ -10,6 +10,9 @@
  * food, water or sleep; steps when missing or unknown):
  *
  *   neutcraftssteps://design-preview?theme=clean&screen=detail&kind=water
+ * The food screen also takes edit=1: the result opened for editing its ingredients (T15).
+ *
+ *   neutcraftssteps://design-preview?theme=clean&screen=food&edit=1
  * Plain string work only: React Native's URLSearchParams has no get().
  */
 
@@ -28,6 +31,8 @@ export interface PreviewParams {
   screen: PreviewScreen;
   /** The detail screen's series; only set when screen is 'detail'. */
   kind?: SeriesKind;
+  /** The food screen opened on its ingredient editor; only set when screen is 'food'. */
+  edit?: boolean;
 }
 
 /** Route params as expo-router hands them over (useLocalSearchParams). */
@@ -44,13 +49,15 @@ export function parsePreviewParams(raw: RawParams): PreviewParams | null {
   if (!(THEME_IDS as readonly (string | undefined)[]).includes(theme)) return null;
   if (!(PREVIEW_SCREENS as readonly (string | undefined)[]).includes(screen)) return null;
   if (screen === 'detail') return { theme: theme as ThemeId, screen, kind: parseKind(raw.kind) ?? 'steps' };
+  if (screen === 'food' && first(raw.edit) === '1') return { theme: theme as ThemeId, screen, edit: true };
   return { theme: theme as ThemeId, screen: screen as PreviewScreen };
 }
 
 /** The link that opens the preview, e.g. neutcraftssteps://design-preview?theme=d&screen=today. */
 export function previewUrl(scheme: string, p: PreviewParams): string {
   const kind = p.screen === 'detail' && p.kind ? `&kind=${p.kind}` : '';
-  return `${scheme}://${PREVIEW_ROUTE}?theme=${p.theme}&screen=${p.screen}${kind}`;
+  const edit = p.screen === 'food' && p.edit ? '&edit=1' : '';
+  return `${scheme}://${PREVIEW_ROUTE}?theme=${p.theme}&screen=${p.screen}${kind}${edit}`;
 }
 
 function decode(text: string): string {

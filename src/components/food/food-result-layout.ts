@@ -44,6 +44,11 @@ export const RESULT = {
   editWidth: sizes.button.editWidth,
   /** An ingredient name wraps to at most this many lines, then ends with an ellipsis (10.4). */
   ingredientMaxLines: 2,
+  /** Editing (T15): the grams field 72 x 40 (radius 12), and the remove button's 48 x 48 touch area. */
+  gramsFieldWidth: 72,
+  fieldHeight: 40,
+  fieldRadius: 12,
+  removeTouch: 48,
 } as const;
 
 /** Average glyph width as a share of the font size: Poppins is about 0.58, Noto Sans Telugu wider. 0.6 and 0.75 err on the long side. */
@@ -130,6 +135,27 @@ export function ingredientRowLayout(name: string, amount: string, contentWidth: 
     truncated: needed > RESULT.ingredientMaxLines,
     // 4 above and below keep two lines off the hairline; one line is centred in 48 as drawn.
     minHeight: Math.max(RESULT.ingredientRowHeight, textHeight + space.s8),
+    nameWidth,
+  };
+}
+
+/**
+ * An ingredient row while editing: circle 40, gap 12, name, gap 12, grams field 72,
+ * remove button 48. The name wraps to 2 lines as in the plain row; the row grows
+ * from 48 to fit them (and never below the 48 touch area).
+ */
+export function editRowLayout(name: string, contentWidth: number, fontScale = 1): IngredientRowLayout {
+  const nameWidth = Math.max(
+    40,
+    contentWidth - RESULT.circle - RESULT.ingredientGap - RESULT.ingredientGap - RESULT.gramsFieldWidth - RESULT.removeTouch,
+  );
+  const needed = estimateLines(name, nameWidth, type.body.size, fontScale, hasTelugu(name) ? CHAR_EM.telugu : CHAR_EM.latin);
+  const lines = Math.min(RESULT.ingredientMaxLines, needed);
+  const textHeight = Math.ceil(lines * type.body.lineHeight * fontScale);
+  return {
+    lines,
+    truncated: needed > RESULT.ingredientMaxLines,
+    minHeight: Math.max(RESULT.ingredientRowHeight, RESULT.removeTouch, textHeight + space.s8),
     nameWidth,
   };
 }

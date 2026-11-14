@@ -6,7 +6,7 @@ import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
 
 describe('spec icons', () => {
   it('has every icon of spec section 8 plus the lock', () => {
-    const names = ['bowl', 'chevron-right', 'chevron-left', 'chevron-down', 'drop', 'plus', 'moon', 'walker', 'today', 'pulse', 'person', 'fish', 'egg', 'onion', 'tomato', 'bottle', 'warning', 'sun', 'clock', 'feet', 'gauge', 'stairs', 'speed', 'lock'];
+    const names = ['bowl', 'chevron-right', 'chevron-left', 'chevron-down', 'drop', 'plus', 'moon', 'walker', 'today', 'pulse', 'person', 'fish', 'egg', 'onion', 'tomato', 'bottle', 'warning', 'sun', 'clock', 'feet', 'gauge', 'stairs', 'speed', 'close', 'lock'];
     expect(Object.keys(ICON_PARTS).sort()).toEqual([...names].sort());
     for (const n of names) expect(ICON_PARTS[n as keyof typeof ICON_PARTS].length).toBeGreaterThan(0);
   });

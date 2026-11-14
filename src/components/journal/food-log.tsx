@@ -422,6 +422,29 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
     });
   };
 
+  /**
+   * The person corrected the ingredients of the dish on the result (T15): their version is worked out and
+   * kept, and the result shows it at the same amount. Resolves with the words to show when it wasn't.
+   */
+  const changeIngredients = async (
+    from: Extract<Mode, { kind: 'pick' }>,
+    list: { name: string; grams: number }[],
+    now: { unit: string; quantity: number },
+  ): Promise<string | null> => {
+    // The words that led here: the look-up's text, or what is typed in the search.
+    const typed = from.lookup && lookup.status === 'done' ? lookup.query : query.trim() || null;
+    const out = await book.confirmIngredients(from.food, list, typed);
+    if (!out.ok) return out.message;
+    if (out.changed) setMode({ ...from, food: out.food, unit: now.unit, quantity: now.quantity });
+    return null;
+  };
+
+  /** "Use our guess again": back to the dish we first worked out, at the same amount. */
+  const backToOriginal = async (from: Extract<Mode, { kind: 'pick' }>) => {
+    const original = await book.ourGuessAgain(from.food);
+    if (original) setMode({ ...from, food: original, unit: undefined, quantity: undefined });
+  };
+
   /** The entry's form, in its place on the list: the add form's fields, filled in, with Save and Delete. */
   const editForm = (e: Editing) => {
     const { food } = e;
@@ -486,6 +509,8 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
         busy={busy}
         onCancel={() => (mode.lookup ? setMode({ kind: 'search' }) : reset())}
         onSetPortion={(unit, grams) => book.setPortion(mode.food, unit, grams)}
+        onChangeIngredients={mode.food.category === 'own' ? undefined : (list, now) => changeIngredients(mode, list, now)}
+        onUseOurGuess={isMine(mode.food) ? () => backToOriginal(mode) : undefined}
         onDone={(unit, quantity) =>
           once(async () => {
             const part = mode.lookup;

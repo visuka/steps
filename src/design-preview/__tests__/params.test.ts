@@ -113,3 +113,16 @@ describe('preview links', () => {
     expect(parsePreviewUrl('neutcraftssteps://design-preview?theme=d&screen=%E0%A4')).toBeNull();
   });
 });
+
+describe('the food screen opened for editing (T15)', () => {
+  it('takes edit=1 on the food screen only', () => {
+    expect(parsePreviewParams({ theme: 'clean', screen: 'food', edit: '1' })).toEqual({ theme: 'clean', screen: 'food', edit: true });
+    expect(parsePreviewParams({ theme: 'clean', screen: 'food', edit: '0' })).toEqual({ theme: 'clean', screen: 'food' });
+    expect(parsePreviewParams({ theme: 'clean', screen: 'today', edit: '1' })).toEqual({ theme: 'clean', screen: 'today' });
+  });
+  it('round-trips through the link', () => {
+    const url = previewUrl('neutcraftssteps', { theme: 'clean', screen: 'food', edit: true });
+    expect(url).toBe('neutcraftssteps://design-preview?theme=clean&screen=food&edit=1');
+    expect(parsePreviewUrl(url)).toEqual({ theme: 'clean', screen: 'food', edit: true });
+  });
+});
