@@ -186,8 +186,8 @@ export const SAMPLE_WEATHER: DayWeather = {
 // --- The morning walk -------------------------------------------------------
 // 7:10 to 7:44 am: on foot to 7:30, 6 minutes in a car (removed), on foot
 // again 7:36 to 7:44. 2.3 km and 32 min counted, 3,120 steps, 13:55 /km, 2
-// floors up, 24 °C and clear. The route is an L then a diagonal, like the map
-// on the mockups; the car's stretch lies along it (a loop beside it would shrink
+// floors up, 24 °C and clear. The route is the mockup's: up, east, down and back
+// south-west; the car's stretch lies along it (a loop beside it would shrink
 // the route in the map's frame). The pace goes up and down (PACE_WEIGHTS), as the
 // mockup's sparkline does.
 
@@ -197,21 +197,23 @@ const M_PER_DEG_LON = M_PER_DEG_LAT * Math.cos((ORIGIN.lat * Math.PI) / 180);
 
 type Metres = [east: number, north: number];
 
+// The mockup's route (spec 6.2) at 6 m a mockup dp: a short rise to the north-east, north, a long run east
+// (the car stretch is part of it), a short drop south, then south-west to the end.
 const LEG_1: Metres[] = [
   [0, 0],
-  [0, 500],
-  [500, 500],
-  [500, 800],
-  [840, 800],
+  [141, 114],
+  [141, 534],
+  [600, 534],
 ];
 const CAR: Metres[] = [
-  [840, 800],
-  [1140, 800],
+  [600, 534],
+  [900, 534],
 ];
 const LEG_2: Metres[] = [
-  [1140, 800],
-  [1450, 800],
-  [1700, 550],
+  [900, 534],
+  [1371, 534],
+  [1416, 294],
+  [1284, 120],
 ];
 
 /**

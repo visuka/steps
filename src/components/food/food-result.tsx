@@ -479,7 +479,8 @@ function NutrientList({ s, open, onToggle }: { s: ResultState; open: NutrientKey
       {rest.length ? (
         <UiButton variant="text" compact label={all ? 'Show fewer nutrients' : 'Show all nutrients'} onPress={() => setAll(!all)} style={styles.showAll} />
       ) : null}
-      {note ? (
+      {/* "at least" in the caption already says it; the note is for a list with no "≥" row (spec 5.10). */}
+      {note && !atLeast ? (
         <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={NumeralMaxScale}>
           {note}
         </ThemedText>

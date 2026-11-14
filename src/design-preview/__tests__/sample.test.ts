@@ -9,6 +9,7 @@ import { paceSecPerKm } from '@/lib/walk';
 import { hourBars } from '@/components/ui/hour-bars-geometry';
 import { sparkline, speedSeries } from '@/components/walk/walk-model';
 import { nutrientsFor } from '@/nutrition/catalog';
+import { pathLengthM, routeLines } from '@/walks/view';
 import { entryNutrients } from '@/nutrition/day';
 import { dayKcalTarget, fullDayKcal } from '@/nutrition/targets';
 
@@ -147,9 +148,35 @@ describe('the sample day matches the mockups', () => {
     const turns = values.slice(2).filter((v, i) => Math.sign(v - values[i + 1]) !== Math.sign(values[i + 1] - values[i])).length;
     expect(turns).toBeGreaterThanOrEqual(4);
     expect(sparkline(values)).not.toBeNull();
-    // No fix strays off the L and the diagonal: the car stretch lies along the route.
+    // No fix strays off the mockup's route: the car stretch lies along it.
     const lats = SAMPLE_WALK_POINTS.map((p) => p.lat);
     expect((Math.max(...lats) - Math.min(...lats)) * 111_320).toBeLessThan(810);
+  });
+
+  it('draws the route as route, the removed car part, route, with no gap between them (review 2 item 21)', () => {
+    const lines = routeLines(SAMPLE_WALK_POINTS, SAMPLE_WALK_PARTS);
+    expect(lines.map((l) => l.kind)).toEqual(['route', 'left-out', 'route']);
+    for (let i = 1; i < lines.length; i++) {
+      expect(lines[i].points[0]).toBe(lines[i - 1].points[lines[i - 1].points.length - 1]);
+    }
+  });
+
+  it("follows the mockup's route (review 2 item 22): up, east, down and back, about 2.3 km, in a card-shaped box", () => {
+    const pts = SAMPLE_WALK_POINTS;
+    const lons = pts.map((p) => p.lon);
+    const lats = pts.map((p) => p.lat);
+    const east = (Math.max(...lons) - Math.min(...lons)) * 111_320 * Math.cos((pts[0].lat * Math.PI) / 180);
+    const north = (Math.max(...lats) - Math.min(...lats)) * 111_320;
+    expect(east / north).toBeGreaterThan(2.3);
+    expect(east / north).toBeLessThan(3);
+    // The end is south-west of the top-right corner and well east of the start; the start is the lowest point.
+    const last = pts[pts.length - 1];
+    expect(last.lon).toBeGreaterThan(pts[0].lon);
+    expect(last.lat).toBeGreaterThan(pts[0].lat);
+    expect(Math.min(...lats)).toBe(pts[0].lat);
+    expect(Math.max(...lons)).toBeGreaterThan(last.lon);
+    expect(pathLengthM(pts)).toBeGreaterThan(2200);
+    expect(pathLengthM(pts)).toBeLessThan(2400);
   });
 
   it('has the food look-up: 1 bowl of endu chepala with egg curry, 412 kcal, P38 C14 F22', () => {

@@ -149,3 +149,11 @@ A short entry is added at the end after each finished task: date, what was done,
 - CI run 43596886754 (all four jobs green). Review 1's items 1–13 and 18 are confirmed on the screenshots; Today matches the mockup closely, dark mode is the same as light.
 - Four items left for Sonnet (`docs/design/review-2.md`): 19, the light detail shot caught the splash (a CI timing race; the dark detail shot is fine); 20, the food result's extra "Some ingredients not counted yet" note under the nutrients; 21, the removed car part leaves a gap in the walk route (new spec rule in 6.2: draw it dashed in muted); 22, the sample route redrawn to the mockup's shape.
 - Accepted: the "Updated … · Sample day" line under the Today tiles (the owner can overrule at the final OK), and the sparkline note from the review 1 fixes.
+
+## 14 Nov 2026 — Review 2 fixes, items 19–22 (Sonnet)
+
+- **19 (CI capture):** `launch-and-capture.sh` waits 2 s after the "ready" line, then needs three identical photos in a row (at most 8 s), so the light detail shot cannot catch the fading splash.
+- **20 (food note):** "Some ingredients not counted yet" shows only when no shown nutrient row is a "≥" row (the caption already says "at least"); it still shows when there are no rows.
+- **21 (walk gap):** the cause was not found by reading (the data, `routeLines` and the dashed layer are all right; a test already gave route, left-out, route), so the map no longer relies on MapLibre's `line-dasharray`. `dashRuns` (`walks/view.ts`, pure, tested) cuts a weak or left-out stretch into dashes of 1/140 of the route (at least 4 m), drawn as plain butt-capped lines in muted (`outline`), 3 wide, joined to the route. New test: the sample walk gives route, left-out, route with shared joints. Not seen on a device: CI run decides.
+- **22 (sample route):** the mockup's route at 6 m a mockup dp (`LEG_1`, `CAR`, `LEG_2` in `sample.ts`), 2.29 km in all, 2.65 : 1 box. New test pins its shape and length. Note for Opus: on foot (without the 300 m car leg) it is 1.99 km while `SAMPLE_WALK.distanceM` says 2,300 and the part says 1,100 m; the screen shows the stored figures, so nothing visible changes.
+- Checks: tsc, eslint clean; jest 93 suites, 1,432 tests.

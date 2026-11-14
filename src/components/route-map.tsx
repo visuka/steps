@@ -7,12 +7,13 @@ import { mapColorsOf } from '@/constants/themes/build';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 import { routeBounds, type WalkPoint } from '@/lib/walk';
-import { lineColor, type RouteLine } from '@/walks/view';
+import { dashRuns, isDashed, lineColor, pathLengthM, type RouteLine } from '@/walks/view';
 
 import { MAP_STYLE_URL, type MapStyle, mapSchemeFor, themedMapStyle } from './map-style';
 
 const SOLID = ['route', 'part'];
-const DASHED = ['weak', 'left-out'];
+/** The feature kind of a dashed stretch (weak GPS, a part left out): cut into dashes here, drawn as plain lines. */
+const DASHED = 'dashed';
 
 /** A start or end dot as the mockups draw it in SVG: radius to the middle of the ring, and the ring's width. */
 export interface RouteDot {
@@ -88,15 +89,29 @@ export const RouteMap = memo(function RouteMap({
     [lastLon, lastLat],
   );
 
+  // A dash and its gap are each 1/140 of the route (at least 4 m): about 5 dp on the walk screen's card.
+  const dashM = useMemo(() => Math.max(4, pathLengthM(all) / 140), [all]);
+
   const route: GeoJSON.FeatureCollection = useMemo(() => ({
     type: 'FeatureCollection',
     features: [
-      ...drawn.map((l) => ({
-        type: 'Feature' as const,
+      ...drawn.map((l) => {
         // The route in the map's own colour (the mockup's); parts as before.
-        properties: { kind: l.kind, color: l.kind === 'route' || l.kind === 'weak' ? colors.route : lineColor(theme, l.kind) },
-        geometry: { type: 'LineString' as const, coordinates: l.points.map((p) => [p.lon, p.lat]) },
-      })),
+        const color = l.kind === 'route' || l.kind === 'weak' ? colors.route : lineColor(theme, l.kind);
+        // The line style's dash pattern did not show on the emulator (a removed part left a gap), so dashes are cut here.
+        if (isDashed(l.kind)) {
+          return {
+            type: 'Feature' as const,
+            properties: { kind: DASHED, color },
+            geometry: { type: 'MultiLineString' as const, coordinates: dashRuns(l.points, dashM, dashM) },
+          };
+        }
+        return {
+          type: 'Feature' as const,
+          properties: { kind: l.kind, color },
+          geometry: { type: 'LineString' as const, coordinates: l.points.map((p) => [p.lon, p.lat]) },
+        };
+      }),
       ...(first && last
         ? [
             {
@@ -112,7 +127,7 @@ export const RouteMap = memo(function RouteMap({
           ]
         : []),
     ],
-  }), [drawn, first, last, theme, colors]);
+  }), [drawn, first, last, theme, colors, dashM]);
 
   const start = dots?.start ?? { r: 7.5, ring: 3 };
   const end = dots?.end ?? { r: 7.5, ring: 3 };
@@ -152,7 +167,7 @@ export const RouteMap = memo(function RouteMap({
               <Layer
                 id="route-casing"
                 type="line"
-                filter={['==', ['geometry-type'], 'LineString']}
+                filter={['in', ['geometry-type'], ['literal', ['LineString', 'MultiLineString']]]}
                 paint={{ 'line-color': colors.casing, 'line-width': width + 4 }}
                 layout={{ 'line-cap': 'round', 'line-join': 'round' }}
               />
@@ -167,9 +182,9 @@ export const RouteMap = memo(function RouteMap({
             <Layer
               id="route-dashed"
               type="line"
-              filter={['all', ['==', ['geometry-type'], 'LineString'], ['in', ['get', 'kind'], ['literal', DASHED]]]}
-              paint={{ 'line-color': ['get', 'color'], 'line-width': Math.max(3, width - 1), 'line-dasharray': [1.5, 1.5] }}
-              layout={{ 'line-join': 'round' }}
+              filter={['==', ['get', 'kind'], DASHED]}
+              paint={{ 'line-color': ['get', 'color'], 'line-width': width }}
+              layout={{ 'line-cap': 'butt', 'line-join': 'round' }}
             />
             <Layer
               id="route-ends"

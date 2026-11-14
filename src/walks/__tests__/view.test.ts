@@ -6,6 +6,7 @@ import {
   answerLabel,
   climbText,
   currentSpeedMs,
+  dashRuns,
   distanceSourceText,
   distanceTag,
   formatSpeed,
@@ -16,6 +17,7 @@ import {
   partFacts,
   partStatus,
   partTitle,
+  pathLengthM,
   placesLine,
   routeLines,
   splitUnit,
@@ -79,6 +81,38 @@ describe('routeLines', () => {
     const lines = routeLines(points, [], { weak: [[3, 4]], fromSteps: [[6, 7]] });
     expect(lines.map((l) => l.kind)).toEqual(['route', 'weak', 'route', 'weak']);
     expect(legendKinds(lines)).toEqual(['route', 'weak']);
+  });
+
+  it('cuts a line into dashes of the given length, starting with a dash (a removed part, review 2)', () => {
+    // 0.001 degrees of latitude is 111.32 m north.
+    const line = [
+      { lat: 12.9, lon: 77.6 },
+      { lat: 12.901, lon: 77.6 },
+    ];
+    const runs = dashRuns(line, 10, 10);
+    expect(runs).toHaveLength(6);
+    const lens = runs.map((r) => pathLengthM(r.map(([lon, lat]) => ({ lat, lon }))));
+    // 111.32 m is five full 20 m cycles and a last dash (100 to 110 m); the 1.32 m left is gap.
+    for (const l of lens) expect(l).toBeCloseTo(10, 3);
+    expect(runs[0][0]).toEqual([77.6, 12.9]);
+    // Dashes and gaps alternate: the next dash starts 20 m after the last one.
+    const startGap = (pathLengthM([{ lat: runs[0][0][1], lon: runs[0][0][0] }, { lat: runs[1][0][1], lon: runs[1][0][0] }]));
+    expect(startGap).toBeCloseTo(20, 3);
+  });
+
+  it('lets a dash run round a corner, and never returns an empty run', () => {
+    const corner = [
+      { lat: 12.9, lon: 77.6 },
+      { lat: 12.9005, lon: 77.6 },
+      { lat: 12.9005, lon: 77.6005 },
+    ];
+    // The corner is 55.66 m along: inside the first 70 m dash.
+    const runs = dashRuns(corner, 70, 70);
+    expect(runs[0].length).toBeGreaterThanOrEqual(2);
+    expect(runs.some((r) => r.length >= 3)).toBe(true);
+    for (const r of runs) expect(r.length).toBeGreaterThanOrEqual(2);
+    expect(dashRuns([corner[0]], 10, 10)).toEqual([]);
+    expect(dashRuns(corner, 0, 10)).toHaveLength(1);
   });
 
   it('sorts the fixes and drops a lone point', () => {

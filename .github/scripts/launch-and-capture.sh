@@ -44,10 +44,11 @@ echo "Emulator screen: $size, $density"
 case "$size" in *"1080x2400"*) ;; *) echo "::warning::Screen is not 1080x2400; setting it"; adb shell wm size 1080x2400 ;; esac
 case "$density" in *": 420"*) ;; *) echo "::warning::Density is not 420; setting it"; adb shell wm density 420 ;; esac
 
-# Waits up to 30 s for the route's "ready" line, then until two photos in a
-# row are the same (fonts, map tiles), at most about 6 s. Saves the last one.
+# Waits up to 30 s for the route's "ready" line, then 2 s (the splash screen
+# is still fading out when the line appears), then until three photos in a row
+# are the same (fonts, map tiles), at most about 8 s. Saves the last one.
 capture() {
-  local theme="$1" screen="$2" out="$3" prev="" cur="" start
+  local theme="$1" screen="$2" out="$3" prev="" cur="" start same=0
   adb shell am force-stop "$pkg"
   adb logcat -c
   # Quoted again for the phone's shell, which would take & as "run in background".
@@ -61,12 +62,14 @@ capture() {
     fi
     sleep 0.5
   done
+  sleep 2
   start=$SECONDS
-  while [ $((SECONDS - start)) -lt 6 ]; do
+  while [ $((SECONDS - start)) -lt 8 ]; do
     sleep 0.5
     adb exec-out screencap -p > "$out.tmp"
     cur="$(md5sum < "$out.tmp")"
-    [ "$cur" = "$prev" ] && break
+    if [ "$cur" = "$prev" ]; then same=$((same + 1)); else same=0; fi
+    [ "$same" -ge 2 ] && break
     prev="$cur"
   done
   mv "$out.tmp" "$out"

@@ -93,6 +93,71 @@ export function lineColor(c: Pick<ColorScheme, 'steps' | 'near' | 'outline'>, ki
 
 export const isDashed = (kind: LineKind) => kind === 'weak' || kind === 'left-out';
 
+type LatLon = Pick<WalkPoint, 'lat' | 'lon'>;
+const M_PER_DEG = 111_320;
+
+/** Metres from a to b (flat-earth: exact enough over a walk). */
+function legM(a: LatLon, b: LatLon): number {
+  const dy = (b.lat - a.lat) * M_PER_DEG;
+  const dx = (b.lon - a.lon) * M_PER_DEG * Math.cos((((a.lat + b.lat) / 2) * Math.PI) / 180);
+  return Math.hypot(dx, dy);
+}
+
+/** The length of a line in metres. */
+export function pathLengthM(points: LatLon[]): number {
+  let total = 0;
+  for (let i = 1; i < points.length; i++) total += legM(points[i - 1], points[i]);
+  return total;
+}
+
+/**
+ * A line cut into dashes: `onM` metres drawn, `offM` metres skipped, starting
+ * with a dash, as runs of [lon, lat]. A dash runs round a corner. The map
+ * draws these as plain lines, so a dashed stretch looks the same on every
+ * phone (a line style's own dash pattern did not show on the emulator).
+ */
+export function dashRuns(points: LatLon[], onM: number, offM: number): [number, number][][] {
+  if (points.length < 2) return [];
+  if (!(onM > 0) || !(offM > 0)) return [points.map((p): [number, number] => [p.lon, p.lat])];
+  const cycle = onM + offM;
+  const runs: [number, number][][] = [];
+  let run: [number, number][] | null = null;
+  let phase = 0;
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1];
+    const b = points[i];
+    const len = legM(a, b);
+    if (len === 0) continue;
+    const at = (d: number): [number, number] => [a.lon + ((b.lon - a.lon) * d) / len, a.lat + ((b.lat - a.lat) * d) / len];
+    let d = 0;
+    while (d < len) {
+      const on = phase < onM;
+      const edge = on ? onM : cycle;
+      const toEdge = edge - phase;
+      let step: number;
+      if (len - d >= toEdge) {
+        step = toEdge;
+        phase = edge;
+      } else {
+        step = len - d;
+        phase += step;
+      }
+      if (on) {
+        if (!run) {
+          run = [at(d)];
+          runs.push(run);
+        }
+        run.push(at(d + step));
+      } else {
+        run = null;
+      }
+      d += step;
+      if (phase >= cycle) phase = 0;
+    }
+  }
+  return runs;
+}
+
 // ── the list ────────────────────────────────────────────────────────────
 
 /** "Thu, 30 Oct · 6:10 pm · Indoor · Home", or "… · Koramangala" outdoors. */
