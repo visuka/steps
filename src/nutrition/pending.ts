@@ -14,7 +14,7 @@
  */
 import type { EstimateItem } from '@/api/food-read';
 
-import { catalogFood, RECIPE_PREFIX } from './catalog';
+import { catalogFood, MINE_PREFIX, RECIPE_PREFIX } from './catalog';
 import { lookupName, type Where, whereOf } from './place';
 import type { FoodItem, FoodRecipeSource } from './types';
 
@@ -106,7 +106,7 @@ export type RefreshQuery =
  * way it was worked out (home or restaurant). Null when it can't be asked.
  */
 export function refreshQuery(food: FoodItem): RefreshQuery | null {
-  if (food.id.startsWith(RECIPE_PREFIX)) return food.recipe ? { kind: 'recipe', request: food.recipe } : null;
+  if (food.id.startsWith(RECIPE_PREFIX) || food.id.startsWith(MINE_PREFIX)) return food.recipe ? { kind: 'recipe', request: food.recipe } : null;
   const text = lookupName(food);
   if (!text) return null;
   const where =
@@ -136,7 +136,8 @@ export function refreshedFood(old: FoodItem, fresh: FoodItem): FoodItem {
   delete out.pending;
   delete out.pendingSince;
   delete out.recipe;
-  delete out.ingredients;
+  // The person's version keeps the list they typed, whatever the repeat says.
+  if (!old.id.startsWith(MINE_PREFIX)) delete out.ingredients;
   delete out.notes;
   delete out.flags;
   if (fresh.missing?.length) out.missing = [...fresh.missing];
@@ -145,7 +146,7 @@ export function refreshedFood(old: FoodItem, fresh: FoodItem): FoodItem {
     if (old.pendingSince !== undefined) out.pendingSince = old.pendingSince;
     if (old.recipe) out.recipe = old.recipe;
   }
-  if (fresh.ingredients?.length) out.ingredients = fresh.ingredients.map((i) => ({ ...i }));
+  if (!old.id.startsWith(MINE_PREFIX) && fresh.ingredients?.length) out.ingredients = fresh.ingredients.map((i) => ({ ...i }));
   if (fresh.notes?.length) out.notes = [...fresh.notes];
   if (fresh.flags?.length) out.flags = [...fresh.flags];
   return out;

@@ -16,10 +16,12 @@ export const OWN_PREFIX = 'own:';
 export const AI_PREFIX = 'ai:';
 /** Dishes worked out from the person's own recipe, saved on the phone. */
 export const RECIPE_PREFIX = 'recipe:';
+/** A dish whose ingredients the person corrected (nutrition/my-dishes.ts), saved on the phone. */
+export const MINE_PREFIX = 'mine:';
 
 /** True for foods kept in saved_food rather than the built-in list. */
 export function isSavedFoodId(id: string): boolean {
-  return id.startsWith(AI_PREFIX) || id.startsWith(RECIPE_PREFIX);
+  return id.startsWith(AI_PREFIX) || id.startsWith(RECIPE_PREFIX) || id.startsWith(MINE_PREFIX);
 }
 
 // Fixed in place, so every list of FOODS sees it.
@@ -105,7 +107,8 @@ export function nutrientsFor(food: FoodItem, unitKey: string, quantity: number, 
   return scaleNutrients(food.per100g, gramsFor(food, unitKey, quantity, overrides) / 100);
 }
 
-const normalize = (s: string) =>
+/** Lowercase letters and digits, one space between words: how search reads names and what people type. */
+export const normalize = (s: string) =>
   s
     .toLowerCase()
     .normalize('NFKD')
@@ -113,15 +116,30 @@ const normalize = (s: string) =>
     .replace(/\s+/g, ' ')
     .trim();
 
+const NO_IDS: ReadonlySet<string> = new Set();
+
 /**
  * Matches names and local names ("roti", "dahi", "kela"). Whole-word prefix
- * matches rank first, then anywhere in the name; on ties own foods come
- * first, then saved ones. Recipe ingredients (raw dal, salt) are left out:
- * people log what they ate, not what went into it.
+ * matches rank first, then anywhere in the name; on ties the person's own
+ * versions come first, then own foods, then saved ones. Recipe ingredients
+ * (raw dal, salt) are left out: people log what they ate, not what went into it.
+ *
+ * `activeMine`: ids of the person's corrected versions in use (nutrition/my-dishes.ts).
+ * Each is listed once and hides the dish it is based on; a version no longer in
+ * use stays for old entries only and is not listed.
  */
-export function searchFoods(query: string, own: OwnFood[], saved: FoodItem[] = [], limit = 8): FoodItem[] {
+export function searchFoods(
+  query: string,
+  own: OwnFood[],
+  saved: FoodItem[] = [],
+  limit = 8,
+  activeMine: ReadonlySet<string> = NO_IDS,
+): FoodItem[] {
+  const listed = saved.filter((f) => !f.id.startsWith(MINE_PREFIX) || activeMine.has(f.id));
+  const hidden = new Set(listed.flatMap((f) => (f.id.startsWith(MINE_PREFIX) && f.basedOn ? [f.basedOn] : [])));
+  const shown = (foods: FoodItem[]) => (hidden.size ? foods.filter((f) => !hidden.has(f.id)) : foods);
   // Built-in before saved, so an id in both resolves the way findFood does.
-  return searchIn(query, [...own.map(ownFoodItem), ...FOODS, ...saved], limit);
+  return searchIn(query, [...own.map(ownFoodItem), ...shown(FOODS), ...shown(listed)], limit);
 }
 
 /** The ranking behind searchFoods, over any list. */
@@ -142,7 +160,7 @@ export function searchIn(query: string, foods: FoodItem[], limit = 8): FoodItem[
       else if (n.split(' ').some((w) => w.startsWith(q))) score = Math.max(score, 2);
       else if (n.includes(q)) score = Math.max(score, 1);
     }
-    const bonus = food.category === 'own' ? 0.5 : isSavedFoodId(food.id) ? 0.25 : 0;
+    const bonus = food.id.startsWith(MINE_PREFIX) ? 0.75 : food.category === 'own' ? 0.5 : isSavedFoodId(food.id) ? 0.25 : 0;
     if (score > 0) scored.push({ food, score: score + bonus });
   }
   return scored

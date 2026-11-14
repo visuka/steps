@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 
+import { recipeFood } from '@/api/food-api';
 import type { FoodEntry } from '@/data/types';
 import { findFood, keepPastEntries, type PortionOverrides } from '@/nutrition/catalog';
 import { entryNutrients } from '@/nutrition/day';
+import { type ConfirmOutcome, confirmIngredients, ourGuessAgain } from '@/nutrition/log-food';
+import { MY_DISHES_KEY, type MyDishes, NO_DISHES, readMyDishes } from '@/nutrition/my-dishes';
 import type { FoodItem, OwnFood } from '@/nutrition/types';
 
 import { useApp } from './app-state';
@@ -18,17 +21,22 @@ export function useFoodBook() {
   const [own, setOwn] = useState<OwnFood[]>([]);
   const [saved, setSaved] = useState<FoodItem[]>([]);
   const [overrides, setOverrides] = useState<PortionOverrides>({});
+  const [dishes, setDishes] = useState<MyDishes>(NO_DISHES);
 
   useEffect(() => {
     let live = true;
-    Promise.all([repo.getOwnFoods(), repo.getSavedFoods(), repo.getKv<PortionOverrides>(PORTIONS_KEY)]).then(
-      ([o, s, p]) => {
-        if (!live) return;
-        setOwn(o);
-        setSaved(s);
-        setOverrides(p ?? {});
-      },
-    );
+    Promise.all([
+      repo.getOwnFoods(),
+      repo.getSavedFoods(),
+      repo.getKv<PortionOverrides>(PORTIONS_KEY),
+      repo.getKv<unknown>(MY_DISHES_KEY),
+    ]).then(([o, s, p, d]) => {
+      if (!live) return;
+      setOwn(o);
+      setSaved(s);
+      setOverrides(p ?? {});
+      setDishes(readMyDishes(d));
+    });
     return () => {
       live = false;
     };
@@ -38,6 +46,8 @@ export function useFoodBook() {
     own,
     saved,
     overrides,
+    /** The dishes whose ingredients the person corrected (nutrition/my-dishes.ts). */
+    dishes,
     find: (id: string) => findFood(id, own, saved),
     nutrientsOf: (entry: FoodEntry) => entryNutrients(entry, own, overrides, saved),
     /** "My bowl of rice is 200 g": applies to past entries as well as new ones. */
@@ -63,6 +73,33 @@ export function useFoodBook() {
       await repo.saveSavedFood(kept);
       touch();
       return kept;
+    },
+    /**
+     * The person confirmed an edited ingredient list for `food`: their version is worked out
+     * (POST /v1/food/recipe) and kept, and the mappings with it. Saved as it is, never renamed
+     * by keepPastEntries: past entries keep the original dish, and an edited version updates in place.
+     */
+    confirmIngredients: async (
+      food: FoodItem,
+      list: { name: string; grams: number }[],
+      typedText: string | null,
+    ): Promise<ConfirmOutcome> => {
+      const out = await confirmIngredients({ saved, dishes, recipe: recipeFood }, food, list, typedText);
+      if (!out.ok || !out.changed) return out;
+      await repo.saveSavedFood(out.food);
+      await repo.setKv(MY_DISHES_KEY, out.dishes);
+      setSaved((prev) => [out.food, ...prev.filter((f) => f.id !== out.food.id)]);
+      setDishes(out.dishes);
+      touch();
+      return out;
+    },
+    /** "Use our guess again": returns the original dish; the person's version stays for old entries. */
+    ourGuessAgain: async (mine: FoodItem): Promise<FoodItem | null> => {
+      const out = ourGuessAgain(dishes, mine, (id) => findFood(id, own, saved));
+      await repo.setKv(MY_DISHES_KEY, out.dishes);
+      setDishes(out.dishes);
+      touch();
+      return out.food;
     },
   };
 }

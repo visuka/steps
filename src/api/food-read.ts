@@ -8,7 +8,7 @@
  * numbers, missing units and over-long text are dropped or trimmed.
  */
 import { APP_NAME } from '@/constants/app';
-import { OWN_PREFIX } from '@/nutrition/catalog';
+import { MINE_PREFIX, OWN_PREFIX } from '@/nutrition/catalog';
 import { NUTRIENTS } from '@/nutrition/nutrients';
 import { cleanRestaurant, isPlace, type Where, whereOf } from '@/nutrition/place';
 import type { FoodCategory, FoodFlag, FoodIngredient, FoodItem, FoodRecipeSource, FoodUnit, NutrientKey, Nutrients } from '@/nutrition/types';
@@ -415,6 +415,11 @@ export function readFoodItem(v: unknown): FoodItem | null {
     const homeId = text(v.homeId, 80);
     if (homeId && homeId !== id && !homeId.startsWith(OWN_PREFIX)) food.homeId = homeId;
   }
+  // The dish a corrected version was based on, to switch back to (nutrition/my-dishes.ts).
+  if (id.startsWith(MINE_PREFIX)) {
+    const basedOn = text(v.basedOn, 80);
+    if (basedOn && basedOn !== id && !basedOn.startsWith(OWN_PREFIX)) food.basedOn = basedOn;
+  }
   return food;
 }
 
@@ -424,7 +429,8 @@ export function readFoodItem(v: unknown): FoodItem | null {
  */
 function serverFood(v: unknown): FoodItem | null {
   const food = readFoodItem(v);
-  if (!food) return null;
+  // A corrected version exists only on the phone: a server food can't take its id.
+  if (!food || food.id.startsWith(MINE_PREFIX)) return null;
   delete food.style;
   delete food.restaurant;
   delete food.homeId;

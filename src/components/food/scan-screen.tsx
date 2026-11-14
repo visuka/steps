@@ -19,6 +19,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { timeNow } from '@/lib/when';
 import { displayCode } from '@/nutrition/barcode';
 import { ownFoodItem } from '@/nutrition/catalog';
+import { saveFoodEntry } from '@/nutrition/log-food';
 import { labelFood, ownFoodFromScan, productTitle, scanEntry } from '@/nutrition/scan';
 import { queueAction, type ScanStep, scanReducer, START } from '@/nutrition/scan-flow';
 import type { FoodItem, OwnFood } from '@/nutrition/types';
@@ -132,12 +133,8 @@ export function ScanScreen({ onClose }: { onClose: () => void }) {
       const kept = food.category === 'own' ? food : await book.saveFood(food);
       const at = eatenAt ?? timeNow();
       const { entry, nutrients } = scanEntry(kept, unit, quantity, book.overrides, at, newId());
-      try {
-        entry.healthSampleId = (await source.writeFood?.(entry.name, nutrients, new Date(at))) ?? null;
-      } catch {
-        // Saved here even when the copy to Health fails; the Food tab says so on its own entries.
-      }
-      await repo.addFood(entry);
+      // The phone's row first; saved here even when the copy to Health fails (nutrition/log-food.ts).
+      await saveFoodEntry({ repo, source }, entry, nutrients);
       touch();
       onClose();
     } catch {

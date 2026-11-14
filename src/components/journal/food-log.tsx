@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { type EstimateItem, type EstimateResult, estimateFood, restaurantVersion } from '@/api/food-api';
-import { checkDescription, FoodApiError, unknownDishMessage } from '@/api/food-read';
+import { unknownDishMessage } from '@/api/food-read';
 import { Card } from '@/components/card';
 import { confirmDelete } from '@/components/confirm';
 import { Button, Chip, NumberField, TextField } from '@/components/controls';
@@ -19,7 +19,7 @@ import { IconButton, Button as UiButton, Why } from '@/components/ui';
 import { WhenField } from '@/components/when-field';
 import { Spacing, TouchTarget } from '@/constants/theme';
 import { changeFood, deleteFood, type HealthCopy } from '@/data/entries';
-import { type FoodEntry, newId, type RecentFood } from '@/data/types';
+import type { FoodEntry, RecentFood } from '@/data/types';
 import { copyStore } from '@/health/select-source';
 import { useClockStyle } from '@/hooks/use-clock-style';
 import { useNow } from '@/hooks/use-now';
@@ -27,20 +27,16 @@ import { useTheme } from '@/hooks/use-theme';
 import { addDaysToKey, dayKey, parseDayKey } from '@/lib/dates';
 import { formatSteps } from '@/lib/format';
 import { earliestAt, formatClock, formatDay, formatWhenInSentence, timeNow } from '@/lib/when';
-import { catalogFood, nutrientsFor, OWN_PREFIX, type PortionOverrides, portionLabel, searchFoods } from '@/nutrition/catalog';
+import { catalogFood, nutrientsFor, OWN_PREFIX, type PortionOverrides, portionLabel } from '@/nutrition/catalog';
+import { keepLookedFood, logFood as logFoodEntry, lookUpFood, restaurantVersionFor } from '@/nutrition/log-food';
+import { isMine, searchWithMine, startAmount } from '@/nutrition/my-dishes';
 import {
   asksPlace,
   HOME,
-  isHomeDish,
-  keepSavedNotes,
-  markStyle,
   needsLookup,
   placeLabel,
-  samePortion,
-  savedRestaurantVersion,
   startingPlace,
   valuesNote,
-  versionChange,
   type Where,
   whereOf,
 } from '@/nutrition/place';
@@ -123,7 +119,7 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
 
   useEffect(() => {
     let live = true;
-    Promise.all([repo.recentFoods(8), repo.recentRestaurants(6)]).then(([r, names]) => {
+    Promise.all([repo.recentFoods(200), repo.recentRestaurants(6)]).then(([r, names]) => {
       if (!live) return;
       setRecent(r);
       setRestaurants(names);
@@ -183,7 +179,9 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
    * they ate out; Cancel resets the chips.
    */
   const pickFood = (food: FoodItem) => {
-    go({ kind: 'pick', food });
+    // A dish logged before opens at the amount it was last logged with (nutrition/my-dishes.ts).
+    const last = startAmount(food, recent);
+    go({ kind: 'pick', food, unit: last?.unit, quantity: last?.quantity });
     const start = placeIn.place === 'home' ? startingPlace(food, recent) : null;
     if (start) setPlaceIn({ place: start.place, restaurant: start.restaurant ?? '', chosen: false });
   };
@@ -204,24 +202,9 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
   ) => {
     setError(null);
     const at = new Date(eatenAt ?? timeNow());
-    let healthSampleId: string | null = null;
-    try {
-      healthSampleId = (await source.writeFood?.(name, n, at)) ?? null;
-    } catch {
-      setError(`Saved here, but couldn't copy it to ${source.label}.`);
-    }
-    await repo.addFood({
-      id: newId(),
-      loggedAt: at.getTime(),
-      name,
-      foodId,
-      unit,
-      quantity,
-      kcal: Math.round(n.kcal ?? 0),
-      healthSampleId,
-      place: w.place,
-      restaurant: w.restaurant,
-    });
+    // The phone's row goes first (nutrition/log-food.ts); a failed Health copy keeps it and says so.
+    const { notice: copyNotice } = await logFoodEntry({ repo, source }, { foodId, name, unit, quantity, nutrients: n, where: w, at: at.getTime() });
+    if (copyNotice) setError(copyNotice);
     // Not on today's list, so say where it went.
     if (!isToday(at.getTime())) {
       const added = `Added for ${formatWhenInSentence(at.getTime(), timeNow(), clock)}.`;
@@ -243,12 +226,7 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
     }
   };
 
-  /**
-   * The version of a food to log for where it was from (nutrition/place.ts).
-   * Eaten out, a home dish becomes its restaurant version: one saved earlier,
-   * or one look-up. When that fails the food is logged as it is, and an entry
-   * with home values says so.
-   */
+  /** The version of a food to log for where it was from (nutrition/log-food.ts restaurantVersionFor). */
   const versionFor = async (
     food: FoodItem,
     unit: string,
@@ -256,30 +234,22 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
     w: Where,
     say: (text: string) => void = setNotice,
   ) => {
-    const change = versionChange(food, w, book.find);
-    if (!change) return { food, unit, quantity };
-    if (change.kind === 'home') return { food: change.food, ...samePortion(food, unit, quantity, change.food, book.overrides) };
-    let next = savedRestaurantVersion(change.base, w, book.saved);
-    if (!next) {
-      setBusy(true);
-      try {
-        const item = await restaurantVersion(change.base, w);
-        if (item) next = await book.saveFood(markStyle(item.food, 'restaurant', w, change.base.id));
-      } catch {
-        // Offline, or the day's look-ups used up: logged as it is, below.
-      } finally {
-        setBusy(false);
-      }
-    }
-    if (!next) {
-      say(
-        isHomeDish(food)
-          ? 'Couldn’t get restaurant-style values just now, so home-style values were used.'
-          : 'Couldn’t look up that restaurant just now, so the restaurant values you had were used.',
-      );
-      return { food, unit, quantity };
-    }
-    return { food: next, ...samePortion(food, unit, quantity, next, book.overrides) };
+    const v = await restaurantVersionFor(
+      {
+        find: book.find,
+        saved: book.saved,
+        overrides: book.overrides,
+        saveFood: book.saveFood,
+        fetchVersion: restaurantVersion,
+        working: setBusy,
+      },
+      food,
+      unit,
+      quantity,
+      w,
+    );
+    if (v.notice) say(v.notice);
+    return v;
   };
 
   /** Said before Add or Save: the dish's name leaves the phone without a tap on Look up. */
@@ -288,7 +258,7 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
       ? 'To get restaurant values, the dish’s name (and the restaurant, if you name one) is sent to our server with your phone’s country, not your name.'
       : null;
 
-  const logFood = async (food: FoodItem, unit: string, quantity: number, w: Where) => {
+  const logPicked = async (food: FoodItem, unit: string, quantity: number, w: Where) => {
     const v = await versionFor(food, unit, quantity, w);
     await save(v.food.id, v.food.name, v.unit, v.quantity, nutrientsFor(v.food, v.unit, v.quantity, book.overrides), w);
   };
@@ -313,7 +283,7 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
     once(async () => {
       const w = whereOf(r.place, r.restaurant);
       const food = r.foodId ? book.find(r.foodId) : null;
-      if (food && r.unit && r.quantity !== null) await logFood(food, r.unit, r.quantity, w);
+      if (food && r.unit && r.quantity !== null) await logPicked(food, r.unit, r.quantity, w);
       else await save(null, r.name, null, null, { kcal: r.kcal }, w);
       reset();
     });
@@ -417,41 +387,30 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
 
   const lookUp = async () => {
     const text = query.trim();
-    const problem = checkDescription(text);
-    if (problem) {
-      setLookup({ status: 'error', query: text, message: problem });
-      return;
-    }
     const run = ++lookupRun.current;
     // Sent only when picked, so the server can read a place from the text ("ordered pizza").
     const sent = placeIn.chosen ? here : null;
     setAdded([]);
     setLookup({ status: 'loading', query: text });
-    try {
-      const result = await estimateFood(text, sent);
-      if (run !== lookupRun.current) return;
-      setLookup({ status: 'done', query: text, result, where: result.where ?? sent });
-      if (!placeIn.chosen && result.where) {
-        setPlaceIn({ place: result.where.place, restaurant: result.where.restaurant ?? '', chosen: false });
-      }
-    } catch (e) {
-      if (run !== lookupRun.current) return;
-      const message = e instanceof FoodApiError ? e.message : 'Something went wrong. Please try again.';
-      setLookup({ status: 'error', query: text, message });
+    const out = await lookUpFood({ estimate: estimateFood, dishes: book.dishes, find: book.find }, text, sent);
+    if (run !== lookupRun.current) return;
+    if (!out.ok) {
+      setLookup({ status: 'error', query: text, message: out.message });
+      return;
+    }
+    setLookup({ status: 'done', query: text, result: out.result, where: out.where });
+    if (!placeIn.chosen && out.result.where) {
+      setPlaceIn({ place: out.result.where.place, restaurant: out.result.where.restaurant ?? '', chosen: false });
     }
   };
 
   const pickLooked = async (item: EstimateItem, index: number) => {
-    // Built-in foods are used as this app has them; anything else is kept on the phone.
-    let food = catalogFood(item.food.id);
-    if (!food) {
-      try {
-        const marked = markStyle(item.food, item.style, lookup.status === 'done' ? lookup.where : null);
-        food = await book.saveFood(keepSavedNotes(marked, book.saved));
-      } catch {
-        setError("Couldn't save it on this phone. Please try again.");
-        return;
-      }
+    let food: FoodItem;
+    try {
+      food = await keepLookedFood(book, item, lookup.status === 'done' ? lookup.where : null);
+    } catch {
+      setError("Couldn't save it on this phone. Please try again.");
+      return;
     }
     const known = food.units.some((u) => u.key === item.unit);
     setMode({
@@ -530,7 +489,7 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
         onDone={(unit, quantity) =>
           once(async () => {
             const part = mode.lookup;
-            await logFood(mode.food, unit, quantity, asksPlace(mode.food) ? here : HOME);
+            await logPicked(mode.food, unit, quantity, asksPlace(mode.food) ? here : HOME);
             if (part) doneWithPart(part);
             else reset();
           })
@@ -543,7 +502,7 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
     ) : null;
   useFoodResultLayer(covers ? pickResult : null);
 
-  const results = mode.kind === 'search' ? searchFoods(query, book.own, book.saved) : [];
+  const results = mode.kind === 'search' ? searchWithMine(query, book.own, book.saved, book.dishes) : [];
   const q = query.trim();
 
   return (
@@ -600,7 +559,7 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
                   Had it again? Tap to add the same amount
                 </ThemedText>
                 <View style={styles.chips}>
-                  {recent.map((r) => {
+                  {recent.slice(0, 8).map((r) => {
                     // Logging again keeps the place, so say it when it isn't home.
                     const out = placeLabel({ place: r.place, restaurant: null });
                     return (
@@ -887,7 +846,9 @@ function LookedUpRow({
   const theme = useTheme();
   const where = added
     ? ' · added'
-    : food.pending || food.missing?.length
+    : isMine(food)
+      ? ' · your version'
+      : food.pending || food.missing?.length
       ? ' · some ingredients not counted yet'
       : catalogFood(item.food.id)
       ? ' · from our food list'
@@ -931,6 +892,7 @@ function SearchResult({ food, onPress }: { food: FoodItem; onPress: () => void }
       <ThemedText style={styles.entryName}>{food.name}</ThemedText>
       <ThemedText type="small" themeColor="textSecondary">
         1 {unit.label} · {kcal} kcal
+        {isMine(food) ? ' · your version' : ''}
       </ThemedText>
     </Pressable>
   );

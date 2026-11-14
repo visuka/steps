@@ -92,7 +92,10 @@ export interface FoodItem {
   per100g: Nutrients;
   units: FoodUnit[];
   defaultUnit: string;
+  /** Where the numbers came from, in words. 'mine' for a dish whose ingredients the person corrected (nutrition/my-dishes.ts). */
   source: string;
+  /** The person's corrected dishes (id `mine:<n>`): the id of the dish they were based on, to switch back to. Phone only. */
+  basedOn?: string;
   flags?: FoodFlag[];
   /** Catalog only: an ingredient for recipes (raw dal, salt, spices), not offered in food search. */
   ingredientOnly?: boolean;
