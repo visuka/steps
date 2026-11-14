@@ -126,3 +126,13 @@ describe('the food screen opened for editing (T15)', () => {
     expect(parsePreviewUrl(url)).toEqual({ theme: 'clean', screen: 'food', edit: true });
   });
 });
+
+describe('the food screen as the person\'s own version (T15)', () => {
+  it('takes mine=1 on the food screen, and round-trips', () => {
+    expect(parsePreviewParams({ theme: 'clean', screen: 'food', mine: '1' })).toEqual({ theme: 'clean', screen: 'food', mine: true });
+    expect(parsePreviewParams({ theme: 'clean', screen: 'walk', mine: '1' })).toEqual({ theme: 'clean', screen: 'walk' });
+    const url = previewUrl('neutcraftssteps', { theme: 'clean', screen: 'food', mine: true });
+    expect(url).toBe('neutcraftssteps://design-preview?theme=clean&screen=food&mine=1');
+    expect(parsePreviewUrl(url)).toEqual({ theme: 'clean', screen: 'food', mine: true });
+  });
+});

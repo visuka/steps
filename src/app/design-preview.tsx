@@ -38,7 +38,7 @@ const TAB_OF: Record<Exclude<PreviewScreen, 'detail' | 'food'>, string> = { toda
 export default function DesignPreviewRoute() {
   const raw = useLocalSearchParams();
   const params = parsePreviewParams(raw);
-  const shown = params && params.theme === ActiveTheme.id ? `${params.theme} ${params.screen}${params.edit ? ' edit' : ''}` : 'refused';
+  const shown = params && params.theme === ActiveTheme.id ? `${params.theme} ${params.screen}${params.edit ? ' edit' : ''}${params.mine ? ' mine' : ''}` : 'refused';
 
   // CI waits for this line in logcat before photographing (.github/scripts/launch-and-capture.sh).
   useEffect(() => {
@@ -63,7 +63,7 @@ export default function DesignPreviewRoute() {
     return (
       <SampleDataProvider>
         <View style={styles.fill}>
-          <PreviewScreenBody screen="food" edit={params.edit} />
+          <PreviewScreenBody screen="food" edit={params.edit} mine={params.mine} />
         </View>
       </SampleDataProvider>
     );
@@ -88,7 +88,7 @@ function DetailPreview({ kind }: { kind: SeriesKind }) {
   return <Detail kind={kind} firstDay={dayKey(new Date())} />;
 }
 
-function PreviewScreenBody({ screen, edit }: { screen: PreviewScreen; edit?: boolean }) {
+function PreviewScreenBody({ screen, edit, mine }: { screen: PreviewScreen; edit?: boolean; mine?: boolean }) {
   const router = useRouter();
   const back = () => (router.canGoBack() ? router.back() : undefined);
   switch (screen) {
@@ -99,7 +99,7 @@ function PreviewScreenBody({ screen, edit }: { screen: PreviewScreen; edit?: boo
         <FoodResultScreen
           query={SAMPLE_FOOD_RESULT.query}
           script={SAMPLE_FOOD_RESULT.script}
-          food={SAMPLE_FOOD_RESULT.food}
+          food={mine ? { ...SAMPLE_FOOD_RESULT.food, id: 'mine:1', source: 'mine', basedOn: SAMPLE_FOOD_RESULT.food.id } : SAMPLE_FOOD_RESULT.food}
           overrides={{}}
           initialUnit={SAMPLE_FOOD_RESULT.unit}
           initialQuantity={SAMPLE_FOOD_RESULT.quantity}
@@ -110,6 +110,9 @@ function PreviewScreenBody({ screen, edit }: { screen: PreviewScreen; edit?: boo
           // Nothing is worked out in the preview: the editor opens, and Use these ingredients just closes it.
           onChangeIngredients={async () => null}
           startEditing={edit}
+          // The person's version opens on its Edit panel, where Use our guess again is.
+          showWorking={mine}
+          onUseOurGuess={mine ? () => undefined : undefined}
         />
       );
     case 'walk':

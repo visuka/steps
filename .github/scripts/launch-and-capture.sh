@@ -48,13 +48,13 @@ case "$density" in *": 420"*) ;; *) echo "::warning::Density is not 420; setting
 # is still fading out when the line appears), then until three photos in a row
 # are the same (fonts, map tiles), at most about 8 s. Saves the last one.
 capture() {
-  # $4: extra link parameters (food: &edit=1); the ready line then ends with " edit".
-  local theme="$1" screen="$2" out="$3" extra="${4:-}" prev="" cur="" start same=0 ready
+  # $4: extra link parameters (food: &edit=1 or &mine=1); $5: the word the ready line then ends with (edit or mine).
+  local theme="$1" screen="$2" out="$3" extra="${4:-}" word="${5:-}" prev="" cur="" start same=0 ready
   adb shell am force-stop "$pkg"
   adb logcat -c
   # Quoted again for the phone's shell, which would take & as "run in background".
   ready="$theme $screen"
-  [ -n "$extra" ] && ready="$ready edit"
+  [ -n "$word" ] && ready="$ready $word"
   adb shell "am start -W -a android.intent.action.VIEW -d '$scheme://design-preview?theme=$theme&screen=$screen$extra' $pkg" > /dev/null
   start=$SECONDS
   until adb logcat -d -s ReactNativeJS:V | grep -q "design-preview ready: $ready"; do
@@ -92,7 +92,9 @@ for screen in today food walk detail; do
 done
 
 # The Food result opened on its ingredient editor (T15).
-capture clean food smoke/clean-food-edit.png "&edit=1"
+capture clean food smoke/clean-food-edit.png "&edit=1" edit
+# The person's own version: the Your version pill, and Use our guess again in the Edit panel.
+capture clean food smoke/clean-food-mine.png "&mine=1" mine
 
 # The Clean+ look with the phone in dark mode: it must look the same as the light shots.
 adb shell cmd uimode night yes
