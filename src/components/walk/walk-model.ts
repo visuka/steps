@@ -1,7 +1,7 @@
 /**
  * The walk screen's figures and wording as the Clean+ mockup sets them
  * (docs/design/spec.md 5.11): one decimal for km, the unit apart from the
- * number, "Car 6 min", "removed", "24°C clear", the pace sparkline. Pure, so
+ * number, "Vehicle 6 min", "removed", "24°C clear", the pace sparkline. Pure, so
  * the tests can check it; walk-detail-look.tsx draws it.
  */
 
@@ -123,7 +123,7 @@ export const SEGMENTS = ['Walk', 'Run', 'Cycle'] as const;
 
 export interface PartRow {
   ord: number;
-  /** "Car", "Cycle", "Car or cycle". */
+  /** "Vehicle", "Cycle", "Vehicle or cycle". */
   name: string;
   /** "6 min". */
   time: string;
@@ -141,9 +141,9 @@ export interface PartsModel {
 }
 
 function partName(part: Pick<WalkPart, 'kind'>, activity: WalkActivity): string {
-  if (activity === 'ride' || part.kind === 'vehicle') return 'Car';
+  if (activity === 'ride' || part.kind === 'vehicle') return 'Vehicle';
   if (part.kind === 'cycle') return 'Cycle';
-  return 'Car or cycle';
+  return 'Vehicle or cycle';
 }
 
 /** Where a part stands, as the mockups word it ("removed"). */
@@ -165,7 +165,7 @@ const seconds = (p: Pick<WalkPart, 'startT' | 'endT'>) => Math.max(0, (p.endT - 
 export function partsModel(walk: Walk, parts: WalkPart[]): PartsModel {
   const activity = walk.activity ?? 'walk';
   const partsS = parts.reduce((a, p) => a + seconds(p), 0);
-  // Clock time less the parts ("Walk 28 min" beside "Car 6 min"); with no parts, the walk's own time.
+  // Clock time less the parts ("Walk 28 min" beside "Vehicle 6 min"); with no parts, the walk's own time.
   const mainS = parts.length ? Math.max(0, (walk.endedAt - walk.startedAt) / 1000 - partsS) : durationOf(walk);
   return {
     main: { name: activityName(activity), time: formatDuration(mainS) },

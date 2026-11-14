@@ -42,7 +42,7 @@ All colours in the mockup, nothing else is allowed.
 | indigo | #5A5F86 | sleep: icon, bar |
 | indigoTint | #EDEEF5 | sleep icon circle |
 | hair | #EEF0F3 | hairlines, bar tracks (`.bar`) |
-| soft | #F3F4F6 | grey fills: "1 bowl" chip, Edit button, segmented well, grey icon circle (car) |
+| soft | #F3F4F6 | grey fills: "1 bowl" chip, Edit button, segmented well, grey icon circle (speed) |
 | warn | #B42318 | sodium row text, its bar, warning pill text |
 | warnTint | #FDECEA | warning pill background |
 | onBlue (`--onblue`) | #D6E0FA | text on the blue hero (labels, "of 8,000", axis, "goal pace") |
@@ -79,7 +79,7 @@ No gradients, no glow, no other shadows.
 | `.s22` | 22 | 30 | 500 | −0.01em in the board title only; **0 in the app** | screen titles ("Good morning, Ravi", dish name, "Morning walk") |
 | `.s52` | 52 | 56 | 300 | −0.02em = **−1.04 dp** | big numbers: steps, kcal, distance |
 
-Modifiers: `.muted` colour #5F6673; `.med` weight 500; `.te` Telugu line (Noto Sans Telugu 400, 15/24, muted). Exceptions: the "Car" row title is 15/**20**; `.btn` labels are 15/500 with the line height left to the font (22, centred).
+Modifiers: `.muted` colour #5F6673; `.med` weight 500; `.te` Telugu line (Noto Sans Telugu 400, 15/24, muted). Exceptions: the "Vehicle" row title is 15/**20**; `.btn` labels are 15/500 with the line height left to the font (22, centred).
 
 Units after a number come in two kinds:
 - **Inside an `.s18 med` value** ("of 1,900 kcal", "of 8 glasses", "min", "km" on the walk tile, "/km", "floors"): the unit is `.s13 muted` weight **400**, nested inline in the same text after **one space character set in the value's 18/500 font** (about 4.7 dp). No flex gap; number and unit share one baseline. In RN: `<Text style={value}>5 <Text style={unit}>of 8 glasses</Text></Text>`.
@@ -166,7 +166,7 @@ Segmented control: 216 × 40, soft fill, radius 20, padding 4, three equal segme
 - Map card: margin-top 16, white, radius 24, card shadow, overflow hidden, height **160**, full width. Contents: see 6 (map).
 - Distance row: margin-top 16, space-between, bottom-aligned: left "2.3" `s52` + "km" `s15 muted`; right a 128-wide block: "Pace over time" `s13 muted`, then the 128 × 32 sparkline (margin-top 4).
 - Stat cards: 2 × 2 grid, gap 16, margin-top 16. Each card: white, radius 24, card shadow, height **72**, padding 0 16, a row with gap 12: accentTint circle with accent icon, then value `s18 med` (unit nested inline, section 3) over label `s13 muted`; the 42-high value/label block is vertically centred in the card. Grid order: row 1 Time, Steps; row 2 Pace, Floors. Clock "32" + "min" / "Time"; feet "3,120" (no unit) / "Steps"; gauge "13:55" + "/km" / "Pace"; stairs "2" + "floors" / "Climbed".
-- "Parts": margin-top 24, `s15 med`. Group margin-top 4. Part rows (`.ing` height **56**, gap 12): circle 40 (accentTint + accent walker for Walk; **soft + muted car** for the removed part), name `s15`, duration `s15 muted` right; hairline under all but the last. The removed part: name `s15 muted` (line 20) over "6 min · removed" `s13 muted`, and "Keep" `s15 med` accent at the right.
+- "Parts": margin-top 24, `s15 med`. Group margin-top 4. Part rows (`.ing` height **56**, gap 12): circle 40 (accentTint + accent walker for Walk; **soft + muted speed** for the removed part (Vehicle)), name `s15`, duration `s15 muted` right; hairline under all but the last. The removed part: name `s15 muted` (line 20) over "6 min · removed" `s13 muted`, and "Keep" `s15 med` accent at the right.
 
 ### 5.12 Donut
 SVG 88 × 88, centre (44, 44), radius **36**, stroke width **10**, circumference 226.2, rotated −90° so it starts at the top. Three arcs in order protein (warm), carbs (carbs grey), fat (accent). Arcs run clockwise from 12 o'clock, stroke-linecap **butt** (round caps are for icons only), no track ring: the 3 dp gaps show the card's warmTint.
@@ -224,7 +224,7 @@ All are 24-unit viewBox shapes, drawn with `fill="none"`, stroke 1.5, round caps
 | feet (Steps) | `path M8 4c1.4 0 2.2 1.6 2.2 3.6S9.4 10.5 8 10.5 6 9.5 6 7.6 6.6 4 8 4z` · `path M6.5 13h3v1.5a1.5 1.5 0 0 1-3 0z` · `path M16 8.5c1.4 0 2 1.6 2 3.6s-.6 2.9-2 2.9-2.2-1-2.2-2.9.8-3.6 2.2-3.6z` · `path M14.5 17.5h3v1a1.5 1.5 0 0 1-3 0z` |
 | gauge (Pace) | `path M4.5 16.5a8 8 0 1 1 15 0` · `path M12 13.5l3.5-4` · `circle cx12 cy13.5 r1` |
 | stairs (Floors) | `path M4 19h4v-4h4v-4h4V7h4` |
-| car | `path M4 16.5v-4l2.2-5h11.6l2.2 5v4z` · `path M4 12.5h16` · `path M7 16.5v2M17 16.5v2` |
+| speed | `path M5 17a8 8 0 1 1 14 0` · `path M12 13l4-4` · `path M12 13h.01` |
 
 Icons used for ingredients other than the five drawn (rice, dal, milk …) are not in the mockup: see "Not drawn".
 

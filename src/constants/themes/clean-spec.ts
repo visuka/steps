@@ -72,7 +72,7 @@ export const CLEAN_SPEC = {
     display: { css: 's52', size: 52, lineHeight: 56, weight: 300, letterSpacing: -1.04 },
     /** The Telugu line under a dish name. */
     telugu: { css: 'te', size: 15, lineHeight: 24, weight: 400, letterSpacing: 0 },
-    /** The one exception: the removed "Car" row title. */
+    /** The one exception: the removed "Vehicle" row title. */
     carTitle: { css: 's15', size: 15, lineHeight: 20, weight: 400, letterSpacing: 0 },
   },
 

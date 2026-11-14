@@ -119,7 +119,7 @@ describe('the sample day matches the mockups', () => {
     expect(SAMPLE_WALK.stepsFrom).toBe('walk');
   });
 
-  it('has the walk in two parts: 28 min on foot and a 6 min car ride, removed', () => {
+  it('has the walk in two parts: 28 min on foot and a 6 min vehicle ride, removed', () => {
     expect(SAMPLE_WALK_PARTS).toHaveLength(1);
     const [car] = SAMPLE_WALK_PARTS;
     expect(car).toMatchObject({ walkId: SAMPLE_WALK_ID, ord: 0, kind: 'vehicle', choice: 'remove' });
@@ -140,6 +140,32 @@ describe('the sample day matches the mockups', () => {
       expect(p.part).toBe(inCar ? 0 : null);
       expect(Number.isFinite(p.lat) && Number.isFinite(p.lon)).toBe(true);
     }
+  });
+
+  it('has legs of the same speed and lengths that match the walk (review 4 item 24)', () => {
+    const [car] = SAMPLE_WALK_PARTS;
+    const pts = SAMPLE_WALK_POINTS;
+    const dist = (a: { lat: number; lon: number }, b: { lat: number; lon: number }) =>
+      Math.hypot(
+        (b.lon - a.lon) * 111_320 * Math.cos((a.lat * Math.PI) / 180),
+        (b.lat - a.lat) * 111_320,
+      );
+    const leg = (keep: (p: (typeof pts)[number]) => boolean) => {
+      const ps = pts.filter(keep);
+      let m = 0;
+      for (let i = 1; i < ps.length; i++) m += dist(ps[i - 1], ps[i]);
+      return { m, s: (ps[ps.length - 1].t - ps[0].t) / 1000 };
+    };
+    // Each walking leg is measured on its own, so the car's straight-line jump is not counted as walking.
+    const before = leg((p) => p.part === null && p.t < car.startT);
+    const after = leg((p) => p.part === null && p.t > car.endT);
+    const foot = { m: before.m + after.m };
+    const ride = leg((p) => p.part === 0);
+    expect(Math.abs(foot.m - SAMPLE_WALK.distanceM) / SAMPLE_WALK.distanceM).toBeLessThan(0.01);
+    expect(Math.abs(ride.m - car.distanceM) / car.distanceM).toBeLessThan(0.01);
+    const v1 = before.m / before.s;
+    const v2 = after.m / after.s;
+    expect(Math.abs(v1 - v2) / Math.max(v1, v2)).toBeLessThan(0.1);
   });
 
   it('has a wavy pace for the sparkline (spec 6.1), and a route that fills its map frame', () => {
@@ -175,8 +201,9 @@ describe('the sample day matches the mockups', () => {
     expect(last.lat).toBeGreaterThan(pts[0].lat);
     expect(Math.min(...lats)).toBe(pts[0].lat);
     expect(Math.max(...lons)).toBeGreaterThan(last.lon);
-    expect(pathLengthM(pts)).toBeGreaterThan(2200);
-    expect(pathLengthM(pts)).toBeLessThan(2400);
+    // 2.3 km on foot plus the 346 m vehicle stretch, which the route draws as a dotted line.
+    expect(pathLengthM(pts)).toBeGreaterThan(2600);
+    expect(pathLengthM(pts)).toBeLessThan(2700);
   });
 
   it('has the food look-up: 1 bowl of endu chepala with egg curry, 412 kcal, P38 C14 F22', () => {

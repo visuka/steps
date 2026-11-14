@@ -40,11 +40,11 @@ describe('walk screen figures', () => {
 });
 
 describe('parts list', () => {
-  it('splits the sample into "Walk 28 min" and "Car 6 min removed" with Keep', () => {
+  it('splits the sample into "Walk 28 min" and "Vehicle 6 min removed" with Keep', () => {
     const m = partsModel(SAMPLE_WALK, SAMPLE_WALK_PARTS);
     expect(m.main).toEqual({ name: 'Walk', time: '28 min' });
     expect(m.parts).toEqual([
-      { ord: 0, name: 'Car', time: '6 min', counted: false, status: 'removed', toggle: { choice: 'keep', label: 'Keep' } },
+      { ord: 0, name: 'Vehicle', time: '6 min', counted: false, status: 'removed', toggle: { choice: 'keep', label: 'Keep' } },
     ]);
   });
 

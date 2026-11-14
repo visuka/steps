@@ -43,7 +43,7 @@ export const ICON_PARTS = {
   ],
   gauge: ['M4.5 16.5a8 8 0 1 1 15 0', 'M12 13.5l3.5-4', [12, 13.5, 1]],
   stairs: ['M4 19h4v-4h4v-4h4V7h4'],
-  car: ['M4 16.5v-4l2.2-5h11.6l2.2 5v4z', 'M4 12.5h16', 'M7 16.5v2M17 16.5v2'],
+  speed:['M5 17a8 8 0 1 1 14 0', 'M12 13l4-4', 'M12 13h.01'],
   // Section 10.3: the premium-locked tile.
   lock: ['M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5'],
 } as const satisfies Record<string, readonly IconPart[]>;

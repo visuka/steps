@@ -394,7 +394,7 @@ function PartListRow({
   const theme = useTheme();
   const cycle = part.name === 'Cycle';
   return (
-    <Row last={last} circle={<Circle tone={part.counted ? 'accent' : 'grey'} name={cycle ? 'cycle' : 'car'} />}>
+    <Row last={last} circle={<Circle tone={part.counted ? 'accent' : 'grey'} name={cycle ? 'cycle' : 'speed'} />}>
       <Pressable
         onPress={onOpen}
         accessibilityRole="button"

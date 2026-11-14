@@ -184,8 +184,8 @@ export const SAMPLE_WEATHER: DayWeather = {
 };
 
 // --- The morning walk -------------------------------------------------------
-// 7:10 to 7:44 am: on foot to 7:30, 6 minutes in a car (removed), on foot
-// again 7:36 to 7:44. 2.3 km and 32 min counted, 3,120 steps, 13:55 /km, 2
+// 7:10 to 7:44 am: on foot to 7:25, 6 minutes in a vehicle (removed), on foot
+// again 7:31 to 7:44. 2.3 km and 32 min counted, 3,120 steps, 13:55 /km, 2
 // floors up, 24 °C and clear. The route is the mockup's: up, east, down and back
 // south-west; the car's stretch lies along it (a loop beside it would shrink
 // the route in the map's frame). The pace goes up and down (PACE_WEIGHTS), as the
@@ -215,6 +215,14 @@ const LEG_2: Metres[] = [
   [1416, 294],
   [1284, 120],
 ];
+
+const pathLength = (path: Metres[]): number =>
+  path.slice(1).reduce((sum, p, i) => sum + Math.hypot(p[0] - path[i][0], p[1] - path[i][1]), 0);
+
+// The walking legs are scaled so they add up to the sample's 2,300 m (about 6.9 m a mockup dp).
+// Without this the legs were 1,994 m, and the walk's pace jumped at the car stretch.
+const FOOT_SCALE = 2300 / (pathLength(LEG_1) + pathLength(LEG_2));
+const scaled = (path: Metres[]): Metres[] => path.map(([e, n]) => [e * FOOT_SCALE, n * FOOT_SCALE]);
 
 /**
  * Relative walking speed in each ninth of the walk (the pace sparkline's nine
@@ -260,14 +268,14 @@ function along(path: Metres[], from: number, to: number, part: number | null, pa
 }
 
 const WALK_START = sampleTime(7, 10);
-const CAR_START = sampleTime(7, 30);
-const CAR_END = sampleTime(7, 36);
+const CAR_START = sampleTime(7, 25);
+const CAR_END = sampleTime(7, 31);
 const WALK_END = sampleTime(7, 44);
 
 export const SAMPLE_WALK_POINTS: WalkPoint[] = [
-  ...along(LEG_1, WALK_START, CAR_START - 10_000, null, true),
-  ...along(CAR, CAR_START, CAR_END, 0),
-  ...along(LEG_2, CAR_END + 10_000, WALK_END, null, true),
+  ...along(scaled(LEG_1), WALK_START, CAR_START - 10_000, null, true),
+  ...along(scaled(CAR), CAR_START, CAR_END, 0),
+  ...along(scaled(LEG_2), CAR_END + 10_000, WALK_END, null, true),
 ];
 
 export const SAMPLE_WALK_PARTS: WalkPart[] = [
@@ -278,7 +286,7 @@ export const SAMPLE_WALK_PARTS: WalkPart[] = [
     endT: CAR_END,
     kind: 'vehicle',
     steps: 0,
-    distanceM: 1100,
+    distanceM: Math.round(pathLength(CAR) * FOOT_SCALE),
     movingS: 360,
     topSpeedMs: 8.3,
     kcalWalk: 0,
