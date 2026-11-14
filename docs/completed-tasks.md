@@ -169,3 +169,9 @@ A short entry is added at the end after each finished task: date, what was done,
 - CI run 43612325716 (1219365, all jobs green). Item 23 worked: no system dialog in any shot, no warning in the log.
 - Today (light and dark), the food result and the detail screen match the mockup and spec. The walk route and the dotted car part match.
 - Item 24 (Haiku): the sample walk's legs had very different speeds (0.88 and 1.95 m/s), so the pace sparkline climbs at the end. Fix the car times (7:25–7:31) and scale the route so the on-foot length is 2,300 m; this also fixes the distance mismatch noted in the review 2 fixes.
+
+## 14 Nov 2026 — T12 review 4 fixes (Haiku), review 5 (Opus), final design OK (owner)
+
+- Items 24 and 25 (0844c07): the sample walk's vehicle stretch moved to 7:25–7:31 and the on-foot route scaled to 2,300 m, so both legs walk at about 1.2 m/s; the part is named "Vehicle" with a speed gauge icon, which replaces the car icon in the code and spec section 8. tsc clean; jest 93 suites, 1,433 tests.
+- Review 5 (CI run 43618948597, all jobs green): the pace sparkline waves like the mockup and the part reads "Vehicle". Today and the food result still match. No items.
+- The owner gave the final design OK. T12 is done.
