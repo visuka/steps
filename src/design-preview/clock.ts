@@ -1,8 +1,8 @@
 /**
  * The design preview's clock: in a preview run (design-preview/launch.ts)
- * `new Date()` and `Date.now()` read as the sample day (14 Nov 2025, 1:30 pm
+ * `new Date()` and `Date.now()` read as the sample day (Sat 14 Nov 2026, 3:45 pm
  * local) and keep ticking from there, so every screen's "today", "7:10 am"
- * and "Fri, 14 Nov" match the mockups without each screen taking a clock.
+ * and "Sat, 14 Nov" match the mockups without each screen taking a clock.
  *
  * Installed once, at start-up, only in a run started by the preview's link,
  * where nothing reads or writes the phone's data. Dates made from a given

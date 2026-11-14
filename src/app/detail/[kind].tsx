@@ -51,7 +51,8 @@ export default function DetailRoute() {
   return <Detail kind={kind} firstDay={first} />;
 }
 
-function Detail({ kind, firstDay }: { kind: SeriesKind; firstDay: string }) {
+/** The screen itself, for the route above and the design preview (which has no [kind] segment to read). */
+export function Detail({ kind, firstDay }: { kind: SeriesKind; firstDay: string }) {
   const router = useRouter();
   const theme = useTheme();
   const { profile } = useApp();

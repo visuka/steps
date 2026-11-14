@@ -26,6 +26,7 @@ export const DEFAULT_NUTRITION: NutritionSettings = {
 };
 
 export const DEFAULT_PROFILE: Profile = {
+  name: null,
   heightCm: 165,
   weightKg: 65,
   weightSet: false,
@@ -68,13 +69,26 @@ export function mergeProfile(base: Profile, patch: ProfilePatch | null | undefin
   };
 }
 
+/** The longest name kept. */
+export const NAME_MAX = 40;
+
+/**
+ * A typed name made safe to keep: spaces trimmed and runs of them made one, cut at
+ * NAME_MAX characters, null when nothing is left (or it is not text).
+ */
+export function cleanName(raw: unknown): string | null {
+  if (typeof raw !== 'string') return null;
+  const name = Array.from(raw.replace(/\s+/g, ' ').trim()).slice(0, NAME_MAX).join('').trim();
+  return name === '' ? null : name;
+}
+
 export async function loadProfile(repo: Repository): Promise<Profile> {
   const stored = await repo.getKv<ProfilePatch>(PROFILE_KEY);
   // A stored profile is the person's own. Profiles saved before weightSet existed
   // count the weight as typed when it differs from the default.
   const merged = mergeProfile(DEFAULT_PROFILE, stored ? { ...stored, weightSet: stored.weightSet ?? inferWeightSet(stored) } : null);
   // Only a country from the list is kept; anything else goes back to the phone's.
-  return { ...merged, country: knownCountry(merged.country) };
+  return { ...merged, country: knownCountry(merged.country), name: cleanName(merged.name) };
 }
 
 function inferWeightSet(stored: ProfilePatch): boolean {

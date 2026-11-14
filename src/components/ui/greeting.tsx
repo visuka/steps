@@ -42,7 +42,7 @@ export function Greeting({ date, name, initial, onAvatarPress, greeting = 'Hello
           {greetingTitle(greeting, name)}
         </ThemedText>
       </View>
-      {onAvatarPress ? (
+      {letter === '' ? null : onAvatarPress ? (
         <Pressable
           onPress={onAvatarPress}
           hitSlop={{ top: slop, bottom: slop, left: slop, right: slop }}

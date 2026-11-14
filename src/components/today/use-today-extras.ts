@@ -1,7 +1,8 @@
-/** Loads what Today shows besides steps and food: last night's sleep, today's walk, the last 7 days, today's hours, the name. */
+/** Loads what Today shows besides steps and food: last night's sleep, today's walk, the this week, today's hours, the name. */
 
 import { useEffect, useState } from 'react';
 
+import { cleanName } from '@/data/profile';
 import type { SleepEntry, Walk } from '@/data/types';
 import { addDaysToKey, dayKey, formatDayLong } from '@/lib/dates';
 import { useApp } from '@/state/app-state';
@@ -41,8 +42,8 @@ export function useTodayExtras(reload: number) {
   const week = weekOf(days, today, displaySteps);
   const sleepFigure = sleepOf(sleep);
   const walkFigure = walkOf(walks, today, profile.units);
-  // Profile has no name field, so the greeting stays "Good morning" until one exists.
-  const name: string | null = null;
+  // The name from You > Settings > Profile; without one the greeting has no name and no avatar.
+  const name = cleanName(profile.name);
   return {
     dateLabel: formatDayLong(today),
     name,

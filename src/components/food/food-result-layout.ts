@@ -205,10 +205,14 @@ export function ingredientLine(name: string): IngredientLine {
   return { main, aside, method, count: p.count };
 }
 
-/** What follows the name in muted text: " (methallu) · fried · 2", or "". */
+/** The name in ink, with its bracketed note: "Dried anchovy (methallu)" (spec 5.10). */
+export function ingredientTitle(line: IngredientLine): string {
+  return line.aside ? `${line.main} ${line.aside}` : line.main;
+}
+
+/** What follows the name in muted text: " · fried · 2", or "". */
 export function ingredientSuffix(line: IngredientLine): string {
   const parts: string[] = [];
-  if (line.aside) parts.push(` ${line.aside}`);
   if (line.method) parts.push(` · ${line.method}`);
   if (line.count) parts.push(` · ${line.count}`);
   return parts.join('');

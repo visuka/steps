@@ -262,6 +262,56 @@ export function Chip({
   return <UiChip label={label} onPress={onPress} selected={selected} dot={dot} />;
 }
 
+/**
+ * A labelled text field in the Settings rows' layout (as NumberField), reporting the text only
+ * when editing ends. For the name: capitalised words, the keyboard's name suggestion.
+ */
+export function NameField({
+  label,
+  value,
+  onCommit,
+  placeholder,
+  maxLength,
+}: {
+  label: string;
+  value: string | null;
+  onCommit: (text: string) => void;
+  placeholder?: string;
+  maxLength?: number;
+}) {
+  const theme = useTheme();
+  const [text, setText] = useState(value ?? '');
+  const [lastValue, setLastValue] = useState(value);
+  // Only follow a change from outside (a trimmed save), never mid-typing.
+  if (value !== lastValue) {
+    setLastValue(value);
+    if ((value ?? '') !== text.trim()) setText(value ?? '');
+  }
+  const commit = () => onCommit(text);
+  return (
+    <View style={styles.field}>
+      <ThemedText style={styles.fieldLabel}>{label}</ThemedText>
+      <TextInput
+        value={text}
+        onChangeText={setText}
+        onEndEditing={commit}
+        onBlur={commit}
+        placeholder={placeholder}
+        placeholderTextColor={theme.onSurfaceVariant}
+        cursorColor={theme.primary}
+        selectionColor={theme.primaryContainer}
+        maxLength={maxLength}
+        autoCapitalize="words"
+        autoComplete="name"
+        textContentType="givenName"
+        autoCorrect={false}
+        accessibilityLabel={label}
+        style={inputStyle(theme, [styles.input, styles.nameInput])}
+      />
+    </View>
+  );
+}
+
 export function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <View style={styles.field}>
@@ -291,6 +341,7 @@ const styles = StyleSheet.create({
   fieldInput: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   // A set width: the web preview's inputs are 20 characters wide by default, which pushed the unit off a phone screen.
   numberInput: { width: 112 },
+  nameInput: { flex: 1, minWidth: 0 },
   input: {
     minWidth: 88,
     minHeight: TouchTarget,

@@ -3,6 +3,7 @@ import { type BottomTabBarProps, Tabs } from 'expo-router/js-tabs';
 import { useEffect, useState } from 'react';
 import { Keyboard, Platform } from 'react-native';
 
+import { useFoodResultCovering } from '@/components/food/food-result-cover';
 import { NavigationBar, type NavigationItem } from '@/components/ui/navigation-bar';
 import { useReducedMotion } from '@/components/ui/motion';
 import { Colors } from '@/constants/theme';
@@ -47,9 +48,11 @@ function useKeyboardUp(): boolean {
 
 function TabBar({ state, emitter, navigateToTab, insets }: BottomTabBarProps) {
   const keyboardUp = useKeyboardUp();
+  const resultUp = useFoodResultCovering();
   const router = useRouter();
   const focused = state.routes[state.index];
-  if (keyboardUp) return null;
+  // A food result has no bottom bar (spec 7), and the keyboard takes the room of one.
+  if (keyboardUp || resultUp) return null;
 
   const press = (name: string) => {
     if (name === LOG_FOOD_KEY) {

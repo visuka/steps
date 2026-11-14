@@ -14,7 +14,7 @@
  *  - food { text, target, share, partial, spoken }
  *  - water { glasses, of, spoken }
  *  - sleep, sleepSpoken; walk, walkSpoken
- *  - week (7 days ending today)
+ *  - week (Monday to Sunday of this week)
  *  - on: food, water, addGlass, sleep, walk, steps (hero opens the steps
  *    detail), premium (a locked tile was tapped), profile, calendar(dayKey?)
  *    (a tapped week-strip day)

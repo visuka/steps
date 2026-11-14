@@ -36,7 +36,7 @@ const walk: WalkFigure = {
 
 function day(i: number, steps: number): WeekDay {
   const names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  return { key: `2026-11-${8 + i}`, letter: names[i][0], name: names[i], steps, today: i === 6 };
+  return { key: `2026-11-${8 + i}`, letter: names[i][0], name: names[i], steps, today: i === 6, future: false };
 }
 
 describe('greeting', () => {
@@ -125,6 +125,11 @@ describe('week strip', () => {
     const shares = weekShares([day(5, 0), day(6, 0)], 8000);
     expect(shares[0].share).toBeNull();
     expect(shares[1].share).toBe(0);
+  });
+
+  it('marks a day after today as future, with no share', () => {
+    const later = { ...day(6, 0), today: false, future: true };
+    expect(weekShares([later], 8000)[0]).toMatchObject({ share: null, future: true });
   });
 
   it('survives a goal of 0', () => {

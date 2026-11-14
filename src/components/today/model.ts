@@ -49,6 +49,8 @@ export interface WeekDay {
   name: string;
   steps: number;
   today: boolean;
+  /** A day that has not happened yet: an empty track, not tappable. */
+  future: boolean;
 }
 
 /** One decimal, as every mockup: "4.6 km", "2.3 mi". */
@@ -100,14 +102,23 @@ export function walkOf(walks: Walk[], today: string, units: Units): WalkFigure |
   };
 }
 
-/** The 7 days ending today, today's steps as shown live. */
+/** The week that holds today, Monday to Sunday (spec 5.2), today's steps as shown live; days after today are `future`. */
 export function weekOf(days: { date: string; steps: number }[], today: string, todaySteps: number): WeekDay[] {
   const by = new Map(days.map((d) => [d.date, d.steps]));
+  const sinceMonday = (parseDayKey(today).getDay() + 6) % 7;
   return Array.from({ length: 7 }, (_, i) => {
-    const key = addDaysToKey(today, i - 6);
+    const key = addDaysToKey(today, i - sinceMonday);
     const wd = parseDayKey(key).getDay();
     const isToday = key === today;
-    return { key, letter: LETTERS[wd], name: WEEKDAY_NAMES[wd], steps: isToday ? todaySteps : (by.get(key) ?? 0), today: isToday };
+    const future = key > today;
+    return {
+      key,
+      letter: LETTERS[wd],
+      name: WEEKDAY_NAMES[wd],
+      steps: isToday ? todaySteps : future ? 0 : (by.get(key) ?? 0),
+      today: isToday,
+      future,
+    };
   });
 }
 

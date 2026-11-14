@@ -6,14 +6,14 @@ import { Linking, Platform, Share, StyleSheet, View } from 'react-native';
 
 import { AccountCard } from '@/components/auth/account-card';
 import { confirm } from '@/components/confirm';
-import { NumberField, Segmented, Stepper } from '@/components/controls';
+import { NameField, NumberField, Segmented, Stepper } from '@/components/controls';
 import { CountrySheet } from '@/components/country-sheet';
 import { ThemeSheet } from '@/components/theme-sheet';
 import { ThemedText } from '@/components/themed-text';
 import { Button, Card, ListRow, Notice, Screen, SectionHeader, Surface, ToggleRow, Why } from '@/components/ui';
 import { APP_NAME, SIGN_IN_MODE } from '@/constants/app';
 import { ActiveTheme, Spacing } from '@/constants/theme';
-import { profileStride } from '@/data/profile';
+import { cleanName, NAME_MAX, profileStride } from '@/data/profile';
 import type { Sex } from '@/data/types';
 import { switchableSources } from '@/health/select-source';
 import type { StepSource } from '@/health/types';
@@ -199,9 +199,16 @@ export default function SettingsScreen() {
 
       <SectionHeader
         title="Profile"
-        why="Height and stride set distance when your phone doesn’t measure it. Weight sets calorie estimates. Leave stride empty to estimate it from height."
+        why="Name sets the greeting on Today; it stays on this phone. Height and stride set distance when your phone doesn’t measure it. Weight sets calorie estimates. Leave stride empty to estimate it from height."
       />
       <Card>
+        <NameField
+          label="Name (optional)"
+          value={profile.name}
+          placeholder="—"
+          maxLength={NAME_MAX}
+          onCommit={(t) => updateProfile({ name: cleanName(t) })}
+        />
         <Segmented<Units>
           options={[
             { value: 'metric', label: 'Metric' },

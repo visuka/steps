@@ -4,10 +4,9 @@ import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppearanceNote } from '@/components/appearance-note';
-import { MoodPicker } from '@/components/mood-picker';
 import { PremiumCard } from '@/components/premium-gate';
 import { ThemedText } from '@/components/themed-text';
-import { Button, Card, SectionHeader, Snackbar, Why } from '@/components/ui';
+import { Button, Card, Snackbar, Why } from '@/components/ui';
 import { distanceOf, heroSpoken, percentOf, untimedNote } from '@/components/today/model';
 import { detailRoute, type DetailKind, walkingLine } from '@/components/today/today-actions';
 import { TodayClean } from '@/components/today/today-clean';
@@ -27,7 +26,6 @@ import { PARTIAL_NOTE } from '@/nutrition/state';
 import { dayKcalTarget } from '@/nutrition/targets';
 import { useApp } from '@/state/app-state';
 import { useTodayKcal } from '@/state/use-calories';
-import { useMoodToday } from '@/state/use-mood';
 import { usePremium } from '@/state/use-premium';
 import { type AddedGlass, useWaterToday } from '@/state/use-water';
 
@@ -36,8 +34,8 @@ const WEATHER_PROMPT_KEY = 'weatherPromptDismissed';
 /**
  * Today: the Clean+ Today (components/today/today-clean.tsx) for every look,
  * handed the same data, taps and premium lock. The first screen is the
- * greeting, week strip, steps hero (with its hour chart) and tiles; the mood
- * check-in, goal suggestion and weather offer follow below. The status bar
+ * greeting, week strip, steps hero (with its hour chart) and tiles; the goal
+ * suggestion and weather offer follow below (the mood check-in is in Journal; spec 7 ends Today at the tiles). The status bar
  * keeps a strip of the page colour, so nothing scrolls under the clock.
  */
 export default function TodayScreen() {
@@ -195,7 +193,7 @@ export default function TodayScreen() {
   );
 }
 
-/** The untimed-steps note, the mood check-in, a goal suggestion and the weather offer: what follows the tiles. */
+/** The untimed-steps note, a goal suggestion and the weather offer: what follows the tiles. */
 function BelowTheFold({
   weatherDay,
   untimed,
@@ -209,7 +207,6 @@ function BelowTheFold({
   onLocation: () => void;
 }) {
   const { repo, profile, dataVersion } = useApp();
-  const { mood, setMood, reminderOff, turnOnReminder } = useMoodToday();
   const [suggestion, setSuggestion] = useState<number | null>(null);
   const [askLocation, setAskLocation] = useState(false);
 
@@ -237,12 +234,6 @@ function BelowTheFold({
           {untimed}
         </ThemedText>
       ) : null}
-      <SectionHeader title="How are you feeling?" />
-      <MoodPicker value={mood?.mood ?? null} onChange={setMood} />
-      {mood && reminderOff ? (
-        <Button variant="text" compact label="Remind me each evening" onPress={turnOnReminder} />
-      ) : null}
-
       {suggestion ? (
         <Card title="New goal?" right={<ThemedText type="numeralSmall">{formatSteps(suggestion)}</ThemedText>}>
           <ThemedText type="bodyMedium" themeColor="onSurfaceVariant">

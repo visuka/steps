@@ -88,20 +88,24 @@ export function heroNumbers(steps: number, goal: number): { value: string; of: s
 export interface StripDay {
   label: string;
   share: number | null;
+  /** After today: an empty track, no tap. */
+  future?: boolean;
 }
 
 /**
  * The week strip: share of the goal clamped to 0..1; null for a past day with no
- * steps (empty track, spoken "no data"); today with 0 steps is a 0 share.
+ * steps (empty track, spoken "no data"); today with 0 steps is a 0 share; a day
+ * after today is `future` (empty track, no tap).
  */
 export function weekShares(week: readonly WeekDay[], goal: number): StripDay[] {
   return week.map((d) => ({
     label: d.name.slice(0, 3),
     share: d.steps <= 0 && !d.today ? null : goal > 0 ? clamp01(d.steps / goal) : 0,
+    future: d.future,
   }));
 }
 
-/** Index of today's column (the last one), or -1. */
+/** Index of today's column in the week, or -1. */
 export function selectedDay(week: readonly WeekDay[]): number {
   return week.findIndex((d) => d.today);
 }

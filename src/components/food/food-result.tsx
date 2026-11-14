@@ -4,6 +4,7 @@ import { type ReactNode, use, useEffect, useRef, useState } from 'react';
 import { BackHandler, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useFoodResultCovering } from '@/components/food/food-result-cover';
 import { Chip, NumberField, Button as OldButton, Stepper } from '@/components/controls';
 import { ThemedText } from '@/components/themed-text';
 import { Button as UiButton, Chip as UiChip, Donut, IconCircle, NutrientRow, SpecIcon } from '@/components/ui';
@@ -36,6 +37,7 @@ import {
   ingredientRowLayout,
   ingredientSpoken,
   ingredientSuffix,
+  ingredientTitle,
   RESULT,
   titleLayout,
 } from './food-result-layout';
@@ -135,7 +137,9 @@ function Result({
   const [editing, setEditing] = useState(Boolean(showWorking));
   const [watchOpen, setWatchOpen] = useState<NutrientKey | null>(null);
   const insets = useSafeAreaInsets();
-  const inTabs = use(BottomTabBarHeightContext) !== undefined;
+  // The tab bar carries the bottom inset, unless it has stepped aside for this result (food-result-cover.ts).
+  const barHidden = useFoodResultCovering();
+  const inTabs = use(BottomTabBarHeightContext) !== undefined && !barHidden;
   const back = onBack ?? onCancel;
   const backRef = useRef(back);
   useEffect(() => {
@@ -376,7 +380,7 @@ function Ingredients({ food, s }: { food: FoodItem; s: ResultState }) {
         const line = ingredientLine(ing.name);
         const grams = gramsText(ing.grams);
         const last = index === list.length - 1;
-        const layout = ingredientRowLayout(`${line.main}${ingredientSuffix(line)}`, grams, width, fontScale);
+        const layout = ingredientRowLayout(`${ingredientTitle(line)}${ingredientSuffix(line)}`, grams, width, fontScale);
         return (
           <View key={`${ing.name}-${index}`} style={styles.ingRow} accessible accessibilityLabel={`${ingredientSpoken(line)}, ${grams}`}>
             <IconCircle name={ingredientIcon(ing.name)} tone="warm" />
@@ -392,7 +396,7 @@ function Ingredients({ food, s }: { food: FoodItem; s: ResultState }) {
                 ellipsizeMode="tail"
                 maxFontSizeMultiplier={NumeralMaxScale}
                 style={styles.shrink}>
-                {line.main}
+                {ingredientTitle(line)}
                 <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={NumeralMaxScale}>
                   {ingredientSuffix(line)}
                 </ThemedText>
@@ -463,7 +467,7 @@ function NutrientList({ s, open, onToggle }: { s: ResultState; open: NutrientKey
   };
   return (
     <View style={styles.nutrients}>
-      <View style={styles.sectionRow}>
+      <View style={styles.nutrientsHead}>
         <ThemedText type="labelLarge" accessibilityRole="header" maxFontSizeMultiplier={NumeralMaxScale}>
           Nutrients
         </ThemedText>
@@ -673,6 +677,8 @@ const styles = StyleSheet.create({
   macroValue: { flexDirection: 'row', alignItems: 'center', gap: RESULT.macroDotGap },
   dot: { width: RESULT.macroDot, height: RESULT.macroDot, borderRadius: CLEAN_SPEC.radius.dot },
   ingredients: { marginTop: RESULT.ingredientsGap },
+  // "Nutrients" with its caption right after it (spec 5.10: a row, gap 8, baseline).
+  nutrientsHead: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', gap: CLEAN_SPEC.space.s8 },
   sectionRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: CLEAN_SPEC.space.s8 },
   pendingNote: { flexShrink: 1, textAlign: 'right' },
   ingRow: { flexDirection: 'row', alignItems: 'center', gap: RESULT.ingredientGap },

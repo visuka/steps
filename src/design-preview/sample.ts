@@ -1,11 +1,11 @@
 /**
  * The design preview's sample day: the figures on the approved mockups
- * (Fri 14 Nov; 6,240 of 8,000 steps; food 1,280 of 1,900 kcal; water 5 of 8;
+ * (Sat 14 Nov; 6,240 of 8,000 steps; food 1,280 of 1,900 kcal; water 5 of 8;
  * 6 h 50 m of sleep; a 2.3 km morning walk at 7:10 am; the "endu chepala
  * with egg curry" look-up). Plain data, no React Native, so jest checks it.
  *
- * Times are local: 14 Nov 2025 on whatever time zone the phone is in, so the
- * day key, "7:10 am" and "Fri, 14 Nov" read the same everywhere.
+ * Times are local: 14 Nov 2026 on whatever time zone the phone is in, so the
+ * day key, "7:10 am" and "Sat, 14 Nov" read the same everywhere.
  */
 
 import type { Snapshot } from '@/data/db.web';
@@ -16,13 +16,13 @@ import type { StepBucket } from '@/lib/metrics';
 import type { WalkPoint } from '@/lib/walk';
 import type { FoodItem, Nutrients, NutrientKey } from '@/nutrition/types';
 
-/** Local time on the sample day (14 Nov 2025, a Friday); `dayOffset` -1 is the night before. */
+/** Local time on the sample day (14 Nov 2026, a Saturday); `dayOffset` -1 is the night before. */
 export function sampleTime(hour: number, minute = 0, dayOffset = 0): number {
-  return new Date(2025, 10, 14 + dayOffset, hour, minute).getTime();
+  return new Date(2026, 10, 14 + dayOffset, hour, minute).getTime();
 }
 
-/** "Now" in the preview: early afternoon, lunch being logged. */
-export const SAMPLE_NOW = sampleTime(13, 30);
+/** "Now" in the preview: 3:45 pm, so the hour chart runs to 3 pm as on the mockup. */
+export const SAMPLE_NOW = sampleTime(15, 45);
 export const SAMPLE_DAY = dayKey(new Date(SAMPLE_NOW));
 
 export const SAMPLE_GOAL = 8000;
@@ -32,7 +32,7 @@ export const SAMPLE_KCAL_TARGET = 1900;
 export const SAMPLE_WALK_ID = 'sample-walk';
 
 /**
- * A male, 172 cm, 67.8 kg, born 1990: resting energy 1,583 kcal, so both the
+ * A male, 172 cm, 67.8 kg, born 1991 (35 in 2026): resting energy 1,583 kcal, so both the
  * full-day target (× 1.2) and today's target (resting plus a fifth, as the
  * walking burn is under it) come to 1,900. Water: 8 glasses of 250 ml.
  */
@@ -42,7 +42,8 @@ export const SAMPLE_PROFILE: Profile = {
   weightKg: 67.8,
   weightSet: true,
   sex: 'male',
-  birthYear: 1990,
+  birthYear: 1991,
+  name: 'Ravi',
   units: 'metric',
   dailyGoal: SAMPLE_GOAL,
   moodCheckIn: { enabled: false, hour: 20 },
@@ -52,15 +53,20 @@ export const SAMPLE_PROFILE: Profile = {
   onboarded: true,
 };
 
-/** Steps by hour; 6,240 in all, the walk's hour the tallest. */
-export const SAMPLE_HOURLY: number[] = [0, 0, 0, 0, 0, 0, 180, 2900, 520, 300, 300, 520, 820, 700, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+/**
+ * Steps by hour; 6,240 in all, hours 6 to 15 as the mockup's chart (bar heights 7, 60,
+ * 37, 21, 29, 22, 25, 18, 25, 13), the walk's hour the tallest. With a goal of 8,000
+ * the goal line falls at y 43.4 (spec 10.1: y 43 is a largest hour of about 1,430; 1,455
+ * keeps every height within half a dp of the mockup's and the day at 6,240).
+ */
+export const SAMPLE_HOURLY: number[] = [0, 0, 0, 0, 0, 0, 170, 1455, 905, 509, 703, 534, 606, 437, 606, 315, 0, 0, 0, 0, 0, 0, 0, 0];
 
 /**
  * Brisk minutes in each hour of SAMPLE_HOURLY (100 steps a minute, the app's
  * active cadence), 52 in all: the day's active minutes. Hour 7 is the morning
  * walk. The rest of the hour's steps are spread at a slow pace.
  */
-const SAMPLE_ACTIVE_MIN: Record<number, number> = { 6: 1, 7: 25, 8: 4, 9: 3, 10: 3, 11: 4, 12: 6, 13: 6 };
+const SAMPLE_ACTIVE_MIN: Record<number, number> = { 6: 1, 7: 12, 8: 8, 9: 4, 10: 6, 11: 4, 12: 5, 13: 3, 14: 6, 15: 3 };
 const SAMPLE_ACTIVE_START_MIN = 10;
 
 /**
@@ -107,6 +113,29 @@ export const SAMPLE_TODAY: DaySummary = {
   source: 'demo',
   updatedAt: SAMPLE_NOW - 2 * 60_000,
 };
+
+/**
+ * Monday to Friday of the sample week, for the week strip: 90, 100, 60, 85 and 100 % of the
+ * 8,000 goal, as the mockup draws them (Sunday has not happened yet).
+ */
+export const SAMPLE_WEEK: DaySummary[] = [7200, 8000, 4800, 6800, 8000].map((steps, i) => {
+  const at = sampleTime(21, 0, i - 5);
+  return {
+    date: dayKey(new Date(at)),
+    steps,
+    untimedSteps: 0,
+    distanceM: Math.round(steps * 0.74),
+    activeKcal: Math.round(steps * 0.04),
+    activeMin: Math.round(steps / 120),
+    walkMin: 0,
+    briskMin: 0,
+    runMin: 0,
+    floors: 0,
+    goal: SAMPLE_GOAL,
+    source: 'demo',
+    updatedAt: at,
+  };
+});
 
 /** 1,280 kcal in four calorie-only entries, so the total never hangs on a food look-up. */
 export const SAMPLE_FOODS: FoodEntry[] = [
@@ -158,7 +187,9 @@ export const SAMPLE_WEATHER: DayWeather = {
 // 7:10 to 7:44 am: on foot to 7:30, 6 minutes in a car (removed), on foot
 // again 7:36 to 7:44. 2.3 km and 32 min counted, 3,120 steps, 13:55 /km, 2
 // floors up, 24 °C and clear. The route is an L then a diagonal, like the map
-// on the mockups; the car's loop sits beside it.
+// on the mockups; the car's stretch lies along it (a loop beside it would shrink
+// the route in the map's frame). The pace goes up and down (PACE_WEIGHTS), as the
+// mockup's sparkline does.
 
 const ORIGIN = { lat: 17.44, lon: 78.3489 };
 const M_PER_DEG_LAT = 111_320;
@@ -175,8 +206,6 @@ const LEG_1: Metres[] = [
 ];
 const CAR: Metres[] = [
   [840, 800],
-  [840, 1300],
-  [1140, 1300],
   [1140, 800],
 ];
 const LEG_2: Metres[] = [
@@ -185,14 +214,30 @@ const LEG_2: Metres[] = [
   [1700, 550],
 ];
 
-/** Fixes every 10 s from `from` to `to` (ms), evenly along the polyline. */
-function along(path: Metres[], from: number, to: number, part: number | null): WalkPoint[] {
+/**
+ * Relative walking speed in each ninth of the walk (the pace sparkline's nine
+ * windows): fast, slow, fast, the slowest where the car is. Gives the mockup's wavy line.
+ */
+const PACE_WEIGHTS = [0.95, 1.45, 1.1, 1.65, 1.25, 1.25, 1.5, 1.35, 1.15];
+
+function paceWeightAt(t: number): number {
+  const k = Math.round(((t - WALK_START) / (WALK_END - WALK_START)) * (PACE_WEIGHTS.length - 1));
+  return PACE_WEIGHTS[Math.min(PACE_WEIGHTS.length - 1, Math.max(0, k))];
+}
+
+/** Fixes every 10 s from `from` to `to` (ms), along the polyline: evenly, or at the PACE_WEIGHTS speed when `paced`. */
+function along(path: Metres[], from: number, to: number, part: number | null, paced = false): WalkPoint[] {
   const lengths = path.slice(1).map((p, i) => Math.hypot(p[0] - path[i][0], p[1] - path[i][1]));
   const total = lengths.reduce((a, b) => a + b, 0);
   const speed = total / ((to - from) / 1000);
   const out: WalkPoint[] = [];
-  for (let t = from; t <= to; t += 10_000) {
-    let d = (total * (t - from)) / (to - from);
+  const times: number[] = [];
+  for (let t = from; t <= to; t += 10_000) times.push(t);
+  // Distance covered by each fix as a share of the stretch: the sum of the speeds so far.
+  const cum = [0];
+  for (let i = 1; i < times.length; i++) cum.push(cum[i - 1] + (paced ? paceWeightAt((times[i - 1] + times[i]) / 2) : 1));
+  for (const [idx, t] of times.entries()) {
+    let d = paced ? (total * cum[idx]) / cum[cum.length - 1] : (total * (t - from)) / (to - from);
     let i = 0;
     while (i < lengths.length - 1 && d > lengths[i]) d -= lengths[i++];
     const f = lengths[i] ? Math.min(1, d / lengths[i]) : 0;
@@ -218,9 +263,9 @@ const CAR_END = sampleTime(7, 36);
 const WALK_END = sampleTime(7, 44);
 
 export const SAMPLE_WALK_POINTS: WalkPoint[] = [
-  ...along(LEG_1, WALK_START, CAR_START - 10_000, null),
+  ...along(LEG_1, WALK_START, CAR_START - 10_000, null, true),
   ...along(CAR, CAR_START, CAR_END, 0),
-  ...along(LEG_2, CAR_END + 10_000, WALK_END, null),
+  ...along(LEG_2, CAR_END + 10_000, WALK_END, null, true),
 ];
 
 export const SAMPLE_WALK_PARTS: WalkPart[] = [
@@ -306,8 +351,8 @@ export const SAMPLE_FOOD: FoodItem = {
   defaultUnit: 'bowl',
   source: 'ai',
   ingredients: [
-    { name: 'Dried anchovy (methallu)', grams: 40 },
-    { name: 'Egg 2', grams: 100 },
+    { name: 'Dried anchovy (methallu, fried)', grams: 40 },
+    { name: 'Egg, boiled', grams: 100 },
     { name: 'Onion', grams: 60 },
     { name: 'Tomato', grams: 50 },
     { name: 'Oil', grams: 10 },
@@ -332,7 +377,7 @@ export const SAMPLE_FOOD_RESULT = {
 export function sampleSnapshot(): Snapshot {
   return {
     kv: [['profile', JSON.stringify(SAMPLE_PROFILE)]],
-    days: [[SAMPLE_DAY, SAMPLE_TODAY]],
+    days: [...SAMPLE_WEEK, SAMPLE_TODAY].map((d): [string, DaySummary] => [d.date, d]),
     hours: [[SAMPLE_DAY, SAMPLE_HOURLY]],
     logs: { weight: [], water: [...SAMPLE_WATER].reverse() },
     achievements: [],

@@ -10,6 +10,8 @@ export interface WeekDay {
   label: string;
   /** Share of that day's goal, 0..1 (more than 1 draws full); null = no data. */
   share: number | null;
+  /** After today: an empty track, no tap. */
+  future?: boolean;
 }
 
 export const WEEK_STYLE = {
@@ -53,8 +55,9 @@ export function selectedTrack(theme: TrackTheme): string {
 }
 
 /** "Mon, 90 percent of goal", "Sat, today, 78 percent of goal", "Sun, no data". */
-export function weekDayLabel(label: string, share: number | null, isToday: boolean): string {
+export function weekDayLabel(label: string, share: number | null, isToday: boolean, future = false): string {
   const day = isToday ? `${label}, today` : label;
+  if (future) return `${day}, not yet`;
   if (share === null || !Number.isFinite(share)) return `${day}, no data`;
   return `${day}, ${Math.round(Math.max(0, share) * 100)} percent of goal`;
 }

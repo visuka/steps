@@ -5,7 +5,8 @@ import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import TodayScreen from '@/app/(tabs)/index';
-import DetailRoute from '@/app/detail/[kind]';
+import { Detail } from '@/app/detail/[kind]';
+import { dayKey } from '@/lib/dates';
 import { WalkDetail } from '@/app/walk/[id]';
 import { TABS } from '@/components/app-tabs';
 import { FoodResultScreen } from '@/components/food/food-result';
@@ -19,7 +20,7 @@ import { useTheme } from '@/hooks/use-theme';
 import type { SeriesKind } from '@/state/series';
 
 /** The tab each mockup screen shows as selected in its navigation bar (the detail screen is a stack screen: no bar). */
-const TAB_OF: Record<Exclude<PreviewScreen, 'detail'>, string> = { today: 'index', food: 'food', walk: 'activity' };
+const TAB_OF: Record<Exclude<PreviewScreen, 'detail' | 'food'>, string> = { today: 'index', walk: 'activity' };
 
 /**
  * The real Today, Food result, Walk and hourly detail screens over the mockups'
@@ -57,6 +58,16 @@ export default function DesignPreviewRoute() {
       </SampleDataProvider>
     );
   }
+  if (params.screen === 'food') {
+    // The food result has no bottom bar (spec 7): its buttons sit 24 above the bottom.
+    return (
+      <SampleDataProvider>
+        <View style={styles.fill}>
+          <PreviewScreenBody screen="food" />
+        </View>
+      </SampleDataProvider>
+    );
+  }
   return (
     <SampleDataProvider>
       <WithNavigationBar activeKey={TAB_OF[params.screen]}>
@@ -67,19 +78,14 @@ export default function DesignPreviewRoute() {
 }
 
 /**
- * The real detail screen (app/detail/[kind].tsx), which reads its kind from the
- * route's params: this route's own, as parsed here. An unknown kind in the link
- * is set to steps first, so the screen never shows its "nothing here" state.
- * It is a stack screen on the phone, so there is no navigation bar under it.
+ * The real detail screen (app/detail/[kind].tsx) for the kind parsed from the link
+ * (steps when missing or unknown), on today. It is given the kind directly: this
+ * route has no [kind] segment, so the screen cannot read it from the route's params
+ * (the first CI run drew a blank page that way). It is a stack screen on the phone,
+ * so there is no navigation bar under it.
  */
 function DetailPreview({ kind }: { kind: SeriesKind }) {
-  const router = useRouter();
-  const { kind: rawKind } = useLocalSearchParams<{ kind?: string }>();
-  const settled = rawKind === kind;
-  useEffect(() => {
-    if (!settled) router.setParams({ kind });
-  }, [settled, router, kind]);
-  return settled ? <DetailRoute /> : null;
+  return <Detail kind={kind} firstDay={dayKey(new Date())} />;
 }
 
 function PreviewScreenBody({ screen }: { screen: PreviewScreen }) {

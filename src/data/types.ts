@@ -47,6 +47,8 @@ export interface NutritionSettings {
 }
 
 export interface Profile {
+  /** What Today calls the person ("Good morning, Ravi"). Optional; null = none. Stays on this phone: never sent anywhere. */
+  name: string | null;
   heightCm: number;
   weightKg: number;
   /** True once the person typed a weight (onboarding field changed, Settings); the default 65 kg is not theirs. */

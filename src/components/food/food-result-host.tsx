@@ -1,10 +1,12 @@
-import { createContext, type ReactNode, use, useLayoutEffect, useState, useSyncExternalStore } from 'react';
+import { createContext, type ReactNode, use, useEffect, useLayoutEffect, useState, useSyncExternalStore } from 'react';
 import { StyleSheet, View } from 'react-native';
+
+import { setFoodResultCovering } from './food-result-cover';
 
 /**
  * Lets the food log (deep inside the Food tab's scrolling screen) show the
  * food result as a screen of its own over the tab, as on the mockups, with
- * the navigation bar still under it. The log keeps its state; it hands its
+ * no navigation bar under it (spec 7: the tab bar steps aside, food-result-cover.ts). The log keeps its state; it hands its
  * result element to the host on every render, and only the layer re-renders.
  */
 export interface FoodResultHost {
@@ -56,7 +58,21 @@ export function FoodResultHostView({ children }: { children: ReactNode }) {
 function Layer({ host }: { host: FoodResultHost }) {
   const node = useSyncExternalStore(host.subscribe, host.get);
   if (node === null) return null;
-  return <View style={StyleSheet.absoluteFill}>{node}</View>;
+  return (
+    <View style={StyleSheet.absoluteFill}>
+      <Covering />
+      {node}
+    </View>
+  );
+}
+
+/** While it is on screen the tab bar is hidden. */
+function Covering() {
+  useEffect(() => {
+    setFoodResultCovering(true);
+    return () => setFoodResultCovering(false);
+  }, []);
+  return null;
 }
 
 /** True inside a FoodResultHostView. */

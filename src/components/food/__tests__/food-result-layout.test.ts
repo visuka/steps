@@ -10,6 +10,7 @@ import {
   ingredientRowLayout,
   ingredientSpoken,
   ingredientSuffix,
+  ingredientTitle,
   RESULT,
   titleLayout,
 } from '../food-result-layout';
@@ -92,9 +93,11 @@ describe('ingredient names: name, note, cooking method', () => {
   it('prints the mockup rows ("Dried anchovy (methallu) · fried")', () => {
     const a = ingredientLine('Dried anchovy (methallu, fried)');
     expect(a).toEqual({ main: 'Dried anchovy', aside: '(methallu)', method: 'fried', count: null });
-    expect(`${a.main}${ingredientSuffix(a)}`).toBe('Dried anchovy (methallu) · fried');
+    expect(ingredientTitle(a)).toBe('Dried anchovy (methallu)');
+    expect(ingredientSuffix(a)).toBe(' · fried');
+    expect(`${ingredientTitle(a)}${ingredientSuffix(a)}`).toBe('Dried anchovy (methallu) · fried');
     const e = ingredientLine('Egg (boiled)');
-    expect(`${e.main}${ingredientSuffix(e)}`).toBe('Egg · boiled');
+    expect(`${ingredientTitle(e)}${ingredientSuffix(e)}`).toBe('Egg · boiled');
   });
 
   it('keeps a plain name plain, and a bracket that is not a method as a note', () => {

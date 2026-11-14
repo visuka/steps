@@ -6,6 +6,8 @@ import { addDaysToKey, formatDayLong, parseDayKey } from '@/lib/dates';
 import { formatDuration, formatPace, formatSteps } from '@/lib/format';
 import { ACTIVE_CADENCE } from '@/lib/metrics';
 import { paceSecPerKm } from '@/lib/walk';
+import { hourBars } from '@/components/ui/hour-bars-geometry';
+import { sparkline, speedSeries } from '@/components/walk/walk-model';
 import { nutrientsFor } from '@/nutrition/catalog';
 import { entryNutrients } from '@/nutrition/day';
 import { dayKcalTarget, fullDayKcal } from '@/nutrition/targets';
@@ -28,6 +30,7 @@ import {
   SAMPLE_WALK_PARTS,
   SAMPLE_WALK_POINTS,
   SAMPLE_WATER,
+  SAMPLE_WEEK,
   sampleSnapshot,
   sampleStepBuckets,
   sampleTime,
@@ -39,10 +42,20 @@ const clock = (ms: number) => {
 };
 
 describe('the sample day matches the mockups', () => {
-  it('is Friday 14 Nov, early afternoon', () => {
-    expect(SAMPLE_DAY).toBe('2025-11-14');
-    expect(formatDayLong(SAMPLE_DAY)).toBe('Fri, 14 Nov');
-    expect(clock(SAMPLE_NOW)).toBe('13:30');
+  it('is Saturday 14 Nov 2026, 3:45 pm', () => {
+    expect(SAMPLE_DAY).toBe('2026-11-14');
+    expect(new Date(SAMPLE_NOW).getDay()).toBe(6);
+    expect(formatDayLong(SAMPLE_DAY)).toBe('Sat, 14 Nov');
+    expect(clock(SAMPLE_NOW)).toBe('15:45');
+  });
+
+  it('has the week behind it: Mon to Fri at 90, 100, 60, 85 and 100 % of the goal, Sunday not yet', () => {
+    expect(SAMPLE_WEEK.map((d) => d.date)).toEqual(['2026-11-09', '2026-11-10', '2026-11-11', '2026-11-12', '2026-11-13']);
+    expect(SAMPLE_WEEK.map((d) => Math.round((d.steps / SAMPLE_GOAL) * 100))).toEqual([90, 100, 60, 85, 100]);
+  });
+
+  it('names the person Ravi', () => {
+    expect(SAMPLE_PROFILE.name).toBe('Ravi');
   });
 
   it('has 6,240 of 8,000 steps (78%), 4.6 km and 52 active minutes', () => {
@@ -62,13 +75,21 @@ describe('the sample day matches the mockups', () => {
     expect(SAMPLE_HOURLY.slice(new Date(SAMPLE_NOW).getHours() + 1).every((h) => h === 0)).toBe(true);
   });
 
+  it('draws the mockup hour chart: heights 7, 60, 37, 21, 29, 22, 25, 18, 25, 13 and the goal line at y 43', () => {
+    const g = hourBars({ hours: SAMPLE_HOURLY, goal: SAMPLE_GOAL, width: 294, now: new Date(SAMPLE_NOW).getHours() });
+    const heights = g.bars.slice(6, 16).map((b) => Math.round(b.height));
+    expect(heights).toEqual([7, 60, 37, 21, 29, 22, 25, 18, 25, 13]);
+    expect(g.bars.filter((b, h) => (h < 6 || h > 15) && !b.quiet)).toHaveLength(0);
+    expect(Math.abs((g.goalLineY ?? 0) - 43)).toBeLessThan(0.5);
+  });
+
   it('has 1,280 kcal eaten of a 1,900 kcal target', () => {
     const eaten = SAMPLE_FOODS.map((f) => entryNutrients(f, [], {}).kcal ?? 0).reduce((a, b) => a + b, 0);
     expect(eaten).toBe(1280);
     expect(SAMPLE_FOODS.every((f) => f.loggedAt >= parseDayKey(SAMPLE_DAY).getTime() && f.loggedAt <= SAMPLE_NOW)).toBe(true);
     expect(SAMPLE_KCAL_TARGET).toBe(1900);
-    expect(fullDayKcal(SAMPLE_PROFILE, 2025)).toBe(1900);
-    expect(dayKcalTarget(SAMPLE_PROFILE, SAMPLE_TODAY.activeKcal, 2025)).toBe(1900);
+    expect(fullDayKcal(SAMPLE_PROFILE, 2026)).toBe(1900);
+    expect(dayKcalTarget(SAMPLE_PROFILE, SAMPLE_TODAY.activeKcal, 2026)).toBe(1900);
   });
 
   it('has 5 of 8 glasses of water', () => {
@@ -120,6 +141,17 @@ describe('the sample day matches the mockups', () => {
     }
   });
 
+  it('has a wavy pace for the sparkline (spec 6.1), and a route that fills its map frame', () => {
+    const values = speedSeries(SAMPLE_WALK_POINTS)!;
+    expect(values).toHaveLength(9);
+    const turns = values.slice(2).filter((v, i) => Math.sign(v - values[i + 1]) !== Math.sign(values[i + 1] - values[i])).length;
+    expect(turns).toBeGreaterThanOrEqual(4);
+    expect(sparkline(values)).not.toBeNull();
+    // No fix strays off the L and the diagonal: the car stretch lies along the route.
+    const lats = SAMPLE_WALK_POINTS.map((p) => p.lat);
+    expect((Math.max(...lats) - Math.min(...lats)) * 111_320).toBeLessThan(810);
+  });
+
   it('has the food look-up: 1 bowl of endu chepala with egg curry, 412 kcal, P38 C14 F22', () => {
     expect(SAMPLE_FOOD_RESULT.query).toBe('endu chepala with egg curry');
     expect(SAMPLE_FOOD_RESULT.script).toBe('ఎండు చేపల గుడ్డు కూర');
@@ -141,8 +173,8 @@ describe('the sample day matches the mockups', () => {
 
   it('has the five ingredients, 260 g a bowl, and the partly known nutrients still pending', () => {
     expect(SAMPLE_FOOD.ingredients).toEqual([
-      { name: 'Dried anchovy (methallu)', grams: 40 },
-      { name: 'Egg 2', grams: 100 },
+      { name: 'Dried anchovy (methallu, fried)', grams: 40 },
+      { name: 'Egg, boiled', grams: 100 },
       { name: 'Onion', grams: 60 },
       { name: 'Tomato', grams: 50 },
       { name: 'Oil', grams: 10 },
@@ -214,6 +246,6 @@ describe('the sample day step minutes for the detail screen', () => {
 
   it('give nothing for another day or a window with no steps', () => {
     expect(sampleStepBuckets(new Date(sampleTime(0, 0, -1)), dayStart, 15)).toEqual([]);
-    expect(sampleStepBuckets(new Date(sampleTime(14)), dayEnd, 15)).toEqual([]);
+    expect(sampleStepBuckets(new Date(sampleTime(16)), dayEnd, 15)).toEqual([]);
   });
 });

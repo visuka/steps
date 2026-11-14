@@ -63,5 +63,6 @@ describe('week strip style', () => {
     expect(weekDayLabel('Mon', 0.9, false)).toBe('Mon, 90 percent of goal');
     expect(weekDayLabel('Sat', 0.78, true)).toBe('Sat, today, 78 percent of goal');
     expect(weekDayLabel('Sun', null, false)).toBe('Sun, no data');
+    expect(weekDayLabel('Sun', null, false, true)).toBe('Sun, not yet');
   });
 });

@@ -142,7 +142,7 @@ export const RouteMap = memo(function RouteMap({
             <Camera
               initialViewState={{
                 bounds: [b.west, b.south, b.east, b.north],
-                padding: { top: 40, right: 40, bottom: 40, left: 40 },
+                padding: { top: 24, right: 24, bottom: 24, left: 24 },
               }}
             />
           ) : null}

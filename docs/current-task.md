@@ -1,6 +1,6 @@
 # Current task: Build 22 — the chosen Clean+ look, hourly detail, bug fixes
 
-Status: **Approved design: Clean+ blue (14 Nov 2026).** T0 to T9 done (T6–T9 reviewed by agents, nothing seen on a device). T10 and T11 done (T11 only sets up the captures: a CI run on the emulator is still needed before T12). Next: **T12 with Opus** once the CI artifact exists. T5–T9 followed `docs/design/spec.md`.
+Status: **Approved design: Clean+ blue (14 Nov 2026).** T0 to T11 done; CI run 43591624287 gave the first screenshots. T12 review 1 done and its fixes (items 1–13 and 18) are done by Sonnet, not yet committed. Next: the owner's OK to commit, push and re-run the Android workflow (it publishes a pre-release), then **Opus review 2**.
 
 ## Who does what next
 
@@ -16,8 +16,11 @@ Status: **Approved design: Clean+ blue (14 Nov 2026).** T0 to T9 done (T6–T9 r
 | ~~T5~~ | done | |
 | ~~T6, T7, T8, T9~~ | done | |
 | ~~T10~~ | done | |
-| ~~T11~~ | done (CI run still to happen) | |
-| **T12 (next)** | Opus | "Review the CI screenshots" |
+| ~~T11~~ | done (CI run 43591624287) | |
+| ~~T12 review 1~~ | done | `docs/design/review-1.md` |
+| ~~Review 1 fixes~~ | done (Sonnet) | |
+| **T11 re-run (next)** | owner's OK | commit, push, run the Android workflow (publishes a pre-release) |
+| T12 review 2 | Opus | "Review the CI screenshots" |
 | T13 | Haiku | only after the owner's OK |
 | T14 | Sonnet | only after the owner's OK |
 

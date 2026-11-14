@@ -39,8 +39,8 @@ export function WeekStrip({ days, selectedIndex, onSelect }: WeekStripProps) {
           </>
         );
         const style = [styles.day, today && { backgroundColor: theme.primaryContainer }];
-        const label = weekDayLabel(d.label, d.share, today);
-        return onSelect ? (
+        const label = weekDayLabel(d.label, d.share, today, d.future);
+        return onSelect && !d.future ? (
           <Pressable
             key={i}
             onPress={() => onSelect(i)}

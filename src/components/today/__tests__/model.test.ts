@@ -74,12 +74,24 @@ describe('Today figures, as the mockups set them', () => {
     expect(walkOf([walk('old', at(18, 0, 13))], '2025-11-14', 'metric')).toBeNull();
   });
 
-  it('lays out the 7 days ending today, today live, missing days at 0', () => {
-    const week = weekOf([{ date: '2025-11-10', steps: 5000 }, { date: '2025-11-14', steps: 100 }], '2025-11-14', 6240);
-    expect(week.map((d) => d.letter).join('')).toBe('SSMTWTF');
-    expect(week[6]).toMatchObject({ today: true, steps: 6240 });
-    expect(week[2].steps).toBe(5000);
+  it('lays out Monday to Sunday of this week, today live, missing days at 0, later days empty', () => {
+    // Saturday 14 Nov 2026.
+    const week = weekOf([{ date: '2026-11-10', steps: 5000 }, { date: '2026-11-14', steps: 100 }, { date: '2026-11-15', steps: 900 }], '2026-11-14', 6240);
+    expect(week.map((d) => d.key)).toEqual(['2026-11-09', '2026-11-10', '2026-11-11', '2026-11-12', '2026-11-13', '2026-11-14', '2026-11-15']);
+    expect(week.map((d) => d.letter).join('')).toBe('MTWTFSS');
+    expect(week[5]).toMatchObject({ today: true, steps: 6240, future: false });
+    expect(week[1].steps).toBe(5000);
     expect(week[0].steps).toBe(0);
+    expect(week[6]).toMatchObject({ future: true, steps: 0, today: false });
+  });
+
+  it('starts the week on Monday when today is Monday, and ends it on Sunday when today is Sunday', () => {
+    const monday = weekOf([], '2026-11-09', 10);
+    expect(monday[0]).toMatchObject({ key: '2026-11-09', today: true });
+    expect(monday.slice(1).every((d) => d.future)).toBe(true);
+    const sunday = weekOf([], '2026-11-15', 10);
+    expect(sunday[6]).toMatchObject({ key: '2026-11-15', today: true });
+    expect(sunday.slice(0, 6).every((d) => !d.future)).toBe(true);
   });
 
   it('speaks the hero with distance and active minutes', () => {
