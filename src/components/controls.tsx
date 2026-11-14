@@ -81,6 +81,7 @@ export function Stepper({
   min,
   max,
   format = String,
+  compact,
 }: {
   value: number;
   onChange: (v: number) => void;
@@ -88,11 +89,13 @@ export function Stepper({
   min: number;
   max: number;
   format?: (v: number) => string;
+  /** The medium numeral, for a value that carries a unit word (the food portion). */
+  compact?: boolean;
 }) {
   return (
     <View style={styles.stepper}>
       <RoundButton label="−" onPress={() => onChange(Math.max(min, value - step))} disabled={value <= min} />
-      <ThemedText type="numeralLarge" maxFontSizeMultiplier={NumeralMaxScale} style={styles.stepperValue}>
+      <ThemedText type={compact ? 'numeralMedium' : 'numeralLarge'}maxFontSizeMultiplier={NumeralMaxScale} style={styles.stepperValue}>
         {format(value)}
       </ThemedText>
       <RoundButton label="+" onPress={() => onChange(Math.min(max, value + step))} disabled={value >= max} />

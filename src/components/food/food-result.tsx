@@ -701,6 +701,7 @@ function Details({
           step={0.5}
           min={0.5}
           max={20}
+          compact
           format={(q) => `${Number.isInteger(q) ? q : q.toFixed(1)} × ${s.current.label}`}
         />
       )}
