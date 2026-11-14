@@ -157,3 +157,9 @@ A short entry is added at the end after each finished task: date, what was done,
 - **21 (walk gap):** the cause was not found by reading (the data, `routeLines` and the dashed layer are all right; a test already gave route, left-out, route), so the map no longer relies on MapLibre's `line-dasharray`. `dashRuns` (`walks/view.ts`, pure, tested) cuts a weak or left-out stretch into dashes of 1/140 of the route (at least 4 m), drawn as plain butt-capped lines in muted (`outline`), 3 wide, joined to the route. New test: the sample walk gives route, left-out, route with shared joints. Not seen on a device: CI run decides.
 - **22 (sample route):** the mockup's route at 6 m a mockup dp (`LEG_1`, `CAR`, `LEG_2` in `sample.ts`), 2.29 km in all, 2.65 : 1 box. New test pins its shape and length. Note for Opus: on foot (without the 300 m car leg) it is 1.99 km while `SAMPLE_WALK.distanceM` says 2,300 and the part says 1,100 m; the screen shows the stored figures, so nothing visible changes.
 - Checks: tsc, eslint clean; jest 93 suites, 1,432 tests.
+
+## 14 Nov 2026 — T12 review 3 (Opus)
+
+- CI run 43599840988 (b2b473d, all jobs green). Every shot is covered by the emulator's "Pixel Launcher isn't responding" box. Under it, review 2's fixes show: the walk route has the mockup's shape with the car part dotted and no gap, the food list ends at Vitamin A, the light detail shot is the real screen.
+- Item 23 (Haiku): the capture script hides and closes system dialogs. One more clean run is needed (review 4).
+- Planned the same day: T15 (correct a dish's ingredients and amounts) and T16 (walk buddies; owner chose area-only nearby, chat after accept, totals for buddies only, 18+).

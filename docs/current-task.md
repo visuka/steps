@@ -23,10 +23,14 @@ Status: **Approved design: Clean+ blue (14 Nov 2026).** T0 to T11 done; CI run 4
 | ~~T12 review 2~~ | done | `docs/design/review-2.md` |
 | ~~Review 2 fixes~~ | done (Sonnet, b2b473d) | |
 | T11 re-run | running | CI run 43599840988 |
-| **T12 review 3 (next)** | Opus | "Review the CI screenshots" |
+| ~~T12 review 3~~ | done | `docs/design/review-3.md`: item 23 for Haiku |
+| **Review 3 fix (next)** | Haiku | "Fix item 23 in docs/design/review-3.md" |
+| T12 review 4 | Opus | "Review the CI screenshots" |
 | **T15a** | Sonnet | "Do T15a in docs/current-task.md" |
 | T15b | Sonnet | "Do T15b in docs/current-task.md" |
 | T15 check | Opus | "Review the CI screenshots" |
+| T16-0 | Opus | "Design T16 walk buddies" (after T15) |
+| T16a–d | Sonnet | after T16-0; T16a deploy needs the owner's OK |
 | T13 | Haiku | only after the owner's OK |
 | T14 | Sonnet | only after the owner's OK |
 
@@ -54,7 +58,7 @@ Written by Opus, 14 Nov 2026. Implement with Sonnet / Haiku as marked.
 
 ## Order
 
-T0 → T1 → T2 → T3 → T4 → T5 → (T6, T7, T8, T9, T10 can run in any order) → T11 → T12 → T15a → T15b → T15 check → T13. T14 is separate.
+T0 → T1 → T2 → T3 → T4 → T5 → (T6, T7, T8, T9, T10 can run in any order) → T11 → T12 → T15a → T15b → T15 check → T13. T14 is separate. T16 (walk buddies) starts after T15.
 
 ---
 
@@ -313,6 +317,62 @@ The stopped "screens match mockups" run left 28 changed files and new folders (a
 - **T15 check (Opus):** "Review the CI screenshots" also checks `clean-food-edit.png` against the UI section above.
 
 **Risk:** the recipe look-up for an edited list can give different numbers from the original dish even when nothing really changed, because it is a new estimate. If the person confirms an unchanged list, do nothing (no new food).
+
+---
+
+## T16. Walk buddies: find walkers, chat, and share walk totals (owner, 14 Nov 2026; after T15)
+
+**What the owner asked:** chat with walkers nearby, or with any walker found by their ID, "like Facebook". The only things posted are walk and cycle totals (distance and the like).
+
+### Owner decisions (14 Nov 2026)
+
+1. **Nearby = area only.** A person appears to others only after turning on "Show me to walkers nearby". They are matched by area, about 5 km. Never an exact spot, a live position, or a distance like "1.2 km away".
+2. **Chat after accepting.** You send a "walk buddy" request, and chat opens only once the other person accepts. Nobody can message a stranger.
+3. **Posts = totals, buddies only.** A post holds distance, time, steps, walk or cycle, and the day. There is no map, no route and no start place. Only accepted buddies see it.
+4. **18+ for this feature.** Opening Walk buddies the first time asks the person to confirm they are 18 or older. The rest of the app is unchanged.
+
+### Opus rules (safety and store rules)
+
+- **Report and block** (needed by Google Play's user-content rules and Apple 1.2):
+  - every person, chat and post has "Report" and "Block";
+  - blocking hides both people from each other everywhere and ends the chat;
+  - reports go to a server queue that the owner reviews, and the owner can ban an account.
+  - Publish the terms and a short "what's not allowed" page on `neutcrafts.in`, and link them from the 18+ screen.
+- **Location:**
+  - the phone works out the area itself (geohash precision 5, about 4.9 × 4.9 km) and sends only that code;
+  - raw coordinates never leave the phone;
+  - the area is refreshed at most once a day, and only while "Show me" is on;
+  - turning "Show me" off deletes it from the server at once.
+- **Walker ID:** a handle the person picks (3–20 characters, letters, digits and `_`, unique, case-insensitive). It can be changed once every 30 days. The display name is the profile name (T15-era `Profile.name`), or the handle when that is empty.
+- **Chat:**
+  - text only (no photos or links, so less to moderate), up to 500 characters;
+  - the server limits each person to 30 messages a minute and 20 new buddy requests a day;
+  - a person can have at most 3 open requests to people who haven't answered.
+- **Posts:** only after a walk is saved, and only when the person taps **Share with buddies** on that walk. Never automatic. A post can be deleted later.
+- **Account deletion** (already required) also deletes the handle, the area, requests, buddies, chats and posts.
+- **No phone contacts, no photos, no age stored.** The 18+ answer is kept only as "confirmed on <date>".
+- **Notifications:** a new message or request notifies the person (Expo push). Each can be turned off in Settings.
+
+### Tasks (detail is written in T16-0 before any code)
+
+- **T16-0 — design (Opus).** Read `stepsinfra` (the API, auth, tables and the planned WebSocket chat phase) and write `docs/walk-buddies.md`. It covers:
+  - the data model (DynamoDB keys);
+  - the API (REST for the handle, area, requests, buddies, posts and reports; WebSocket or polling for chat);
+  - push;
+  - the moderation flow and owner tools;
+  - the screens: a "Buddies" entry (where in the 5 tabs), Find (by ID, nearby), Requests, Chat list, Chat, Buddy's walks, Settings switches;
+  - the Clean+ sizes for each;
+  - tests and the CI preview shots.
+  - It also splits the build into Sonnet tasks.
+- **T16a — server (Sonnet), needs the owner's OK to deploy.** The `stepsinfra` stacks and Lambdas from T16-0, with tests. This is a live AWS change, like T14.
+- **T16b — app: handle, 18+, find, requests, block and report (Sonnet).**
+- **T16c — app: chat and push (Sonnet).**
+- **T16d — app: share a walk and buddies' walks (Sonnet).**
+- **T16 check (Opus):** the screenshots (sample data in the design preview) and a safety review: report, block, area only, and deletion.
+
+**Not in scope:** groups, public feeds, comments, photos, live location, and walking together in real time. These can come later as separate requests.
+
+**Open before T16a:** the owner's OK to deploy the new stacks, and who reviews reports (the owner's email for the queue alert).
 
 ---
 
