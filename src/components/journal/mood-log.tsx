@@ -15,6 +15,7 @@ import { formatSteps } from '@/lib/format';
 import { BACK_DAYS, capAt, formatClock } from '@/lib/when';
 import { useMoodToday } from '@/state/use-mood';
 import { useApp } from '@/state/app-state';
+import { useClock } from '@/hooks/use-clock';
 
 const HISTORY_DAYS = 14;
 
@@ -39,7 +40,7 @@ export function MoodLog() {
   const [listNote, setListNote] = useState<Note | null>(null);
   /** Deleted days, off the list before the next read. */
   const [gone, setGone] = useState<string[]>([]);
-  const todayKey = dayKey(new Date());
+  const todayKey = useClock().today;
 
   // Pick up the saved note once it loads, without overwriting typing.
   if ((mood?.note ?? null) !== loadedNote) {

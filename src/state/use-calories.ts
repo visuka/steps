@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 
 import type { FoodEntry } from '@/data/types';
 import { restingKcalSoFar } from '@/lib/calories';
-import { addDaysToKey, dayKey, parseDayKey } from '@/lib/dates';
+import { addDaysToKey, parseDayKey } from '@/lib/dates';
 import { dailyAverage, partialKeys } from '@/nutrition/day';
 import { sumNutrients } from '@/nutrition/nutrients';
 
 import { useApp } from './app-state';
 import { todayKcal } from './today-kcal';
 import { useFoodBook } from './use-food-book';
+import { useClock } from '@/hooks/use-clock';
 
 /** Today plus the six days before it: the week that stored vitamins and minerals are judged on. */
 const WEEK_DAYS = 7;
@@ -23,7 +24,8 @@ export function useCaloriesToday(reload = 0) {
   const { repo, profile, today, dataVersion } = useApp();
   const book = useFoodBook();
   const [week, setWeek] = useState<FoodEntry[]>([]);
-  const todayKey = dayKey(new Date());
+  const clock = useClock();
+  const todayKey = clock.today;
   const todayStart = parseDayKey(todayKey).getTime();
 
   useEffect(() => {
@@ -40,7 +42,7 @@ export function useCaloriesToday(reload = 0) {
   const nutrients = sumNutrients(foods.map(book.nutrientsOf));
   const partial = partialKeys(foods, book.own, book.saved);
   const { eaten } = todayKcal({ foods, nutrientsOf: book.nutrientsOf, partial });
-  const resting = restingKcalSoFar(profile, new Date());
+  const resting = restingKcalSoFar(profile, new Date(clock.now));
   // Only today's row: after midnight the one in memory can still be yesterday's until the next sync.
   const active = today?.date === todayKey ? today.activeKcal : 0;
   return {

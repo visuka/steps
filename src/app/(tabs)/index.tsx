@@ -18,7 +18,7 @@ import { WalkingCard } from '@/components/today/walking-card';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import type { LogEntry } from '@/data/types';
 import { useTheme } from '@/hooks/use-theme';
-import { addDaysToKey, dayKey } from '@/lib/dates';
+import { addDaysToKey } from '@/lib/dates';
 import { formatSteps, minutesAgo } from '@/lib/format';
 import { SUGGESTION_DAYS, suggestGoal } from '@/lib/goals';
 import { locationAllowed, requestLocation } from '@/location/place';
@@ -28,6 +28,7 @@ import { useApp } from '@/state/app-state';
 import { useTodayKcal } from '@/state/use-calories';
 import { usePremium } from '@/state/use-premium';
 import { type AddedGlass, useWaterToday } from '@/state/use-water';
+import { useClock } from '@/hooks/use-clock';
 
 const WEATHER_PROMPT_KEY = 'weatherPromptDismissed';
 
@@ -48,7 +49,8 @@ export default function TodayScreen() {
   // today-clean adds the 24 dp under the status bar; the safe-area inset is added here.
   const look: TodayFrameLook = { background: theme.surface, gutter: TODAY_LAYOUT.sideMargin };
   const details = !premium.isLocked('today-details');
-  const todayKey = dayKey(new Date());
+  const clock = useClock();
+  const todayKey = clock.today;
   const [snack, setSnack] = useState<{ text: string; undo?: LogEntry } | null>(null);
   // Counts each time Today comes into view: food, sleep, the walk and the active walk are read again then.
   const [visits, setVisits] = useState(0);
@@ -81,7 +83,7 @@ export default function TodayScreen() {
   // Only today's row, as with activeKcal.
   const untimedSteps = today?.date === todayKey ? today.untimedSteps : 0;
   const activeMin = today ? (today.activeMin ?? sumOrNull(today.briskMin, today.runMin)) : null;
-  const dayBurn = dayKcalTarget(profile, activeKcal, new Date().getFullYear());
+  const dayBurn = dayKcalTarget(profile, activeKcal, clock.year);
   const eatenText = formatSteps(kcal.eaten);
   const ws = water.status;
   const glasses = ws?.progress?.glasses ?? Math.floor(((ws?.waterMl ?? 0) + (ws?.drinksMl ?? 0)) / profile.water.glassMl);

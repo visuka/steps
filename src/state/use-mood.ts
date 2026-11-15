@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react';
 
 import type { Mood, MoodEntry } from '@/data/types';
-import { dayKey } from '@/lib/dates';
+
 import { requestNotificationPermission, scheduleMoodCheckIn } from '@/notifications/notify';
 
 import { useApp } from './app-state';
+import { useClock } from '@/hooks/use-clock';
 
 /** Today's mood, shared by the Today card and the Journal. */
 export function useMoodToday() {
   const { repo, profile, dataVersion, touch, updateProfile } = useApp();
   const [mood, setMoodState] = useState<MoodEntry | null>(null);
-  const todayKey = dayKey(new Date());
+  const todayKey = useClock().today;
 
   useEffect(() => {
     let live = true;

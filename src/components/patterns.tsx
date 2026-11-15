@@ -32,6 +32,7 @@ import { formatNutrient, NUTRIENT } from '@/nutrition/nutrients';
 import { useApp } from '@/state/app-state';
 import { useFoodBook } from '@/state/use-food-book';
 import { WEATHER_CREDIT } from '@/weather/refresh';
+import { useClock } from '@/hooks/use-clock';
 
 /** How far back patterns look. */
 const WINDOW_DAYS = 60;
@@ -59,7 +60,8 @@ export function Patterns() {
   const book = useFoodBook();
   const [data, setData] = useState<Data | null>(null);
   const [hasLocation, setHasLocation] = useState(true);
-  const today = dayKey(new Date());
+  const clock = useClock();
+  const today = clock.today;
 
   useEffect(() => {
     let live = true;
@@ -111,7 +113,7 @@ export function Patterns() {
   const rain = rainComparison(data.days, data.weather);
   const moodDays = data.moods.filter((m) => data.days.some((d) => d.date === m.date && d.steps > 0)).length;
 
-  const week = weekInsight(data.food, profile, new Date());
+  const week = weekInsight(data.food, profile, new Date(clock.now));
   const out = eatingOut(data.foods, book.nutrientsOf);
 
   const sleepSteps = sleepStepsComparison(data.days, data.nights);

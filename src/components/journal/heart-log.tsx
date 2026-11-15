@@ -8,10 +8,11 @@ import { Card, EmptyState, SectionHeader, StatTile } from '@/components/ui';
 import { NumeralMaxScale, Spacing } from '@/constants/theme';
 import type { HeartDay } from '@/data/types';
 import { useTheme } from '@/hooks/use-theme';
-import { addDaysToKey, dayKey, formatDayLong, weekdayShort } from '@/lib/dates';
+import { addDaysToKey, formatDayLong, weekdayShort } from '@/lib/dates';
 import { restingWeekChange } from '@/lib/vitals-insights';
 import { useApp } from '@/state/app-state';
 import { useVitalsConnection } from '@/state/use-vitals';
+import { useClock } from '@/hooks/use-clock';
 
 const CHART_DAYS = 14;
 
@@ -24,7 +25,7 @@ export function HeartLog() {
   const theme = useTheme();
   const vitals = useVitalsConnection();
   const [days, setDays] = useState<HeartDay[] | null>(null);
-  const today = dayKey(new Date());
+  const today = useClock().today;
 
   useEffect(() => {
     let live = true;

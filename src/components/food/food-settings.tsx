@@ -14,6 +14,7 @@ import { useApp } from '@/state/app-state';
 import { usePremium } from '@/state/use-premium';
 import { WATER_SETUP_DISMISSED_KEY, weightKnown } from '@/water/today';
 import { formatLitres, stepperRange, suggestionBasis, suggestWaterMl } from '@/water/water';
+import { useClock } from '@/hooks/use-clock';
 
 export const DIET_LABEL: Record<Diet, string> = {
   veg: 'Vegetarian',
@@ -78,7 +79,8 @@ export function WaterSheet({ visible, onClose }: { visible: boolean; onClose: ()
   const w = profile.water;
   const units = profile.units;
   const suggestion = useSuggestion();
-  const numbersOnly = needsAreDifferent(profile, new Date().getFullYear());
+  const year = useClock().year;
+  const numbersOnly = needsAreDifferent(profile, year);
   const showSuggestion = !w.doctorLimit && !numbersOnly;
   const range = stepperRange(w.doctorLimit);
   const shown = Math.min(range.max, Math.max(range.min, w.targetMl ?? suggestion.ml));
@@ -180,7 +182,7 @@ export function WaterSheet({ visible, onClose }: { visible: boolean; onClose: ()
 export function FoodSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const { profile, updateProfile } = useApp();
   const n = profile.nutrition;
-  const year = new Date().getFullYear();
+  const year = useClock().year;
   const under18 = needsAreDifferent({ ...profile, nutrition: { ...n, differentNeeds: false } }, year);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -275,7 +277,8 @@ export function FoodSetupCard() {
   const [dismissed, setDismissed] = useState<boolean | null>(null);
   const units = profile.units;
   const w = profile.water;
-  const numbersOnly = needsAreDifferent(profile, new Date().getFullYear());
+  const year = useClock().year;
+  const numbersOnly = needsAreDifferent(profile, year);
   const askWater = !premium.isLocked('body') && w.targetMl === null && !w.doctorLimit && !numbersOnly;
   const askDiet = profile.nutrition.diet === null;
   const [ml, setMl] = useState<number | null>(null);

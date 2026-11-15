@@ -6,7 +6,7 @@ import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
 import { fontFor } from '@/constants/themes/fonts';
 import { useTheme } from '@/hooks/use-theme';
 
-import { Look } from '@/constants/theme';
+import { ActiveTheme, Look } from '@/constants/theme';
 
 import { heroPalette } from './hero-colors';
 import { goalLabelSide, HOUR_CHART, hourBars, hourBarsLabel } from './hour-bars-geometry';
@@ -34,7 +34,7 @@ export function HourBars({ hours, goal, width, now, tone = 'hero', height = HOUR
   const w = width ?? measured;
   const onLayout = (e: LayoutChangeEvent) => setMeasured(e.nativeEvent.layout.width);
 
-  const hero = heroPalette(theme, Look.heroFill);
+  const hero = heroPalette(theme, Look.heroFill, ActiveTheme.block);
   const colors =
     tone === 'hero'
       ? { bar: hero.mark, quiet: hero.quietBar, line: hero.goalLine, label: hero.label }

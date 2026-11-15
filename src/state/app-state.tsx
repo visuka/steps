@@ -19,6 +19,7 @@ import { walkRecorder } from '@/walks/recorder';
 import { refreshWeather } from '@/weather/refresh';
 
 import { StepCounter } from '../../modules/step-counter';
+import { useClock } from '@/hooks/use-clock';
 
 export interface AppContextValue {
   repo: Repository;
@@ -60,6 +61,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [syncing, setSyncing] = useState(false);
   const [dataVersion, setDataVersion] = useState(0);
   const [shown, setShown] = useState<Shown | null>(null);
+  // From the clock hook, so the provider re-renders at midnight and drops yesterday's row and steps.
+  const todayKey = useClock().today;
 
   // What the number on Today is made of; kept in refs so live events can recompute it.
   const todayRef = useRef<DaySummary | null>(null);
@@ -278,9 +281,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     profile,
     source,
     // Checked at every render: after midnight the row in memory can be yesterday's until the next sync.
-    today: today?.date === dayKey(new Date()) ? today : null,
+    today: today?.date === todayKey ? today : null,
     displaySteps:
-      shown?.date === dayKey(new Date()) ? shown.steps : today?.date === dayKey(new Date()) ? today.steps : 0,
+      shown?.date === todayKey ? shown.steps : today?.date === todayKey ? today.steps : 0,
     lastSyncAt,
     syncing,
     dataVersion,

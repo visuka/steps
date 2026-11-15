@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { type Bar, BarChart } from '@/components/bar-chart';
@@ -11,6 +11,7 @@ import type { DaySummary } from '@/data/types';
 import { addDays, dayKey, daysBetween, formatDayLong, monthShort, parseDayKey, weekdayShort } from '@/lib/dates';
 import { formatDistance, formatSteps } from '@/lib/format';
 import { useApp } from '@/state/app-state';
+import { useClock } from '@/hooks/use-clock';
 
 type Range = 'day' | 'week' | 'month' | 'year';
 
@@ -59,7 +60,8 @@ export function HistoryView() {
   const [days, setDays] = useState<DaySummary[]>([]);
   const [hourly, setHourly] = useState<number[]>(new Array(24).fill(0));
 
-  const todayDate = new Date();
+  const clock = useClock();
+  const todayDate = useMemo(() => new Date(clock.now), [clock.today]); // eslint-disable-line react-hooks/exhaustive-deps
   const { start, end } = period(range, offset, todayDate);
   const startKey = dayKey(start);
   const endKey = dayKey(end);

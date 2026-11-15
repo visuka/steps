@@ -29,6 +29,7 @@ import {
 import { formatWhen, formatWhenInSentence, timeNow } from '@/lib/when';
 import { useApp } from '@/state/app-state';
 import { addWater } from '@/water/add';
+import { useClock } from '@/hooks/use-clock';
 
 /** One glass (the size set in You → Water a day) and a bottle. */
 const quickMl = (glassMl: number) => [...new Set([glassMl, 500])];
@@ -182,7 +183,7 @@ export function BodyLog({ kind }: { kind: LogKind }) {
   };
 
   const shown = entries.filter((e) => !gone.includes(e.id));
-  const today = dayKey(new Date());
+  const today = useClock().today;
   const waterToday = shown
     .filter((e) => kind === 'water' && dayKey(new Date(e.loggedAt)) === today)
     .reduce((s, e) => s + e.value, 0);

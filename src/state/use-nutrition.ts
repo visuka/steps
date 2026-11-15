@@ -17,6 +17,7 @@ import { fullDayKcal } from '@/nutrition/targets';
 import { type ViewContext, viewContext } from '@/nutrition/view';
 
 import { useApp } from './app-state';
+import { useClock } from '@/hooks/use-clock';
 
 /** Two weeks and today: what a gap note needs; the week is the last 7 of them. */
 const WINDOW_DAYS = 15;
@@ -47,7 +48,7 @@ export function useNutrition() {
   const [win, setWin] = useState<NutritionWindow | null>(null);
   const [note, setNote] = useState<CachedNote | null>(null);
   const [version, setVersion] = useState(0);
-  const todayKey = dayKey(new Date());
+  const todayKey = useClock().today;
 
   useEffect(() => {
     let live = true;

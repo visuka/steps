@@ -24,7 +24,7 @@ import { midTone } from '@/components/ui/hero-colors';
 import { ICON_CIRCLE_STYLE, iconCircleRipple } from '@/components/ui/icon-circle-style';
 import { TILE_STYLE } from '@/components/ui/stat-tile-style';
 import { pressedColorOnAccent } from '@/components/ui/surface-style';
-import { type DataTone, Look, MaxContentWidth } from '@/constants/theme';
+import { ActiveTheme, type DataTone, Look, MaxContentWidth } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { greetingWords } from './model';
@@ -121,7 +121,7 @@ export function TodayClean({ v, look }: { v: TodayView; look: TodayFrameLook }) 
 /** Accent block: "Steps" and the day's distance, the big number, the share pill, the hour chart, its axis. */
 function StepsHero({ v, chartWidth }: { v: TodayView; chartWidth: number }) {
   const theme = useTheme();
-  const hero = heroPalette(theme, Look.heroFill);
+  const hero = heroPalette(theme, Look.heroFill, ActiveTheme.block);
   const numbers = heroNumbers(v.steps, v.goal);
   const H = L.hero;
   return (

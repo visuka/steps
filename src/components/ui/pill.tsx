@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Look } from '@/constants/theme';
+import { ActiveTheme, Look } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { SpecIcon } from './icons';
@@ -17,7 +17,7 @@ export interface PillProps {
 /** A small label pill ("78%", "7:10 am", "High"): one line, width = text + 16. */
 export function Pill({ label, variant = 'tint' }: PillProps) {
   const theme = useTheme();
-  const { fill, text } = pillColors(theme, variant, Look.heroFill);
+  const { fill, text } = pillColors(theme, variant, Look.heroFill, ActiveTheme.block);
   const warning = variant === 'warning';
   return (
     <View

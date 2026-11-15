@@ -15,12 +15,13 @@ import { saveLastNight, saveNight } from '@/data/entries';
 import type { Mood, SleepEntry, SleepStages } from '@/data/types';
 import { useClockStyle } from '@/hooks/use-clock-style';
 import { useTheme } from '@/hooks/use-theme';
-import { addDaysToKey, dayKey, formatDayLong, weekdayShort } from '@/lib/dates';
+import { addDaysToKey, formatDayLong, weekdayShort } from '@/lib/dates';
 import { checkNight, formatSleep, guessSleepWindow, type Night, nightClash, nightOf, nightsByDate } from '@/lib/sleep';
 import { FULL_NIGHT_MIN } from '@/lib/vitals-insights';
 import { BACK_DAYS, type ClockStyle, formatClock, timeNow } from '@/lib/when';
 import { useApp } from '@/state/app-state';
 import { useVitalsConnection } from '@/state/use-vitals';
+import { useClock } from '@/hooks/use-clock';
 
 const HISTORY_NIGHTS = 14;
 
@@ -59,7 +60,7 @@ export function SleepLog() {
   const [listNote, setListNote] = useState<Note | null>(null);
   /** Deleted, so off the list before the next read. */
   const [gone, setGone] = useState<string[]>([]);
-  const today = dayKey(new Date());
+  const today = useClock().today;
 
   useEffect(() => {
     let live = true;

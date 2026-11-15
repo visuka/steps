@@ -7,6 +7,7 @@
  */
 
 import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
+import type { BlockColors } from '@/constants/themes/types';
 import type { ColorScheme, ThemeColor } from '@/constants/tokens';
 
 export interface HeroColors {
@@ -44,7 +45,12 @@ export interface HeroPalette extends HeroColors {
 }
 
 /** Every colour of the steps block for a look: primary unless the look names its own. */
-export function heroPalette(theme: ColorScheme, spec?: HeroFill): HeroPalette {
+export function heroPalette(theme: ColorScheme, spec?: HeroFill, block?: BlockColors): HeroPalette {
+  // A look's dark block (F, Sport data): its own plate, lane and signal mark, as drawn.
+  if (!spec && block) {
+    const h = heroColors({ primary: block.plate, onPrimary: block.text });
+    return { ...h, label: block.quiet, quietBar: block.lane, fill: block.plate, mark: block.mark, number: block.text };
+  }
   if (!spec) {
     const h = heroColors(theme);
     return { ...h, fill: theme.primary, mark: h.strong, number: h.strong };

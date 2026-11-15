@@ -4,18 +4,20 @@ import { useEffect, useState } from 'react';
 
 import { cleanName } from '@/data/profile';
 import type { SleepEntry, Walk } from '@/data/types';
-import { addDaysToKey, dayKey, formatDayLong } from '@/lib/dates';
+import { addDaysToKey, formatDayLong } from '@/lib/dates';
 import { useApp } from '@/state/app-state';
 
 import { useTodayWeather } from './use-today-weather';
 import { avatarInitial, sleepOf, sleepSpoken, walkOf, walkSpoken, weekOf } from './model';
+import { useClock } from '@/hooks/use-clock';
 
 const NO_HOURS: number[] = new Array<number>(24).fill(0);
 
 /** Last night's sleep, today's walk, the week's steps and today's hours; reloads with the data and on `reload`. */
 export function useTodayExtras(reload: number) {
   const { repo, profile, dataVersion, displaySteps } = useApp();
-  const today = dayKey(new Date());
+  const clock = useClock();
+  const today = clock.today;
   const [sleep, setSleep] = useState<SleepEntry[]>([]);
   const [walks, setWalks] = useState<Walk[]>([]);
   const [days, setDays] = useState<{ date: string; steps: number }[]>([]);
@@ -53,7 +55,7 @@ export function useTodayExtras(reload: number) {
     initial: avatarInitial(name),
     distanceUnit: profile.units === 'metric' ? 'km' : 'mi',
     hourly,
-    nowHour: new Date().getHours(),
+    nowHour: clock.hour,
     sleep: sleepFigure,
     sleepSpoken: sleepSpoken(sleepFigure),
     walk: walkFigure,

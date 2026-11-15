@@ -8,7 +8,7 @@ import { Card, EmptyState, ListRow, NutrientRow, Pill, Screen, SectionHeader, Sp
 import { groupThousands, hourRange } from '@/components/ui/hour-bars-geometry';
 import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
 import { useTheme } from '@/hooks/use-theme';
-import { addDaysToKey, dayKey, formatDayLong } from '@/lib/dates';
+import { addDaysToKey, formatDayLong } from '@/lib/dates';
 import { formatSteps, formatWater } from '@/lib/format';
 import { useApp } from '@/state/app-state';
 import {
@@ -25,6 +25,7 @@ import {
   type Zone,
 } from '@/state/series';
 import { useSeries } from '@/state/use-series';
+import { useClock } from '@/hooks/use-clock';
 
 const TITLES: Record<SeriesKind, string> = {
   steps: 'Steps',
@@ -39,6 +40,7 @@ export default function DetailRoute() {
   const { kind: rawKind, date } = useLocalSearchParams<{ kind: string; date?: string }>();
   const router = useRouter();
   const kind = parseKind(rawKind);
+  const today = useClock().today;
   if (!kind) {
     return (
       <Screen title="Detail" onBack={() => router.back()}>
@@ -46,7 +48,6 @@ export default function DetailRoute() {
       </Screen>
     );
   }
-  const today = dayKey(new Date());
   const first = isDayKey(date) && date <= today ? date : today;
   return <Detail kind={kind} firstDay={first} />;
 }
@@ -58,7 +59,8 @@ export function Detail({ kind, firstDay }: { kind: SeriesKind; firstDay: string 
   const { profile } = useApp();
   const [day, setDay] = useState(firstDay);
   const [hour, setHour] = useState<number | null>(null);
-  const today = dayKey(new Date());
+  const clock = useClock();
+  const today = clock.today;
   const isToday = day === today;
   const series = useSeries(kind, day);
 
@@ -73,7 +75,7 @@ export function Detail({ kind, firstDay }: { kind: SeriesKind; firstDay: string 
   const total = sum(series.hours);
   const units = profile.units;
   const tz = deviceZone;
-  const nowHour = isToday ? wallHour(new Date().getTime(), tz) : null;
+  const nowHour = isToday ? wallHour(clock.now, tz) : null;
 
   const dayLabel = isToday ? 'Today' : day === addDaysToKey(today, -1) ? 'Yesterday' : formatDayLong(day);
 
