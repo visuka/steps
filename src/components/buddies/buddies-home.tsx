@@ -173,11 +173,9 @@ function ChatList({
   }
   return (
     <Surface level={1} style={styles.list}>
-      {(rows ?? []).map((c, i, all) => (
+      {(rows ?? []).map((c) => (
         <ListRow
           key={c.key}
-          tall
-          last={i === all.length - 1}
           title={c.title || 'Chat'}
           supporting={c.lastText ? `${c.lastMine ? 'You: ' : ''}${c.lastText}` : c.unread ? 'New messages' : undefined}
           leading={<Avatar label={c.title || '?'} />}

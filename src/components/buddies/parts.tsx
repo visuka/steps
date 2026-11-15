@@ -47,9 +47,8 @@ export function PersonRow({
 }) {
   const name = displayName(walker);
   return (
+    // Inside a card: the padded row (the bare-list "tall" row has no side padding).
     <ListRow
-      tall
-      last={last}
       title={name}
       supporting={supporting ?? (walker.name ? `@${walker.handle}` : undefined)}
       leading={<Avatar label={name} />}
