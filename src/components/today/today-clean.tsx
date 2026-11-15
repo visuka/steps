@@ -24,7 +24,7 @@ import { midTone } from '@/components/ui/hero-colors';
 import { ICON_CIRCLE_STYLE, iconCircleRipple } from '@/components/ui/icon-circle-style';
 import { TILE_STYLE } from '@/components/ui/stat-tile-style';
 import { pressedColorOnAccent } from '@/components/ui/surface-style';
-import { Look, MaxContentWidth } from '@/constants/theme';
+import { type DataTone, Look, MaxContentWidth } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { greetingWords } from './model';
@@ -200,6 +200,10 @@ function StatTileFor({
 }) {
   const theme = useTheme();
   const T = L.tile;
+  // Colour blocks: each tile in its own area colour, its icon in that colour's ink on a white circle.
+  const tone: DataTone | undefined = model.locked ? undefined : kind === 'walk' ? (Look.walkTone ?? 'steps') : kind;
+  const filled = Look.tile === 'filled' && tone !== undefined;
+  const ink = tone ? theme[tone] : theme.primary;
   const circleTone = model.locked ? 'grey' : kind === 'food' ? 'warm' : kind === 'sleep' ? 'indigo' : 'accent';
   const icon = model.locked
     ? 'lock'
@@ -218,7 +222,7 @@ function StatTileFor({
     ) : null;
   const extra =
     model.pips && kind === 'water' ? (
-      <Pips filled={model.pips.filled} total={model.pips.total} />
+      <Pips filled={model.pips.filled} total={model.pips.total} color={filled ? theme.water : undefined} />
     ) : model.share !== undefined ? (
       <BarTrack share={model.share} color={kind === 'sleep' ? theme.sleep : theme.food} />
     ) : null;
@@ -229,9 +233,11 @@ function StatTileFor({
         value={model.value}
         unit={model.unit}
         note={model.note}
-        iconCircle={<IconCircle name={icon} tone={circleTone} size={TILE_STYLE.headerHeight} />}
+        iconCircle={
+          <IconCircle name={icon} tone={circleTone} colors={filled ? { fill: theme.surfaceContainerLowest, icon: ink } : undefined} size={TILE_STYLE.headerHeight} />
+        }
         trailing={trailing}
-        tone={model.locked ? undefined : kind === 'walk' ? 'steps' : kind}
+        tone={tone}
         valueStyle={tileValueStyle(kind, model)}
         onPress={onPress}
         accessibilityLabel={model.spoken}
@@ -245,7 +251,12 @@ function StatTileFor({
           accessibilityLabel="Add a glass of water"
           android_ripple={{ color: iconCircleRipple(theme, 'accentSolid'), foreground: true, borderless: true, radius: PLUS_TOUCH / 2 }}
           style={[styles.plus, { top: T.plusInset - PLUS_PAD, right: T.plusInset - PLUS_PAD }]}>
-          <IconCircle name="plus" tone="accentSolid" size={TILE_STYLE.headerHeight} />
+          <IconCircle
+            name="plus"
+            tone="accentSolid"
+            colors={filled ? { fill: theme.water, icon: theme.onWater } : undefined}
+            size={TILE_STYLE.headerHeight}
+          />
         </Pressable>
       ) : null}
     </View>
@@ -253,13 +264,13 @@ function StatTileFor({
 }
 
 /** Eight 4 dp pips: filled in the primary colour, the rest in the mid tone. */
-function Pips({ filled, total }: { filled: number; total: number }) {
+function Pips({ filled, total, color }: { filled: number; total: number; color?: string }) {
   const theme = useTheme();
   const mid = midTone(theme);
   return (
     <View style={styles.pips}>
       {Array.from({ length: total }, (_, i) => (
-        <View key={i} style={[styles.pip, { backgroundColor: i < filled ? theme.primary : mid }]} />
+        <View key={i} style={[styles.pip, { backgroundColor: i < filled ? (color ?? theme.primary) : mid }]} />
       ))}
     </View>
   );

@@ -17,6 +17,8 @@ interface Base {
   name: SpecIconName;
   tone?: IconCircleTone;
   size?: number;
+  /** Exact fill and icon colours, in place of the tone (a coloured tile's own ink on white). */
+  colors?: { fill: string; icon: string };
 }
 
 /** Decorative circle, or (with onPress) a button that must say what it does. */
@@ -25,9 +27,9 @@ export type IconCircleProps =
   | (Base & { onPress: () => void; accessibilityLabel: string });
 
 /** A 40 dp circle with a 20 dp spec icon; 'accentSolid' is the water tile's plus. */
-export function IconCircle({ name, tone = 'accent', size = ICON_CIRCLE_STYLE.size, onPress, accessibilityLabel }: IconCircleProps) {
+export function IconCircle({ name, tone = 'accent', size = ICON_CIRCLE_STYLE.size, colors, onPress, accessibilityLabel }: IconCircleProps) {
   const theme = useTheme();
-  const { fill, icon } = iconCircleColors(theme, tone);
+  const { fill, icon } = colors ?? iconCircleColors(theme, tone);
   const circle = [styles.circle, { width: size, height: size, borderRadius: size / 2, backgroundColor: fill }];
   const mark = <SpecIcon name={name} color={icon} size={ICON_CIRCLE_STYLE.iconSize} />;
   if (!onPress) return <View style={circle}>{mark}</View>;

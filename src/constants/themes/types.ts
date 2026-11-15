@@ -13,7 +13,7 @@
  */
 
 import type { HeroFill } from '../../components/ui/hero-colors';
-import type { ColorScheme, FontWeightName, RadiusScale, ThemeColor, TypeScaleShape } from '../tokens';
+import type { ColorScheme, DataTone, FontWeightName, RadiusScale, ThemeColor, TypeScaleShape } from '../tokens';
 
 /** In the order the Appearance picker shows them: Clean+ first. */
 export const THEME_IDS = ['clean', 'park', 'a', 'b', 'c', 'd', 'e', 'f'] as const;
@@ -71,6 +71,8 @@ export interface ThemeStyle {
   hero: 'track' | 'ring' | 'bar' | 'block';
   /** Today's steps block in roles other than primary/onPrimary (C paper and saffron, D leaf). */
   heroFill?: HeroFill;
+  /** The colour of Today's walk tile when tiles are filled (D: sunny 'near', so it isn't the steps green twice). Default 'steps'. */
+  walkTone?: DataTone;
   /**
    * Straight progress bars (TickBar):
    * - 'ticked': ticks every tenth (park).

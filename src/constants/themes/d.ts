@@ -162,6 +162,7 @@ const theme: ThemeDef = {
     tile: 'filled',
     hero: 'block',
     heroFill: { fill: 'stepsContainer', ink: 'onStepsContainer', mark: 'steps' },
+    walkTone: 'near',
     bar: 'solid',
     navIndicator: 'tone',
     numeralTabular: true,
