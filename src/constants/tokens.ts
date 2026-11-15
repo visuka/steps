@@ -17,6 +17,8 @@
  * - Elevation is tonal: a raised thing sits on a higher surfaceContainer role, not a shadow.
  */
 
+import { scaled } from './ui-scale';
+
 /** Every Material 3 colour role, plus the data colours and the track paint. */
 export interface ColorScheme {
   // ── Material 3 roles ──
@@ -183,14 +185,15 @@ export function toneColors(c: ColorScheme, tone: DataTone) {
  * between an icon and its label; Spacing.half is a hairline, kept for old code.
  */
 export const Module = 8;
+/** The 8 dp spacing scale, drawn smaller on a narrow screen (ui-scale.ts). */
 export const Spacing = {
-  half: 2,
-  one: 4,
-  two: 8,
-  three: 16,
-  four: 24,
-  five: 32,
-  six: 64,
+  half: scaled(2),
+  one: scaled(4),
+  two: scaled(8),
+  three: scaled(16),
+  four: scaled(24),
+  five: scaled(32),
+  six: scaled(64),
 } as const;
 
 /** Material 3 shape scale, dp. Each theme sets its own values (park: 4, 8, 12, 16, 28). */

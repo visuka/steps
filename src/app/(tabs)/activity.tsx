@@ -3,11 +3,12 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { Segmented } from '@/components/controls';
 import { HealthLog, type HealthPart, healthPart } from '@/components/health-log';
 import { PremiumGate } from '@/components/premium-gate';
 import { RouteSketch } from '@/components/route-sketch';
 import { ThemedText } from '@/components/themed-text';
-import { Chip, EmptyState, type IconName, ListRow, Screen, SectionHeader, StatTile, Surface } from '@/components/ui';
+import { EmptyState, type IconName, ListRow, Screen, SectionHeader, StatTile, Surface } from '@/components/ui';
 import { Radius, Spacing } from '@/constants/theme';
 import type { Walk } from '@/data/types';
 import { useTheme } from '@/hooks/use-theme';
@@ -62,10 +63,15 @@ export default function ActivityTab() {
 
   return (
     <Screen title="Activity">
-      <View style={styles.sides} accessibilityRole="tablist">
-        <Chip label="Health" selected={side === 'health'} onPress={() => setSide('health')} />
-        <Chip label="Workouts" selected={side === 'workouts'} onPress={() => setSide('workouts')} />
-      </View>
+      {/* The same two-way switch as Food's Today | This week, so it reads apart from the part chips below. */}
+      <Segmented<Side>
+        options={[
+          { value: 'health', label: 'Health' },
+          { value: 'workouts', label: 'Workouts' },
+        ]}
+        value={side}
+        onChange={setSide}
+      />
       {side === 'health' ? (
         <HealthLog part={part} onPart={setPart} />
       ) : (
@@ -231,7 +237,6 @@ function Workouts() {
 }
 
 const styles = StyleSheet.create({
-  sides: { flexDirection: 'row', gap: Spacing.two },
   starts: { flexDirection: 'row', gap: Spacing.two },
   start: {
     flex: 1,

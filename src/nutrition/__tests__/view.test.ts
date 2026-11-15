@@ -92,7 +92,7 @@ describe('week and day helpers', () => {
   });
   it('words the calorie balance neutrally, to the nearest 10', () => {
     expect(kcalBalanceText(1240, 1900)).toBe('About 660 left');
-    expect(kcalBalanceText(0, 1744)).toBe('About 1,740 left');
+    expect(kcalBalanceText(0, 1744)).toBe('About 1,744 left');
     expect(kcalBalanceText(2210, 1900)).toBe('About 310 over');
     expect(kcalBalanceText(1890, 1900)).toBe('About on target');
   });

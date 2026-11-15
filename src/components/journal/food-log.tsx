@@ -583,7 +583,7 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
                   label="Search foods"
                   value={query}
                   onChangeText={changeQuery}
-                  placeholder="Search: roti, dal, or “2 idli and sambar”"
+                  placeholder="Search a food or dish"
                 />
               </View>
               {/* Scan a pack's barcode (app/food-scan.tsx); phones only, the web has no scanner. */}
@@ -653,7 +653,7 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
               variant="text"
               compact
               icon="create-outline"
-              label="Made it yourself? Enter the recipe"
+              label="Enter your own recipe"
               onPress={() => go({ kind: 'recipe', name: lookup.status === 'idle' ? q : '' })}
             />
           </>

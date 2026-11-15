@@ -1,6 +1,6 @@
 import { StyleSheet, Text, type TextProps, type TextStyle } from 'react-native';
 
-import { ActiveTheme, Fonts, type ThemeColor, Type, type TypeRole } from '@/constants/theme';
+import { ActiveTheme, Fonts, MaxTextScale, type ThemeColor, Type, type TypeRole } from '@/constants/theme';
 import { faceForWeight } from '@/constants/themes/build';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -37,14 +37,16 @@ const INK_ROLES: readonly (ThemeColor | undefined)[] = [undefined, 'onSurface', 
  * older screens that say `fontWeight: 700` still get the real Bold. On a tone
  * plate (a filled tile) ink text takes the plate's `on` colour.
  */
-export function ThemedText({ style, type = 'default', themeColor, ...rest }: ThemedTextProps) {
+export function ThemedText({ style, type = 'default', themeColor, maxFontSizeMultiplier, ...rest }: ThemedTextProps) {
   const theme = useTheme();
   const plate = useToneInk();
   const base = type in LEGACY ? LEGACY[type as LegacyType] : Type[type as TypeRole];
   const role = themeColor ?? (type === 'linkPrimary' ? 'primary' : undefined);
   const color = plate && INK_ROLES.includes(role) ? plate.ink : theme[role ?? 'onSurface'];
   const numeral = !(type in LEGACY) && !!ActiveTheme.type[type as TypeRole].numeral;
-  return <Text style={resolveFont([{ color }, base, style], numeral)} {...rest} />;
+  // The phone's text size enlarges text by at most MaxTextScale, so the design keeps its proportions.
+  const maxScale = Math.min(maxFontSizeMultiplier ?? MaxTextScale, MaxTextScale);
+  return <Text style={resolveFont([{ color }, base, style], numeral)} maxFontSizeMultiplier={maxScale} {...rest} />;
 }
 
 /**

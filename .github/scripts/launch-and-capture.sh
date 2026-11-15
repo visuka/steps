@@ -102,6 +102,16 @@ capture clean today smoke/clean-today-large-font.png
 capture clean activity smoke/clean-activity-large-font.png
 adb shell settings put system font_scale 1.0
 
+# The owner's phone: 360 dp wide (1080 px at 480 dpi) with a larger text size.
+# The design must scale down to fit, not look oversized.
+adb shell wm density 480
+adb shell settings put system font_scale 1.2
+for screen in today food activity; do
+  capture clean "$screen" "smoke/clean-$screen-360dp.png"
+done
+adb shell settings put system font_scale 1.0
+adb shell wm density 420
+
 # The Food result opened on its ingredient editor (T15).
 capture clean food smoke/clean-food-edit.png "&edit=1" edit
 # The person's own version: the Your version pill, and Use our guess again in the Edit panel.

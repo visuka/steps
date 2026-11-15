@@ -5,6 +5,7 @@
  * the active theme.
  */
 
+import { scaled } from '../ui-scale';
 import type { TextStyle, ViewStyle } from 'react-native';
 
 import type { ColorScheme, FontWeightName, ThemeColor, TypeRole, TypeSpec } from '../tokens';
@@ -116,8 +117,8 @@ export function faceForWeight(
 function toStyle(spec: TypeSpec, fonts: FontSet, tabular: boolean): TextStyle {
   return {
     fontFamily: spec.numeral || spec.display ? numeralFontOf(fonts, spec.weight) : uiFontOf(fonts, spec.weight),
-    fontSize: spec.size,
-    lineHeight: spec.line,
+    fontSize: scaled(spec.size),
+    lineHeight: scaled(spec.line),
     letterSpacing: spec.tracking,
     ...(spec.numeral && tabular ? { fontVariant: ['tabular-nums'] as TextStyle['fontVariant'] } : null),
   };

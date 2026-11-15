@@ -22,6 +22,7 @@ import type { ThemeDef } from './themes/types';
 import type { ColorScheme, FontWeightName, RadiusScale } from './tokens';
 
 export * from './tokens';
+export { MaxTextScale, UiScale, scaled } from './ui-scale';
 
 /** The theme in use for this run of the app. */
 export const ActiveTheme: ThemeDef = activeTheme();
@@ -66,7 +67,7 @@ export function numeralFont(weight: FontWeightName | TextStyle['fontWeight'] | u
 export const Type = buildType(ActiveTheme, Fonts);
 
 /** How much the big numerals may grow with the phone's text size; they are large already. */
-export const NumeralMaxScale = 1.3;
+export const NumeralMaxScale = 1.15;
 
 /** Old name for the space the tab bar takes; the bar now takes its own room, so screens need none. */
 export const BottomTabInset = 0;

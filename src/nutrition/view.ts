@@ -191,9 +191,9 @@ export function highWatchChips(
   return out.slice(0, max);
 }
 
-/** Calories in plain words beside the track, to the nearest 10: "About 300 left", "About 300 over", "About on target". */
+/** Calories in plain words beside the track, from the same numbers the track shows (so 0 of 1,744 is "About 1,744 left", never 1,740): "About 300 left", "About 300 over", "About on target". */
 export function kcalBalanceText(eaten: number, target: number): string {
   if (Math.abs(target - eaten) < 25) return 'About on target';
-  const diff = Math.round((target - eaten) / 10) * 10;
+  const diff = Math.round(target - eaten);
   return diff > 0 ? `About ${formatSteps(diff)} left` : `About ${formatSteps(-diff)} over`;
 }
