@@ -435,6 +435,7 @@ The stopped "screens match mockups" run left 28 changed files and new folders (a
 2. **Chat after accepting.** You send a "walk buddy" request, and chat opens only once the other person accepts. Nobody can message a stranger.
 3. **Posts = totals, buddies only.** A post holds distance, time, steps, walk or cycle, and the day. There is no map, no route and no start place. Only accepted buddies see it.
 4. **18+ for this feature.** Opening Walk buddies the first time asks the person to confirm they are 18 or older. The rest of the app is unchanged.
+5. **Plan a walk (owner, 15 Nov 2026).** A person picks a day, a time and a place name they type (free text, no map pin), and invites accepted buddies. Each invited buddy answers Going or Not going. The organiser can change or cancel it, and invitees are told. Only invited buddies see it. No live location. T16-0 designs it with the rest.
 
 ### Opus rules (safety and store rules)
 
@@ -474,6 +475,7 @@ The stopped "screens match mockups" run left 28 changed files and new folders (a
 - **T16b — app: handle, 18+, find, requests, block and report (Sonnet).**
 - **T16c — app: chat and push (Sonnet).**
 - **T16d — app: share a walk and buddies' walks (Sonnet).**
+- **T16e — app: Plan a walk, invites, Going / Not going, reminders (Sonnet).**
 - **T16 check (Opus):** the screenshots (sample data in the design preview) and a safety review: report, block, area only, and deletion.
 
 **Not in scope:** groups, public feeds, comments, photos, live location, and walking together in real time. These can come later as separate requests.
