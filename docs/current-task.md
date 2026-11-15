@@ -32,6 +32,10 @@ Status: **Approved design: Clean+ blue (14 Nov 2026).** T0 to T11 done; CI run 4
 | **T15a** | Sonnet | "Do T15a in docs/current-task.md" |
 | T15b | Sonnet | "Do T15b in docs/current-task.md" |
 | T15 check | Opus | "Review the CI screenshots" |
+| T15c-0 | owner | confirm "locally" = on the phone, and the open cooking values |
+| T15c-1 | Sonnet | "Do T15c-1 in docs/current-task.md" (deploy only with T14, owner's OK) |
+| T15c-2 to T15c-4 | Sonnet | "Do T15c-2 in docs/current-task.md", then -3, then -4 |
+| T15c check | Opus | "Review the CI screenshots" |
 | T16-0 | Opus | "Design T16 walk buddies" (after T15) |
 | T16a–d | Sonnet | after T16-0; T16a deploy needs the owner's OK |
 | T13 | Haiku | only after the owner's OK |
@@ -65,7 +69,7 @@ Written by Opus, 14 Nov 2026. Implement with Sonnet / Haiku as marked.
 
 ## Order
 
-T0 → T1 → T2 → T3 → T4 → T5 → (T6, T7, T8, T9, T10 can run in any order) → T11 → T12 → T15a → T15b → T15 check → T13. T14 is separate. T16 (walk buddies) starts after T15. T17 (fast design loop) is planned with the owner once T12 and T15 are seen.
+T0 → T1 → T2 → T3 → T4 → T5 → (T6, T7, T8, T9, T10 can run in any order) → T11 → T12 → T15a → T15b → T15 check → T15c → T13. T14 is separate. T16 (walk buddies) starts after T15. T17 (fast design loop) is planned with the owner once T12 and T15 are seen.
 
 ---
 
@@ -330,6 +334,91 @@ The stopped "screens match mockups" run left 28 changed files and new folders (a
 - **T15 check (Opus):** "Review the CI screenshots" also checks `clean-food-edit.png` against the UI section above.
 
 **Risk:** the recipe look-up for an edited list can give different numbers from the original dish even when nothing really changed, because it is a new estimate. If the person confirms an unchanged list, do nothing (no new food).
+
+---
+
+## T15c. Cooking method in "Edit recipe", and the phone does the maths (owner, 15 Nov 2026)
+
+**What the owner asked:** "Edit recipe" must know how each thing was cooked (boiled, oil fry, deep fry, salad…), because the nutrients depend on it. The AI only gives each ingredient's nutrient profile, plus the ingredient list and cooking methods when the person doesn't give them. **The calculation is done locally** (Opus reads this as: on the phone; confirm with the owner before T15c-1).
+
+**What exists today** (mapped 15 Nov 2026):
+- The cooking model is built on the server but **not deployed** (T14): `stepsinfra/lambda_src/python/steps/food/cooking.py`, the factor files in `stepsinfra/data/cooking/`, the design in `stepsinfra/docs/cooking-model.md`. It works per ingredient: record → yield → USDA retention → meat fat drip → frying oil uptake → totals (sections 2–7 there).
+- The app only shows the method inside a name ("Egg (boiled)" → "Egg · boiled"). In the Edit panel an existing row's name, so its method, can't be changed.
+- T15 sends an edited list to the recipe look-up and takes back finished numbers. Nothing is worked out on the phone.
+
+### Decisions (Opus)
+
+1. **Who does what.**
+   - **Server:** per ingredient, gives the *profile*: the raw nutrients per 100 g from our USDA table (the AI's numbers only for an ingredient no table has, marked `pending` as today), and the food's own cooking facts (below). When the person typed only a dish name, the AI also gives the ingredient list, grams and methods, as today.
+   - **Phone:** all the maths. The same steps as `cooking.py` sections 7.1–7.8, ported to TypeScript. The numbers shown, saved and logged are the phone's.
+   - The server keeps working out its own totals for older app builds and its dish cache. The new app ignores them.
+2. **The profile** (new field `profile` on each `FoodIngredient` line, kept in `saved_food` with the food, so editing works offline later):
+   - `per100g`: raw nutrients (same keys as `FoodItem.per100g`); `missing` keys stay unknown, never 0.
+   - `cookClass`, `id` (record id), `basis` and `rawGrams` as the server read them.
+   - `yields`: this food's own yields per method (only its entries from `yields.json` `foods`).
+   - `cooked`: per method, the approved USDA cooked record's per 100 g, when one exists (`cooked-records.json`).
+   - `calc`: the cooking data version (`c1`). A profile with a version the app doesn't know is treated as having no profile.
+3. **Factor tables on the phone:** a generated file `src/nutrition/cooking/cooking-c1.json` made by a new stepsinfra script from `data/cooking/` (methods, retention-map, only the retention codes the map uses, class yields and limits, oil uptake, fat drip, default oils). Never edited by hand. Target size under 120 KB; if larger, stop and ask Opus.
+4. **One answer, two codes.** `cooking.py` writes a golden file (`tests/fixtures/cooking-golden.json`: the worked examples 8.1 and 8.2, plus one case per method, raw and cooked basis, deep fry with and without oil listed, an unknown method). Both the Python tests and jest run it: within 0.5 kcal and 1% per nutrient. The file is copied into the app repo by the same script.
+5. **Grams in "Edit recipe" are before cooking** ("as it went into the pan"); a cook knows those. The row shows `rawGrams`; the caption says "Amounts in 1 <unit>, before cooking". Dry dal, rice and dried fish are dry weight. Salt, spices, water and in-dish oil are as added.
+6. **Methods the person can pick** (the server words of `cooking-model.md` section 2, with plain labels):
+
+   | label | method |
+   | --- | --- |
+   | Raw / salad | `raw` |
+   | Boiled | `boiled` |
+   | Boiled, water drained | `boiled-drained` |
+   | Pressure cooked | `pressure-cooked` |
+   | Steamed | `steamed` |
+   | In a curry / gravy | `simmered` |
+   | Tadka / stir-fried | `stir-fried` |
+   | Shallow fried (pan / tawa) | `shallow-fried` |
+   | Deep fried | `deep-fried` |
+   | Roasted / baked | `roasted` |
+   | Grilled / tandoor | `grilled` |
+
+   `soaked`, `sprouted` and `unknown` are shown if the server gave them, but are not offered. Salt, spices, water and oils have no method.
+7. **Oil.** As `cooking-model.md` 5.2: an oil row the person keeps is eaten in full ("in-dish"). For deep fried, the oil soaked up is worked out (`U` × raw grams ÷ 100, table 5.3) and shown as its own line, "Oil soaked up in frying · 9 g", which can't be edited. A shallow-fried or tadka item with no oil row gets `U` added the same way. Which oil: the dish's oil, else the country default (5.4).
+8. **Live numbers.** While editing, kcal, the macro ring and the nutrients update on every change, with no network. This replaces T15's "numbers change only from the answer". "Use these ingredients" saves; Cancel drops it.
+9. **Adding an ingredient** needs its profile: one call to a new endpoint `POST /v1/food/ingredients` `{ names: string[], country }` → `{ items: [{ name, profile } | { name, unknown: true }] }`. Same sign-in and premium check as `/v1/food/estimate`. Until it returns, the new row shows "Looking up…" and the numbers leave it out. Offline: the row says "Couldn't look this up. Check the connection." and "Use these ingredients" stays off.
+10. **Foods with no profiles** (saved before T15c, catalog dishes): opening "Edit recipe" first calls `/v1/food/ingredients` once for all rows. If that fails, editing falls back to the T15 recipe look-up path, unchanged.
+11. **The dish's weight** is the sum of cooked grams (section 7.7), so the unit weight comes from the maths. T15's `scaledUnits` is used only on the fallback path.
+12. **Privacy:** only ingredient names and the country go to the server, as the recipe text does today. No user id in the request body.
+13. **Owner's open values** (`cooking-model.md` 14): dough/batter oil uptake 15, tadka 3, vegetable shallow fry 6.0, the gravy water shares and the default oil per country are still "[default, to confirm]". T15c uses them as they are unless the owner changes them.
+
+### UI (no mockup; Clean+ tokens from `docs/design/spec.md`)
+
+- **"How was it cooked?"** at the top of the editing rows: `s13 muted` label, then one row of the 5.6 chips that scrolls sideways: Raw / salad · Boiled · In a curry · Tadka · Shallow fried · Deep fried · Roasted / baked · More…
+  - Picking one sets every cookable row to it (not salt, spices, water or oil). "More…" opens the full list of decision 6 as a sheet.
+  - The chip is selected when all cookable rows share that method; otherwise none is.
+- **Per row:** the method shows after the name as a small tappable text, `s13` accent ("boiled ▾"). Tapping opens the same sheet for that one row. A row with no method yet shows "how cooked? ▾".
+- **Oil soaked up** line: like an ingredient row, with the oil icon, name "Oil soaked up in frying", grams in `s15 muted`, no grams field, no remove button.
+- **Caption:** "Amounts in 1 <unit>, before cooking".
+- **Result screen (not editing):** each row reads "Potato · shallow fried", amounts as eaten as today; "How we worked this out" adds "150 g raw → 68 g cooked, +9 g oil".
+- **Accessibility:** chips and method buttons have labels ("Cooking method for Potato: shallow fried. Change"), 48 × 48 touch areas, `maxFontSizeMultiplier` as elsewhere.
+- **Design preview:** `screen=food&edit=1` shows the chips and one deep-fried row with its oil line; captured as `clean-food-edit.png` as now.
+
+### Tasks
+
+- **T15c-0 — owner (gate).** Confirm "locally" means on the phone, and accept or change the open values in decision 13.
+- **T15c-1 — server (Sonnet). Deploy needs the owner's OK; goes out with T14.**
+  - `steps/food`: add `profile` to each ingredient line of estimate and recipe answers; add `POST /v1/food/ingredients` (batch up to 30 names, cached by name and country like the recipe cache).
+  - New `scripts/export_app_cooking.py`: writes `cooking-c1.json` and `cooking-golden.json` into the app repo path given as an argument.
+  - Tests: profile shape, unknown names, premium refused, the golden file matches `cooking.py`.
+  - **Done when:** both test suites pass. Do not deploy.
+- **T15c-2 — the phone's cooking maths (Sonnet).**
+  - New `src/nutrition/cooking/`: `cook.ts` (`cookIngredient(line, tables, country)` and `cookDish(lines, tables, country)` → per-line results and the dish `per100g`, weight and notes), `tables.ts` (loads and checks `cooking-c1.json`), `methods.ts` (labels of decision 6).
+  - `types.ts`: `FoodIngredient` gains `method?`, `rawGrams?`, `oilGrams?`, `profile?`; `food-read.ts` keeps them when valid and drops anything else.
+  - Tests: the golden file (every case), unknown stays unknown, oil never counted twice, raw vs cooked basis give the same dish within 1%.
+  - **Done when:** tsc, eslint and jest pass.
+- **T15c-3 — the flow (Sonnet).** In `log-food.ts`, `use-food-book.ts` and `food-result-edit.ts`: rows carry method and profile; numbers come from `cookDish` on every change; `confirmIngredients` saves the `mine:` food from the phone's result (no recipe call) when every row has a profile, else the T15 path; `fetchProfiles` for decision 9–10. Tests in the existing files.
+- **T15c-4 — the screen (Sonnet).** The chips, the row method button and sheet, the oil line, the caption, live numbers, and the design preview. Then commit, push and run CI (standing OK).
+- **T15c check (Opus):** the CI screenshots against the UI section above, and one hand check: aloo fry (150 g potato, shallow fried, 10 g oil) gives about 204 kcal for the dish, as `cooking-model.md` 8.2.
+
+**Risks:**
+- The phone and server maths can drift; the golden file in both test suites is the guard. Any factor change means a new `calc` version and a new export.
+- Nothing works end to end until T14 and T15c-1 are deployed. Until then T15c-2 to T15c-4 can be built and tested with the golden file and fake profiles, and the app falls back to the T15 path.
+- The app grows by the tables (under 120 KB).
 
 ---
 
