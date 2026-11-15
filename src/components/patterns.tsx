@@ -123,7 +123,7 @@ export function Patterns() {
   const places = new Map<string, number>();
   for (const w of data.walks) if (w.startPlace) places.set(w.startPlace, (places.get(w.startPlace) ?? 0) + 1);
   const topPlace = [...places].sort((a, b) => b[1] - a[1])[0]?.[0];
-  const journal = (section: string) => router.navigate({ pathname: '/journal', params: { section } });
+  const journal = (section: string) => router.navigate({ pathname: '/activity', params: { section, n: String(Date.now()) } });
 
   return (
     <>

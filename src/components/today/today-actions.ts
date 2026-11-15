@@ -29,17 +29,17 @@ export function detailRoute(
   walkId: string | null = null,
   live: boolean = DETAIL_ROUTES_LIVE,
 ): DetailTarget | null {
-  if (kind === 'walk') return walkId ? { pathname: '/walk/[id]', params: { id: walkId } } : { pathname: '/activity' };
+  if (kind === 'walk') return walkId ? { pathname: '/walk/[id]', params: { id: walkId } } : { pathname: '/activity', params: { section: 'workouts' } };
   if (live) return { pathname: `/detail/${kind}` };
   switch (kind) {
     case 'steps':
-      return { pathname: '/activity' };
+      return { pathname: '/activity', params: { section: 'workouts' } };
     case 'food':
       return { pathname: '/food' };
     case 'water':
       return null;
     case 'sleep':
-      return { pathname: '/journal', params: { section: 'sleep' } };
+      return { pathname: '/activity', params: { section: 'sleep' } };
   }
 }
 

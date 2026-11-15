@@ -5,10 +5,10 @@ import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import TodayScreen from '@/app/(tabs)/index';
+import PlusTab from '@/app/(tabs)/plus';
 import { Detail } from '@/app/detail/[kind]';
 import { dayKey } from '@/lib/dates';
 import { WalkDetail } from '@/app/walk/[id]';
-import { AddSheet } from '@/components/add-sheet';
 import { TABS } from '@/components/app-tabs';
 import { FoodResultScreen } from '@/components/food/food-result';
 import { ThemedText } from '@/components/themed-text';
@@ -22,7 +22,7 @@ import { useTheme } from '@/hooks/use-theme';
 import type { SeriesKind } from '@/state/series';
 
 /** The tab each mockup screen shows as selected in its navigation bar (the detail screen is a stack screen: no bar). */
-const TAB_OF: Record<Exclude<PreviewScreen, 'detail' | 'food'>, string> = { today: 'index', walk: 'activity', add: 'index' };
+const TAB_OF: Record<Exclude<PreviewScreen, 'detail' | 'food'>, string> = { today: 'index', walk: 'activity', plus: 'plus' };
 
 /**
  * The real Today, Food result, Walk and hourly detail screens over the mockups'
@@ -48,7 +48,7 @@ export default function DesignPreviewRoute() {
   }, [shown]);
 
   if (!params) {
-    return <Notice text="Unknown preview. Use ?theme=clean|park|a|b|c|d|e|f&screen=today|food|walk|detail|add (detail also takes &kind=steps|active|food|water|sleep)." />;
+    return <Notice text="Unknown preview. Use ?theme=clean|park|a|b|c|d|e|f&screen=today|food|walk|detail|plus (detail also takes &kind=steps|active|food|water|sleep)." />;
   }
   if (params.theme !== ActiveTheme.id) {
     return <Notice text={`This run is in theme ${ActiveTheme.id}, not ${params.theme}. Close the app, then open the link again.`} />;
@@ -123,14 +123,9 @@ function PreviewScreenBody({ screen, edit, mine }: { screen: PreviewScreen; edit
           onUseOurGuess={mine ? () => undefined : undefined}
         />
       );
-    case 'add':
-      // The bar's plus opened: the sheet over Today, as on the phone. Rows do nothing here.
-      return (
-        <>
-          <TodayScreen />
-          <AddSheet visible onClose={() => undefined} onPick={() => undefined} />
-        </>
-      );
+    case 'plus':
+      // The bar's plus: chats and groups.
+      return <PlusTab />;
     case 'walk':
       return <WalkDetail id={SAMPLE_WALK_ID} />;
     case 'detail':

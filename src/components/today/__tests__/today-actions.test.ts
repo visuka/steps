@@ -12,16 +12,16 @@ describe('detailRoute', () => {
   });
 
   it('keeps the old targets when not live', () => {
-    expect(detailRoute('steps', null, false)).toEqual({ pathname: '/activity' });
+    expect(detailRoute('steps', null, false)).toEqual({ pathname: '/activity', params: { section: 'workouts' } });
     expect(detailRoute('food', null, false)).toEqual({ pathname: '/food' });
     expect(detailRoute('water', null, false)).toBeNull();
-    expect(detailRoute('sleep', null, false)).toEqual({ pathname: '/journal', params: { section: 'sleep' } });
+    expect(detailRoute('sleep', null, false)).toEqual({ pathname: '/activity', params: { section: 'sleep' } });
   });
 
   it('sends the Walk tile to its walk or Activity, never to /detail/walk', () => {
     for (const live of [true, false]) {
       expect(detailRoute('walk', 'w1', live)).toEqual({ pathname: '/walk/[id]', params: { id: 'w1' } });
-      expect(detailRoute('walk', null, live)).toEqual({ pathname: '/activity' });
+      expect(detailRoute('walk', null, live)).toEqual({ pathname: '/activity', params: { section: 'workouts' } });
     }
   });
 

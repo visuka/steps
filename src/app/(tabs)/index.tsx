@@ -135,8 +135,8 @@ export default function TodayScreen() {
       // The locked tiles have no screen of their own: the premium card below them is the target.
       premium: () => scroll.current?.scrollToEnd({ animated: true }),
       profile: () => router.navigate('/you'),
-      // The Journal takes no day yet, so a tapped day opens the Journal itself.
-      calendar: () => router.navigate('/journal'),
+      // The readings take no day yet, so a tapped day opens Activity's health readings.
+      calendar: () => router.navigate({ pathname: '/activity', params: { section: 'sleep' } }),
     },
     slots: {
       walking: activeWalk ? (

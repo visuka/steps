@@ -1,12 +1,13 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { HealthLog, type HealthPart, healthPart } from '@/components/health-log';
 import { PremiumGate } from '@/components/premium-gate';
 import { RouteSketch } from '@/components/route-sketch';
 import { ThemedText } from '@/components/themed-text';
-import { EmptyState, type IconName, ListRow, Screen, SectionHeader, StatTile, Surface } from '@/components/ui';
+import { Chip, EmptyState, type IconName, ListRow, Screen, SectionHeader, StatTile, Surface } from '@/components/ui';
 import { Radius, Spacing } from '@/constants/theme';
 import type { Walk } from '@/data/types';
 import { useTheme } from '@/hooks/use-theme';
@@ -31,16 +32,52 @@ const STARTS: { kind: StartKind; label: string; icon: IconName }[] = [
   { kind: 'indoor-ride', label: 'Indoor bike', icon: 'speedometer-outline' },
 ];
 
-/** Activity: start a walk or a ride, your places, and everything recorded. The old /walks address lands here. */
+type Side = 'health' | 'workouts';
+
+/** Where a link opens: `section` names a health part or "workouts"; a fresh `n` re-selects it when the tab is already open. */
+function sideOf(param: unknown): Side | null {
+  if (param === 'workouts') return 'workouts';
+  return healthPart(param) ? 'health' : null;
+}
+
+/**
+ * Activity: health readings (sleep, heart, blood pressure, weight, water,
+ * mood) and workouts (start a walk or a ride, your places, everything
+ * recorded). The old /walks and /journal addresses land here.
+ */
 export default function ActivityTab() {
+  const params = useLocalSearchParams<{ section?: string; n?: string }>();
+  const [side, setSide] = useState<Side>(sideOf(params.section) ?? 'health');
+  const [part, setPart] = useState<HealthPart>(healthPart(params.section) ?? 'sleep');
+  const linkKey = `${params.section ?? ''}|${params.n ?? ''}`;
+  const [lastLink, setLastLink] = useState(linkKey);
+  // Links (Insights, notifications, Today) switch even when the tab is already mounted.
+  if (linkKey !== lastLink) {
+    setLastLink(linkKey);
+    const s = sideOf(params.section);
+    if (s) setSide(s);
+    const p = healthPart(params.section);
+    if (p) setPart(p);
+  }
+
   return (
-    <PremiumGate feature={SCREEN_FEATURES.walks} title="Activity">
-      <ActivityScreen />
-    </PremiumGate>
+    <Screen title="Activity">
+      <View style={styles.sides} accessibilityRole="tablist">
+        <Chip label="Health" selected={side === 'health'} onPress={() => setSide('health')} />
+        <Chip label="Workouts" selected={side === 'workouts'} onPress={() => setSide('workouts')} />
+      </View>
+      {side === 'health' ? (
+        <HealthLog part={part} onPart={setPart} />
+      ) : (
+        <PremiumGate feature={SCREEN_FEATURES.walks}>
+          <Workouts />
+        </PremiumGate>
+      )}
+    </Screen>
   );
 }
 
-function ActivityScreen() {
+function Workouts() {
   const { repo, profile, dataVersion } = useApp();
   const router = useRouter();
   const theme = useTheme();
@@ -86,7 +123,7 @@ function ActivityScreen() {
   const open = (w: Walk) => router.push({ pathname: '/walk/[id]', params: { id: w.id } });
 
   return (
-    <Screen title="Activity">
+    <>
       {active ? (
         <Surface level={3} style={styles.clip}>
           <ListRow
@@ -189,11 +226,12 @@ function ActivityScreen() {
           </Surface>
         </>
       ) : null}
-    </Screen>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
+  sides: { flexDirection: 'row', gap: Spacing.two },
   starts: { flexDirection: 'row', gap: Spacing.two },
   start: {
     flex: 1,

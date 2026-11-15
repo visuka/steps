@@ -91,8 +91,8 @@ for screen in today food walk detail; do
   capture clean "$screen" "smoke/clean-$screen.png"
 done
 
-# The bar's plus opened: the Add sheet over Today.
-capture clean add smoke/clean-add.png
+# The bar's plus: chats and groups.
+capture clean plus smoke/clean-plus-tab.png
 
 # The Food result opened on its ingredient editor (T15).
 capture clean food smoke/clean-food-edit.png "&edit=1" edit

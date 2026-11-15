@@ -1,74 +1,12 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Redirect, useLocalSearchParams } from 'expo-router';
 
-import { BloodPressureLog } from '@/components/journal/bp-log';
-import { BodyLog } from '@/components/journal/body-log';
-import { HeartLog } from '@/components/journal/heart-log';
-import { MoodLog } from '@/components/journal/mood-log';
-import { SleepLog } from '@/components/journal/sleep-log';
-import { PremiumGate } from '@/components/premium-gate';
-import { Screen } from '@/components/screen';
-import { Chip } from '@/components/ui/chip';
-import { Spacing } from '@/constants/theme';
-import { SCREEN_FEATURES } from '@/premium/premium';
-
-type Part = 'sleep' | 'heart' | 'bp' | 'weight' | 'water' | 'mood';
-
-const PARTS: { value: Part; label: string }[] = [
-  { value: 'sleep', label: 'Sleep' },
-  { value: 'heart', label: 'Heart' },
-  { value: 'bp', label: 'Blood pressure' },
-  { value: 'weight', label: 'Weight' },
-  { value: 'water', label: 'Water' },
-  { value: 'mood', label: 'Mood' },
-];
-
-/** Links name a part ("bp", "sleep") and may carry `n`, a fresh value that re-selects the part (the Add sheet); "body" is the old name for the first of its parts. Food has its own tab. */
-function target(param: unknown): Part | 'food' | null {
-  if (param === 'food') return 'food';
-  if (param === 'body') return 'bp';
-  return PARTS.some((p) => p.value === param) ? (param as Part) : null;
-}
-
-export default function JournalScreen() {
-  const router = useRouter();
+/** The Journal is now part of other tabs: food entries are on Food, health readings on Activity. Old links land there. */
+export default function JournalRedirect() {
   const params = useLocalSearchParams<{ section?: string; n?: string }>();
-  const first = target(params.section);
-  const [part, setPart] = useState<Part>(first && first !== 'food' ? first : 'sleep');
-  const linkKey = `${params.section ?? ''}|${params.n ?? ''}`;
-  const [lastParam, setLastParam] = useState(linkKey);
-  // Links (Insights, notifications, the Add sheet) switch the part even when the tab is already mounted.
-  if (linkKey !== lastParam) {
-    setLastParam(linkKey);
-    const t = target(params.section);
-    if (t && t !== 'food') setPart(t);
-  }
-
-  // Old links to the Journal's food section go to the Food tab.
-  useEffect(() => {
-    if (params.section === 'food') router.navigate('/food');
-  }, [params.section, router]);
-
-  // Every part is premium; the chips stay, so a free account can see what's in each.
+  if (params.section === 'food') return <Redirect href="/food" />;
   return (
-    <Screen title="Journal">
-      <View style={styles.chips} accessibilityRole="tablist">
-        {PARTS.map((p) => (
-          <Chip key={p.value} label={p.label} selected={p.value === part} onPress={() => setPart(p.value)} />
-        ))}
-      </View>
-      <PremiumGate feature={SCREEN_FEATURES[`journal/${part}`]}>
-        {part === 'sleep' ? <SleepLog /> : null}
-        {part === 'heart' ? <HeartLog /> : null}
-        {part === 'bp' ? <BloodPressureLog /> : null}
-        {part === 'weight' || part === 'water' ? <BodyLog key={part} kind={part} /> : null}
-        {part === 'mood' ? <MoodLog /> : null}
-      </PremiumGate>
-    </Screen>
+    <Redirect
+      href={{ pathname: '/activity', params: { section: params.section ?? 'sleep', ...(params.n ? { n: params.n } : {}) } }}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
-});

@@ -93,7 +93,7 @@ export function WaterBody({ water, onAdded }: { water: WaterHook; onAdded: (a: A
           label="Other amount"
           variant="text"
           compact
-          onPress={() => router.navigate({ pathname: '/journal', params: { section: 'water' } })}
+          onPress={() => router.navigate({ pathname: '/activity', params: { section: 'water', n: String(Date.now()) } })}
         />
         {s?.remindedToday && !s.snoozed ? (
           <Button label="No more reminders today" variant="text" compact onPress={water.snooze} />
