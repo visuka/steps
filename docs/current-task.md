@@ -445,7 +445,7 @@ The stopped "screens match mockups" run left 28 changed files and new folders (a
 7. **Walker family (owner, 15 Nov 2026; defaults by Opus, owner to confirm).** A small private group, up to 8, joined only by an invite code.
    - Members see each other's daily steps and walk totals (each member can turn sharing off), cheer each other, and have a family chat.
    - Optional gentle alert for older family members: "No steps from Amma by 12:00", only if that member turns it on.
-   - 18+ for now, like the rest of Walk buddies (children need verified parental consent under India's DPDP Act and app store rules; a later request).
+   - **18+ only (owner, 15 Nov 2026),** like all of Walk buddies, clubs included. No children's accounts or child members.
 
 ### Opus rules (safety and store rules)
 
