@@ -196,6 +196,22 @@ export function stayRanges(points: WalkPoint[]): [number, number][] {
 }
 
 /**
+ * GPS creep: sitting indoors, fixes wander tens of metres in a slow line that
+ * stayRanges doesn't catch. Anyone walking, even slowly, covers more than
+ * 35 m in a minute; drift covers less.
+ */
+export const CREEP = { WINDOW_S: 60, MIN_SPAN_S: 50, MAX_M: 35, NO_STEPS_S: 30 } as const;
+
+/** True when fix `i` is under CREEP.MAX_M from where the person was about a minute earlier. */
+export function creeping(points: WalkPoint[], i: number): boolean {
+  const t = points[i].t;
+  let j = i;
+  while (j > 0 && points[j - 1].t >= t - CREEP.WINDOW_S * 1000) j--;
+  if (t - points[j].t < CREEP.MIN_SPAN_S * 1000) return false;
+  return distanceM(points[j], points[i]) < CREEP.MAX_M;
+}
+
+/**
  * Keeps the first fix of each stop and drops the rest, so standing still
  * adds no distance and draws nothing. With a step counter: no steps for 10 s
  * and under 0.5 m/s. Without one: the Doppler speed, or for walks, staying
@@ -213,7 +229,10 @@ export function dropStill(points: WalkPoint[], cls: GpsClass, steps: StepTimelin
       wasStill = true;
       continue;
     }
-    const still = stillAt(points, i, cls, steps);
+    // A walk creeping under 35 m a minute with no steps (or no step counter) is drift, not walking.
+    const creep =
+      cls === 'walk' && creeping(points, i) && (!steps || stepsIn(steps, points[i].t - CREEP.NO_STEPS_S * 1000, points[i].t) < 1);
+    const still = creep || stillAt(points, i, cls, steps);
     if (!still || !wasStill) out.push(points[i]);
     wasStill = still;
   }

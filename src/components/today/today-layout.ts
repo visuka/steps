@@ -21,9 +21,10 @@ export const TODAY_LAYOUT = {
   sideMargin: S.space.sideMargin,
   hero: {
     radius: S.radius.hero,
-    padding: S.sizes.hero.padding,
+    /** Compact (owner, 15 Nov 2026): the hero takes less of the screen than the mockup's 226 dp. */
+    padding: 18,
     /** A minimum: grows with large text. */
-    minHeight: S.sizes.hero.height,
+    minHeight: 0,
     /** Height of the "Steps" row. */
     headRowHeight: 20,
     /** "Steps" row to the number row. */
@@ -31,7 +32,7 @@ export const TODAY_LAYOUT = {
     /** Gap between the big number and "of 8,000". */
     ofGap: S.space.s8,
     /** Number row to the chart. */
-    chartGap: S.space.s12,
+    chartGap: S.space.s4,
     /** Chart to the axis labels. */
     axisGap: S.space.s4,
   },
@@ -40,8 +41,8 @@ export const TODAY_LAYOUT = {
     pipGap: S.sizes.tile.pipGap,
     pipRadius: S.radius.bar,
     /** The plus circle sits over the header's right end. */
-    plusSize: S.icon.circle,
-    plusInset: S.sizes.tile.padding,
+    plusSize: 32,
+    plusInset: 14,
   },
   /** The sleep bar is full at this many minutes (8 h). */
   sleepGoalMin: 8 * 60,
@@ -62,7 +63,7 @@ export function tileWidth(content: number, gap: number = S.sizes.tile.gap): numb
 
 /** The hour chart's width: the content width less the hero's padding both sides (294 at 390). */
 export function heroChartWidth(content: number): number {
-  return Math.max(0, content - 2 * S.sizes.hero.padding);
+  return Math.max(0, content - 2 * TODAY_LAYOUT.hero.padding);
 }
 
 export function clamp01(n: number): number {

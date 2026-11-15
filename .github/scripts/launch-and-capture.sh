@@ -96,6 +96,12 @@ capture clean plus smoke/clean-plus-tab.png
 # Activity: Health and Workouts at the top, then the health readings.
 capture clean activity smoke/clean-activity.png
 
+# Every look's Today and Food, so each look's colours are checked (owner, 15 Nov 2026).
+for look in park a b c d e f; do
+  capture "$look" today "smoke/look-$look-today.png"
+  capture "$look" food "smoke/look-$look-food.png"
+done
+
 # The largest common font size: every tile must still fit (fit any phone).
 adb shell settings put system font_scale 1.3
 capture clean today smoke/clean-today-large-font.png

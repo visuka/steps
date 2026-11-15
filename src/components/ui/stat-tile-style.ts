@@ -2,7 +2,6 @@
 
 import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
 
-const T = CLEAN_SPEC.sizes.tile;
 
 /**
  * Bottom padding of a tile that ends in a note line (the walk tile). The mockup
@@ -11,17 +10,23 @@ const T = CLEAN_SPEC.sizes.tile;
  */
 const NOTE_BOTTOM_PADDING = 6;
 
+/**
+ * Compact tiles (owner, 15 Nov 2026: "tiles ... occupying a lot of space"):
+ * smaller than the mockup's 146 dp so Today shows more without scrolling.
+ */
+const COMPACT = { minHeight: 108, padding: 14, circle: 32, labelGap: 8 } as const;
+
 export const TILE_STYLE = {
   radius: CLEAN_SPEC.radius.tile,
-  padding: T.padding,
+  padding: COMPACT.padding,
   /** A minimum: at 1.3x text the tile grows, never clips. */
-  minHeight: T.height,
+  minHeight: COMPACT.minHeight,
   boxShadow: CLEAN_SPEC.shadow.card,
   /** Header row: the 40 dp icon circle on the left, the optional trailing item on the right. */
-  headerHeight: CLEAN_SPEC.icon.circle,
-  circleRadius: CLEAN_SPEC.icon.circle / 2,
+  headerHeight: COMPACT.circle,
+  circleRadius: COMPACT.circle / 2,
   /** Between the header and the label. */
-  labelGap: T.gap,
+  labelGap: COMPACT.labelGap,
   /** Between the value and the bar or pips. */
   extraGap: CLEAN_SPEC.space.s12,
   /** Between the value and a line of text instead of a bar (the walk tile). */
@@ -30,7 +35,7 @@ export const TILE_STYLE = {
 
 /** Bottom padding: the short one when the tile ends in a note, the spec padding otherwise. */
 export function tileBottomPadding(hasNote: boolean, hasExtra: boolean): number {
-  return hasNote && !hasExtra ? NOTE_BOTTOM_PADDING : T.padding;
+  return hasNote && !hasExtra ? NOTE_BOTTOM_PADDING : COMPACT.padding;
 }
 
 /** The value and its unit as nested inline text: '5 ' then the unit (spec 3: one space). */

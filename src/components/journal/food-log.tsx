@@ -588,9 +588,12 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
               </View>
               {/* Scan a pack's barcode (app/food-scan.tsx); phones only, the web has no scanner. */}
               {Platform.OS === 'web' ? null : (
-                <IconButton icon="barcode-outline" variant="tonal" onPress={() => router.push('/food-scan')} accessibilityLabel="Scan a barcode" />
+                <IconButton icon="barcode-outline" variant="tonal" onPress={() => router.push('/food-scan')} accessibilityLabel="Scan a barcode or QR code" />
               )}
             </View>
+            {Platform.OS === 'web' || query ? null : (
+              <UiButton label="Scan barcode or QR code" icon="barcode-outline" variant="tonal" onPress={() => router.push('/food-scan')} />
+            )}
             {results.map((food) => (
               <SearchResult key={food.id} food={food} onPress={() => pickFood(food)} />
             ))}

@@ -91,9 +91,9 @@ describe('widths on wider phones', () => {
     expect(tileWidth(contentWidth(411))).toBe(173.5);
   });
 
-  it('grows the hero chart with the screen: 294 at 390', () => {
-    expect(heroChartWidth(contentWidth(390))).toBe(294);
-    expect(heroChartWidth(contentWidth(411))).toBe(411 - 48 - 48);
+  it('grows the hero chart with the screen: 306 at 390 (compact 18 padding)', () => {
+    expect(heroChartWidth(contentWidth(390))).toBe(306);
+    expect(heroChartWidth(contentWidth(411))).toBe(411 - 48 - 36);
   });
 
   it('caps the content at the maximum width', () => {
@@ -105,7 +105,7 @@ describe('widths on wider phones', () => {
     expect(TODAY_LAYOUT.blockGap).toBe(16);
     expect(TODAY_LAYOUT.tileGap).toBe(16);
     expect(TODAY_LAYOUT.topPadding).toBe(24);
-    expect(TODAY_LAYOUT.hero.minHeight).toBe(226);
+    expect(TODAY_LAYOUT.hero.minHeight).toBe(0);
   });
 });
 
