@@ -93,6 +93,14 @@ done
 
 # The bar's plus: chats and groups.
 capture clean plus smoke/clean-plus-tab.png
+# Activity: Health and Workouts at the top, then the health readings.
+capture clean activity smoke/clean-activity.png
+
+# The largest common font size: every tile must still fit (fit any phone).
+adb shell settings put system font_scale 1.3
+capture clean today smoke/clean-today-large-font.png
+capture clean activity smoke/clean-activity-large-font.png
+adb shell settings put system font_scale 1.0
 
 # The Food result opened on its ingredient editor (T15).
 capture clean food smoke/clean-food-edit.png "&edit=1" edit

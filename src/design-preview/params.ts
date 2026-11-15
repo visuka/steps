@@ -4,7 +4,7 @@
  *
  *   neutcraftssteps://design-preview?theme=d&screen=today
  *
- * theme: clean, park, a, b, c, d, e or f. screen: today, food, walk, detail or plus (the bar's plus: chats and groups).
+ * theme: clean, park, a, b, c, d, e or f. screen: today, food, walk, detail, plus (the bar's plus: chats and groups) or activity.
  * Both are required and lower case; anything else is refused (the route says so
  * on screen rather than guess). The detail screen also takes kind (steps, active,
  * food, water or sleep; steps when missing or unknown):
@@ -24,7 +24,7 @@ import { parseKind, type SeriesKind } from '@/state/series';
 export const PREVIEW_ROUTE = 'design-preview';
 
 /** The mockup screens, in the mockups' order, then the hourly detail. */
-export const PREVIEW_SCREENS = ['today', 'food', 'walk', 'detail', 'plus'] as const;
+export const PREVIEW_SCREENS = ['today', 'food', 'walk', 'detail', 'plus', 'activity'] as const;
 export type PreviewScreen = (typeof PREVIEW_SCREENS)[number];
 
 export interface PreviewParams {
