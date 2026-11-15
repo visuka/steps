@@ -15,12 +15,14 @@ import { TELUGU_FONT } from '@/constants/themes/fonts';
 import { useTheme } from '@/hooks/use-theme';
 import { gramsFor, nutrientsFor, type PortionOverrides, unitsFor } from '@/nutrition/catalog';
 import { isMine } from '@/nutrition/my-dishes';
+import type { CookMethod, EditedLine } from '@/nutrition/cooking/types';
 import { NUTRIENT } from '@/nutrition/nutrients';
 import { PARTIAL_NOTE } from '@/nutrition/state';
 import type { FoodItem, NutrientKey, Nutrients } from '@/nutrition/types';
 import { glBand, glycemicIndex, type WatchOut, watchOuts } from '@/nutrition/watch';
 
-import { addEditRow, type EditRow, editList, editProblem, editRowsFrom, patchEditRow, removeEditRow } from './food-result-edit';
+import { amountsCaption, oilLine, resultLine, showsMethods } from './food-result-cooking';
+import { addEditRow, type EditRow, editLines, liveFood, patchEditRow, removeEditRow, setAllMethods, setRowMethod } from './food-result-edit';
 import { EditIngredientRows } from './food-result-edit-rows';
 import {
   FLAG_KEYS,
@@ -36,7 +38,6 @@ import {
   contentUnderFooter,
   heroFits,
   ingredientIcon,
-  ingredientLine,
   ingredientRowLayout,
   ingredientSpoken,
   ingredientSuffix,
@@ -44,6 +45,9 @@ import {
   RESULT,
   titleLayout,
 } from './food-result-layout';
+import { type RecipeCooking, useRecipeEdit } from './use-recipe-edit';
+
+export type { RecipeCooking };
 
 export interface FoodResultProps {
   /** What the person typed, as typed ("endu chepala with egg curry"); left out for a food picked from a list. */
@@ -68,7 +72,9 @@ export interface FoodResultProps {
    * The person corrected the ingredients (T15): the list to work out. Resolves with null when
    * their version is kept, or the words to show when it was not. Without it the list can't be edited.
    */
-  onChangeIngredients?: (list: { name: string; grams: number }[], now: { unit: string; quantity: number }) => Promise<string | null>;
+  onChangeIngredients?: (list: EditedLine[], now: { unit: string; quantity: number }) => Promise<string | null>;
+  /** The phone's cooking maths for Edit recipe (T15c): methods, live numbers, the oil line. */
+  cooking?: RecipeCooking;
   /** Open with the ingredient list already being edited (the design preview's edit=1). */
   startEditing?: boolean;
   /** "Use our guess again", on the person's own version (T15). */
@@ -143,20 +149,19 @@ function Result({
   onCancel,
   onSetPortion,
   onChangeIngredients,
+  cooking,
   onUseOurGuess,
   startEditing,
   children,
 }: FoodResultProps & { screen?: boolean; onBack?: () => void }) {
   const theme = useTheme();
-  const s = useResultState(food, overrides, initialUnit, initialQuantity);
   const [editing, setEditing] = useState(Boolean(showWorking));
   const [watchOpen, setWatchOpen] = useState<NutrientKey | null>(null);
-  // The ingredient list while it is edited: null when it is not.
-  const [rows, setRows] = useState<EditRow[] | null>(() =>
-    startEditing && onChangeIngredients ? editRowsFrom(food.ingredients ?? []) : null,
-  );
+  // The edit session of the ingredient list: the rows, the look-ups and the live numbers (use-recipe-edit.ts).
+  const edit = useRecipeEdit(food, cooking, Boolean(startEditing && onChangeIngredients));
+  const { rows, setRows, opening, dish, problem, message, setMessage } = edit;
+  const s = useResultState(rows ? liveFood(food, dish) : food, overrides, initialUnit, initialQuantity);
   const [working, setWorking] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
   const insets = useSafeAreaInsets();
   // The tab bar carries the bottom inset, unless it has stepped aside for this result (food-result-cover.ts).
   const barHidden = useFoodResultCovering();
@@ -184,18 +189,14 @@ function Result({
     return () => sub.remove();
   }, [screen, onScreen]);
 
-  const startEdit = () => {
-    setMessage(null);
-    setRows(editRowsFrom(food.ingredients ?? []));
-  };
-  const problem = rows ? editProblem(rows) : null;
+  const { start: startEdit, stop: stopEdit, lookUp } = edit;
   const confirmEdit = async () => {
     if (!rows || !onChangeIngredients || working || problem) return;
     setWorking(true);
     setMessage(null);
     try {
-      const said = await onChangeIngredients(editList(rows), { unit: s.unit, quantity: s.quantity });
-      if (said === null) setRows(null);
+      const said = await onChangeIngredients(editLines(rows), { unit: s.unit, quantity: s.quantity });
+      if (said === null) stopEdit();
       else setMessage(said);
     } catch {
       setMessage(COULD_NOT);
@@ -227,13 +228,18 @@ function Result({
           rows
             ? {
                 rows,
-                working,
+                working: working || opening,
                 problem,
                 message,
-                onName: (key, name) => setRows((r) => (r ? patchEditRow(r, key, { name }) : r)),
-                onGrams: (key, grams) => setRows((r) => (r ? patchEditRow(r, key, { grams }) : r)),
-                onRemove: (key) => setRows((r) => (r ? removeEditRow(r, key) : r)),
-                onAdd: () => setRows((r) => (r ? addEditRow(r) : r)),
+                cooking: showsMethods(rows),
+                oil: oilLine(dish),
+                onNameDone: lookUp,
+                onAllMethods: (method) => setRows((r) => setAllMethods(r, method)),
+                onRowMethod: (key, method) => setRows((r) => setRowMethod(r, key, method)),
+                onName: (key, name) => setRows((r) => patchEditRow(r, key, { name })),
+                onGrams: (key, grams) => setRows((r) => patchEditRow(r, key, { grams })),
+                onRemove: (key) => setRows((r) => removeEditRow(r, key)),
+                onAdd: () => setRows((r) => addEditRow(r)),
               }
             : null
         }
@@ -255,10 +261,10 @@ function Result({
       ]}>
       {rows ? (
         <>
-          <UiButton variant="secondary" label="Cancel" disabled={working} onPress={() => setRows(null)} style={styles.edit} />
+          <UiButton variant="secondary" label="Cancel" disabled={working} onPress={stopEdit} style={styles.edit} />
           <UiButton
             label={working ? 'Working it out…' : 'Use these ingredients'}
-            disabled={working || problem !== null}
+            disabled={working || opening || problem !== null}
             onPress={confirmEdit}
             style={styles.save}
           />
@@ -458,6 +464,13 @@ interface EditView {
   problem: string | null;
   /** The last try could not be worked out. */
   message: string | null;
+  /** Some row can take a cooking method: the amounts are before cooking. */
+  cooking: boolean;
+  /** The oil soaked up in frying, for its own line, or null. */
+  oil: { name: string; grams: string; spoken: string } | null;
+  onNameDone: () => void;
+  onAllMethods: (method: CookMethod) => void;
+  onRowMethod: (key: string, method: CookMethod) => void;
   onName: (key: string, name: string) => void;
   onGrams: (key: string, grams: string) => void;
   onRemove: (key: string) => void;
@@ -480,7 +493,7 @@ function Ingredients({ food, s, edit, onStartEdit }: { food: FoodItem; s: Result
         </ThemedText>
         {edit ? (
           <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={NumeralMaxScale} style={styles.pendingNote}>
-            Amounts in 1 {per?.label ?? 'serving'}
+            {amountsCaption(per?.label, edit.cooking)}
           </ThemedText>
         ) : food.pending ? (
           <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={NumeralMaxScale} style={styles.pendingNote}>
@@ -495,6 +508,11 @@ function Ingredients({ food, s, edit, onStartEdit }: { food: FoodItem; s: Result
             width={width}
             fontScale={fontScale}
             locked={edit.working}
+            oil={edit.oil}
+            onNameDone={edit.onNameDone}
+            onAllMethods={edit.onAllMethods}
+            onRowMethod={edit.onRowMethod}
+            onRetry={edit.onNameDone}
             onName={edit.onName}
             onGrams={edit.onGrams}
             onRemove={edit.onRemove}
@@ -513,7 +531,7 @@ function Ingredients({ food, s, edit, onStartEdit }: { food: FoodItem; s: Result
         </>
       ) : null}
       {edit ? null : list.map((ing, index) => {
-        const line = ingredientLine(ing.name);
+        const line = resultLine(ing);
         const grams = gramsText(ing.grams);
         const last = index === list.length - 1;
         const layout = ingredientRowLayout(`${ingredientTitle(line)}${ingredientSuffix(line)}`, grams, width, fontScale);

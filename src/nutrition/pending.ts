@@ -48,7 +48,7 @@ export type Network = 'wifi' | 'cellular' | 'other' | 'unknown' | 'none';
 export const networkAllows = (n: Network): boolean => n !== 'none';
 
 /** Saved foods still pending, or with a pending recipe or look-up the app can repeat. */
-export const isPending = (f: FoodItem): boolean => f.pending === true && !catalogFood(f.id);
+export const isPending = (f: FoodItem): boolean => f.pending === true && !f.madeHere && !catalogFood(f.id);
 
 /**
  * The log for the foods saved now: a newly pending food starts its wait

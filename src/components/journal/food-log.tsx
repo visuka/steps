@@ -29,6 +29,7 @@ import { formatSteps } from '@/lib/format';
 import { earliestAt, formatClock, formatDay, formatWhenInSentence, timeNow } from '@/lib/when';
 import { catalogFood, nutrientsFor, OWN_PREFIX, type PortionOverrides, portionLabel } from '@/nutrition/catalog';
 import { keepLookedFood, logFood as logFoodEntry, lookUpFood, restaurantVersionFor } from '@/nutrition/log-food';
+import type { EditedLine } from '@/nutrition/cooking/types';
 import { isMine, searchWithMine, startAmount } from '@/nutrition/my-dishes';
 import {
   asksPlace,
@@ -428,7 +429,7 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
    */
   const changeIngredients = async (
     from: Extract<Mode, { kind: 'pick' }>,
-    list: { name: string; grams: number }[],
+    list: EditedLine[],
     now: { unit: string; quantity: number },
   ): Promise<string | null> => {
     // The words that led here: the look-up's text, or what is typed in the search.
@@ -510,6 +511,7 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
         onCancel={() => (mode.lookup ? setMode({ kind: 'search' }) : reset())}
         onSetPortion={(unit, grams) => book.setPortion(mode.food, unit, grams)}
         onChangeIngredients={mode.food.category === 'own' ? undefined : (list, now) => changeIngredients(mode, list, now)}
+        cooking={{ tables: book.tables, country: book.country, fetchProfiles: book.fetchProfiles, withProfiles: book.ingredientsWithProfiles }}
         onUseOurGuess={isMine(mode.food) ? () => backToOriginal(mode) : undefined}
         onDone={(unit, quantity) =>
           once(async () => {

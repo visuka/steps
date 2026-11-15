@@ -1,3 +1,5 @@
+import type { Calc, CookMethod, IngredientProfile, PanOil } from './cooking/types';
+
 /**
  * Nutrient keys, shared with the food Lambda (stepsinfra food/catalog.py) and
  * the day records it stores (data/days.py). Units are in nutrients.ts.
@@ -76,7 +78,16 @@ export interface FoodUnit {
 /** One line of "how we worked this out": an ingredient and its grams in one unit (or the whole recipe). */
 export interface FoodIngredient {
   name: string;
+  /** As eaten, frying oil soaked up included. */
   grams: number;
+  /** Before cooking: what "Edit recipe" shows and edits (nutrition/cooking). */
+  rawGrams?: number;
+  /** Absent = not said: no cooking maths for this row. */
+  method?: CookMethod;
+  /** Frying oil soaked up, worked out by the phone; never edited. */
+  oilGrams?: number;
+  /** What the server knows about this ingredient, so the phone can work the dish out. */
+  profile?: IngredientProfile;
 }
 
 /**
@@ -127,6 +138,15 @@ export interface FoodItem {
    * (nutrition/pending.ts repeats it).
    */
   pending?: boolean;
+  /**
+   * Worked out on the phone from an edited list (nutrition/log-food.ts). Its `pending` is for the
+   * note only: nutrition/pending.ts never repeats the look-up for it, so the phone's numbers stay.
+   */
+  madeHere?: boolean;
+  /** Foods from the food API: the cooking data version the ingredient profiles were made with. */
+  calc?: Calc;
+  /** The pan's oil of a fried dish (a listed frying-medium line, or the dish's named oil), kept with the food. */
+  panOil?: PanOil;
   /** Recipes still pending: what was sent, so the look-up can be repeated. Kept on the phone only. */
   recipe?: FoodRecipeSource;
   /**

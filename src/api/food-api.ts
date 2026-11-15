@@ -18,7 +18,10 @@ import {
   estimateRequest,
   type EstimateResult,
   type FoodRoute,
+  ingredientsRequest,
+  type ProfileItem,
   readEstimate,
+  readProfileItems,
   readRecipe,
   type RecipeRequest,
   recipeRequest,
@@ -56,6 +59,11 @@ async function accessToken(route: FoodRoute): Promise<string> {
 }
 
 async function post(route: FoodRoute, body: unknown): Promise<unknown> {
+  return send(route, { method: 'POST', body });
+}
+
+/** One call to /v1/food/<route>: POST with a JSON body, or GET (with a query such as `?have=c1`). */
+async function send(route: FoodRoute, call: { method: 'GET' | 'POST'; body?: unknown; query?: string }): Promise<unknown> {
   const token = await accessToken(route);
 
   const controller = new AbortController();
@@ -64,10 +72,10 @@ async function post(route: FoodRoute, body: unknown): Promise<unknown> {
   try {
     let res: Response;
     try {
-      res = await fetch(`${STEPS_API_URL}/v1/food/${route}`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
-        body: JSON.stringify(body),
+      res = await fetch(`${STEPS_API_URL}/v1/food/${route}${call.query ?? ''}`, {
+        method: call.method,
+        headers: { ...(call.method === 'POST' ? { 'content-type': 'application/json' } : {}), authorization: `Bearer ${token}` },
+        ...(call.method === 'POST' ? { body: JSON.stringify(call.body) } : {}),
         signal: controller.signal,
       });
     } catch {
@@ -119,6 +127,23 @@ function stampPending(food: FoodItem): void {
  */
 export async function restaurantVersion(home: FoodItem, where: Where): Promise<EstimateItem | null> {
   return restaurantItem(await estimateFood(lookupName(home), where));
+}
+
+/**
+ * What the server knows about each ingredient name (POST /v1/food/ingredients), so the phone can
+ * work a dish out itself (nutrition/cooking). Only the names, the country and the dish name go.
+ * Throws FoodApiError like estimateFood.
+ */
+export async function fetchProfiles(names: string[], dish?: string): Promise<ProfileItem[]> {
+  return readProfileItems(await post('ingredients', ingredientsRequest(names, phoneRegion(), dish)));
+}
+
+/**
+ * The cooking factor tables (GET /v1/food/cooking), as the server sent them, or `{same: true}` when
+ * the version in `have` is still current. Checked by nutrition/cooking/tables.ts readTables.
+ */
+export async function fetchCookingTables(have?: string): Promise<unknown> {
+  return send('cooking', { method: 'GET', query: have ? `?have=${encodeURIComponent(have)}` : '' });
 }
 
 /** A dish the person made → one food, per serving, worked out from its ingredients. */

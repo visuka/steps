@@ -49,6 +49,13 @@ export const RESULT = {
   fieldHeight: 40,
   fieldRadius: 12,
   removeTouch: 48,
+  /** Cooking (T15c): the method text on a row, its touch area (at least 48 high), the gap between chips, and the oil line's grams. */
+  methodTouch: sizes.ingredientRow.height,
+  chipGap: space.s8,
+  oilLineGap: space.s4,
+  methodChevron: CLEAN_SPEC.icon.small,
+  /** The method text's side slack (hit area), from the 8 step. */
+  methodSlack: space.s8,
 } as const;
 
 /** Average glyph width as a share of the font size: Poppins is about 0.58, Noto Sans Telugu wider. 0.6 and 0.75 err on the long side. */

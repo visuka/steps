@@ -105,7 +105,7 @@ export const CLEAN_SPEC = {
     segment: '0 2px 8px rgba(17,24,39,.06)',
   },
 
-  icon: { size: 20, viewBox: 24, strokeWidth: 1.5, circle: 40, cap: 'round', join: 'round' },
+  icon: { size: 20, small: 16, viewBox: 24, strokeWidth: 1.5, circle: 40, cap: 'round', join: 'round' },
 
   sizes: {
     phoneWidth: 390,

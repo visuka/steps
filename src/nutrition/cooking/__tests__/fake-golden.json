@@ -1,0 +1,8310 @@
+{
+ "calc": "c1",
+ "tables": "fake",
+ "tolerance": {
+  "kcal": 0.5,
+  "nutrientRel": 0.01,
+  "grams": 0.1
+ },
+ "cases": [
+  {
+   "id": "aloo-fry",
+   "input": {
+    "dishName": "aloo fry",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 100,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 100,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "shallow-fried"
+     },
+     {
+      "name": "oil",
+      "grams": 10,
+      "basis": "raw",
+      "kind": "oil",
+      "profile": {
+       "calc": "c1",
+       "kind": "oil",
+       "id": "fake-oil",
+       "recName": "Test oil",
+       "per100g": {
+        "kcal": 900,
+        "protein": 0,
+        "carbs": 0,
+        "fiber": 0,
+        "fat": 100,
+        "satFat": 14
+       },
+       "missing": [],
+       "cookClass": "none",
+       "yieldClass": "none",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": true,
+       "basis": "raw",
+       "rawGrams": 10,
+       "yields": {},
+       "cooked": {},
+       "role": "in-dish"
+      },
+      "role": "in-dish"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 100,
+      "grams": 50.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "oil",
+      "rawGrams": 10,
+      "grams": 10.0,
+      "oilGrams": 0.0,
+      "role": "in-dish"
+     }
+    ],
+    "weight": 60.0,
+    "oilAdded": 0.0,
+    "kcal": 170.0,
+    "per100g": {
+     "kcal": 283,
+     "protein": 3.3,
+     "carbs": 28.3,
+     "fiber": 3.3,
+     "fat": 16.8,
+     "satFat": 2.3,
+     "vitC": 20.0,
+     "thiamin": 0.15,
+     "folate": 25
+    },
+    "missing": [
+     "satFat",
+     "vitC",
+     "thiamin",
+     "folate"
+    ]
+   }
+  },
+  {
+   "id": "aloo-fry-no-oil",
+   "input": {
+    "dishName": "aloo fry",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 150,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 150,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "shallow-fried"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 150,
+      "grams": 82.5,
+      "oilGrams": 7.5
+     }
+    ],
+    "weight": 82.5,
+    "oilAdded": 7.5,
+    "kcal": 187.5,
+    "per100g": {
+     "kcal": 227,
+     "protein": 3.6,
+     "carbs": 30.9,
+     "fiber": 3.6,
+     "fat": 9.3,
+     "satFat": 1.3,
+     "vitC": 21.8,
+     "thiamin": 0.16,
+     "folate": 27
+    },
+    "missing": [
+     "satFat",
+     "vitC",
+     "thiamin",
+     "folate"
+    ]
+   }
+  },
+  {
+   "id": "aloo-fry-no-oil-other-country",
+   "input": {
+    "dishName": "aloo fry",
+    "country": "XX",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 150,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 150,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "shallow-fried"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 150,
+      "grams": 82.5,
+      "oilGrams": 7.5
+     }
+    ],
+    "weight": 82.5,
+    "oilAdded": 7.5,
+    "kcal": 186.0,
+    "per100g": {
+     "kcal": 225,
+     "protein": 3.6,
+     "carbs": 30.9,
+     "fiber": 3.6,
+     "fat": 9.1,
+     "satFat": 1.8,
+     "vitE": 1.27,
+     "vitC": 21.8,
+     "thiamin": 0.16,
+     "folate": 27
+    },
+    "missing": [
+     "satFat",
+     "vitE",
+     "vitC",
+     "thiamin",
+     "folate"
+    ]
+   }
+  },
+  {
+   "id": "aloo-fry-oil-unsaid",
+   "input": {
+    "dishName": "aloo fry",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 100,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 100,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "shallow-fried"
+     },
+     {
+      "name": "oil",
+      "grams": 10,
+      "basis": "raw",
+      "kind": "oil",
+      "profile": {
+       "calc": "c1",
+       "kind": "oil",
+       "id": "fake-oil",
+       "recName": "Test oil",
+       "per100g": {
+        "kcal": 900,
+        "protein": 0,
+        "carbs": 0,
+        "fiber": 0,
+        "fat": 100,
+        "satFat": 14
+       },
+       "missing": [],
+       "cookClass": "none",
+       "yieldClass": "none",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": true,
+       "basis": "raw",
+       "rawGrams": 10,
+       "yields": {},
+       "cooked": {},
+       "role": null
+      }
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 100,
+      "grams": 50.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "oil",
+      "rawGrams": 10,
+      "grams": 10.0,
+      "oilGrams": 0.0,
+      "role": "in-dish"
+     }
+    ],
+    "weight": 60.0,
+    "oilAdded": 0.0,
+    "kcal": 170.0,
+    "per100g": {
+     "kcal": 283,
+     "protein": 3.3,
+     "carbs": 28.3,
+     "fiber": 3.3,
+     "fat": 16.8,
+     "satFat": 2.3,
+     "vitC": 20.0,
+     "thiamin": 0.15,
+     "folate": 25
+    },
+    "missing": [
+     "satFat",
+     "vitC",
+     "thiamin",
+     "folate"
+    ]
+   }
+  },
+  {
+   "id": "rice-dal",
+   "input": {
+    "dishName": "dal rice",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "rice",
+      "grams": 100,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-brown-rice",
+       "recName": "Rice, brown, raw",
+       "per100g": {
+        "kcal": 360,
+        "protein": 8,
+        "carbs": 76,
+        "fiber": 3.5,
+        "fat": 2.7,
+        "thiamin": 0.4,
+        "folate": 20,
+        "sodium": 6
+       },
+       "missing": [],
+       "cookClass": "grain",
+       "yieldClass": "grain",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 100,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "boiled"
+     },
+     {
+      "name": "dal",
+      "grams": 50,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-dal",
+       "recName": "Lentils, raw",
+       "per100g": {
+        "kcal": 340,
+        "protein": 22,
+        "carbs": 60,
+        "fiber": 15,
+        "fat": 1.5,
+        "folate": 400,
+        "thiamin": 0.5
+       },
+       "missing": [
+        "folate"
+       ],
+       "cookClass": "pulse",
+       "yieldClass": "pulse",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 50,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "pressure-cooked"
+     },
+     {
+      "name": "water",
+      "grams": 300,
+      "basis": "raw",
+      "kind": "water",
+      "profile": {
+       "calc": "c1",
+       "kind": "water",
+       "id": "fake-water",
+       "recName": "Water",
+       "per100g": {
+        "kcal": 0,
+        "protein": 0,
+        "carbs": 0,
+        "fiber": 0,
+        "fat": 0
+       },
+       "missing": [],
+       "cookClass": "none",
+       "yieldClass": "none",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": true,
+       "basis": "raw",
+       "rawGrams": 300,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "boiled"
+     },
+     {
+      "name": "salt",
+      "grams": 3,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-salt",
+       "recName": "Salt",
+       "per100g": {
+        "kcal": 0,
+        "sodium": 38000
+       },
+       "missing": [],
+       "cookClass": "none",
+       "yieldClass": "none",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": true,
+       "basis": "raw",
+       "rawGrams": 3,
+       "yields": {},
+       "cooked": {}
+      }
+     },
+     {
+      "name": "oil",
+      "grams": 5,
+      "basis": "raw",
+      "kind": "oil",
+      "profile": {
+       "calc": "c1",
+       "kind": "oil",
+       "id": "fake-oil",
+       "recName": "Test oil",
+       "per100g": {
+        "kcal": 900,
+        "protein": 0,
+        "carbs": 0,
+        "fiber": 0,
+        "fat": 100,
+        "satFat": 14
+       },
+       "missing": [],
+       "cookClass": "none",
+       "yieldClass": "none",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": true,
+       "basis": "raw",
+       "rawGrams": 5,
+       "yields": {},
+       "cooked": {},
+       "role": "in-dish"
+      },
+      "role": "in-dish"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "rice",
+      "rawGrams": 100,
+      "grams": 250.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "dal",
+      "rawGrams": 50,
+      "grams": 115.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "water",
+      "rawGrams": 300,
+      "grams": 85.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "salt",
+      "rawGrams": 3,
+      "grams": 3.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "oil",
+      "rawGrams": 5,
+      "grams": 5.0,
+      "oilGrams": 0.0,
+      "role": "in-dish"
+     }
+    ],
+    "weight": 458.0,
+    "oilAdded": 0.0,
+    "kcal": 575.0,
+    "per100g": {
+     "kcal": 126,
+     "protein": 4.1,
+     "carbs": 23.1,
+     "fiber": 2.4,
+     "fat": 1.8,
+     "satFat": 0.2,
+     "thiamin": 0.12,
+     "folate": 47,
+     "sodium": 249
+    },
+    "missing": [
+     "protein",
+     "carbs",
+     "fiber",
+     "fat",
+     "satFat",
+     "thiamin",
+     "folate",
+     "sodium"
+    ]
+   }
+  },
+  {
+   "id": "boiled-drained-water",
+   "input": {
+    "dishName": "rice",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "rice",
+      "grams": 100,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-brown-rice",
+       "recName": "Rice, brown, raw",
+       "per100g": {
+        "kcal": 360,
+        "protein": 8,
+        "carbs": 76,
+        "fiber": 3.5,
+        "fat": 2.7,
+        "thiamin": 0.4,
+        "folate": 20,
+        "sodium": 6
+       },
+       "missing": [],
+       "cookClass": "grain",
+       "yieldClass": "grain",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 100,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "boiled-drained"
+     },
+     {
+      "name": "water",
+      "grams": 400,
+      "basis": "raw",
+      "kind": "water",
+      "profile": {
+       "calc": "c1",
+       "kind": "water",
+       "id": "fake-water",
+       "recName": "Water",
+       "per100g": {
+        "kcal": 0,
+        "protein": 0,
+        "carbs": 0,
+        "fiber": 0,
+        "fat": 0
+       },
+       "missing": [],
+       "cookClass": "none",
+       "yieldClass": "none",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": true,
+       "basis": "raw",
+       "rawGrams": 400,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "boiled-drained"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "rice",
+      "rawGrams": 100,
+      "grams": 250.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "water",
+      "rawGrams": 400,
+      "grams": 0.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 250.0,
+    "oilAdded": 0.0,
+    "kcal": 360.0,
+    "per100g": {
+     "kcal": 144,
+     "protein": 3.2,
+     "carbs": 30.4,
+     "fiber": 1.4,
+     "fat": 1.1,
+     "thiamin": 0.16,
+     "folate": 8,
+     "sodium": 2
+    },
+    "missing": []
+   }
+  },
+  {
+   "id": "simmer-water-share",
+   "input": {
+    "dishName": "chicken curry",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "chicken",
+      "grams": 200,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-chicken",
+       "recName": "Chicken, raw",
+       "per100g": {
+        "kcal": 200,
+        "protein": 20,
+        "carbs": 0,
+        "fat": 13,
+        "satFat": 4,
+        "sodium": 70,
+        "thiamin": 0.1
+       },
+       "missing": [],
+       "cookClass": "meat",
+       "yieldClass": "meat",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 200,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "simmered"
+     },
+     {
+      "name": "water",
+      "grams": 200,
+      "basis": "raw",
+      "kind": "water",
+      "profile": {
+       "calc": "c1",
+       "kind": "water",
+       "id": "fake-water",
+       "recName": "Water",
+       "per100g": {
+        "kcal": 0,
+        "protein": 0,
+        "carbs": 0,
+        "fiber": 0,
+        "fat": 0
+       },
+       "missing": [],
+       "cookClass": "none",
+       "yieldClass": "none",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": true,
+       "basis": "raw",
+       "rawGrams": 200,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "simmered"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "chicken",
+      "rawGrams": 200,
+      "grams": 130.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "water",
+      "rawGrams": 200,
+      "grams": 100.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 230.0,
+    "oilAdded": 0.0,
+    "kcal": 400.0,
+    "per100g": {
+     "kcal": 174,
+     "protein": 17.4,
+     "carbs": 0.0,
+     "fat": 11.3,
+     "satFat": 3.5,
+     "thiamin": 0.09,
+     "sodium": 61
+    },
+    "missing": []
+   }
+  },
+  {
+   "id": "method-raw",
+   "input": {
+    "dishName": "plate",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 120,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 120,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "raw"
+     },
+     {
+      "name": "spinach",
+      "grams": 80,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-spinach",
+       "recName": "Spinach, raw",
+       "per100g": {
+        "kcal": 23,
+        "protein": 2.9,
+        "carbs": 3.6,
+        "fiber": 2.2,
+        "fat": 0.4,
+        "vitC": 28,
+        "folate": 190,
+        "vitA": 470,
+        "vitK": 480
+       },
+       "missing": [],
+       "cookClass": "leafy",
+       "yieldClass": "leafy",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 80,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "raw"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 120,
+      "grams": 120.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "spinach",
+      "rawGrams": 80,
+      "grams": 80.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 200.0,
+    "oilAdded": 0.0,
+    "kcal": 114.4,
+    "per100g": {
+     "kcal": 57,
+     "protein": 2.4,
+     "carbs": 11.6,
+     "fiber": 2.1,
+     "fat": 0.2,
+     "vitA": 188,
+     "vitK": 192.0,
+     "vitC": 23.2,
+     "thiamin": 0.06,
+     "folate": 85
+    },
+    "missing": [
+     "vitA",
+     "vitK",
+     "thiamin"
+    ]
+   }
+  },
+  {
+   "id": "method-soaked",
+   "input": {
+    "dishName": "plate",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 120,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 120,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "soaked"
+     },
+     {
+      "name": "spinach",
+      "grams": 80,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-spinach",
+       "recName": "Spinach, raw",
+       "per100g": {
+        "kcal": 23,
+        "protein": 2.9,
+        "carbs": 3.6,
+        "fiber": 2.2,
+        "fat": 0.4,
+        "vitC": 28,
+        "folate": 190,
+        "vitA": 470,
+        "vitK": 480
+       },
+       "missing": [],
+       "cookClass": "leafy",
+       "yieldClass": "leafy",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 80,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "soaked"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 120,
+      "grams": 120.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "spinach",
+      "rawGrams": 80,
+      "grams": 80.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 200.0,
+    "oilAdded": 0.0,
+    "kcal": 114.4,
+    "per100g": {
+     "kcal": 57,
+     "protein": 2.4,
+     "carbs": 11.6,
+     "fiber": 2.1,
+     "fat": 0.2,
+     "vitA": 188,
+     "vitK": 192.0,
+     "vitC": 23.2,
+     "thiamin": 0.06,
+     "folate": 85
+    },
+    "missing": [
+     "vitA",
+     "vitK",
+     "thiamin"
+    ]
+   }
+  },
+  {
+   "id": "method-sprouted",
+   "input": {
+    "dishName": "plate",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 120,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 120,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "sprouted"
+     },
+     {
+      "name": "spinach",
+      "grams": 80,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-spinach",
+       "recName": "Spinach, raw",
+       "per100g": {
+        "kcal": 23,
+        "protein": 2.9,
+        "carbs": 3.6,
+        "fiber": 2.2,
+        "fat": 0.4,
+        "vitC": 28,
+        "folate": 190,
+        "vitA": 470,
+        "vitK": 480
+       },
+       "missing": [],
+       "cookClass": "leafy",
+       "yieldClass": "leafy",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 80,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "sprouted"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 120,
+      "grams": 120.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "spinach",
+      "rawGrams": 80,
+      "grams": 80.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 200.0,
+    "oilAdded": 0.0,
+    "kcal": 114.4,
+    "per100g": {
+     "kcal": 57,
+     "protein": 2.4,
+     "carbs": 11.6,
+     "fiber": 2.1,
+     "fat": 0.2,
+     "vitA": 188,
+     "vitK": 192.0,
+     "vitC": 23.2,
+     "thiamin": 0.06,
+     "folate": 85
+    },
+    "missing": [
+     "vitA",
+     "vitK",
+     "thiamin"
+    ]
+   }
+  },
+  {
+   "id": "method-boiled",
+   "input": {
+    "dishName": "plate",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 120,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 120,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "boiled"
+     },
+     {
+      "name": "spinach",
+      "grams": 80,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-spinach",
+       "recName": "Spinach, raw",
+       "per100g": {
+        "kcal": 23,
+        "protein": 2.9,
+        "carbs": 3.6,
+        "fiber": 2.2,
+        "fat": 0.4,
+        "vitC": 28,
+        "folate": 190,
+        "vitA": 470,
+        "vitK": 480
+       },
+       "missing": [],
+       "cookClass": "leafy",
+       "yieldClass": "leafy",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 80,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "boiled"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 120,
+      "grams": 114.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "spinach",
+      "rawGrams": 80,
+      "grams": 64.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 178.0,
+    "oilAdded": 0.0,
+    "kcal": 117.58,
+    "per100g": {
+     "kcal": 66,
+     "protein": 2.5,
+     "carbs": 14.4,
+     "fiber": 2.1,
+     "fat": 0.2,
+     "vitA": 190,
+     "vitK": 194.2,
+     "vitC": 14.6,
+     "folate": 60
+    },
+    "missing": [
+     "vitA",
+     "vitK",
+     "folate"
+    ]
+   }
+  },
+  {
+   "id": "method-boiled-drained",
+   "input": {
+    "dishName": "plate",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 120,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 120,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "boiled-drained"
+     },
+     {
+      "name": "spinach",
+      "grams": 80,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-spinach",
+       "recName": "Spinach, raw",
+       "per100g": {
+        "kcal": 23,
+        "protein": 2.9,
+        "carbs": 3.6,
+        "fiber": 2.2,
+        "fat": 0.4,
+        "vitC": 28,
+        "folate": 190,
+        "vitA": 470,
+        "vitK": 480
+       },
+       "missing": [],
+       "cookClass": "leafy",
+       "yieldClass": "leafy",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 80,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "boiled-drained"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 120,
+      "grams": 114.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "spinach",
+      "rawGrams": 80,
+      "grams": 64.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 178.0,
+    "oilAdded": 0.0,
+    "kcal": 117.58,
+    "per100g": {
+     "kcal": 66,
+     "protein": 2.5,
+     "carbs": 14.4,
+     "fiber": 2.1,
+     "fat": 0.2,
+     "vitA": 211,
+     "vitK": 215.7,
+     "vitC": 20.9,
+     "folate": 85
+    },
+    "missing": [
+     "vitA",
+     "vitK",
+     "folate"
+    ]
+   }
+  },
+  {
+   "id": "method-pressure-cooked",
+   "input": {
+    "dishName": "plate",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 120,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 120,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "pressure-cooked"
+     },
+     {
+      "name": "spinach",
+      "grams": 80,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-spinach",
+       "recName": "Spinach, raw",
+       "per100g": {
+        "kcal": 23,
+        "protein": 2.9,
+        "carbs": 3.6,
+        "fiber": 2.2,
+        "fat": 0.4,
+        "vitC": 28,
+        "folate": 190,
+        "vitA": 470,
+        "vitK": 480
+       },
+       "missing": [],
+       "cookClass": "leafy",
+       "yieldClass": "leafy",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 80,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "pressure-cooked"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 120,
+      "grams": 114.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "spinach",
+      "rawGrams": 80,
+      "grams": 64.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 178.0,
+    "oilAdded": 0.0,
+    "kcal": 117.58,
+    "per100g": {
+     "kcal": 66,
+     "protein": 2.5,
+     "carbs": 14.4,
+     "fiber": 2.1,
+     "fat": 0.2,
+     "vitA": 211,
+     "vitK": 215.7,
+     "vitC": 20.9,
+     "folate": 85
+    },
+    "missing": [
+     "vitA",
+     "vitK",
+     "folate"
+    ]
+   }
+  },
+  {
+   "id": "method-steamed",
+   "input": {
+    "dishName": "plate",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 120,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 120,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "steamed"
+     },
+     {
+      "name": "spinach",
+      "grams": 80,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-spinach",
+       "recName": "Spinach, raw",
+       "per100g": {
+        "kcal": 23,
+        "protein": 2.9,
+        "carbs": 3.6,
+        "fiber": 2.2,
+        "fat": 0.4,
+        "vitC": 28,
+        "folate": 190,
+        "vitA": 470,
+        "vitK": 480
+       },
+       "missing": [],
+       "cookClass": "leafy",
+       "yieldClass": "leafy",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 80,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "steamed"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 120,
+      "grams": 114.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "spinach",
+      "rawGrams": 80,
+      "grams": 64.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 178.0,
+    "oilAdded": 0.0,
+    "kcal": 117.58,
+    "per100g": {
+     "kcal": 66,
+     "protein": 2.5,
+     "carbs": 14.4,
+     "fiber": 2.1,
+     "fat": 0.2,
+     "vitA": 190,
+     "vitK": 194.2,
+     "vitC": 14.6,
+     "folate": 60
+    },
+    "missing": [
+     "vitA",
+     "vitK",
+     "folate"
+    ]
+   }
+  },
+  {
+   "id": "method-simmered",
+   "input": {
+    "dishName": "plate",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 120,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 120,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "simmered"
+     },
+     {
+      "name": "spinach",
+      "grams": 80,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-spinach",
+       "recName": "Spinach, raw",
+       "per100g": {
+        "kcal": 23,
+        "protein": 2.9,
+        "carbs": 3.6,
+        "fiber": 2.2,
+        "fat": 0.4,
+        "vitC": 28,
+        "folate": 190,
+        "vitA": 470,
+        "vitK": 480
+       },
+       "missing": [],
+       "cookClass": "leafy",
+       "yieldClass": "leafy",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 80,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "simmered"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 120,
+      "grams": 114.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "spinach",
+      "rawGrams": 80,
+      "grams": 64.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 178.0,
+    "oilAdded": 0.0,
+    "kcal": 117.58,
+    "per100g": {
+     "kcal": 66,
+     "protein": 2.5,
+     "carbs": 14.4,
+     "fiber": 2.1,
+     "fat": 0.2,
+     "vitA": 211,
+     "vitK": 215.7,
+     "vitC": 20.9,
+     "folate": 85
+    },
+    "missing": [
+     "vitA",
+     "vitK",
+     "folate"
+    ]
+   }
+  },
+  {
+   "id": "method-stir-fried",
+   "input": {
+    "dishName": "plate",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 120,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 120,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "stir-fried"
+     },
+     {
+      "name": "spinach",
+      "grams": 80,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-spinach",
+       "recName": "Spinach, raw",
+       "per100g": {
+        "kcal": 23,
+        "protein": 2.9,
+        "carbs": 3.6,
+        "fiber": 2.2,
+        "fat": 0.4,
+        "vitC": 28,
+        "folate": 190,
+        "vitA": 470,
+        "vitK": 480
+       },
+       "missing": [],
+       "cookClass": "leafy",
+       "yieldClass": "leafy",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 80,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "stir-fried"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 120,
+      "grams": 98.4,
+      "oilGrams": 2.4
+     },
+     {
+      "name": "spinach",
+      "rawGrams": 80,
+      "grams": 57.6,
+      "oilGrams": 1.6
+     }
+    ],
+    "weight": 156.0,
+    "oilAdded": 4.0,
+    "kcal": 150.4,
+    "per100g": {
+     "kcal": 96,
+     "protein": 3.0,
+     "carbs": 14.9,
+     "fiber": 2.7,
+     "fat": 2.8,
+     "satFat": 0.4,
+     "vitA": 241,
+     "vitK": 246.2,
+     "vitC": 25.4,
+     "thiamin": 0.08,
+     "folate": 89
+    },
+    "missing": [
+     "satFat",
+     "vitA",
+     "vitK",
+     "vitC",
+     "thiamin",
+     "folate"
+    ]
+   }
+  },
+  {
+   "id": "method-shallow-fried",
+   "input": {
+    "dishName": "plate",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 120,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 120,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "shallow-fried"
+     },
+     {
+      "name": "spinach",
+      "grams": 80,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-spinach",
+       "recName": "Spinach, raw",
+       "per100g": {
+        "kcal": 23,
+        "protein": 2.9,
+        "carbs": 3.6,
+        "fiber": 2.2,
+        "fat": 0.4,
+        "vitC": 28,
+        "folate": 190,
+        "vitA": 470,
+        "vitK": 480
+       },
+       "missing": [],
+       "cookClass": "leafy",
+       "yieldClass": "leafy",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 80,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "shallow-fried"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 120,
+      "grams": 66.0,
+      "oilGrams": 6.0
+     },
+     {
+      "name": "spinach",
+      "rawGrams": 80,
+      "grams": 59.2,
+      "oilGrams": 3.2
+     }
+    ],
+    "weight": 125.2,
+    "oilAdded": 9.2,
+    "kcal": 197.2,
+    "per100g": {
+     "kcal": 158,
+     "protein": 3.8,
+     "carbs": 18.6,
+     "fiber": 3.3,
+     "fat": 7.7,
+     "satFat": 1.0,
+     "vitA": 300,
+     "vitK": 306.7,
+     "vitC": 29.4,
+     "thiamin": 0.09,
+     "folate": 136
+    },
+    "missing": [
+     "satFat",
+     "vitA",
+     "vitK",
+     "vitC",
+     "thiamin",
+     "folate"
+    ]
+   }
+  },
+  {
+   "id": "method-deep-fried",
+   "input": {
+    "dishName": "plate",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 120,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 120,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "deep-fried"
+     },
+     {
+      "name": "spinach",
+      "grams": 80,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-spinach",
+       "recName": "Spinach, raw",
+       "per100g": {
+        "kcal": 23,
+        "protein": 2.9,
+        "carbs": 3.6,
+        "fiber": 2.2,
+        "fat": 0.4,
+        "vitC": 28,
+        "folate": 190,
+        "vitA": 470,
+        "vitK": 480
+       },
+       "missing": [],
+       "cookClass": "leafy",
+       "yieldClass": "leafy",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 80,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "deep-fried"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 120,
+      "grams": 66.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "spinach",
+      "rawGrams": 80,
+      "grams": 58.4,
+      "oilGrams": 6.4
+     }
+    ],
+    "weight": 124.4,
+    "oilAdded": 6.4,
+    "kcal": 241.0,
+    "per100g": {
+     "kcal": 194,
+     "protein": 3.5,
+     "carbs": 20.9,
+     "fiber": 3.0,
+     "fat": 11.2,
+     "satFat": 0.7,
+     "vitA": 302,
+     "vitK": 308.7,
+     "vitC": 21.2,
+     "folate": 122
+    },
+    "missing": [
+     "folate",
+     "satFat",
+     "vitA",
+     "vitC",
+     "vitK"
+    ]
+   }
+  },
+  {
+   "id": "method-roasted",
+   "input": {
+    "dishName": "plate",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 120,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 120,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "roasted"
+     },
+     {
+      "name": "spinach",
+      "grams": 80,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-spinach",
+       "recName": "Spinach, raw",
+       "per100g": {
+        "kcal": 23,
+        "protein": 2.9,
+        "carbs": 3.6,
+        "fiber": 2.2,
+        "fat": 0.4,
+        "vitC": 28,
+        "folate": 190,
+        "vitA": 470,
+        "vitK": 480
+       },
+       "missing": [],
+       "cookClass": "leafy",
+       "yieldClass": "leafy",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 80,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "roasted"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 120,
+      "grams": 96.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "spinach",
+      "rawGrams": 80,
+      "grams": 80.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 176.0,
+    "oilAdded": 0.0,
+    "kcal": 114.4,
+    "per100g": {
+     "kcal": 65,
+     "protein": 2.7,
+     "carbs": 13.2,
+     "fiber": 2.4,
+     "fat": 0.2,
+     "vitA": 214,
+     "vitK": 218.2,
+     "vitC": 20.9,
+     "thiamin": 0.06,
+     "folate": 97
+    },
+    "missing": [
+     "vitA",
+     "vitK",
+     "thiamin"
+    ]
+   }
+  },
+  {
+   "id": "method-grilled",
+   "input": {
+    "dishName": "plate",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 120,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 120,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "grilled"
+     },
+     {
+      "name": "spinach",
+      "grams": 80,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-spinach",
+       "recName": "Spinach, raw",
+       "per100g": {
+        "kcal": 23,
+        "protein": 2.9,
+        "carbs": 3.6,
+        "fiber": 2.2,
+        "fat": 0.4,
+        "vitC": 28,
+        "folate": 190,
+        "vitA": 470,
+        "vitK": 480
+       },
+       "missing": [],
+       "cookClass": "leafy",
+       "yieldClass": "leafy",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 80,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "grilled"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 120,
+      "grams": 96.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "spinach",
+      "rawGrams": 80,
+      "grams": 80.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 176.0,
+    "oilAdded": 0.0,
+    "kcal": 114.4,
+    "per100g": {
+     "kcal": 65,
+     "protein": 2.7,
+     "carbs": 13.2,
+     "fiber": 2.4,
+     "fat": 0.2,
+     "vitA": 214,
+     "vitK": 218.2,
+     "vitC": 26.4,
+     "thiamin": 0.07,
+     "folate": 97
+    },
+    "missing": [
+     "vitA",
+     "vitK",
+     "thiamin"
+    ]
+   }
+  },
+  {
+   "id": "method-unknown",
+   "input": {
+    "dishName": "plate",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 120,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 120,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "unknown"
+     },
+     {
+      "name": "spinach",
+      "grams": 80,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-spinach",
+       "recName": "Spinach, raw",
+       "per100g": {
+        "kcal": 23,
+        "protein": 2.9,
+        "carbs": 3.6,
+        "fiber": 2.2,
+        "fat": 0.4,
+        "vitC": 28,
+        "folate": 190,
+        "vitA": 470,
+        "vitK": 480
+       },
+       "missing": [],
+       "cookClass": "leafy",
+       "yieldClass": "leafy",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 80,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "unknown"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 120,
+      "grams": 120.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "spinach",
+      "rawGrams": 80,
+      "grams": 80.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 200.0,
+    "oilAdded": 0.0,
+    "kcal": 114.4,
+    "per100g": {
+     "kcal": 57,
+     "protein": 2.4,
+     "carbs": 11.6,
+     "fiber": 2.1,
+     "fat": 0.2,
+     "vitA": 188,
+     "vitK": 192.0,
+     "vitC": 23.2,
+     "thiamin": 0.06,
+     "folate": 85
+    },
+    "missing": [
+     "vitA",
+     "vitK",
+     "thiamin"
+    ]
+   }
+  },
+  {
+   "id": "method-not-said",
+   "input": {
+    "dishName": "plate",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 120,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 120,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      }
+     },
+     {
+      "name": "spinach",
+      "grams": 80,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-spinach",
+       "recName": "Spinach, raw",
+       "per100g": {
+        "kcal": 23,
+        "protein": 2.9,
+        "carbs": 3.6,
+        "fiber": 2.2,
+        "fat": 0.4,
+        "vitC": 28,
+        "folate": 190,
+        "vitA": 470,
+        "vitK": 480
+       },
+       "missing": [],
+       "cookClass": "leafy",
+       "yieldClass": "leafy",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 80,
+       "yields": {},
+       "cooked": {}
+      }
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 120,
+      "grams": 120.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "spinach",
+      "rawGrams": 80,
+      "grams": 80.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 200.0,
+    "oilAdded": 0.0,
+    "kcal": 114.4,
+    "per100g": {
+     "kcal": 57,
+     "protein": 2.4,
+     "carbs": 11.6,
+     "fiber": 2.1,
+     "fat": 0.2,
+     "vitA": 188,
+     "vitK": 192.0,
+     "vitC": 23.2,
+     "thiamin": 0.06,
+     "folate": 85
+    },
+    "missing": [
+     "vitA",
+     "vitK",
+     "thiamin"
+    ]
+   }
+  },
+  {
+   "id": "meat-roasted",
+   "input": {
+    "dishName": "chicken",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "chicken",
+      "grams": 150,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-chicken",
+       "recName": "Chicken, raw",
+       "per100g": {
+        "kcal": 200,
+        "protein": 20,
+        "carbs": 0,
+        "fat": 13,
+        "satFat": 4,
+        "sodium": 70,
+        "thiamin": 0.1
+       },
+       "missing": [],
+       "cookClass": "meat",
+       "yieldClass": "meat",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 150,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "roasted"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "chicken",
+      "rawGrams": 150,
+      "grams": 112.5,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 112.5,
+    "oilAdded": 0.0,
+    "kcal": 264.9,
+    "per100g": {
+     "kcal": 235,
+     "protein": 26.7,
+     "carbs": 0.0,
+     "fat": 13.9,
+     "satFat": 4.3,
+     "thiamin": 0.12,
+     "sodium": 93
+    },
+    "missing": []
+   }
+  },
+  {
+   "id": "meat-grilled",
+   "input": {
+    "dishName": "chicken",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "chicken",
+      "grams": 150,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-chicken",
+       "recName": "Chicken, raw",
+       "per100g": {
+        "kcal": 200,
+        "protein": 20,
+        "carbs": 0,
+        "fat": 13,
+        "satFat": 4,
+        "sodium": 70,
+        "thiamin": 0.1
+       },
+       "missing": [],
+       "cookClass": "meat",
+       "yieldClass": "meat",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 150,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "grilled"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "chicken",
+      "rawGrams": 150,
+      "grams": 105.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 105.0,
+    "oilAdded": 0.0,
+    "kcal": 247.35,
+    "per100g": {
+     "kcal": 236,
+     "protein": 28.6,
+     "carbs": 0.0,
+     "fat": 13.0,
+     "satFat": 4.0,
+     "thiamin": 0.14,
+     "sodium": 100
+    },
+    "missing": []
+   }
+  },
+  {
+   "id": "meat-simmered",
+   "input": {
+    "dishName": "chicken",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "chicken",
+      "grams": 150,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-chicken",
+       "recName": "Chicken, raw",
+       "per100g": {
+        "kcal": 200,
+        "protein": 20,
+        "carbs": 0,
+        "fat": 13,
+        "satFat": 4,
+        "sodium": 70,
+        "thiamin": 0.1
+       },
+       "missing": [],
+       "cookClass": "meat",
+       "yieldClass": "meat",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 150,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "simmered"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "chicken",
+      "rawGrams": 150,
+      "grams": 97.5,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 97.5,
+    "oilAdded": 0.0,
+    "kcal": 300.0,
+    "per100g": {
+     "kcal": 308,
+     "protein": 30.8,
+     "carbs": 0.0,
+     "fat": 20.0,
+     "satFat": 6.2,
+     "thiamin": 0.15,
+     "sodium": 108
+    },
+    "missing": []
+   }
+  },
+  {
+   "id": "meat-stir-fried",
+   "input": {
+    "dishName": "chicken",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "chicken",
+      "grams": 150,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-chicken",
+       "recName": "Chicken, raw",
+       "per100g": {
+        "kcal": 200,
+        "protein": 20,
+        "carbs": 0,
+        "fat": 13,
+        "satFat": 4,
+        "sodium": 70,
+        "thiamin": 0.1
+       },
+       "missing": [],
+       "cookClass": "meat",
+       "yieldClass": "meat",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 150,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "stir-fried"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "chicken",
+      "rawGrams": 150,
+      "grams": 123.0,
+      "oilGrams": 3.0
+     }
+    ],
+    "weight": 123.0,
+    "oilAdded": 3.0,
+    "kcal": 309.45,
+    "per100g": {
+     "kcal": 252,
+     "protein": 24.4,
+     "carbs": 0.0,
+     "fiber": 0.0,
+     "fat": 16.7,
+     "satFat": 4.7,
+     "thiamin": 0.12,
+     "sodium": 85
+    },
+    "missing": [
+     "fiber",
+     "thiamin",
+     "sodium"
+    ]
+   }
+  },
+  {
+   "id": "rice-raw-basis",
+   "input": {
+    "dishName": "rice",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "rice",
+      "grams": 100,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-brown-rice",
+       "recName": "Rice, brown, raw",
+       "per100g": {
+        "kcal": 360,
+        "protein": 8,
+        "carbs": 76,
+        "fiber": 3.5,
+        "fat": 2.7,
+        "thiamin": 0.4,
+        "folate": 20,
+        "sodium": 6
+       },
+       "missing": [],
+       "cookClass": "grain",
+       "yieldClass": "grain",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 100,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "boiled"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "rice",
+      "rawGrams": 100,
+      "grams": 250.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 250.0,
+    "oilAdded": 0.0,
+    "kcal": 360.0,
+    "per100g": {
+     "kcal": 144,
+     "protein": 3.2,
+     "carbs": 30.4,
+     "fiber": 1.4,
+     "fat": 1.1,
+     "thiamin": 0.11,
+     "folate": 6,
+     "sodium": 1
+    },
+    "missing": []
+   }
+  },
+  {
+   "id": "rice-cooked-basis",
+   "input": {
+    "dishName": "rice",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "rice",
+      "grams": 250,
+      "basis": "cooked",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-brown-rice",
+       "recName": "Rice, brown, raw",
+       "per100g": {
+        "kcal": 360,
+        "protein": 8,
+        "carbs": 76,
+        "fiber": 3.5,
+        "fat": 2.7,
+        "thiamin": 0.4,
+        "folate": 20,
+        "sodium": 6
+       },
+       "missing": [],
+       "cookClass": "grain",
+       "yieldClass": "grain",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "cooked",
+       "rawGrams": 0,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "boiled"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "rice",
+      "rawGrams": 100.0,
+      "grams": 250.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 250,
+    "oilAdded": 0.0,
+    "kcal": 360.0,
+    "per100g": {
+     "kcal": 144,
+     "protein": 3.2,
+     "carbs": 30.4,
+     "fiber": 1.4,
+     "fat": 1.1,
+     "thiamin": 0.11,
+     "folate": 6,
+     "sodium": 1
+    },
+    "missing": []
+   }
+  },
+  {
+   "id": "rice-cooked-record",
+   "input": {
+    "dishName": "rice",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "rice",
+      "grams": 100,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-rice",
+       "recName": "Rice, white, raw",
+       "per100g": {
+        "kcal": 350,
+        "protein": 7,
+        "carbs": 78,
+        "fiber": 1,
+        "fat": 0.6,
+        "thiamin": 0.4,
+        "folate": 20,
+        "sodium": 5
+       },
+       "missing": [],
+       "cookClass": "grain",
+       "yieldClass": "grain",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 100,
+       "yields": {},
+       "cooked": {
+        "boiled": {
+         "id": "fake-rice-cooked",
+         "per100g": {
+          "kcal": 130,
+          "protein": 2.7,
+          "carbs": 28,
+          "fiber": 0.4,
+          "fat": 0.3,
+          "thiamin": 0.16,
+          "folate": 8,
+          "sodium": 1
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-rice-cooked",
+         "per100g": {
+          "kcal": 130,
+          "protein": 2.7,
+          "carbs": 28,
+          "fiber": 0.4,
+          "fat": 0.3,
+          "thiamin": 0.16,
+          "folate": 8,
+          "sodium": 1
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-rice-cooked",
+         "per100g": {
+          "kcal": 130,
+          "protein": 2.7,
+          "carbs": 28,
+          "fiber": 0.4,
+          "fat": 0.3,
+          "thiamin": 0.16,
+          "folate": 8,
+          "sodium": 1
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-rice-cooked",
+         "per100g": {
+          "kcal": 130,
+          "protein": 2.7,
+          "carbs": 28,
+          "fiber": 0.4,
+          "fat": 0.3,
+          "thiamin": 0.16,
+          "folate": 8,
+          "sodium": 1
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-rice-cooked",
+         "per100g": {
+          "kcal": 130,
+          "protein": 2.7,
+          "carbs": 28,
+          "fiber": 0.4,
+          "fat": 0.3,
+          "thiamin": 0.16,
+          "folate": 8,
+          "sodium": 1
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "boiled"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "rice",
+      "rawGrams": 100,
+      "grams": 250.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 250.0,
+    "oilAdded": 0.0,
+    "kcal": 325.0,
+    "per100g": {
+     "kcal": 130,
+     "protein": 2.7,
+     "carbs": 28.0,
+     "fiber": 0.4,
+     "fat": 0.3,
+     "thiamin": 0.16,
+     "folate": 8,
+     "sodium": 1
+    },
+    "missing": []
+   }
+  },
+  {
+   "id": "rice-cooked-record-cooked-basis",
+   "input": {
+    "dishName": "rice",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "rice",
+      "grams": 250,
+      "basis": "cooked",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-rice",
+       "recName": "Rice, white, raw",
+       "per100g": {
+        "kcal": 350,
+        "protein": 7,
+        "carbs": 78,
+        "fiber": 1,
+        "fat": 0.6,
+        "thiamin": 0.4,
+        "folate": 20,
+        "sodium": 5
+       },
+       "missing": [],
+       "cookClass": "grain",
+       "yieldClass": "grain",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "cooked",
+       "rawGrams": 0,
+       "yields": {},
+       "cooked": {
+        "boiled": {
+         "id": "fake-rice-cooked",
+         "per100g": {
+          "kcal": 130,
+          "protein": 2.7,
+          "carbs": 28,
+          "fiber": 0.4,
+          "fat": 0.3,
+          "thiamin": 0.16,
+          "folate": 8,
+          "sodium": 1
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-rice-cooked",
+         "per100g": {
+          "kcal": 130,
+          "protein": 2.7,
+          "carbs": 28,
+          "fiber": 0.4,
+          "fat": 0.3,
+          "thiamin": 0.16,
+          "folate": 8,
+          "sodium": 1
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-rice-cooked",
+         "per100g": {
+          "kcal": 130,
+          "protein": 2.7,
+          "carbs": 28,
+          "fiber": 0.4,
+          "fat": 0.3,
+          "thiamin": 0.16,
+          "folate": 8,
+          "sodium": 1
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-rice-cooked",
+         "per100g": {
+          "kcal": 130,
+          "protein": 2.7,
+          "carbs": 28,
+          "fiber": 0.4,
+          "fat": 0.3,
+          "thiamin": 0.16,
+          "folate": 8,
+          "sodium": 1
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-rice-cooked",
+         "per100g": {
+          "kcal": 130,
+          "protein": 2.7,
+          "carbs": 28,
+          "fiber": 0.4,
+          "fat": 0.3,
+          "thiamin": 0.16,
+          "folate": 8,
+          "sodium": 1
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "boiled"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "rice",
+      "rawGrams": 100.0,
+      "grams": 250.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 250,
+    "oilAdded": 0.0,
+    "kcal": 325.0,
+    "per100g": {
+     "kcal": 130,
+     "protein": 2.7,
+     "carbs": 28.0,
+     "fiber": 0.4,
+     "fat": 0.3,
+     "thiamin": 0.16,
+     "folate": 8,
+     "sodium": 1
+    },
+    "missing": []
+   }
+  },
+  {
+   "id": "as-eaten-boiled-potato",
+   "input": {
+    "dishName": "potato",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "boiled potato",
+      "grams": 100,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato-boiled",
+       "recName": "Potato, boiled",
+       "per100g": {
+        "kcal": 87,
+        "protein": 1.9,
+        "carbs": 20,
+        "fiber": 1.8,
+        "fat": 0.1,
+        "vitC": 13
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": true,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 100,
+       "yields": {},
+       "cooked": {}
+      }
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "boiled potato",
+      "rawGrams": 100,
+      "grams": 100.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 100,
+    "oilAdded": 0.0,
+    "kcal": 87.0,
+    "per100g": {
+     "kcal": 87,
+     "protein": 1.9,
+     "carbs": 20.0,
+     "fiber": 1.8,
+     "fat": 0.1,
+     "vitC": 13.0
+    },
+    "missing": []
+   }
+  },
+  {
+   "id": "as-eaten-boiled-potato-fried",
+   "input": {
+    "dishName": "aloo",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "boiled potato",
+      "grams": 100,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato-boiled",
+       "recName": "Potato, boiled",
+       "per100g": {
+        "kcal": 87,
+        "protein": 1.9,
+        "carbs": 20,
+        "fiber": 1.8,
+        "fat": 0.1,
+        "vitC": 13
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": true,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 100,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "shallow-fried"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "boiled potato",
+      "rawGrams": 100,
+      "grams": 105.0,
+      "oilGrams": 5.0
+     }
+    ],
+    "weight": 105.0,
+    "oilAdded": 5.0,
+    "kcal": 132.0,
+    "per100g": {
+     "kcal": 126,
+     "protein": 1.8,
+     "carbs": 19.0,
+     "fiber": 1.7,
+     "fat": 4.9,
+     "satFat": 0.7,
+     "vitC": 12.4
+    },
+    "missing": [
+     "satFat",
+     "vitC"
+    ]
+   }
+  },
+  {
+   "id": "as-eaten-boiled-potato-deep-fried",
+   "input": {
+    "dishName": "aloo",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "boiled potato",
+      "grams": 100,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato-boiled",
+       "recName": "Potato, boiled",
+       "per100g": {
+        "kcal": 87,
+        "protein": 1.9,
+        "carbs": 20,
+        "fiber": 1.8,
+        "fat": 0.1,
+        "vitC": 13
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": true,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 100,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "deep-fried"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "boiled potato",
+      "rawGrams": 100,
+      "grams": 108.0,
+      "oilGrams": 8.0
+     }
+    ],
+    "weight": 108.0,
+    "oilAdded": 8.0,
+    "kcal": 159.0,
+    "per100g": {
+     "kcal": 147,
+     "protein": 1.8,
+     "carbs": 18.5,
+     "fiber": 1.7,
+     "fat": 7.5,
+     "satFat": 1.0,
+     "vitC": 12.0
+    },
+    "missing": [
+     "satFat",
+     "vitC"
+    ]
+   }
+  },
+  {
+   "id": "deep-fried-no-oil-line",
+   "input": {
+    "dishName": "fries",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 200,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 200,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "deep-fried"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 200,
+      "grams": 100.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 100.0,
+    "oilAdded": 0.0,
+    "kcal": 250.0,
+    "per100g": {
+     "kcal": 250,
+     "protein": 3.0,
+     "carbs": 35.0,
+     "fiber": 3.0,
+     "fat": 11.0,
+     "vitC": 6.0
+    },
+    "missing": []
+   }
+  },
+  {
+   "id": "deep-fried-chips-name",
+   "input": {
+    "dishName": "aloo chips",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato chips",
+      "grams": 200,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 200,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "deep-fried"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato chips",
+      "rawGrams": 200,
+      "grams": 100.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 100.0,
+    "oilAdded": 0.0,
+    "kcal": 250.0,
+    "per100g": {
+     "kcal": 250,
+     "protein": 3.0,
+     "carbs": 35.0,
+     "fiber": 3.0,
+     "fat": 11.0,
+     "vitC": 6.0
+    },
+    "missing": []
+   }
+  },
+  {
+   "id": "deep-fried-pan-oil-listed-larger",
+   "input": {
+    "dishName": "fries",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 200,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 200,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "deep-fried"
+     },
+     {
+      "name": "oil",
+      "grams": 500,
+      "basis": "raw",
+      "kind": "oil",
+      "profile": {
+       "calc": "c1",
+       "kind": "oil",
+       "id": "fake-oil",
+       "recName": "Test oil",
+       "per100g": {
+        "kcal": 900,
+        "protein": 0,
+        "carbs": 0,
+        "fiber": 0,
+        "fat": 100,
+        "satFat": 14
+       },
+       "missing": [],
+       "cookClass": "none",
+       "yieldClass": "none",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": true,
+       "basis": "raw",
+       "rawGrams": 500,
+       "yields": {},
+       "cooked": {},
+       "role": "frying-medium"
+      },
+      "role": "frying-medium"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 200,
+      "grams": 100.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "oil",
+      "rawGrams": 0.0,
+      "grams": 0.0,
+      "oilGrams": 0.0,
+      "role": "frying-medium"
+     }
+    ],
+    "weight": 100.0,
+    "oilAdded": 0.0,
+    "kcal": 250.0,
+    "per100g": {
+     "kcal": 250,
+     "protein": 3.0,
+     "carbs": 35.0,
+     "fiber": 3.0,
+     "fat": 11.0,
+     "vitC": 6.0
+    },
+    "missing": []
+   }
+  },
+  {
+   "id": "deep-fried-pan-oil-listed-smaller",
+   "input": {
+    "dishName": "fries",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 200,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 200,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "deep-fried"
+     },
+     {
+      "name": "oil",
+      "grams": 5,
+      "basis": "raw",
+      "kind": "oil",
+      "profile": {
+       "calc": "c1",
+       "kind": "oil",
+       "id": "fake-oil",
+       "recName": "Test oil",
+       "per100g": {
+        "kcal": 900,
+        "protein": 0,
+        "carbs": 0,
+        "fiber": 0,
+        "fat": 100,
+        "satFat": 14
+       },
+       "missing": [],
+       "cookClass": "none",
+       "yieldClass": "none",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": true,
+       "basis": "raw",
+       "rawGrams": 5,
+       "yields": {},
+       "cooked": {},
+       "role": "frying-medium"
+      },
+      "role": "frying-medium"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 200,
+      "grams": 100.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "oil",
+      "rawGrams": 0.0,
+      "grams": 0.0,
+      "oilGrams": 0.0,
+      "role": "frying-medium"
+     }
+    ],
+    "weight": 100.0,
+    "oilAdded": 0.0,
+    "kcal": 250.0,
+    "per100g": {
+     "kcal": 250,
+     "protein": 3.0,
+     "carbs": 35.0,
+     "fiber": 3.0,
+     "fat": 11.0,
+     "vitC": 6.0
+    },
+    "missing": []
+   }
+  },
+  {
+   "id": "deep-fried-oil-unsaid-larger",
+   "input": {
+    "dishName": "fries",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 200,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 200,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "deep-fried"
+     },
+     {
+      "name": "oil",
+      "grams": 500,
+      "basis": "raw",
+      "kind": "oil",
+      "profile": {
+       "calc": "c1",
+       "kind": "oil",
+       "id": "fake-oil-b",
+       "recName": "Other test oil",
+       "per100g": {
+        "kcal": 880,
+        "protein": 0,
+        "carbs": 0,
+        "fiber": 0,
+        "fat": 98,
+        "satFat": 20,
+        "vitE": 14
+       },
+       "missing": [],
+       "cookClass": "none",
+       "yieldClass": "none",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": true,
+       "basis": "raw",
+       "rawGrams": 500,
+       "yields": {},
+       "cooked": {},
+       "role": null
+      }
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 200,
+      "grams": 104.0,
+      "oilGrams": 24.0
+     },
+     {
+      "name": "oil",
+      "rawGrams": 0.0,
+      "grams": 0.0,
+      "oilGrams": 0.0,
+      "role": "frying-medium"
+     }
+    ],
+    "weight": 104.0,
+    "oilAdded": 24.0,
+    "kcal": 371.2,
+    "per100g": {
+     "kcal": 357,
+     "protein": 3.8,
+     "carbs": 32.7,
+     "fiber": 3.8,
+     "fat": 22.8,
+     "satFat": 4.6,
+     "vitE": 3.23,
+     "vitC": 23.1,
+     "thiamin": 0.17,
+     "folate": 29
+    },
+    "missing": [
+     "satFat",
+     "vitE",
+     "vitC",
+     "thiamin",
+     "folate"
+    ]
+   }
+  },
+  {
+   "id": "deep-fried-oil-unsaid-smaller",
+   "input": {
+    "dishName": "fries",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 200,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 200,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "deep-fried"
+     },
+     {
+      "name": "oil",
+      "grams": 5,
+      "basis": "raw",
+      "kind": "oil",
+      "profile": {
+       "calc": "c1",
+       "kind": "oil",
+       "id": "fake-oil-b",
+       "recName": "Other test oil",
+       "per100g": {
+        "kcal": 880,
+        "protein": 0,
+        "carbs": 0,
+        "fiber": 0,
+        "fat": 98,
+        "satFat": 20,
+        "vitE": 14
+       },
+       "missing": [],
+       "cookClass": "none",
+       "yieldClass": "none",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": true,
+       "basis": "raw",
+       "rawGrams": 5,
+       "yields": {},
+       "cooked": {},
+       "role": null
+      }
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 200,
+      "grams": 99.0,
+      "oilGrams": 19.0
+     },
+     {
+      "name": "oil",
+      "rawGrams": 5,
+      "grams": 5.0,
+      "oilGrams": 0.0,
+      "role": "in-dish"
+     }
+    ],
+    "weight": 104.0,
+    "oilAdded": 19.0,
+    "kcal": 371.2,
+    "per100g": {
+     "kcal": 357,
+     "protein": 3.8,
+     "carbs": 32.7,
+     "fiber": 3.8,
+     "fat": 22.8,
+     "satFat": 4.6,
+     "vitE": 3.23,
+     "vitC": 23.1,
+     "thiamin": 0.17,
+     "folate": 29
+    },
+    "missing": [
+     "satFat",
+     "vitE",
+     "vitC",
+     "thiamin",
+     "folate"
+    ]
+   }
+  },
+  {
+   "id": "deep-fried-oil-in-dish",
+   "input": {
+    "dishName": "fries",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 200,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 200,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "deep-fried"
+     },
+     {
+      "name": "oil",
+      "grams": 5,
+      "basis": "raw",
+      "kind": "oil",
+      "profile": {
+       "calc": "c1",
+       "kind": "oil",
+       "id": "fake-oil",
+       "recName": "Test oil",
+       "per100g": {
+        "kcal": 900,
+        "protein": 0,
+        "carbs": 0,
+        "fiber": 0,
+        "fat": 100,
+        "satFat": 14
+       },
+       "missing": [],
+       "cookClass": "none",
+       "yieldClass": "none",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": true,
+       "basis": "raw",
+       "rawGrams": 5,
+       "yields": {},
+       "cooked": {},
+       "role": "in-dish"
+      },
+      "role": "in-dish"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 200,
+      "grams": 104.0,
+      "oilGrams": 24.0
+     },
+     {
+      "name": "oil",
+      "rawGrams": 5,
+      "grams": 5.0,
+      "oilGrams": 0.0,
+      "role": "in-dish"
+     }
+    ],
+    "weight": 109.0,
+    "oilAdded": 24.0,
+    "kcal": 421.0,
+    "per100g": {
+     "kcal": 386,
+     "protein": 3.7,
+     "carbs": 31.2,
+     "fiber": 3.7,
+     "fat": 26.8,
+     "satFat": 3.7,
+     "vitC": 22.0,
+     "thiamin": 0.17,
+     "folate": 28
+    },
+    "missing": [
+     "satFat",
+     "vitC",
+     "thiamin",
+     "folate"
+    ]
+   }
+  },
+  {
+   "id": "deep-fried-pan-oil-dish-level",
+   "input": {
+    "dishName": "fries",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 200,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 200,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "deep-fried"
+     }
+    ],
+    "panOil": {
+     "name": "Other test oil",
+     "profile": {
+      "calc": "c1",
+      "kind": "oil",
+      "id": "fake-oil-b",
+      "recName": "Other test oil",
+      "per100g": {
+       "kcal": 880,
+       "protein": 0,
+       "carbs": 0,
+       "fiber": 0,
+       "fat": 98,
+       "satFat": 20,
+       "vitE": 14
+      },
+      "missing": [],
+      "cookClass": "none",
+      "yieldClass": "none",
+      "asEaten": false,
+      "fryAgain": true,
+      "noMethod": true,
+      "basis": "raw",
+      "rawGrams": 0,
+      "yields": {},
+      "cooked": {}
+     }
+    }
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 200,
+      "grams": 100.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 100.0,
+    "oilAdded": 0.0,
+    "kcal": 250.0,
+    "per100g": {
+     "kcal": 250,
+     "protein": 3.0,
+     "carbs": 35.0,
+     "fiber": 3.0,
+     "fat": 11.0,
+     "vitC": 6.0
+    },
+    "missing": []
+   }
+  },
+  {
+   "id": "deep-fried-pan-oil-dish-level-grams",
+   "input": {
+    "dishName": "fries",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 200,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 200,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "deep-fried"
+     }
+    ],
+    "panOil": {
+     "name": "Other test oil",
+     "profile": {
+      "calc": "c1",
+      "kind": "oil",
+      "id": "fake-oil-b",
+      "recName": "Other test oil",
+      "per100g": {
+       "kcal": 880,
+       "protein": 0,
+       "carbs": 0,
+       "fiber": 0,
+       "fat": 98,
+       "satFat": 20,
+       "vitE": 14
+      },
+      "missing": [],
+      "cookClass": "none",
+      "yieldClass": "none",
+      "asEaten": false,
+      "fryAgain": true,
+      "noMethod": true,
+      "basis": "raw",
+      "rawGrams": 0,
+      "yields": {},
+      "cooked": {}
+     },
+     "grams": 6
+    }
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 200,
+      "grams": 100.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 100.0,
+    "oilAdded": 0.0,
+    "kcal": 250.0,
+    "per100g": {
+     "kcal": 250,
+     "protein": 3.0,
+     "carbs": 35.0,
+     "fiber": 3.0,
+     "fat": 11.0,
+     "vitC": 6.0
+    },
+    "missing": []
+   }
+  },
+  {
+   "id": "deep-fried-cooked-basis",
+   "input": {
+    "dishName": "fries",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 150,
+      "basis": "cooked",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "cooked",
+       "rawGrams": 0,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "deep-fried"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 300.0,
+      "grams": 150.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 150,
+    "oilAdded": 0.0,
+    "kcal": 375.0,
+    "per100g": {
+     "kcal": 250,
+     "protein": 3.0,
+     "carbs": 35.0,
+     "fiber": 3.0,
+     "fat": 11.0,
+     "vitC": 6.0
+    },
+    "missing": []
+   }
+  },
+  {
+   "id": "fried-record-only",
+   "input": {
+    "dishName": "fries",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 150,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 150,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "deep-fried"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 150,
+      "grams": 75.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 75.0,
+    "oilAdded": 0.0,
+    "kcal": 187.5,
+    "per100g": {
+     "kcal": 250,
+     "protein": 3.0,
+     "carbs": 35.0,
+     "fiber": 3.0,
+     "fat": 11.0,
+     "vitC": 6.0
+    },
+    "missing": []
+   }
+  },
+  {
+   "id": "fried-record-in-dish-oil",
+   "input": {
+    "dishName": "fries",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "potato",
+      "grams": 150,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 150,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "deep-fried"
+     },
+     {
+      "name": "oil",
+      "grams": 10,
+      "basis": "raw",
+      "kind": "oil",
+      "profile": {
+       "calc": "c1",
+       "kind": "oil",
+       "id": "fake-oil",
+       "recName": "Test oil",
+       "per100g": {
+        "kcal": 900,
+        "protein": 0,
+        "carbs": 0,
+        "fiber": 0,
+        "fat": 100,
+        "satFat": 14
+       },
+       "missing": [],
+       "cookClass": "none",
+       "yieldClass": "none",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": true,
+       "basis": "raw",
+       "rawGrams": 10,
+       "yields": {},
+       "cooked": {},
+       "role": "in-dish"
+      },
+      "role": "in-dish"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "potato",
+      "rawGrams": 150,
+      "grams": 78.0,
+      "oilGrams": 18.0
+     },
+     {
+      "name": "oil",
+      "rawGrams": 10,
+      "grams": 10.0,
+      "oilGrams": 0.0,
+      "role": "in-dish"
+     }
+    ],
+    "weight": 88.0,
+    "oilAdded": 18.0,
+    "kcal": 372.0,
+    "per100g": {
+     "kcal": 423,
+     "protein": 3.4,
+     "carbs": 29.0,
+     "fiber": 3.4,
+     "fat": 32.0,
+     "satFat": 4.5,
+     "vitC": 20.5,
+     "thiamin": 0.15,
+     "folate": 26
+    },
+    "missing": [
+     "satFat",
+     "vitC",
+     "thiamin",
+     "folate"
+    ]
+   }
+  },
+  {
+   "id": "batter-coated",
+   "input": {
+    "dishName": "pakora",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "chicken",
+      "grams": 100,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-chicken",
+       "recName": "Chicken, raw",
+       "per100g": {
+        "kcal": 200,
+        "protein": 20,
+        "carbs": 0,
+        "fat": 13,
+        "satFat": 4,
+        "sodium": 70,
+        "thiamin": 0.1
+       },
+       "missing": [],
+       "cookClass": "meat",
+       "yieldClass": "meat",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 100,
+       "yields": {},
+       "cooked": {},
+       "coating": "batter"
+      },
+      "method": "deep-fried",
+      "coating": "batter"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "chicken",
+      "rawGrams": 100,
+      "grams": 85.0,
+      "oilGrams": 20.0
+     }
+    ],
+    "weight": 85.0,
+    "oilAdded": 20.0,
+    "kcal": 380.0,
+    "per100g": {
+     "kcal": 447,
+     "protein": 23.5,
+     "carbs": 0.0,
+     "fiber": 0.0,
+     "fat": 38.8,
+     "satFat": 8.0,
+     "thiamin": 0.12,
+     "sodium": 82
+    },
+    "missing": [
+     "fiber",
+     "sodium",
+     "thiamin"
+    ]
+   }
+  },
+  {
+   "id": "breaded-coated",
+   "input": {
+    "dishName": "cutlet",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "flour",
+      "grams": 100,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-flour",
+       "recName": "Flour, raw",
+       "per100g": {
+        "kcal": 360,
+        "protein": 10,
+        "carbs": 76,
+        "fiber": 3,
+        "fat": 1,
+        "thiamin": 0.3,
+        "folate": 30
+       },
+       "missing": [],
+       "cookClass": "grain-flour",
+       "yieldClass": "grain-flour",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 100,
+       "yields": {},
+       "cooked": {},
+       "folicAcid": true,
+       "coating": "breaded"
+      },
+      "method": "deep-fried",
+      "coating": "breaded"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "flour",
+      "rawGrams": 100,
+      "grams": 120.0,
+      "oilGrams": 20.0
+     }
+    ],
+    "weight": 120.0,
+    "oilAdded": 20.0,
+    "kcal": 540.0,
+    "per100g": {
+     "kcal": 450,
+     "protein": 8.3,
+     "carbs": 63.3,
+     "fiber": 2.5,
+     "fat": 17.5,
+     "satFat": 2.3,
+     "thiamin": 0.21,
+     "folate": 22
+    },
+    "missing": [
+     "satFat",
+     "thiamin",
+     "folate"
+    ]
+   }
+  },
+  {
+   "id": "dough-with-water",
+   "input": {
+    "dishName": "puri",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "flour",
+      "grams": 100,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-flour",
+       "recName": "Flour, raw",
+       "per100g": {
+        "kcal": 360,
+        "protein": 10,
+        "carbs": 76,
+        "fiber": 3,
+        "fat": 1,
+        "thiamin": 0.3,
+        "folate": 30
+       },
+       "missing": [],
+       "cookClass": "grain-flour",
+       "yieldClass": "grain-flour",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 100,
+       "yields": {},
+       "cooked": {},
+       "folicAcid": true
+      },
+      "method": "deep-fried"
+     },
+     {
+      "name": "water",
+      "grams": 50,
+      "basis": "raw",
+      "kind": "water",
+      "profile": {
+       "calc": "c1",
+       "kind": "water",
+       "id": "fake-water",
+       "recName": "Water",
+       "per100g": {
+        "kcal": 0,
+        "protein": 0,
+        "carbs": 0,
+        "fiber": 0,
+        "fat": 0
+       },
+       "missing": [],
+       "cookClass": "none",
+       "yieldClass": "none",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": true,
+       "basis": "raw",
+       "rawGrams": 50,
+       "yields": {},
+       "cooked": {}
+      }
+     },
+     {
+      "name": "oil",
+      "grams": 300,
+      "basis": "raw",
+      "kind": "oil",
+      "profile": {
+       "calc": "c1",
+       "kind": "oil",
+       "id": "fake-oil",
+       "recName": "Test oil",
+       "per100g": {
+        "kcal": 900,
+        "protein": 0,
+        "carbs": 0,
+        "fiber": 0,
+        "fat": 100,
+        "satFat": 14
+       },
+       "missing": [],
+       "cookClass": "none",
+       "yieldClass": "none",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": true,
+       "basis": "raw",
+       "rawGrams": 300,
+       "yields": {},
+       "cooked": {},
+       "role": "frying-medium"
+      },
+      "role": "frying-medium"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "flour",
+      "rawGrams": 100,
+      "grams": 122.5,
+      "oilGrams": 22.5
+     },
+     {
+      "name": "water",
+      "rawGrams": 50,
+      "grams": 20.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "oil",
+      "rawGrams": 0.0,
+      "grams": 0.0,
+      "oilGrams": 0.0,
+      "role": "frying-medium"
+     }
+    ],
+    "weight": 142.5,
+    "oilAdded": 22.5,
+    "kcal": 562.5,
+    "per100g": {
+     "kcal": 395,
+     "protein": 7.0,
+     "carbs": 53.3,
+     "fiber": 2.1,
+     "fat": 16.5,
+     "satFat": 2.2,
+     "thiamin": 0.19,
+     "folate": 21
+    },
+    "missing": [
+     "satFat",
+     "thiamin",
+     "folate"
+    ]
+   }
+  },
+  {
+   "id": "dough-with-water-no-oil-line",
+   "input": {
+    "dishName": "puri",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "flour",
+      "grams": 100,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-flour",
+       "recName": "Flour, raw",
+       "per100g": {
+        "kcal": 360,
+        "protein": 10,
+        "carbs": 76,
+        "fiber": 3,
+        "fat": 1,
+        "thiamin": 0.3,
+        "folate": 30
+       },
+       "missing": [],
+       "cookClass": "grain-flour",
+       "yieldClass": "grain-flour",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 100,
+       "yields": {},
+       "cooked": {},
+       "folicAcid": true
+      },
+      "method": "deep-fried"
+     },
+     {
+      "name": "water",
+      "grams": 50,
+      "basis": "raw",
+      "kind": "water",
+      "profile": {
+       "calc": "c1",
+       "kind": "water",
+       "id": "fake-water",
+       "recName": "Water",
+       "per100g": {
+        "kcal": 0,
+        "protein": 0,
+        "carbs": 0,
+        "fiber": 0,
+        "fat": 0
+       },
+       "missing": [],
+       "cookClass": "none",
+       "yieldClass": "none",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": true,
+       "basis": "raw",
+       "rawGrams": 50,
+       "yields": {},
+       "cooked": {}
+      }
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "flour",
+      "rawGrams": 100,
+      "grams": 122.5,
+      "oilGrams": 22.5
+     },
+     {
+      "name": "water",
+      "rawGrams": 50,
+      "grams": 20.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 142.5,
+    "oilAdded": 22.5,
+    "kcal": 562.5,
+    "per100g": {
+     "kcal": 395,
+     "protein": 7.0,
+     "carbs": 53.3,
+     "fiber": 2.1,
+     "fat": 16.5,
+     "satFat": 2.2,
+     "thiamin": 0.19,
+     "folate": 21
+    },
+    "missing": [
+     "satFat",
+     "thiamin",
+     "folate"
+    ]
+   }
+  },
+  {
+   "id": "dough-with-water-and-boiled",
+   "input": {
+    "dishName": "dumpling",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "flour",
+      "grams": 100,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-flour",
+       "recName": "Flour, raw",
+       "per100g": {
+        "kcal": 360,
+        "protein": 10,
+        "carbs": 76,
+        "fiber": 3,
+        "fat": 1,
+        "thiamin": 0.3,
+        "folate": 30
+       },
+       "missing": [],
+       "cookClass": "grain-flour",
+       "yieldClass": "grain-flour",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 100,
+       "yields": {},
+       "cooked": {},
+       "folicAcid": true
+      },
+      "method": "deep-fried"
+     },
+     {
+      "name": "water",
+      "grams": 50,
+      "basis": "raw",
+      "kind": "water",
+      "profile": {
+       "calc": "c1",
+       "kind": "water",
+       "id": "fake-water",
+       "recName": "Water",
+       "per100g": {
+        "kcal": 0,
+        "protein": 0,
+        "carbs": 0,
+        "fiber": 0,
+        "fat": 0
+       },
+       "missing": [],
+       "cookClass": "none",
+       "yieldClass": "none",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": true,
+       "basis": "raw",
+       "rawGrams": 50,
+       "yields": {},
+       "cooked": {}
+      }
+     },
+     {
+      "name": "spinach",
+      "grams": 50,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-spinach",
+       "recName": "Spinach, raw",
+       "per100g": {
+        "kcal": 23,
+        "protein": 2.9,
+        "carbs": 3.6,
+        "fiber": 2.2,
+        "fat": 0.4,
+        "vitC": 28,
+        "folate": 190,
+        "vitA": 470,
+        "vitK": 480
+       },
+       "missing": [],
+       "cookClass": "leafy",
+       "yieldClass": "leafy",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 50,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "boiled"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "flour",
+      "rawGrams": 100,
+      "grams": 115.0,
+      "oilGrams": 15.0
+     },
+     {
+      "name": "water",
+      "rawGrams": 50,
+      "grams": 50.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "spinach",
+      "rawGrams": 50,
+      "grams": 40.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 205.0,
+    "oilAdded": 15.0,
+    "kcal": 506.5,
+    "per100g": {
+     "kcal": 247,
+     "protein": 5.6,
+     "carbs": 38.0,
+     "fiber": 2.0,
+     "fat": 7.9,
+     "satFat": 1.0,
+     "vitA": 103,
+     "vitK": 105.4,
+     "vitC": 3.4,
+     "thiamin": 0.13,
+     "folate": 47
+    },
+    "missing": [
+     "satFat",
+     "vitA",
+     "vitK",
+     "vitC",
+     "thiamin",
+     "folate"
+    ]
+   }
+  },
+  {
+   "id": "meat-fat-drip-listed-oil",
+   "input": {
+    "dishName": "roast",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "chicken",
+      "grams": 200,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-chicken",
+       "recName": "Chicken, raw",
+       "per100g": {
+        "kcal": 200,
+        "protein": 20,
+        "carbs": 0,
+        "fat": 13,
+        "satFat": 4,
+        "sodium": 70,
+        "thiamin": 0.1
+       },
+       "missing": [],
+       "cookClass": "meat",
+       "yieldClass": "meat",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 200,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "roasted"
+     },
+     {
+      "name": "oil",
+      "grams": 5,
+      "basis": "raw",
+      "kind": "oil",
+      "profile": {
+       "calc": "c1",
+       "kind": "oil",
+       "id": "fake-oil",
+       "recName": "Test oil",
+       "per100g": {
+        "kcal": 900,
+        "protein": 0,
+        "carbs": 0,
+        "fiber": 0,
+        "fat": 100,
+        "satFat": 14
+       },
+       "missing": [],
+       "cookClass": "none",
+       "yieldClass": "none",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": true,
+       "basis": "raw",
+       "rawGrams": 5,
+       "yields": {},
+       "cooked": {},
+       "role": "in-dish"
+      },
+      "role": "in-dish"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "chicken",
+      "rawGrams": 200,
+      "grams": 150.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "oil",
+      "rawGrams": 5,
+      "grams": 5.0,
+      "oilGrams": 0.0,
+      "role": "in-dish"
+     }
+    ],
+    "weight": 155.0,
+    "oilAdded": 0.0,
+    "kcal": 398.2,
+    "per100g": {
+     "kcal": 257,
+     "protein": 25.8,
+     "carbs": 0.0,
+     "fiber": 0.0,
+     "fat": 16.6,
+     "satFat": 4.6,
+     "thiamin": 0.12,
+     "sodium": 90
+    },
+    "missing": [
+     "fiber",
+     "thiamin",
+     "sodium"
+    ]
+   }
+  },
+  {
+   "id": "alcohol-boils-off",
+   "input": {
+    "dishName": "sauce",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "wine",
+      "grams": 100,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-wine",
+       "recName": "Wine, table",
+       "per100g": {
+        "kcal": 83,
+        "protein": 0.1,
+        "carbs": 2.6,
+        "fat": 0,
+        "alcohol": 10.5
+       },
+       "missing": [],
+       "cookClass": "drink",
+       "yieldClass": "drink",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 100,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "simmered"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "wine",
+      "rawGrams": 100,
+      "grams": 100.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 100.0,
+    "oilAdded": 0.0,
+    "kcal": 24.2,
+    "per100g": {
+     "kcal": 24,
+     "protein": 0.1,
+     "carbs": 2.6,
+     "fat": 0.0,
+     "alcohol": 2.1
+    },
+    "missing": []
+   }
+  },
+  {
+   "id": "missing-key-in-one-line",
+   "input": {
+    "dishName": "dal spinach",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "dal",
+      "grams": 50,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-dal",
+       "recName": "Lentils, raw",
+       "per100g": {
+        "kcal": 340,
+        "protein": 22,
+        "carbs": 60,
+        "fiber": 15,
+        "fat": 1.5,
+        "folate": 400,
+        "thiamin": 0.5
+       },
+       "missing": [
+        "folate"
+       ],
+       "cookClass": "pulse",
+       "yieldClass": "pulse",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 50,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "boiled"
+     },
+     {
+      "name": "spinach",
+      "grams": 100,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-spinach",
+       "recName": "Spinach, raw",
+       "per100g": {
+        "kcal": 23,
+        "protein": 2.9,
+        "carbs": 3.6,
+        "fiber": 2.2,
+        "fat": 0.4,
+        "vitC": 28,
+        "folate": 190,
+        "vitA": 470,
+        "vitK": 480
+       },
+       "missing": [],
+       "cookClass": "leafy",
+       "yieldClass": "leafy",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 100,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "boiled"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "dal",
+      "rawGrams": 50,
+      "grams": 110.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "spinach",
+      "rawGrams": 100,
+      "grams": 80.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 190.0,
+    "oilAdded": 0.0,
+    "kcal": 193.0,
+    "per100g": {
+     "kcal": 102,
+     "protein": 7.3,
+     "carbs": 17.7,
+     "fiber": 5.1,
+     "fat": 0.6,
+     "vitA": 223,
+     "vitK": 227.4,
+     "vitC": 7.4,
+     "thiamin": 0.13,
+     "folate": 175
+    },
+    "missing": [
+     "vitA",
+     "vitK",
+     "vitC",
+     "thiamin",
+     "folate"
+    ]
+   }
+  },
+  {
+   "id": "pending-line",
+   "input": {
+    "dishName": "mystery",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "paste",
+      "grams": 40,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": null,
+       "recName": "Paste, mystery",
+       "per100g": {
+        "kcal": 150,
+        "protein": 4,
+        "carbs": 20,
+        "fat": 6
+       },
+       "missing": [],
+       "cookClass": "none",
+       "yieldClass": "none",
+       "asEaten": false,
+       "fryAgain": false,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 40,
+       "yields": {},
+       "cooked": {},
+       "pending": true
+      },
+      "method": "simmered"
+     },
+     {
+      "name": "potato",
+      "grams": 100,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-potato",
+       "recName": "Potato, raw",
+       "per100g": {
+        "kcal": 80,
+        "protein": 2,
+        "carbs": 17,
+        "fiber": 2,
+        "fat": 0.1,
+        "vitC": 20,
+        "thiamin": 0.1,
+        "folate": 15
+       },
+       "missing": [],
+       "cookClass": "tuber",
+       "yieldClass": "tuber",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 100,
+       "yields": {
+        "boiled": {
+         "y": 0.95
+        },
+        "shallow-fried": {
+         "y": 0.5,
+         "oilU": 5
+        },
+        "deep-fried": {
+         "y": 0.45,
+         "oilU": 10
+        }
+       },
+       "cooked": {
+        "boiled": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "boiled-drained": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "pressure-cooked": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "steamed": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "simmered": {
+         "id": "fake-potato-boiled",
+         "per100g": {
+          "kcal": 87,
+          "protein": 1.9,
+          "carbs": 20,
+          "fiber": 1.8,
+          "fat": 0.1,
+          "vitC": 13
+         },
+         "missing": []
+        },
+        "deep-fried": {
+         "id": "fake-potato-fries",
+         "per100g": {
+          "kcal": 250,
+          "protein": 3,
+          "carbs": 35,
+          "fat": 11,
+          "fiber": 3,
+          "vitC": 6
+         },
+         "missing": []
+        }
+       }
+      },
+      "method": "boiled"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "paste",
+      "rawGrams": 40,
+      "grams": 40.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "potato",
+      "rawGrams": 100,
+      "grams": 95.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 135.0,
+    "oilAdded": 0.0,
+    "kcal": 142.65,
+    "per100g": {
+     "kcal": 106,
+     "protein": 2.5,
+     "carbs": 20.0,
+     "fiber": 1.3,
+     "fat": 1.8,
+     "vitC": 9.1
+    },
+    "missing": [
+     "fiber",
+     "vitC"
+    ]
+   }
+  },
+  {
+   "id": "dried-fish-protein-yield",
+   "input": {
+    "dishName": "fish",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "dried fish",
+      "grams": 50,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-dried-fish",
+       "recName": "Fish, dried",
+       "per100g": {
+        "kcal": 290,
+        "protein": 60,
+        "carbs": 0,
+        "fat": 5,
+        "sodium": 4000
+       },
+       "missing": [],
+       "cookClass": "fish",
+       "yieldClass": "fish@dried",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 50,
+       "yields": {},
+       "cooked": {}
+      },
+      "method": "boiled"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "dried fish",
+      "rawGrams": 50,
+      "grams": 150.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 150.0,
+    "oilAdded": 0.0,
+    "kcal": 145.0,
+    "per100g": {
+     "kcal": 97,
+     "protein": 20.0,
+     "carbs": 0.0,
+     "fat": 1.7,
+     "sodium": 1333
+    },
+    "missing": []
+   }
+  },
+  {
+   "id": "salt-and-water-only",
+   "input": {
+    "dishName": "brine",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "salt",
+      "grams": 5,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-salt",
+       "recName": "Salt",
+       "per100g": {
+        "kcal": 0,
+        "sodium": 38000
+       },
+       "missing": [],
+       "cookClass": "none",
+       "yieldClass": "none",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": true,
+       "basis": "raw",
+       "rawGrams": 5,
+       "yields": {},
+       "cooked": {}
+      }
+     },
+     {
+      "name": "water",
+      "grams": 100,
+      "basis": "raw",
+      "kind": "water",
+      "profile": {
+       "calc": "c1",
+       "kind": "water",
+       "id": "fake-water",
+       "recName": "Water",
+       "per100g": {
+        "kcal": 0,
+        "protein": 0,
+        "carbs": 0,
+        "fiber": 0,
+        "fat": 0
+       },
+       "missing": [],
+       "cookClass": "none",
+       "yieldClass": "none",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": true,
+       "basis": "raw",
+       "rawGrams": 100,
+       "yields": {},
+       "cooked": {}
+      }
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "salt",
+      "rawGrams": 5,
+      "grams": 5.0,
+      "oilGrams": 0.0
+     },
+     {
+      "name": "water",
+      "rawGrams": 100,
+      "grams": 100.0,
+      "oilGrams": 0.0
+     }
+    ],
+    "weight": 105.0,
+    "oilAdded": 0.0,
+    "kcal": 0.0,
+    "per100g": {
+     "kcal": 0,
+     "sodium": 1810
+    },
+    "missing": []
+   }
+  },
+  {
+   "id": "retention-folic-acid",
+   "input": {
+    "dishName": "bread",
+    "country": "IN",
+    "lines": [
+     {
+      "name": "flour",
+      "grams": 100,
+      "basis": "raw",
+      "kind": "food",
+      "profile": {
+       "calc": "c1",
+       "kind": "food",
+       "id": "fake-flour",
+       "recName": "Flour, raw",
+       "per100g": {
+        "kcal": 360,
+        "protein": 10,
+        "carbs": 76,
+        "fiber": 3,
+        "fat": 1,
+        "thiamin": 0.3,
+        "folate": 30
+       },
+       "missing": [],
+       "cookClass": "grain-flour",
+       "yieldClass": "grain-flour",
+       "asEaten": false,
+       "fryAgain": true,
+       "noMethod": false,
+       "basis": "raw",
+       "rawGrams": 100,
+       "yields": {},
+       "cooked": {},
+       "folicAcid": true,
+       "coating": "batter"
+      },
+      "method": "deep-fried",
+      "coating": "batter"
+     }
+    ]
+   },
+   "expect": {
+    "lines": [
+     {
+      "name": "flour",
+      "rawGrams": 100,
+      "grams": 120.0,
+      "oilGrams": 20.0
+     }
+    ],
+    "weight": 120.0,
+    "oilAdded": 20.0,
+    "kcal": 540.0,
+    "per100g": {
+     "kcal": 450,
+     "protein": 8.3,
+     "carbs": 63.3,
+     "fiber": 2.5,
+     "fat": 17.5,
+     "satFat": 2.3,
+     "thiamin": 0.21,
+     "folate": 22
+    },
+    "missing": [
+     "satFat",
+     "thiamin",
+     "folate"
+    ]
+   }
+  }
+ ]
+}

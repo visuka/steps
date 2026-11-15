@@ -11,20 +11,22 @@ import { type FoodEntry, newId, type Repository } from '@/data/types';
 import type { StepSource } from '@/health/types';
 
 import { catalogFood, type PortionOverrides } from './catalog';
+import { cookDish, cookInputOf } from './cooking/cook';
+import { CALC, type CookedDish, type CookingTables, type EditedLine } from './cooking/types';
 import {
   isMine,
   mineFood,
   type MyDishes,
   myDishesAfterConfirm,
   myDishesAfterReset,
+  cleanName,
   nextMineId,
   recipeTextFor,
-  sameIngredients,
   validIngredients,
   withMine,
 } from './my-dishes';
 import { isHomeDish, keepSavedNotes, markStyle, samePortion, savedRestaurantVersion, versionChange, type Where } from './place';
-import type { FoodItem, Nutrients } from './types';
+import type { FoodIngredient, FoodItem, FoodUnit, Nutrients } from './types';
 
 // ── saving an entry ───────────────────────────────────────────────────────
 
@@ -202,6 +204,10 @@ export interface ConfirmDeps {
   dishes: MyDishes;
   /** POST /v1/food/recipe (api/food-api.ts recipeFood). */
   recipe: (request: RecipeRequest) => Promise<RecipeResult>;
+  /** The cooking factor tables kept on the phone (nutrition/cooking/store.ts); none = the recipe look-up. */
+  tables?: CookingTables | null;
+  /** The country dishes are worked out for ("IN"); "*" when the phone doesn't know. */
+  country?: string;
 }
 
 export type ConfirmOutcome =
@@ -209,9 +215,37 @@ export type ConfirmOutcome =
   | { ok: true; changed: boolean; food: FoodItem; dishes: MyDishes }
   | { ok: false; message: string };
 
+/** The list as the amounts before cooking and methods it stands for, to tell whether it was changed. */
+function sameEdit(was: FoodIngredient[], now: EditedLine[]): boolean {
+  const key = (name: string) => cleanName(name).toLowerCase();
+  return (
+    was.length === now.length &&
+    was.every((x, i) => Math.round(x.rawGrams ?? x.grams) === now[i].grams && key(x.name) === key(now[i].name) && x.method === now[i].method)
+  );
+}
+
+/** The dish worked out on the phone from an edited list, or null when it can't be (no tables, a row with no profile). */
+function workedOutHere(deps: ConfirmDeps, current: FoodItem, ingredients: FoodIngredient[]): CookedDish | null {
+  const { tables } = deps;
+  if (!tables || !ingredients.length) return null;
+  if (!ingredients.every((i) => i.profile?.calc === CALC && i.profile.calc === tables.calc)) return null;
+  const dish = cookDish(cookInputOf(ingredients, current.name, deps.country ?? '*', tables, current.panOil), tables);
+  return dish.weight > 0 && dish.per100g.kcal !== undefined && dish.lines.length === ingredients.length ? dish : null;
+}
+
+const round1 = (n: number): number => Math.round(n * 10) / 10;
+
+/** The default unit of a dish made on the phone weighs what the dish does: the sum of cooked grams (plan T15c, decision 11). */
+export function dishUnits(food: FoodItem, weight: number): FoodUnit[] {
+  const grams = Math.min(5000, Math.max(1, Math.round(weight)));
+  return food.units.map((u) => (u.key === food.defaultUnit && u.key !== 'g' ? { ...u, grams } : u));
+}
+
 /**
- * The person confirms an edited ingredient list for `current`. The numbers come
- * from the recipe look-up; the list is kept exactly as typed. An unchanged list
+ * The person confirms an edited ingredient list for `current`. When every row
+ * has a profile and the tables are on the phone, the numbers are worked out
+ * here (nutrition/cooking) and no recipe call is made; otherwise they come
+ * from the recipe look-up (T15). The list is kept exactly as typed. An unchanged list
  * does nothing. Editing their own version again keeps its id (the caller saves
  * it in place); otherwise a new `mine:` food is made. Offline or on an error
  * nothing is kept and `message` says so.
@@ -219,15 +253,48 @@ export type ConfirmOutcome =
 export async function confirmIngredients(
   deps: ConfirmDeps,
   current: FoodItem,
-  list: { name: string; grams: number }[],
+  list: EditedLine[],
   typedText: string | null,
 ): Promise<ConfirmOutcome> {
   const { ingredients, problem } = validIngredients(list);
   if (problem) return { ok: false, message: problem };
-  if (current.ingredients && sameIngredients(current.ingredients, ingredients)) {
+  if (current.ingredients && sameEdit(current.ingredients, list)) {
     return { ok: true, changed: false, food: current, dishes: deps.dishes };
   }
   const request = recipeTextFor(current, ingredients);
+  const here = workedOutHere(
+    deps,
+    current,
+    ingredients.map((i, n) => ({ ...i, rawGrams: i.grams, ...(list[n].method ? { method: list[n].method } : {}), ...(list[n].profile ? { profile: list[n].profile } : {}) })),
+  );
+  if (here) {
+    const id = isMine(current) ? current.id : nextMineId(deps.saved, deps.dishes);
+    const kept = ingredients.map((i, n): FoodIngredient => {
+      const line = here.lines[n];
+      return {
+        ...i,
+        grams: round1(line.grams),
+        rawGrams: i.grams,
+        ...(list[n].method ? { method: list[n].method } : {}),
+        ...(line.oilGrams > 0 ? { oilGrams: round1(line.oilGrams) } : {}),
+        profile: list[n].profile,
+      };
+    });
+    // Pending only for show (the note says some numbers are not counted yet): madeHere keeps the repeat of a
+    // pending look-up from putting the server's numbers over the phone's.
+    const answer: FoodItem = { ...current, per100g: here.per100g };
+    delete answer.pending;
+    delete answer.notes;
+    delete answer.missing;
+    if (here.missing.length) answer.missing = here.missing;
+    const food = mineFood({ current, ingredients: kept, answer, id, request });
+    food.units = dishUnits(current, here.weight);
+    food.calc = CALC;
+    food.madeHere = true;
+    if (here.pending) food.pending = true;
+    const dishes = myDishesAfterConfirm(deps.dishes, { basedOn: food.basedOn ?? current.id, mineId: id, text: typedText });
+    return { ok: true, changed: true, food, dishes };
+  }
   let answer: RecipeResult;
   try {
     answer = await deps.recipe(request);

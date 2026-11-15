@@ -15,6 +15,7 @@ import { NavigationBar } from '@/components/ui/navigation-bar';
 import { ActiveTheme, Spacing } from '@/constants/theme';
 import { parsePreviewParams, type PreviewScreen } from '@/design-preview/params';
 import { SampleDataProvider } from '@/design-preview/providers';
+import { SAMPLE_COOKING_FOOD, SAMPLE_COOKING_TABLES } from '@/design-preview/cooking-sample';
 import { SAMPLE_FOOD_RESULT, SAMPLE_WALK_ID } from '@/design-preview/sample';
 import { useTheme } from '@/hooks/use-theme';
 import type { SeriesKind } from '@/state/series';
@@ -99,7 +100,7 @@ function PreviewScreenBody({ screen, edit, mine }: { screen: PreviewScreen; edit
         <FoodResultScreen
           query={SAMPLE_FOOD_RESULT.query}
           script={SAMPLE_FOOD_RESULT.script}
-          food={mine ? { ...SAMPLE_FOOD_RESULT.food, id: 'mine:1', source: 'mine', basedOn: SAMPLE_FOOD_RESULT.food.id } : SAMPLE_FOOD_RESULT.food}
+          food={mine ? { ...SAMPLE_FOOD_RESULT.food, id: 'mine:1', source: 'mine', basedOn: SAMPLE_FOOD_RESULT.food.id } : edit ? SAMPLE_COOKING_FOOD : SAMPLE_FOOD_RESULT.food}
           overrides={{}}
           initialUnit={SAMPLE_FOOD_RESULT.unit}
           initialQuantity={SAMPLE_FOOD_RESULT.quantity}
@@ -110,6 +111,12 @@ function PreviewScreenBody({ screen, edit, mine }: { screen: PreviewScreen; edit
           // Nothing is worked out in the preview: the editor opens, and Use these ingredients just closes it.
           onChangeIngredients={async () => null}
           startEditing={edit}
+          // The editor opens with the sample's own profiles and tables: nothing is looked up here.
+          cooking={
+            edit
+              ? { tables: SAMPLE_COOKING_TABLES, country: '*', fetchProfiles: async () => [], withProfiles: async (f) => f.ingredients ?? null }
+              : undefined
+          }
           // The person's version opens on its Edit panel, where Use our guess again is.
           showWorking={mine}
           onUseOurGuess={mine ? () => undefined : undefined}

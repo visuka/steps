@@ -103,7 +103,7 @@ export function nextMineId(saved: FoodItem[], dishes: MyDishes): string {
 /** One line of the recipe text sent to the server: "Onion 60 g". */
 const lineOf = (i: FoodIngredient): string => `${i.name} ${i.grams} g`;
 
-const cleanName = (name: string): string => name.replace(/[<>]/g, ' ').replace(/\s+/g, ' ').trim();
+export const cleanName = (name: string): string => name.replace(/[<>]/g, ' ').replace(/\s+/g, ' ').trim();
 
 /**
  * The edited list as it will be kept (names cleaned) and the first reason it
@@ -200,8 +200,10 @@ export function mineFood(p: {
     units: scaledUnits(current, current.ingredients, p.ingredients),
     defaultUnit: current.defaultUnit,
     source: 'mine',
-    ingredients: p.ingredients.map((i) => ({ name: i.name, grams: i.grams })),
+    // The cooking fields (method, amount before cooking, profile) stay when the list has them.
+    ingredients: p.ingredients.map((i) => ({ ...i })),
   };
+  if (current.panOil) out.panOil = current.panOil;
   const basedOn = isMine(current) ? current.basedOn : current.id;
   if (basedOn) out.basedOn = basedOn;
   if (current.style) out.style = current.style;

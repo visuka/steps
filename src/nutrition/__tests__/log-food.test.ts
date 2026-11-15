@@ -5,6 +5,7 @@ import { memoryRepository } from '@/data/db.web';
 import type { FoodEntry } from '@/data/types';
 import {
   confirmIngredients,
+  dishUnits,
   keepLookedFood,
   logFood,
   lookUpFood,
@@ -13,6 +14,10 @@ import {
   saveFoodEntry,
 } from '@/nutrition/log-food';
 import { myDishesAfterConfirm, NO_DISHES } from '@/nutrition/my-dishes';
+import { isPending } from '@/nutrition/pending';
+import { FAKE_PROFILES as P, FAKE_TABLES } from '@/nutrition/cooking/__tests__/fake-tables';
+import { cookDish, cookInputOf } from '@/nutrition/cooking/cook';
+import type { CookingTables, CookMethod } from '@/nutrition/cooking/types';
 import { HOME } from '@/nutrition/place';
 import type { FoodItem } from '@/nutrition/types';
 
@@ -200,5 +205,134 @@ describe('confirming a corrected list', () => {
     const back = ourGuessAgain(first.dishes, first.food, (id) => (id === 'ai:upma' ? dish : null));
     expect(back.food).toBe(dish);
     expect(back.dishes).toEqual(NO_DISHES);
+  });
+});
+
+describe('confirming a list worked out on the phone', () => {
+  const aloo: FoodItem = {
+    id: 'ai:aloo',
+    name: 'Aloo fry',
+    aliases: [],
+    category: 'dish',
+    per100g: { kcal: 100 },
+    units: [
+      { key: 'bowl', label: 'bowl', grams: 150 },
+      { key: 'g', label: 'g', grams: 1 },
+    ],
+    defaultUnit: 'bowl',
+    source: 'x',
+    ingredients: [
+      { name: 'potato', grams: 100 },
+      { name: 'oil', grams: 10 },
+    ],
+  };
+  const recipeAnswer = { food: { ...aloo, id: 'recipe:r', per100g: { kcal: 200 } } } as RecipeResult;
+  const line = (name: string, grams: number, key: keyof typeof P, method?: CookMethod) => ({
+    name,
+    grams,
+    ...(method ? { method } : {}),
+    profile: P[key],
+  });
+  const list = [line('potato', 100, 'potato', 'shallow-fried'), line('oil', 10, 'oil')];
+  const make = (over: object = {}) => ({
+    saved: [aloo],
+    dishes: NO_DISHES,
+    recipe: jest.fn(async (_request: unknown) => recipeAnswer),
+    tables: FAKE_TABLES,
+    country: 'IN',
+    ...over,
+  });
+
+  it('saves the phone\'s result without a recipe call when every row has a profile', async () => {
+    const deps = make();
+    const out = await confirmIngredients(deps, aloo, list, 'aloo fry');
+    expect(deps.recipe).not.toHaveBeenCalled();
+    if (!out.ok) throw new Error('not ok');
+    const expected = cookDish(
+      cookInputOf(
+        [
+          { name: 'potato', grams: 100, rawGrams: 100, method: 'shallow-fried', profile: P.potato },
+          { name: 'oil', grams: 10, rawGrams: 10, profile: P.oil },
+        ],
+        'Aloo fry',
+        'IN',
+        FAKE_TABLES,
+      ),
+      FAKE_TABLES,
+    );
+    expect(out.changed).toBe(true);
+    expect(out.food).toMatchObject({ id: 'mine:1', basedOn: 'ai:aloo', source: 'mine', calc: 'c1' });
+    expect(out.food.per100g).toEqual(expected.per100g);
+    expect(out.food.ingredients?.[0]).toMatchObject({ name: 'potato', rawGrams: 100, method: 'shallow-fried', profile: P.potato });
+    expect(out.food.ingredients?.[0].grams).toBeCloseTo(expected.lines[0].grams, 0);
+    expect(out.dishes).toEqual({ byFood: { 'ai:aloo': 'mine:1' }, byText: { 'aloo fry': 'mine:1' } });
+  });
+  it('weighs the unit by the dish, and leaves the other units as they were', async () => {
+    const out = await confirmIngredients(make(), aloo, list, null);
+    if (!out.ok) throw new Error('not ok');
+    const weight = cookDish(
+      cookInputOf(
+        [
+          { name: 'potato', grams: 100, rawGrams: 100, method: 'shallow-fried', profile: P.potato },
+          { name: 'oil', grams: 10, rawGrams: 10, profile: P.oil },
+        ],
+        'Aloo fry',
+        'IN',
+        FAKE_TABLES,
+      ),
+      FAKE_TABLES,
+    ).weight;
+    // The sum of the cooked grams, to the gram (decision 11): no 5 g steps.
+    expect(out.food.units[0].grams).toBe(Math.max(1, Math.round(weight)));
+    expect(dishUnits(aloo, 81.04)[0].grams).toBe(81);
+    expect(dishUnits(aloo, 0.2)[0].grams).toBe(1);
+    expect(dishUnits(aloo, 9000)[0].grams).toBe(5000);
+    expect(out.food.units[1]).toEqual({ key: 'g', label: 'g', grams: 1 });
+  });
+  it('goes the recipe way (T15) when a row has no profile', async () => {
+    const deps = make();
+    const out = await confirmIngredients(deps, aloo, [list[0], { name: 'mystery', grams: 5 }], null);
+    expect(deps.recipe).toHaveBeenCalledWith(expect.objectContaining({ ingredients: 'potato 100 g\nmystery 5 g' }));
+    expect(out.ok && out.food.per100g).toEqual({ kcal: 200 });
+    expect(out.ok && out.food.ingredients?.[0]).toEqual({ name: 'potato', grams: 100 });
+  });
+  it('goes the recipe way when there are no tables, or they are another version', async () => {
+    for (const tables of [null, undefined, { ...FAKE_TABLES, calc: 'c2' } as unknown as CookingTables]) {
+      const deps = make({ tables });
+      const out = await confirmIngredients(deps, aloo, list, null);
+      expect(deps.recipe).toHaveBeenCalledTimes(1);
+      expect(out.ok && out.food.per100g).toEqual({ kcal: 200 });
+    }
+  });
+  it('counts a changed method as a change, and the same list as none', async () => {
+    const first = await confirmIngredients(make(), aloo, list, null);
+    if (!first.ok) throw new Error('not ok');
+    const deps = make({ saved: [aloo, first.food], dishes: first.dishes });
+    const same = await confirmIngredients(deps, first.food, list, null);
+    expect(same).toMatchObject({ ok: true, changed: false });
+    const boiled = await confirmIngredients(deps, first.food, [line('potato', 100, 'potato', 'boiled'), list[1]], null);
+    expect(boiled.ok && boiled.changed).toBe(true);
+    expect(boiled.ok && boiled.food.id).toBe('mine:1');
+    expect(boiled.ok && boiled.food.per100g).not.toEqual(first.food.per100g);
+    expect(deps.recipe).not.toHaveBeenCalled();
+  });
+  it('keeps the dish\'s pan oil with the food and never marks it pending', async () => {
+    const withPan: FoodItem = { ...aloo, pending: true, panOil: { name: 'Oil', profile: P.oil } };
+    const out = await confirmIngredients(make(), withPan, list, null);
+    expect(out.ok && out.food.panOil).toEqual({ name: 'Oil', profile: P.oil });
+    expect(out.ok && out.food.pending).toBeUndefined();
+  });
+  it('shows a pending note when a row has AI-only numbers, and leaves the food out of the pending repeat', async () => {
+    const masala = { ...line('masala', 5, 'potato'), profile: { ...P.potato, pending: true as const } };
+    const out = await confirmIngredients(make(), aloo, [list[0], masala], null);
+    if (!out.ok) throw new Error('not ok');
+    expect(out.food).toMatchObject({ calc: 'c1', pending: true, madeHere: true });
+    expect(isPending(out.food)).toBe(false);
+    const plain = await confirmIngredients(make(), aloo, list, null);
+    expect(plain.ok && plain.food.pending).toBeUndefined();
+  });
+  it('refuses an invalid list before any maths', async () => {
+    const out = await confirmIngredients(make(), aloo, [{ ...list[0], grams: 0 }], null);
+    expect(out.ok).toBe(false);
   });
 });

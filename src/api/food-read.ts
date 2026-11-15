@@ -9,6 +9,8 @@
  */
 import { APP_NAME } from '@/constants/app';
 import { MINE_PREFIX, OWN_PREFIX } from '@/nutrition/catalog';
+import { isCookMethod } from '@/nutrition/cooking/methods';
+import { CALC, type CookMethod, type IngredientProfile, type PanOil } from '@/nutrition/cooking/types';
 import { NUTRIENTS } from '@/nutrition/nutrients';
 import { cleanRestaurant, isPlace, type Where, whereOf } from '@/nutrition/place';
 import type { FoodCategory, FoodFlag, FoodIngredient, FoodItem, FoodRecipeSource, FoodUnit, NutrientKey, Nutrients } from '@/nutrition/types';
@@ -16,6 +18,7 @@ import type { FoodCategory, FoodFlag, FoodIngredient, FoodItem, FoodRecipeSource
 /** The server's limits (stepsinfra food/handler.py and recipe.py), checked here first. */
 export const ESTIMATE_MAX_CHARS = 200;
 export const RECIPE_NAME_MAX = 80;
+export const INGREDIENTS_MAX = 30;
 export const RECIPE_TEXT_MAX = 1500;
 export const RECIPE_MAX_SERVINGS = 50;
 export const RECIPE_UNITS = ['bowl', 'plate', 'piece', 'glass', 'cup', 'serving'] as const;
@@ -56,7 +59,7 @@ export interface RecipeRequest {
   unit?: RecipeUnit;
 }
 
-export interface RecipeIngredient extends FoodIngredient {
+export interface RecipeIngredient extends Omit<FoodIngredient, 'method'> {
   /** "pressure-cooked", "fried"… */
   method?: string;
 }
@@ -94,7 +97,7 @@ export class FoodApiError extends Error {
   }
 }
 
-export type FoodRoute = 'estimate' | 'recipe';
+export type FoodRoute = 'estimate' | 'recipe' | 'ingredients' | 'cooking';
 
 const MESSAGES: Record<Exclude<FoodApiErrorKind, 'not_food' | 'limit'>, string> = {
   offline: "Couldn't reach our server. Check your internet and try again.",
@@ -211,6 +214,19 @@ export function estimateRequest(
   const w = whereOf(where.place, where.restaurant);
   body.place = w.place;
   if (w.restaurant) body.restaurant = w.restaurant;
+  return body;
+}
+
+/**
+ * The body for POST /v1/food/ingredients: the names (trimmed, 1 to 30, each 1 to 60
+ * characters) and the country; the dish name only when it is given. No user id.
+ */
+export function ingredientsRequest(names: string[], region?: unknown, dish?: string): Record<string, unknown> {
+  const body: Record<string, unknown> = { names: names.map((n) => n.trim()).slice(0, INGREDIENTS_MAX) };
+  const country = countryCode(region);
+  if (country) body.country = country;
+  const d = dish?.trim().slice(0, RECIPE_NAME_MAX);
+  if (d) body.dish = d;
   return body;
 }
 
@@ -344,16 +360,161 @@ function readUnits(v: unknown): FoodUnit[] {
   return units;
 }
 
+const MAX_LINE_GRAMS = 30_000;
+
+const BASES: readonly unknown[] = ['raw', 'cooked'];
+const ROLES: readonly unknown[] = ['in-dish', 'frying-medium'];
+const COATINGS: readonly unknown[] = ['none', 'batter', 'breaded'];
+const KINDS: readonly unknown[] = ['food', 'oil', 'water'];
+
+/** A short name or class word: 1 to `max` characters, as sent. */
+function word(v: unknown, max: number): string | null {
+  return typeof v === 'string' && v.length >= 1 && v.length <= max ? v : null;
+}
+
+/** A line's own cooked records, or null when one is malformed (the profile is then bad). */
+function readCookedRecords(v: unknown): IngredientProfile['cooked'] | null {
+  if (v === undefined) return {};
+  if (!isObject(v)) return null;
+  const out: IngredientProfile['cooked'] = {};
+  for (const [key, e] of Object.entries(v)) {
+    if (!isCookMethod(key)) continue;
+    if (!isObject(e) || !isObject(e.per100g)) return null;
+    const id = word(e.id, 80);
+    if (!id) return null;
+    out[key] = { id, per100g: readNutrients(e.per100g), missing: readMissing(e.missing) };
+  }
+  return out;
+}
+
+/** A line's own yields, or null when one is malformed (the profile is then bad). */
+function readYields(v: unknown): IngredientProfile['yields'] | null {
+  if (v === undefined) return {};
+  if (!isObject(v)) return null;
+  const out: IngredientProfile['yields'] = {};
+  for (const [key, e] of Object.entries(v)) {
+    if (!isCookMethod(key)) continue;
+    if (!isObject(e)) return null;
+    const entry: { y?: number; oilU?: number } = {};
+    if (e.y !== undefined) {
+      const y = number(e.y, 0, 1000);
+      if (!y) return null;
+      entry.y = y;
+    }
+    if (e.oilU !== undefined) {
+      const oilU = number(e.oilU, 0, 100);
+      if (!oilU) return null;
+      entry.oilU = oilU;
+    }
+    out[key] = entry;
+  }
+  return out;
+}
+
+/**
+ * A line's profile (stepsinfra docs/app-cooking-contract.md section 1), or
+ * null when any part of it isn't what the phone's maths needs: a calc version
+ * this build doesn't know, a wrong type, a number out of range. The line is
+ * kept without it.
+ */
+export function readProfile(v: unknown): IngredientProfile | null {
+  if (!isObject(v) || v.calc !== CALC) return null;
+  if (!KINDS.includes(v.kind) || !BASES.includes(v.basis)) return null;
+  if (!isObject(v.per100g)) return null;
+  const noId = v.id === null || v.id === undefined;
+  const id = noId ? null : word(v.id, 80);
+  if (!noId && id === null) return null;
+  const cookClass = word(v.cookClass, 60);
+  const yieldClass = word(v.yieldClass, 80);
+  const rawGrams = number(v.rawGrams, 0, MAX_LINE_GRAMS);
+  if (!cookClass || !yieldClass || rawGrams === null) return null;
+  if (typeof v.asEaten !== 'boolean' || typeof v.fryAgain !== 'boolean' || typeof v.noMethod !== 'boolean') return null;
+  if (typeof v.recName !== 'string' || v.recName.length > 200) return null;
+  const yields = readYields(v.yields);
+  const cooked = readCookedRecords(v.cooked);
+  if (!yields || !cooked) return null;
+  if (v.role !== undefined && v.role !== null && !ROLES.includes(v.role)) return null;
+  if (v.coating !== undefined && !COATINGS.includes(v.coating)) return null;
+
+  const profile: IngredientProfile = {
+    calc: CALC,
+    kind: v.kind as IngredientProfile['kind'],
+    id,
+    recName: v.recName,
+    per100g: readNutrients(v.per100g),
+    missing: readMissing(v.missing),
+    cookClass,
+    yieldClass,
+    asEaten: v.asEaten,
+    fryAgain: v.fryAgain,
+    noMethod: v.noMethod,
+    basis: v.basis as IngredientProfile['basis'],
+    rawGrams,
+    yields,
+    cooked,
+  };
+  if (v.pending === true) profile.pending = true;
+  if (v.folicAcid === true) profile.folicAcid = true;
+  if (v.role !== undefined) profile.role = v.role as IngredientProfile['role'];
+  if (v.coating !== undefined) profile.coating = v.coating as IngredientProfile['coating'];
+  return profile;
+}
+
+/** The cooking fields of a line that pass their checks; a bad one is simply left out. */
+function readCooking(raw: Record<string, unknown>): { rawGrams?: number; oilGrams?: number; profile?: IngredientProfile } {
+  const out: { rawGrams?: number; oilGrams?: number; profile?: IngredientProfile } = {};
+  const profile = raw.profile === undefined ? null : readProfile(raw.profile);
+  if (profile) out.profile = profile;
+  const rawGrams = number(raw.rawGrams, 0, MAX_LINE_GRAMS) ?? profile?.rawGrams;
+  if (rawGrams !== undefined) out.rawGrams = rawGrams;
+  const oilGrams = number(raw.oilGrams, 0, MAX_LINE_GRAMS);
+  if (oilGrams !== null) out.oilGrams = oilGrams;
+  return out;
+}
+
+/** Ingredient lines of a recipe answer: the method stays the server's own word. */
 export function readIngredients(v: unknown): RecipeIngredient[] {
   const out: RecipeIngredient[] = [];
   for (const raw of list(v, 40)) {
     if (!isObject(raw)) continue;
     const name = text(raw.name, 80);
-    const grams = number(raw.grams, 0, 30_000);
+    const grams = number(raw.grams, 0, MAX_LINE_GRAMS);
     if (!name || grams === null) continue;
     const method = text(raw.method, 24);
-    out.push(method ? { name, grams, method } : { name, grams });
+    out.push({ name, grams, ...(method ? { method } : {}), ...readCooking(raw) });
   }
+  return out;
+}
+
+/**
+ * Ingredient lines of a food (FoodItem.ingredients): name and grams, and
+ * `method` (one of CookMethod), `rawGrams`, `oilGrams` and `profile` when they
+ * are valid. Anything else is dropped; a bad profile drops only the profile.
+ */
+export function readFoodIngredients(v: unknown): FoodIngredient[] {
+  const out: FoodIngredient[] = [];
+  for (const raw of list(v, 40)) {
+    if (!isObject(raw)) continue;
+    const name = text(raw.name, 80);
+    const grams = number(raw.grams, 0, MAX_LINE_GRAMS);
+    if (!name || grams === null) continue;
+    const line: FoodIngredient = { name, grams, ...readCooking(raw) };
+    const method: CookMethod | undefined = isCookMethod(raw.method) ? raw.method : undefined;
+    if (method) line.method = method;
+    out.push(line);
+  }
+  return out;
+}
+
+/** The dish's pan oil (contract section 1): a name, grams when listed, and an oil profile; null when any part is wrong. */
+function readPanOil(v: unknown): PanOil | null {
+  if (!isObject(v)) return null;
+  const name = text(v.name, 80);
+  const profile = readProfile(v.profile);
+  if (!name || !profile || profile.kind !== 'oil') return null;
+  const out: PanOil = { name, profile };
+  const grams = number(v.grams, 0, MAX_LINE_GRAMS);
+  if (grams !== null && grams > 0) out.grams = grams;
   return out;
 }
 
@@ -393,11 +554,15 @@ export function readFoodItem(v: unknown): FoodItem | null {
   };
   const flags = list(v.flags, 5).filter((f): f is FoodFlag => has(FLAGS, f));
   if (flags.length) food.flags = flags;
-  // The method is only for the whole recipe; a food keeps name and grams.
-  const ingredients = readIngredients(v.ingredients).map(({ name: n, grams }) => ({ name: n, grams }));
+  const ingredients = readFoodIngredients(v.ingredients);
   if (ingredients.length) food.ingredients = ingredients;
   const notes = readNotes(v.notes);
   if (notes.length) food.notes = notes;
+  const panOil = readPanOil(v.panOil);
+  if (panOil) {
+    food.panOil = panOil;
+    food.calc = CALC;
+  }
   const missing = readMissing(v.missing);
   if (missing.length) food.missing = missing;
   if (v.pending === true) {
@@ -446,13 +611,23 @@ function itemMarks(food: FoodItem, raw: Record<string, unknown>): void {
   if (raw.pending === true) food.pending = true;
 }
 
-/** Ingredient amounts of two parts of a meal added up, by name. */
+/**
+ * Ingredient amounts of two parts of a meal added up, by name. The cooking
+ * fields of the first stay; amounts that only one of them has are dropped.
+ */
 function addIngredients(a: FoodIngredient[], b: FoodIngredient[]): FoodIngredient[] {
   const out = a.map((i) => ({ ...i }));
   for (const i of b) {
     const same = out.find((o) => o.name === i.name);
-    if (same) same.grams += i.grams;
-    else out.push({ ...i });
+    if (!same) {
+      out.push({ ...i });
+      continue;
+    }
+    same.grams += i.grams;
+    if (same.rawGrams !== undefined && i.rawGrams !== undefined) same.rawGrams += i.rawGrams;
+    else delete same.rawGrams;
+    if (same.oilGrams !== undefined && i.oilGrams !== undefined) same.oilGrams += i.oilGrams;
+    else delete same.oilGrams;
   }
   return out;
 }
@@ -477,7 +652,7 @@ export function readEstimate(body: unknown): EstimateResult {
     const most = unit === 'g' ? MAX_GRAMS : MAX_PORTIONS;
     // "3 plates" of a food without plates is not 3 of its default unit: start from one.
     const quantity = (known && number(raw.quantity, 0, most)) || (unit === 'g' ? 100 : 1);
-    const ingredients = readIngredients(raw.ingredients).map(({ name, grams }) => ({ name, grams }));
+    const ingredients = readFoodIngredients(raw.ingredients);
     const cached = raw.cached === true;
     const style = raw.style === 'home' || raw.style === 'restaurant' ? raw.style : 'auto';
 
@@ -497,6 +672,31 @@ export function readEstimate(body: unknown): EstimateResult {
     .filter((u): u is string => u !== null);
   const where = isPlace(body.place) ? whereOf(body.place, body.restaurant) : null;
   return { items, unknown, where };
+}
+
+/** One name of POST /v1/food/ingredients: its profile (and the server's usual method), or unknown. */
+export type ProfileItem = { name: string; profile: IngredientProfile; method?: CookMethod } | { name: string; unknown: true };
+
+/**
+ * The checked answer to POST /v1/food/ingredients, one item per item sent, in
+ * the order the server gave. An item with no usable profile reads as unknown;
+ * a malformed answer throws.
+ */
+export function readProfileItems(body: unknown): ProfileItem[] {
+  if (!isObject(body) || !Array.isArray(body.items)) throw badAnswer();
+  const out: ProfileItem[] = [];
+  for (const raw of body.items.slice(0, INGREDIENTS_MAX)) {
+    if (!isObject(raw)) continue;
+    const name = text(raw.name, 80);
+    if (!name) continue;
+    const profile = raw.unknown === true ? null : readProfile(raw.profile);
+    if (!profile) {
+      out.push({ name, unknown: true });
+      continue;
+    }
+    out.push(isCookMethod(raw.method) ? { name, profile, method: raw.method } : { name, profile });
+  }
+  return out;
 }
 
 /** The checked answer to POST /v1/food/recipe; throws when there's no usable food in it. */
