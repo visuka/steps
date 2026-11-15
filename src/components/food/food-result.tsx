@@ -750,7 +750,7 @@ function Details({
         <UiButton
           variant="text"
           compact
-          label="Use our guess again"
+          label="Reset to our estimate"
           accessibilityHint="Goes back to the ingredients we first worked out. Your version stays on past entries"
           onPress={onUseOurGuess}
           style={styles.showAll}
