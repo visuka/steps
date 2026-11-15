@@ -436,6 +436,15 @@ The stopped "screens match mockups" run left 28 changed files and new folders (a
 3. **Posts = totals, buddies only.** A post holds distance, time, steps, walk or cycle, and the day. There is no map, no route and no start place. Only accepted buddies see it.
 4. **18+ for this feature.** Opening Walk buddies the first time asks the person to confirm they are 18 or older. The rest of the app is unchanged.
 5. **Plan a walk (owner, 15 Nov 2026).** A person picks a day, a time and a place name they type (free text, no map pin), and invites accepted buddies. Each invited buddy answers Going or Not going. The organiser can change or cancel it, and invitees are told. Only invited buddies see it. No live location. T16-0 designs it with the rest.
+6. **Walker clubs (owner, 15 Nov 2026; defaults by Opus, owner to confirm).** A named group anyone 18+ can start.
+   - **Open** (anyone can find it by name or area and join) or **invite only** (join by invite or code). The area is a typed name ("Banjara Hills"), never a map spot.
+   - Up to 200 members. The founder is the owner and can make admins; admins remove members and delete messages.
+   - Club chat (text only, the same limits as chat), club walks (Plan a walk for the club), and a weekly steps board that each member chooses to join.
+   - Report and block as everywhere; reports reach the owner's queue as well as the club admins.
+7. **Walker family (owner, 15 Nov 2026; defaults by Opus, owner to confirm).** A small private group, up to 8, joined only by an invite code.
+   - Members see each other's daily steps and walk totals (each member can turn sharing off), cheer each other, and have a family chat.
+   - Optional gentle alert for older family members: "No steps from Amma by 12:00", only if that member turns it on.
+   - 18+ for now, like the rest of Walk buddies (children need verified parental consent under India's DPDP Act and app store rules; a later request).
 
 ### Opus rules (safety and store rules)
 
@@ -476,9 +485,11 @@ The stopped "screens match mockups" run left 28 changed files and new folders (a
 - **T16c — app: chat and push (Sonnet).**
 - **T16d — app: share a walk and buddies' walks (Sonnet).**
 - **T16e — app: Plan a walk, invites, Going / Not going, reminders (Sonnet).**
+- **T16f — app: Walker clubs (Sonnet).**
+- **T16g — app: Walker family (Sonnet).**
 - **T16 check (Opus):** the screenshots (sample data in the design preview) and a safety review: report, block, area only, and deletion.
 
-**Not in scope:** groups, public feeds, comments, photos, live location, and walking together in real time. These can come later as separate requests.
+**Not in scope:** public feeds, comments, photos, live location, and walking together in real time. (Groups are now in scope as clubs and families, decisions 6–7.) These can come later as separate requests.
 
 **Open before T16a:** the owner's OK to deploy the new stacks, and who reviews reports (the owner's email for the queue alert).
 
