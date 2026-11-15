@@ -36,7 +36,7 @@ Status: **Approved design: Clean+ blue (14 Nov 2026).** T0 to T11 done; CI run 4
 | T15c-1 | Sonnet | "Do T15c-1 in docs/current-task.md" (deploy only with T14, owner's OK) |
 | T15c-2 to T15c-4 | Sonnet | "Do T15c-2 in docs/current-task.md", then -3, then -4 |
 | T15c check | Opus | "Review the CI screenshots" |
-| T16-0 | Opus | "Design T16 walk buddies" (after T15) |
+| ~~T16-0~~ | done (15 Nov 2026) | `docs/walk-buddies.md`; owner questions in its section 11 |
 | T16a–d | Sonnet | after T16-0; T16a deploy needs the owner's OK |
 | T13 | Haiku | only after the owner's OK |
 | T14 | Sonnet | only after the owner's OK |
