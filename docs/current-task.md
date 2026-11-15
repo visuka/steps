@@ -437,7 +437,8 @@ The stopped "screens match mockups" run left 28 changed files and new folders (a
 4. **18+ for this feature.** Opening Walk buddies the first time asks the person to confirm they are 18 or older. The rest of the app is unchanged.
 5. **Plan a walk (owner, 15 Nov 2026).** A person picks a day, a time and a place name they type (free text, no map pin), and invites accepted buddies. Each invited buddy answers Going or Not going. The organiser can change or cancel it, and invitees are told. Only invited buddies see it. No live location. T16-0 designs it with the rest.
 6. **Walker clubs (owner, 15 Nov 2026; defaults by Opus, owner to confirm).** A named group anyone 18+ can start.
-   - **Open** (anyone can find it by name or area and join) or **invite only** (join by invite or code). The area is a typed name ("Banjara Hills"), never a map spot.
+   - **Admins approve every member (owner, 15 Nov 2026).** Anyone can find a club by name or area and tap **Ask to join**; the owner and admins see the request and tap Accept or Decline. An admin can also invite a buddy directly (the invite counts as approved; the person still accepts it). A club can be hidden from search (found only by invite). The area is a typed name ("Banjara Hills"), never a map spot.
+   - Join requests: a person can have at most 5 waiting; a request with no answer expires after 14 days; a declined person can ask again after 30 days.
    - Up to 200 members. The founder is the owner and can make admins; admins remove members and delete messages.
    - Club chat (text only, the same limits as chat), club walks (Plan a walk for the club), and a weekly steps board that each member chooses to join.
    - Report and block as everywhere; reports reach the owner's queue as well as the club admins.
