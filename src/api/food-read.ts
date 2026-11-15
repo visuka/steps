@@ -97,7 +97,7 @@ export class FoodApiError extends Error {
   }
 }
 
-export type FoodRoute = 'estimate' | 'recipe' | 'ingredients' | 'cooking';
+export type FoodRoute = 'estimate' | 'recipe' | 'ingredients' | 'cooking' | 'search';
 
 const MESSAGES: Record<Exclude<FoodApiErrorKind, 'not_food' | 'limit'>, string> = {
   offline: "Couldn't reach our server. Check your internet and try again.",
@@ -638,6 +638,30 @@ function addIngredients(a: FoodIngredient[], b: FoodIngredient[]): FoodIngredien
  * 1 phulka" are both chapati) becomes one item with the amounts added; in
  * different units both stay, so neither amount is lost.
  */
+/** One dish from POST /v1/food/search: an estimate item, and the other name it was found by ("kozhi curry"). */
+export interface SearchItem extends EstimateItem {
+  matchedName?: string;
+}
+
+/** The body for POST /v1/food/search: what is typed, the country, and the place when picked. No user id. */
+export function searchRequest(q: string, where?: Where | null, region?: unknown): Record<string, string | boolean> {
+  const { description, ...rest } = estimateRequest(q, where, region);
+  return { q: String(description).slice(0, 60), ...rest };
+}
+
+/** POST /v1/food/search's answer: up to five dishes, each checked like an estimate item. */
+export function readSearch(body: unknown): SearchItem[] {
+  if (!isObject(body) || !Array.isArray(body.items)) throw badAnswer();
+  const out: SearchItem[] = [];
+  for (const raw of list(body.items, 5)) {
+    const [item] = readEstimate({ items: [raw], unknown: [] }).items;
+    if (!item) continue;
+    const other = isObject(raw) ? text(raw.matchedName, 60) : null;
+    out.push(other ? { ...item, matchedName: other } : item);
+  }
+  return out;
+}
+
 export function readEstimate(body: unknown): EstimateResult {
   if (!isObject(body) || !Array.isArray(body.items)) throw badAnswer();
   const items: EstimateItem[] = [];

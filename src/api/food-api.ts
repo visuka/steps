@@ -23,15 +23,18 @@ import {
   readEstimate,
   readProfileItems,
   readRecipe,
+  readSearch,
   type RecipeRequest,
   recipeRequest,
   type RecipeResult,
+  type SearchItem,
+  searchRequest,
   timedOut,
   tokenError,
 } from './food-read';
 
 export { FoodApiError } from './food-read';
-export type { EstimateItem, EstimateResult, RecipeRequest, RecipeResult, RecipeUnit } from './food-read';
+export type { EstimateItem, EstimateResult, RecipeRequest, RecipeResult, RecipeUnit, SearchItem } from './food-read';
 
 /** The server gives up on the model after about 28 s; a little longer here covers the network. */
 const TIMEOUT_MS = 35_000;
@@ -107,6 +110,16 @@ export async function estimateFood(description: string, where?: Where | null, op
   const result = readEstimate(await post('estimate', estimateRequest(description, where, phoneRegion(), opts.refresh)));
   for (const item of result.items) stampPending(item.food);
   return result;
+}
+
+/**
+ * Dishes already on our server that match what is being typed (POST /v1/food/search), by words or by
+ * meaning, in any language: picking one needs no AI look-up. Throws FoodApiError like estimateFood.
+ */
+export async function searchDishes(q: string, where?: Where | null): Promise<SearchItem[]> {
+  const items = readSearch(await post('search', searchRequest(q, where, phoneRegion())));
+  for (const item of items) stampPending(item.food);
+  return items;
 }
 
 /** `refresh`: a quiet repeat of a pending food's look-up (nutrition/pending.ts), marked as one for the server. */

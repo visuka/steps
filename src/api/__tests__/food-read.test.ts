@@ -12,7 +12,9 @@ import {
   readFoodItem,
   readNutrients,
   readRecipe,
+  readSearch,
   recipeRequest,
+  searchRequest,
   tokenError,
   unknownDishMessage,
 } from '@/api/food-read';
@@ -153,6 +155,33 @@ describe('reading a food', () => {
     expect(readFoodItem(dish({ per100g: { protein: 3 } }))).toBeNull();
     expect(readFoodItem('pesarattu')).toBeNull();
     expect(readFoodItem(null)).toBeNull();
+  });
+});
+
+describe('searching dishes while typing', () => {
+  it('sends what is typed, the country and a picked place, never a description', () => {
+    expect(searchRequest('  kozhi cu ', null, 'GB')).toEqual({ q: 'kozhi cu', country: 'GB' });
+    expect(searchRequest('biryani', { place: 'delivery', restaurant: 'Paradise' }, 'IN')).toMatchObject({
+      q: 'biryani',
+      place: 'delivery',
+      restaurant: 'Paradise',
+    });
+    expect(searchRequest('x'.repeat(80)).q).toHaveLength(60);
+  });
+
+  it('reads up to five dishes and the other name each was found by', () => {
+    const items = readSearch({
+      items: [
+        { food: dish(), unit: 'piece', quantity: 1, cached: true, matchedName: 'pesara attu', match: 1 },
+        'nonsense',
+        { food: dish({ id: 'ai:two', name: 'Moong dal dosa' }), unit: 'piece', quantity: 1 },
+        ...Array.from({ length: 6 }, (_, i) => ({ food: dish({ id: `ai:x${i}` }), unit: 'piece', quantity: 1 })),
+      ],
+    });
+    expect(items.length).toBeLessThanOrEqual(5);
+    expect(items[0]).toMatchObject({ unit: 'piece', matchedName: 'pesara attu' });
+    expect(items[1].matchedName).toBeUndefined();
+    expect(() => readSearch({})).toThrow(FoodApiError);
   });
 });
 

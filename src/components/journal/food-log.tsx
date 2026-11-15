@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, StyleSheet, View } from 'react-native';
 
-import { type EstimateItem, type EstimateResult, estimateFood, restaurantVersion } from '@/api/food-api';
+import { type EstimateItem, type EstimateResult, estimateFood, restaurantVersion, searchDishes, type SearchItem } from '@/api/food-api';
 import { unknownDishMessage } from '@/api/food-read';
 import { Card } from '@/components/card';
 import { confirmDelete } from '@/components/confirm';
@@ -17,6 +17,7 @@ import { RecipeForm } from '@/components/food/recipe-form';
 import { ThemedText } from '@/components/themed-text';
 import { IconButton, Button as UiButton, Why } from '@/components/ui';
 import { WhenField } from '@/components/when-field';
+import { APP_NAME } from '@/constants/app';
 import { Spacing, TouchTarget } from '@/constants/theme';
 import { changeFood, deleteFood, type HealthCopy } from '@/data/entries';
 import type { FoodEntry, RecentFood } from '@/data/types';
@@ -111,6 +112,8 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
   const [restaurants, setRestaurants] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  /** Dishes on our server matching what is typed (POST /v1/food/search), for the text they were found for. */
+  const [shared, setShared] = useState<{ q: string; items: SearchItem[] }>({ q: '', items: [] });
   // Only the latest lookup's answer is shown; an older one arriving late is dropped.
   const lookupRun = useRef(0);
   // One save at a time: a second tap while the restaurant version is fetched does nothing.
@@ -405,6 +408,38 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
     }
   };
 
+  // While typing pauses, dishes already on our server (any language, by meaning too): a tap needs no AI look-up.
+  const typed = query.trim();
+  useEffect(() => {
+    if (mode.kind !== 'search' || typed.replace(/\s/g, '').length < SHARED_MIN_LETTERS) return;
+    let live = true;
+    const timer = setTimeout(() => {
+      searchDishes(typed, placeIn.chosen ? here : null).then(
+        (items) => live && setShared({ q: typed, items }),
+        // Only a help: the person can still look it up or add it as their own.
+        () => live && setShared({ q: typed, items: [] }),
+      );
+    }, SHARED_PAUSE_MS);
+    return () => {
+      live = false;
+      clearTimeout(timer);
+    };
+    // here follows placeIn; listing both would only repeat the same search.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [typed, mode.kind, placeIn.place, placeIn.restaurant, placeIn.chosen]);
+
+  const pickShared = async (item: SearchItem) => {
+    let food: FoodItem;
+    try {
+      food = await keepLookedFood(book, item, placeIn.chosen ? here : null);
+    } catch {
+      setError("Couldn't save it on this phone. Please try again.");
+      return;
+    }
+    const known = food.units.some((u) => u.key === item.unit);
+    go({ kind: 'pick', food, unit: known ? item.unit : undefined, quantity: known ? item.quantity : undefined });
+  };
+
   const pickLooked = async (item: EstimateItem, index: number) => {
     let food: FoodItem;
     try {
@@ -531,6 +566,9 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
 
   const results = mode.kind === 'search' ? searchWithMine(query, book.own, book.saved, book.dishes) : [];
   const q = query.trim();
+  // Shown only for the text still typed, and never twice when the phone already has the food.
+  const sharedItems =
+    mode.kind === 'search' && shared.q === q ? shared.items.filter((s) => !results.some((r) => r.id === s.food.id)) : [];
 
   return (
     <>
@@ -556,6 +594,21 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
             {results.map((food) => (
               <SearchResult key={food.id} food={food} onPress={() => pickFood(food)} />
             ))}
+            {sharedItems.length ? (
+              <>
+                <ThemedText type="small" themeColor="textSecondary">
+                  Dishes on {APP_NAME}: tap yours
+                </ThemedText>
+                {sharedItems.map((item) => (
+                  <SearchResult
+                    key={`shared-${item.food.id}`}
+                    food={item.food}
+                    also={item.matchedName}
+                    onPress={() => pickShared(item)}
+                  />
+                ))}
+              </>
+            ) : null}
 
             {q ? (
               <LookupPanel
@@ -905,7 +958,12 @@ function LookedUpRow({
   );
 }
 
-function SearchResult({ food, onPress }: { food: FoodItem; onPress: () => void }) {
+/** Dishes on our server are searched once typing pauses this long, with at least this many letters typed. */
+const SHARED_PAUSE_MS = 450;
+const SHARED_MIN_LETTERS = 3;
+
+/** `also`: the other name the dish was found by ("kozhi curry" for Chicken curry). */
+function SearchResult({ food, onPress, also }: { food: FoodItem; onPress: () => void; also?: string }) {
   const unit = food.units.find((u) => u.key === food.defaultUnit) ?? food.units[0];
   const kcal = Math.round(((food.per100g.kcal ?? 0) * unit.grams) / 100);
   const theme = useTheme();
@@ -918,7 +976,7 @@ function SearchResult({ food, onPress }: { food: FoodItem; onPress: () => void }
       style={({ pressed }) => [styles.result, pressed && { backgroundColor: theme.surfaceContainerHighest }]}>
       <ThemedText style={styles.entryName}>{food.name}</ThemedText>
       <ThemedText type="small" themeColor="textSecondary">
-        1 {unit.label} · {kcal} kcal
+        {also ? `Also called ${also} · ` : ''}1 {unit.label} · {kcal} kcal
         {isMine(food) ? ' · your version' : ''}
       </ThemedText>
     </Pressable>

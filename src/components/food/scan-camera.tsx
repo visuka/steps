@@ -133,7 +133,7 @@ export function ScanCamera({
         </View>
       </View>
       <ThemedText type="bodyMedium" themeColor="onSurfaceVariant">
-        Hold the barcode inside the frame. It reads by itself.
+        Hold the barcode or QR code inside the frame. It reads by itself.
       </ThemedText>
       {hint ? <Notice tone="problem" text={hint} /> : null}
       <Button variant="tonal" label="Type the number" icon="keypad-outline" onPress={onManual} />
