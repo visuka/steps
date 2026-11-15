@@ -13,7 +13,7 @@ import { MaxContentWidth, NumeralMaxScale, Spacing } from '@/constants/theme';
 import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
 import { TELUGU_FONT } from '@/constants/themes/fonts';
 import { useTheme } from '@/hooks/use-theme';
-import { gramsFor, isSavedFoodId, nutrientsFor, type PortionOverrides, unitsFor } from '@/nutrition/catalog';
+import { gramsFor, nutrientsFor, type PortionOverrides, unitsFor } from '@/nutrition/catalog';
 import { isMine } from '@/nutrition/my-dishes';
 import { NUTRIENT } from '@/nutrition/nutrients';
 import { PARTIAL_NOTE } from '@/nutrition/state';
@@ -663,14 +663,11 @@ function Details({
 }) {
   const [editingSize, setEditingSize] = useState(false);
   const [size, setSize] = useState<number | null>(null);
-  const [working, setWorking] = useState(Boolean(showWorking));
   const [watchOpen, setWatchOpen] = useState<WatchOut['key'] | null>(null);
   const isGrams = s.unit === 'g';
   const own = food.category === 'own';
   const gi = glycemicIndex(food);
-  const hasWorking = isSavedFoodId(food.id) || Boolean(food.ingredients?.length || food.notes?.length);
   const least = (k: NutrientKey) => (s.missing.includes(k) ? 'at least ' : '');
-  const workingUnit = food.units[0];
   // Watch-outs the nutrient list doesn't flag (fat, deep-fried), with their notes.
   const others = s.watch.filter((w) => w.key === 'deep-fried' || !FLAG_KEYS.includes(w.key));
   const openWatch = others.find((w) => w.key === watchOpen);
@@ -780,37 +777,9 @@ function Details({
         </ThemedText>
       ) : null}
 
-      {hasWorking ? (
-        <>
-          <UiButton
-            variant="text"
-            compact
-            icon={working ? 'chevron-up' : 'chevron-down'}
-            label={working ? 'Hide how we worked this out' : 'How we worked this out'}
-            onPress={() => setWorking(!working)}
-          />
-          {working ? (
-            <View style={styles.section}>
-              {food.ingredients?.length && workingUnit ? (
-                <ThemedText type="small" themeColor="textSecondary">
-                  The ingredients are for 1 {workingUnit.label}
-                  {workingUnit.key === 'g' ? '' : ` (${Math.round(workingUnit.grams)} g)`}.
-                </ThemedText>
-              ) : null}
-              {food.notes?.map((line, index) => (
-                <ThemedText key={`note-${index}`} type="small" themeColor="textSecondary">
-                  {line}
-                </ThemedText>
-              ))}
-              <ThemedText type="small" themeColor="textSecondary">
-                Nutrients are added up from each ingredient, not guessed. They are estimates.
-              </ThemedText>
-            </View>
-          ) : null}
-        </>
-      ) : null}
+      {/* How the numbers are worked out stays ours (owner, 15 Nov 2026): only this line is shown. */}
       <ThemedText type="small" themeColor="textSecondary">
-        {food.source}
+        Values are estimates.
       </ThemedText>
     </View>
   );

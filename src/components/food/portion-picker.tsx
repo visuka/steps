@@ -8,7 +8,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Button as UiButton } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { gramsFor, isSavedFoodId, nutrientsFor, type PortionOverrides, unitsFor } from '@/nutrition/catalog';
+import { gramsFor, nutrientsFor, type PortionOverrides, unitsFor } from '@/nutrition/catalog';
 import { formatNutrient, NUTRIENT } from '@/nutrition/nutrients';
 import { AT_LEAST } from '@/nutrition/state';
 import type { FoodItem, Nutrients } from '@/nutrition/types';
@@ -58,7 +58,6 @@ export function PortionPicker({
   const [editing, setEditing] = useState(false);
   const [grams, setGrams] = useState<number | null>(null);
   const [allNutrients, setAllNutrients] = useState(false);
-  const [working, setWorking] = useState(Boolean(showWorking));
   const [watchOpen, setWatchOpen] = useState<WatchOut['key'] | null>(null);
 
   const current = units.find((u) => u.key === unit) ?? units[0];
@@ -68,7 +67,6 @@ export function PortionPicker({
   const own = food.category === 'own';
   const watch = watchOuts(food, gramsFor(food, unit, quantity, overrides));
   const gi = glycemicIndex(food);
-  const hasWorking = isSavedFoodId(food.id) || Boolean(food.ingredients?.length || food.notes?.length);
   const missing = food.missing ?? [];
   /** "≥ " before a figure only partly known. */
   const least = (k: (typeof missing)[number]) => (missing.includes(k) ? AT_LEAST : '');
@@ -92,7 +90,6 @@ export function PortionPicker({
   };
 
   // Ingredients are given for the food's first unit (a recipe's one serving).
-  const workingUnit = food.units[0];
 
   return (
     <View style={styles.wrap}>
@@ -215,42 +212,6 @@ export function PortionPicker({
         </View>
       ) : null}
 
-      {hasWorking ? (
-        <>
-          <UiButton
-            variant="text"
-            compact
-            icon={working ? 'chevron-up' : 'chevron-down'}
-            label={working ? 'Hide how we worked this out' : 'How we worked this out'}
-            onPress={() => setWorking(!working)}
-          />
-          {working ? (
-            <View style={styles.section}>
-              {food.ingredients?.length ? (
-                <>
-                  <ThemedText type="small">
-                    In 1 {workingUnit.label}
-                    {workingUnit.key === 'g' ? '' : ` (${Math.round(workingUnit.grams)} g)`}:
-                  </ThemedText>
-                  {food.ingredients.map((i, index) => (
-                    <ThemedText key={`${i.name}-${index}`} type="small" themeColor="textSecondary">
-                      · {i.name}: {i.grams < 10 && !Number.isInteger(i.grams) ? i.grams.toFixed(1) : Math.round(i.grams)} g
-                    </ThemedText>
-                  ))}
-                </>
-              ) : null}
-              {food.notes?.map((note, index) => (
-                <ThemedText key={`note-${index}`} type="small" themeColor="textSecondary">
-                  {note}
-                </ThemedText>
-              ))}
-              <ThemedText type="small" themeColor="textSecondary">
-                Nutrients are added up from each ingredient, not guessed. They are estimates.
-              </ThemedText>
-            </View>
-          ) : null}
-        </>
-      ) : null}
 
       {children}
 
@@ -262,8 +223,9 @@ export function PortionPicker({
           <Button label={actionLabel} onPress={() => onDone(unit, quantity, n)} disabled={busy} />
         </View>
       </View>
+      {/* How the numbers are worked out stays ours (owner, 15 Nov 2026): only this line is shown. */}
       <ThemedText type="small" themeColor="textSecondary">
-        {food.source}
+        Values are estimates.
       </ThemedText>
     </View>
   );

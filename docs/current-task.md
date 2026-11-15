@@ -358,8 +358,11 @@ The stopped "screens match mockups" run left 28 changed files and new folders (a
    - `yields`: this food's own yields per method (only its entries from `yields.json` `foods`).
    - `cooked`: per method, the approved USDA cooked record's per 100 g, when one exists (`cooked-records.json`).
    - `calc`: the cooking data version (`c1`). A profile with a version the app doesn't know is treated as having no profile.
-3. **Factor tables on the phone:** a generated file `src/nutrition/cooking/cooking-c1.json` made by a new stepsinfra script from `data/cooking/` (methods, retention-map, only the retention codes the map uses, class yields and limits, oil uptake, fat drip, default oils). Never edited by hand. Target size under 120 KB; if larger, stop and ask Opus.
-4. **One answer, two codes.** `cooking.py` writes a golden file (`tests/fixtures/cooking-golden.json`: the worked examples 8.1 and 8.2, plus one case per method, raw and cooked basis, deep fry with and without oil listed, an unknown method). Both the Python tests and jest run it: within 0.5 kcal and 1% per nutrient. The file is copied into the app repo by the same script.
+3. **Factor tables on the phone, never in the public repo (owner, 15 Nov 2026: how we work it out is ours).** The app repo is public, so the tables are **not** committed and **not** bundled in the APK.
+   - The app downloads them after sign-in from a new `GET /v1/food/cooking` (same sign-in and premium check), keeps them in the app's private storage (kv), and asks again only when the server's `calc` version changes.
+   - Without tables (first start offline), editing uses the T15 recipe look-up path.
+   - Made by a new stepsinfra script from `data/cooking/` (methods, retention-map, only the retention codes the map uses, class yields and limits, oil uptake, fat drip, default oils); target under 120 KB.
+4. **One answer, two codes.** `cooking.py` writes a golden file (the worked examples 8.1 and 8.2, plus one case per method, raw and cooked basis, deep fry with and without oil listed, an unknown method). Both the Python tests and jest run it: within 0.5 kcal and 1% per nutrient. In the app repo, jest uses a **small made-up table set** (`src/nutrition/cooking/__tests__/fake-tables.ts`, invented numbers) and golden cases made from it; the real tables and real golden file stay in stepsinfra, whose tests run the app's `cook.ts` against them through a script (`scripts/check_app_cooking.sh <app repo path>`).
 5. **Grams in "Edit recipe" are before cooking** ("as it went into the pan"); a cook knows those. The row shows `rawGrams`; the caption says "Amounts in 1 <unit>, before cooking". Dry dal, rice and dried fish are dry weight. Salt, spices, water and in-dish oil are as added.
 6. **Methods the person can pick** (the server words of `cooking-model.md` section 2, with plain labels):
 
@@ -394,7 +397,7 @@ The stopped "screens match mockups" run left 28 changed files and new folders (a
 - **Per row:** the method shows after the name as a small tappable text, `s13` accent ("boiled ▾"). Tapping opens the same sheet for that one row. A row with no method yet shows "how cooked? ▾".
 - **Oil soaked up** line: like an ingredient row, with the oil icon, name "Oil soaked up in frying", grams in `s15 muted`, no grams field, no remove button.
 - **Caption:** "Amounts in 1 <unit>, before cooking".
-- **Result screen (not editing):** each row reads "Potato · shallow fried", amounts as eaten as today; "How we worked this out" adds "150 g raw → 68 g cooked, +9 g oil".
+- **Result screen (not editing):** each row reads "Potato · shallow fried", amounts as eaten as today. **Never show how a number was worked out** (no yields, raw → cooked grams, oil soaked up in the result, retention or sources): the "How we worked this out" section was removed on 15 Nov 2026 and only "Values are estimates." is shown. In "Edit recipe" the oil line of decision 7 shows only its grams.
 - **Accessibility:** chips and method buttons have labels ("Cooking method for Potato: shallow fried. Change"), 48 × 48 touch areas, `maxFontSizeMultiplier` as elsewhere.
 - **Design preview:** `screen=food&edit=1` shows the chips and one deep-fried row with its oil line; captured as `clean-food-edit.png` as now.
 
@@ -403,7 +406,7 @@ The stopped "screens match mockups" run left 28 changed files and new folders (a
 - **T15c-0 — owner (gate).** ~~Confirm "locally" means on the phone~~ (confirmed 15 Nov 2026). Still open: accept or change the values in decision 13 (T15c-2 to -4 may start without it).
 - **T15c-1 — server (Sonnet). Deploy needs the owner's OK; goes out with T14.**
   - `steps/food`: add `profile` to each ingredient line of estimate and recipe answers; add `POST /v1/food/ingredients` (batch up to 30 names, cached by name and country like the recipe cache).
-  - New `scripts/export_app_cooking.py`: writes `cooking-c1.json` and `cooking-golden.json` into the app repo path given as an argument.
+  - `GET /v1/food/cooking` returns the tables for the phone (decision 3); `scripts/check_app_cooking.sh` runs the app's `cook.ts` on the real golden file. Nothing from `data/cooking/` is written into the app repo.
   - Tests: profile shape, unknown names, premium refused, the golden file matches `cooking.py`.
   - **Done when:** both test suites pass. Do not deploy.
 - **T15c-2 — the phone's cooking maths (Sonnet).**
