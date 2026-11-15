@@ -29,6 +29,11 @@
       android:name="expo.modules.stepcounter.WalkActivityReceiver"
       android:exported="false" />
 
+    <!-- Android's own activity changes (walking, running, bicycle, vehicle, still), recorded all day. -->
+    <receiver
+      android:name="expo.modules.stepcounter.ActivityTransitionReceiver"
+      android:exported="false" />
+
     <receiver
       android:name="expo.modules.stepcounter.BootReceiver"
       android:exported="false">

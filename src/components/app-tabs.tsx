@@ -1,26 +1,25 @@
-import { useRouter } from 'expo-router';
 import { type BottomTabBarProps, Tabs } from 'expo-router/js-tabs';
 import { useEffect, useState } from 'react';
 import { Keyboard, Platform } from 'react-native';
 
+import { ADD_KEY, ADD_LABEL } from '@/components/add-sheet-rows';
+import { AddSheet } from '@/components/add-sheet';
 import { useFoodResultCovering } from '@/components/food/food-result-cover';
 import { NavigationBar, type NavigationItem } from '@/components/ui/navigation-bar';
 import { useReducedMotion } from '@/components/ui/motion';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
-/** Where the Log food button goes: Food, with a new `add` value so the keyboard opens on the search. */
-export const LOG_FOOD_KEY = 'log-food';
-
 /**
- * The bar, in order (icons as the mockup's nav): Today, Food, the Log food
- * button in the middle, Activity, You. Journal has no slot; it stays a hidden
- * route (see HIDDEN_ROUTES) and opens from the You tab.
+ * The bar, in order (icons as the mockup's nav): Today, Food, the Add button
+ * in the middle (opens the Add sheet: Sleep, Mood, Weight, Blood pressure,
+ * Water, Start walk), Activity, You. Journal has no slot; it stays a hidden
+ * route (see HIDDEN_ROUTES), opened from the Add sheet and from the You tab.
  */
 export const TABS: NavigationItem[] = [
   { key: 'index', label: 'Today', specIcon: 'today' },
   { key: 'food', label: 'Food', specIcon: 'bowl' },
-  { key: LOG_FOOD_KEY, label: 'Log food', specIcon: 'plus', fab: true },
+  { key: ADD_KEY, label: ADD_LABEL, specIcon: 'plus', fab: true },
   { key: 'activity', label: 'Activity', specIcon: 'pulse' },
   { key: 'you', label: 'You', specIcon: 'person' },
 ];
@@ -28,7 +27,7 @@ export const TABS: NavigationItem[] = [
 /** Routes of the tabs navigator that have no slot in the bar but can still be opened. */
 export const HIDDEN_ROUTES = ['journal'] as const;
 
-/** Tabs that are real routes (the Log food button is an action, not a route). */
+/** Tabs that are real routes (the Add button is an action, not a route). */
 const ROUTE_TABS = TABS.filter((t) => !t.fab);
 
 /** On Android the bar steps aside while the keyboard is up, so a search keeps its room. */
@@ -49,15 +48,14 @@ function useKeyboardUp(): boolean {
 function TabBar({ state, emitter, navigateToTab, insets }: BottomTabBarProps) {
   const keyboardUp = useKeyboardUp();
   const resultUp = useFoodResultCovering();
-  const router = useRouter();
+  const [addOpen, setAddOpen] = useState(false);
   const focused = state.routes[state.index];
   // A food result has no bottom bar (spec 7), and the keyboard takes the room of one.
   if (keyboardUp || resultUp) return null;
 
   const press = (name: string) => {
-    if (name === LOG_FOOD_KEY) {
-      // The same target Today's Log food used: Food with a fresh `add`, which opens the keyboard on the search.
-      router.navigate({ pathname: '/food', params: { add: String(Date.now()) } });
+    if (name === ADD_KEY) {
+      setAddOpen(true);
       return;
     }
     const route = state.routes.find((r) => r.name === name);
@@ -68,18 +66,21 @@ function TabBar({ state, emitter, navigateToTab, insets }: BottomTabBarProps) {
   };
 
   return (
-    <NavigationBar
-      items={TABS}
-      activeKey={ROUTE_TABS.some((t) => t.key === focused.name) ? focused.name : null}
-      onSelect={press}
-      onReselect={press}
-      bottomInset={insets.bottom}
-    />
+    <>
+      <NavigationBar
+        items={TABS}
+        activeKey={ROUTE_TABS.some((t) => t.key === focused.name) ? focused.name : null}
+        onSelect={press}
+        onReselect={press}
+        bottomInset={insets.bottom}
+      />
+      <AddSheet visible={addOpen} onClose={() => setAddOpen(false)} />
+    </>
   );
 }
 
 /**
- * The Clean+ navigation bar: Today, Food, Log food, Activity and You, icons only.
+ * The Clean+ navigation bar: Today, Food, Add, Activity and You, icons only.
  * Journal is a hidden route (href null) reached from the You tab.
  * Tabs move with a short shift (Material's shared axis), or cut with reduce motion.
  * System Back from any tab returns to Today, then leaves the app.

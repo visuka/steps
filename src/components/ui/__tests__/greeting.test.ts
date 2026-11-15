@@ -10,6 +10,9 @@ describe('greeting style', () => {
     expect(GREETING_STYLE.avatar).toBe(40);
     expect(GREETING_STYLE.avatarRadius).toBe(20);
     expect(GREETING_STYLE.initialWeight).toBe('500');
+    expect(GREETING_STYLE.dateHeight).toBe(18);
+    expect(GREETING_STYLE.dateGap).toBe(8);
+    expect(GREETING_STYLE.weatherOverhang).toBe(1);
   });
 
   it('lifts the avatar to a 48 dp target', () => {

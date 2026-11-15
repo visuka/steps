@@ -162,7 +162,7 @@ function AccountEmail() {
       <EmailConfirm
         initialEmail={info?.email ?? ''}
         send={(address) => auth.sendEmailCode(address, 'later')}
-        check={(_address, code) => auth.confirmEmail(code)}
+        check={auth.confirmFirstEmail}
         onDone={(address) => {
           setInfo({ email: address, emailVerified: true });
           setConfirming(false);

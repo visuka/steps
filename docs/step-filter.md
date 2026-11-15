@@ -12,7 +12,7 @@ Each minute with steps gets these figures (in the app's own background counter s
 2. **Rhythm:** how regular the steps are (walking and running: steady, about 90–180 a minute).
 3. **Forward push and braking:** the accelerometer, split into up-down and forward using gravity, smoothed over about 2 s so footstep jolts cancel; the strongest forward speed-up and the hardest slow-down in the minute (m/s²).
 4. **Speed gained in the biggest burst:** the smoothed forward acceleration added up over 5–10 s (short, so sensor drift stays small).
-5. **Engine buzz:** shaking energy well above step rhythm.
+5. **Engine buzz:** shaking energy well above step rhythm. The phone is read at about 25 Hz, so only 6 to 12.5 Hz can be seen; faster vibration (a 30 Hz engine, say) folds down to a low frequency and shows as no buzz. Buzz is a hint (rough road, engine at some speeds), never proof; T18b sets the real range from the owner's numbers, and a faster sample period for the buzz part is the option if 25 Hz proves too slow.
 6. **Android's activity signal** (Activity Recognition transitions, all day): walking, running, still, on bicycle, in vehicle.
 7. **GPS speed and stride** (only during recorded walks and rides): stride = metres a minute ÷ steps a minute; a person's stride is under about 2 m.
 

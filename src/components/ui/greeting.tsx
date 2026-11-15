@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -16,10 +17,12 @@ export interface GreetingProps {
   onAvatarPress?: () => void;
   /** The words before the name ("Good morning"); the caller picks them for the time of day. */
   greeting?: string;
+  /** Drawn beside the date, gap 8 (Today's weather); the caller labels it for TalkBack. */
+  beside?: ReactNode;
 }
 
 /** Date over "Good morning, Ravi" on the left, the avatar on the right. */
-export function Greeting({ date, name, initial, onAvatarPress, greeting = 'Hello' }: GreetingProps) {
+export function Greeting({ date, name, initial, onAvatarPress, greeting = 'Hello', beside }: GreetingProps) {
   const theme = useTheme();
   const letter = initial ?? initialOf(name);
   const avatar = (
@@ -35,9 +38,12 @@ export function Greeting({ date, name, initial, onAvatarPress, greeting = 'Hello
   return (
     <View style={styles.row}>
       <View style={styles.texts}>
-        <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
-          {date}
-        </ThemedText>
+        <View style={styles.dateRow}>
+          <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
+            {date}
+          </ThemedText>
+          {beside}
+        </View>
         <ThemedText type="titleLarge" accessibilityRole="header" maxFontSizeMultiplier={1.3}>
           {greetingTitle(greeting, name)}
         </ThemedText>
@@ -68,6 +74,7 @@ const styles = StyleSheet.create({
   },
   // The title wraps when long, so the text block takes the free width.
   texts: { flex: 1 },
+  dateRow: { minHeight: GREETING_STYLE.dateHeight, flexDirection: 'row', alignItems: 'center', columnGap: GREETING_STYLE.dateGap },
   avatar: {
     width: GREETING_STYLE.avatar,
     height: GREETING_STYLE.avatar,

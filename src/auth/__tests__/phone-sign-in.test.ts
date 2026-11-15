@@ -5,6 +5,7 @@ import { AuthApiError, type DeviceTokens, type FetchLike, type Tokens } from '@/
 import type { LockSupport, UnlockResult } from '@/auth/device-lock';
 import {
   confirmEmailCode,
+  confirmFirstEmailCode,
   createPhoneAccount,
   finishRecovery,
   forgetRestoreKey,
@@ -551,6 +552,60 @@ describe('email codes', () => {
       api: { emailFinish: jest.fn(async () => ({ email: 'asha@example.in', verified: false })) },
     });
     expect(await confirmEmailCode(deps, '123456')).toEqual({ kind: 'error', message: MESSAGES.unknown });
+  });
+});
+
+describe('first email on a reinstalled phone', () => {
+  it('signs in to the old account when the email code is a sign-in code', async () => {
+    const { deps, api, start, entries, order } = fakes({ api: { emailFinish: fail('bad_code', 400, 'bad_code') } });
+    expect(await confirmFirstEmailCode(deps, ' Asha@Example.in', '654321')).toEqual({
+      kind: 'signed-in',
+      restoreKeyKept: true,
+    });
+    expect(api.recoverFinish).toHaveBeenCalledWith('asha@example.in', '654321');
+    expect(entries.get(RESTORE_KEY_ENTRY)).toBe(NEW_KEY);
+    expect(start).toHaveBeenCalledWith(TOKENS);
+    expect(order).toEqual(['recoverFinish', 'blockStore.store', 'start']);
+  });
+
+  it('confirms the email as before when its own code is right', async () => {
+    const { deps, api, start } = fakes();
+    expect(await confirmFirstEmailCode(deps, 'asha@example.in', '123456')).toEqual({
+      kind: 'confirmed',
+      email: 'asha@example.in',
+    });
+    expect(api.recoverFinish).not.toHaveBeenCalled();
+    expect(start).not.toHaveBeenCalled();
+  });
+
+  it('says the code is wrong when both checks fail', async () => {
+    const { deps, api, start, blockStore } = fakes({
+      api: { emailFinish: fail('bad_code', 400, 'bad_code'), recoverFinish: fail('bad_code', 400, 'bad_code') },
+    });
+    expect(await confirmFirstEmailCode(deps, 'asha@example.in', '000000')).toEqual({
+      kind: 'error',
+      message: PHONE_MESSAGES.badCode,
+    });
+    expect(api.recoverFinish).toHaveBeenCalledTimes(1);
+    expect(blockStore.store).not.toHaveBeenCalled();
+    expect(start).not.toHaveBeenCalled();
+  });
+
+  it('says what went wrong when the sign-in fails for another reason than a wrong code', async () => {
+    const { deps } = fakes({ api: { emailFinish: fail('bad_code', 400, 'bad_code'), recoverFinish: fail('offline') } });
+    expect(await confirmFirstEmailCode(deps, 'asha@example.in', '123456')).toEqual({
+      kind: 'error',
+      message: MESSAGES.offline,
+    });
+  });
+
+  it("doesn't try a sign-in when the first check fails for another reason", async () => {
+    const { deps, api } = fakes({ api: { emailFinish: fail('offline') } });
+    expect(await confirmFirstEmailCode(deps, 'asha@example.in', '123456')).toEqual({
+      kind: 'error',
+      message: MESSAGES.offline,
+    });
+    expect(api.recoverFinish).not.toHaveBeenCalled();
   });
 });
 

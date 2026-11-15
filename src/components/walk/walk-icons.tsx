@@ -7,6 +7,8 @@
 
 import Svg, { Circle, Path } from 'react-native-svg';
 
+import { SpecIcon } from '@/components/ui';
+import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
 import type { WeatherCondition } from '@/data/types';
 
 /** A path, or a circle [cx, cy, r]. */
@@ -55,3 +57,9 @@ export const WEATHER_GLYPH: Record<Exclude<WeatherCondition, 'clear'>, readonly 
   storm: [HIGH_CLOUD, 'M12 16l-2 4h4l-2 4'],
   snow: [HIGH_CLOUD, 'M8 19h.01M12 21h.01M16 19h.01'],
 };
+
+/** The weather icon, 20 dp: the sun is the spec's own icon; the other conditions reuse its stroke. */
+export function WeatherIcon({ condition, color }: { condition: WeatherCondition; color: string }) {
+  if (condition === 'clear') return <SpecIcon name="sun" color={color} />;
+  return <Glyph parts={WEATHER_GLYPH[condition]} size={CLEAN_SPEC.icon.size} color={color} stroke={CLEAN_SPEC.icon.strokeWidth} />;
+}

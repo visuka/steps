@@ -7,6 +7,7 @@ import type { SleepEntry, Walk } from '@/data/types';
 import { addDaysToKey, dayKey, formatDayLong } from '@/lib/dates';
 import { useApp } from '@/state/app-state';
 
+import { useTodayWeather } from './use-today-weather';
 import { avatarInitial, sleepOf, sleepSpoken, walkOf, walkSpoken, weekOf } from './model';
 
 const NO_HOURS: number[] = new Array<number>(24).fill(0);
@@ -39,6 +40,7 @@ export function useTodayExtras(reload: number) {
     };
   }, [repo, today, dataVersion, reload]);
 
+  const weather = useTodayWeather(reload);
   const week = weekOf(days, today, displaySteps);
   const sleepFigure = sleepOf(sleep);
   const walkFigure = walkOf(walks, today, profile.units);
@@ -46,6 +48,7 @@ export function useTodayExtras(reload: number) {
   const name = cleanName(profile.name);
   return {
     dateLabel: formatDayLong(today),
+    weather,
     name,
     initial: avatarInitial(name),
     distanceUnit: profile.units === 'metric' ? 'km' : 'mi',

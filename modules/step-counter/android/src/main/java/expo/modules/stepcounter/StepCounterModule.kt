@@ -40,6 +40,15 @@ class StepCounterModule : Module() {
       StepStore.get(context).untimed(startMs.toLong(), endMs.toLong())
     }
 
+    // T18a: the figures a short accelerometer burst gave for each minute, and Android's activity changes.
+    AsyncFunction("getMinuteFeatures") { startMs: Double, endMs: Double ->
+      runCatching { StepStore.get(context).minuteFeatures(startMs.toLong(), endMs.toLong()) }.getOrDefault(emptyList())
+    }
+
+    AsyncFunction("getActivityTransitions") { startMs: Double, endMs: Double ->
+      runCatching { StepStore.get(context).activityTransitions(startMs.toLong(), endMs.toLong()) }.getOrDefault(emptyList())
+    }
+
     AsyncFunction("getLog") { limit: Int -> StepStore.get(context).logEntries(limit) }
 
     AsyncFunction("clear") { StepStore.get(context).clear() }

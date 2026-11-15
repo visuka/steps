@@ -242,6 +242,34 @@ export function partFacts(part: Pick<WalkPart, 'startT' | 'endT' | 'distanceM' |
   return bits.join(' · ');
 }
 
+export interface PartMotion {
+  /** Average GPS speed, m/s. */
+  speedMs: number;
+  stepsPerMin: number;
+  /** Metres a step. */
+  strideM: number;
+}
+
+/**
+ * How a part moved, from its GPS distance and its steps: average speed, pace
+ * (steps a minute) and stride. Null unless it has steps, distance and time.
+ */
+export function partMotion(part: Pick<WalkPart, 'startT' | 'endT' | 'distanceM' | 'movingS' | 'steps'>): PartMotion | null {
+  const seconds = part.movingS || (part.endT - part.startT) / 1000;
+  if (part.steps == null || part.steps <= 0 || !(part.distanceM > 0) || !(seconds > 0)) return null;
+  return { speedMs: part.distanceM / seconds, stepsPerMin: part.steps / (seconds / 60), strideM: part.distanceM / part.steps };
+}
+
+const FEET_PER_METRE = 3.28084;
+
+/** "4.8 km/h · 112 steps/min · stride 0.74 m" (feet in imperial); null when there is nothing to say. */
+export function partMotionText(part: Pick<WalkPart, 'startT' | 'endT' | 'distanceM' | 'movingS' | 'steps'>, units: Units): string | null {
+  const m = partMotion(part);
+  if (!m) return null;
+  const stride = units === 'metric' ? `${m.strideM.toFixed(2)} m` : `${(m.strideM * FEET_PER_METRE).toFixed(1)} ft`;
+  return `${formatSpeed(m.speedMs, units)} · ${Math.round(m.stepsPerMin)} steps/min · stride ${stride}`;
+}
+
 /** The button for an answer. */
 export function answerLabel(choice: PartChoice, activity: WalkActivity = 'walk'): string {
   if (choice === 'remove') return 'Remove';

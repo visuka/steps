@@ -24,7 +24,7 @@ const PARTS: { value: Part; label: string }[] = [
   { value: 'mood', label: 'Mood' },
 ];
 
-/** Links name a part ("bp", "sleep"); "body" is the old name for the first of its parts. Food has its own tab. */
+/** Links name a part ("bp", "sleep") and may carry `n`, a fresh value that re-selects the part (the Add sheet); "body" is the old name for the first of its parts. Food has its own tab. */
 function target(param: unknown): Part | 'food' | null {
   if (param === 'food') return 'food';
   if (param === 'body') return 'bp';
@@ -33,13 +33,14 @@ function target(param: unknown): Part | 'food' | null {
 
 export default function JournalScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ section?: string }>();
+  const params = useLocalSearchParams<{ section?: string; n?: string }>();
   const first = target(params.section);
   const [part, setPart] = useState<Part>(first && first !== 'food' ? first : 'sleep');
-  const [lastParam, setLastParam] = useState(params.section);
-  // Links (Insights, notifications) switch the part even when the tab is already mounted.
-  if (params.section !== lastParam) {
-    setLastParam(params.section);
+  const linkKey = `${params.section ?? ''}|${params.n ?? ''}`;
+  const [lastParam, setLastParam] = useState(linkKey);
+  // Links (Insights, notifications, the Add sheet) switch the part even when the tab is already mounted.
+  if (linkKey !== lastParam) {
+    setLastParam(linkKey);
     const t = target(params.section);
     if (t && t !== 'food') setPart(t);
   }

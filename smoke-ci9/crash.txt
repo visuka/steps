@@ -1,0 +1,15 @@
+275:11-14 20:10:20.366  2935  2935 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+280:11-14 20:10:20.382  2935  2935 I AndroidRuntime: Using default boot image
+281:11-14 20:10:20.385  2935  2935 I AndroidRuntime: Leaving lock profiling enabled
+468:11-14 20:10:20.723  2935  2935 D AndroidRuntime: Calling main entry com.android.commands.monkey.Monkey
+795:11-14 20:10:21.572  2935  2935 I AndroidRuntime: VM exiting with result code 0.
+1061:11-14 20:10:22.339  3016  3016 W SoLoader: Initializing SoLoader: 0
+1062:11-14 20:10:22.339  3016  3016 W SoLoader: Recording new base apk path: /data/app/~~U1fglH8nNo7TE2WzlDNf0g==/com.neutcrafts.steps-t1bM9FDRCP5k6Cw_VygW5w==/base.apk
+1063:11-14 20:10:22.339  3016  3016 W SoLoader: Previously recorded 0 base apk paths.
+1066:11-14 20:10:22.356  3016  3016 I SoLoader: Preparing SO source: DirectorySoSource[root = /vendor/lib64 flags = 2]
+1067:11-14 20:10:22.357  3016  3016 I SoLoader: Preparing SO source: DirectorySoSource[root = /system/lib64 flags = 2]
+1068:11-14 20:10:22.357  3016  3016 I SoLoader: Preparing SO source: DirectApkSoSource[root = [/data/app/~~U1fglH8nNo7TE2WzlDNf0g==/com.neutcrafts.steps-t1bM9FDRCP5k6Cw_VygW5w==/base.apk!/lib/x86_64]]
+1070:11-14 20:10:22.373  3016  3016 I SoLoader: Preparing SO source: ApplicationSoSource[DirectorySoSource[root = /data/app/~~U1fglH8nNo7TE2WzlDNf0g==/com.neutcrafts.steps-t1bM9FDRCP5k6Cw_VygW5w==/lib/x86_64 flags = 0]]
+1071:11-14 20:10:22.378  3016  3016 I SoLoader: init finish: 4 SO sources prepared
+1072:11-14 20:10:22.378  3016  3016 W SoLoader: SoLoader initialized: 8
+2108:11-14 20:10:24.455  3016  3105 I ReactNativeJS: Running "main"

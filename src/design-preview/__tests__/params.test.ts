@@ -22,6 +22,7 @@ describe('parsePreviewParams', () => {
 
   it('takes the detail screen with steps by default, and any of the five kinds', () => {
     expect(PREVIEW_SCREENS).toContain('detail');
+    expect(PREVIEW_SCREENS).toContain('add');
     expect(parsePreviewParams({ theme: 'clean', screen: 'detail' })).toEqual({ theme: 'clean', screen: 'detail', kind: 'steps' });
     for (const kind of ['steps', 'active', 'food', 'water', 'sleep']) {
       expect(parsePreviewParams({ theme: 'clean', screen: 'detail', kind })).toEqual({ theme: 'clean', screen: 'detail', kind });

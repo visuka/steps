@@ -24,7 +24,7 @@ import { valueWithUnit } from '@/components/ui/stat-tile-style';
 import { pressedColor } from '@/components/ui/surface-style';
 import { ActiveTheme, MaxContentWidth } from '@/constants/theme';
 import { mapColorsOf } from '@/constants/themes/build';
-import type { PartChoice, Walk, WalkPart, WeatherCondition } from '@/data/types';
+import type { PartChoice, Walk, WalkPart } from '@/data/types';
 import { useClockStyle } from '@/hooks/use-clock-style';
 import { useTheme } from '@/hooks/use-theme';
 import { dayKey, formatDayLong } from '@/lib/dates';
@@ -32,9 +32,18 @@ import type { Units } from '@/lib/format';
 import type { WalkPoint } from '@/lib/walk';
 import { formatClock } from '@/lib/when';
 import { partAnswers, walkTitle } from '@/walks/labels';
-import { answerLabel, DISTANCE_WHY, distanceSourceText, partFacts, partStatus, PARTS_WHY, routeLines } from '@/walks/view';
+import {
+  answerLabel,
+  DISTANCE_WHY,
+  distanceSourceText,
+  partFacts,
+  partMotionText,
+  partStatus,
+  PARTS_WHY,
+  routeLines,
+} from '@/walks/view';
 
-import { CYCLE, Glyph, WEATHER_GLYPH } from './walk-icons';
+import { CYCLE, Glyph, WeatherIcon } from './walk-icons';
 import {
   activityName,
   NO_WEATHER,
@@ -256,12 +265,6 @@ function ActivitySegments({ activity }: { activity: Walk['activity'] }) {
   );
 }
 
-/** The sun is the spec's own icon; the other conditions reuse its stroke. */
-function WeatherIcon({ condition, color }: { condition: WeatherCondition; color: string }) {
-  if (condition === 'clear') return <SpecIcon name="sun" color={color} />;
-  return <Glyph parts={WEATHER_GLYPH[condition]} size={WALK_STYLE.backIconSize} color={color} stroke={1.5} />;
-}
-
 /** The map card (spec 5.11): white, 24 round, card shadow, 160 high; or its frame saying why there is no route. */
 function MapCard({ walk, lines, label }: { walk: Walk; lines: ReturnType<typeof routeLines>; label: string }) {
   const theme = useTheme();
@@ -450,6 +453,11 @@ function PartSheet({
           <ThemedText type="bodyMedium" themeColor="onSurfaceVariant" {...SCALE}>
             {partFacts(part, units)}
           </ThemedText>
+          {partMotionText(part, units) ? (
+            <ThemedText type="bodyMedium" themeColor="onSurfaceVariant" {...SCALE}>
+              {partMotionText(part, units)}
+            </ThemedText>
+          ) : null}
           <ThemedText type="labelLarge" {...SCALE}>
             {partStatus(part, activity)}
           </ThemedText>

@@ -6,9 +6,11 @@ import { lockSupport, unlockWithDevice } from '@/auth/device-lock';
 import {
   type ConfirmResult,
   confirmEmailCode,
+  confirmFirstEmailCode,
   createPhoneAccount,
   type CreateResult,
   type EmailSendResult,
+  type FirstConfirmResult,
   finishRecovery,
   forgetRestoreKey,
   PHONE_MESSAGES,
@@ -64,6 +66,8 @@ interface AuthContextValue {
   createPhoneAccount(adult: boolean, email: string): Promise<CreateResult>;
   sendEmailCode(email: string, when: 'first' | 'later'): Promise<EmailSendResult>;
   confirmEmail(code: string): Promise<ConfirmResult>;
+  /** `confirmEmail` for a new account's first email; may sign in to the account that has the email instead. */
+  confirmFirstEmail(email: string, code: string): Promise<FirstConfirmResult>;
   startRecovery(email: string): Promise<RecoverStartResult>;
   finishRecovery(email: string, code: string): Promise<RecoverFinishResult>;
   /**
@@ -217,6 +221,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return result;
   }, []);
 
+  const confirmFirst = useCallback(async (email: string, code: string) => {
+    const result = await confirmFirstEmailCode(phoneDeps, email, code);
+    if (result.kind === 'signed-in') {
+      setNotice(null);
+      noteRestoreKey(result.restoreKeyKept);
+    }
+    return result;
+  }, []);
+
   const value: AuthContextValue = {
     status,
     userId,
@@ -232,6 +245,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     createPhoneAccount: makePhoneAccount,
     sendEmailCode: (email, when) => sendEmailCode(phoneDeps, email, when),
     confirmEmail: (code) => confirmEmailCode(phoneDeps, code),
+    confirmFirstEmail: confirmFirst,
     startRecovery: (email) => startRecovery(phoneDeps, email),
     finishRecovery: recover,
     confirmingEmail,
@@ -258,6 +272,7 @@ const PREVIEW_AUTH: AuthContextValue = {
   createPhoneAccount: noAccount,
   sendEmailCode: noAccount,
   confirmEmail: noAccount,
+  confirmFirstEmail: noAccount,
   startRecovery: noAccount,
   finishRecovery: noAccount,
   confirmingEmail: null,

@@ -5,7 +5,7 @@
  * premium card). Every look shares this one Today.
  *
  * Contract with `src/app/(tabs)/index.tsx`, every field read by today-clean.tsx:
- *  - dateLabel, steps, goal, pct, stepsSpoken (the hero's whole spoken summary,
+ *  - dateLabel, weather (beside the date, null = none), steps, goal, pct, stepsSpoken (the hero's whole spoken summary,
  *    distance and active minutes included), distance, activeMin, details
  *  - name (string | null: the greeting's name; Profile has no name field yet, so null)
  *  - initial (avatar letter, "" without a name)
@@ -28,10 +28,13 @@ import type { ReactNode } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 
 import type { Measure, SleepFigure, WalkFigure, WeekDay } from './model';
+import type { TodayWeather } from './weather-line';
 
 export interface TodayView {
   /** "Sat, 14 Nov". */
   dateLabel: string;
+  /** The weather beside the date; null = nothing drawn (none saved for today). */
+  weather: TodayWeather | null;
   /** The greeting's name; null = "Good morning" alone. */
   name: string | null;
   /** The avatar letter ("" without a name). */

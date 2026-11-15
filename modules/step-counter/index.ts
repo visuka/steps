@@ -70,6 +70,35 @@ export interface NativeWalkMode {
   changes: { t: number; indoor: boolean }[];
 }
 
+/**
+ * What a short accelerometer burst gave for one minute (T18a, recorded only).
+ * The maths is in src/health/movement-features.ts.
+ */
+export interface MinuteFeature {
+  /** Epoch ms of the minute's start. */
+  start: number;
+  /** How long the burst was (ms). */
+  burstMs: number;
+  /** How regular the footsteps were, 0 to 1. */
+  rhythm: number;
+  /** Strongest forward speed-up (m/s^2). */
+  push: number;
+  /** Hardest slow-down (m/s^2). */
+  brake: number;
+  /** Largest speed change over 5 to 10 s (m/s). */
+  speedGained: number;
+  /** Share of the shaking at engine-like frequencies, 0 to 1. */
+  buzz: number;
+}
+
+/** One change Android reported: an activity started (enter) or stopped. */
+export interface ActivityTransition {
+  t: number;
+  /** walking, running, bicycle, vehicle or still. */
+  activity: string;
+  enter: boolean;
+}
+
 interface StepCounterNative {
   isSupported(): boolean;
   isRunning(): boolean;
@@ -79,6 +108,10 @@ interface StepCounterNative {
   getBuckets(startMs: number, endMs: number): Promise<MinuteBucket[]>;
   /** The app's own counter: untimed stretches overlapping [startMs, endMs). */
   getUntimed(startMs: number, endMs: number): Promise<UntimedSteps[]>;
+  /** Minute figures from the accelerometer bursts, for the minutes that start in [startMs, endMs). Kept 10 days. */
+  getMinuteFeatures(startMs: number, endMs: number): Promise<MinuteFeature[]>;
+  /** Android's activity changes in [startMs, endMs], oldest first. Kept 10 days. */
+  getActivityTransitions(startMs: number, endMs: number): Promise<ActivityTransition[]>;
   /** What the counter and recorder did lately, newest first (for the Step check screen). */
   getLog(limit: number): Promise<CounterLogEntry[]>;
   clear(): Promise<void>;

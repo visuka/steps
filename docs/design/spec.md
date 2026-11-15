@@ -95,6 +95,7 @@ Icons: **20 × 20**, 24-unit viewBox, no fill, stroke = current colour, **stroke
 
 ### 5.1 Greeting row (Today)
 Row height **48**, space-between, top padding of the screen **24** (below the status bar). Left: date `s13 muted` ("Sat, 14 Nov") over title `s22 med` ("Good morning, Ravi"); date box 18, title box 30 (together 48). Right: avatar circle 40 × 40, vertically centred in the 48 row (x 326, y 28 on 390; right edge 366), `accentTint` fill, the user's initial ("R" in the mockup) centred, `s15 med` in accent.
+**Weather (added 15 Nov, from the Walk info row 5.11):** when today has saved weather, the date line is a row, gap 8: the date, then the sun or sky icon 20 (muted) + "24°C clear" `s13 muted`, gap 8. The date line stays 18 high (the icon hangs 1 over each side). Nothing is drawn without weather. Accessibility label "Weather: 24 degrees, clear". The preview sample shows "24°C clear".
 
 ### 5.2 Week strip
 Margin-top **16**. Seven columns, space-between, each **40 × 60**, radius 12, content centred, gap 8: day name `s13 muted` (Mon … Sun) over a **track 8 × 24**, radius 4, fill `accentMid`, with an inner fill from the bottom, radius 4, accent, height = share of that day's goal (the mockup: Mon 90 %, Tue 100 %, Wed 60 %, Thu 85 %, Fri 100 %, Sat 78 %, Sun none). Today (Sat): the column box fill `accentTint`, day name `s13 med` accent, track `selectedTrack`. Future/no-data day: empty track only.

@@ -95,7 +95,7 @@ export function PhoneAuthScreen() {
           sentTo={firstSend?.kind === 'sent' ? firstSend.email : null}
           initialError={firstSend?.kind === 'error' ? firstSend.message : null}
           send={(address) => auth.sendEmailCode(address, 'first')}
-          check={(_address, code) => auth.confirmEmail(code)}
+          check={auth.confirmFirstEmail}
           onDone={auth.doneWithFirstEmail}
           emailText="We'll send a 6-digit code. Your email gets your account back on a new phone.">
           <TextButton label="Confirm later in Settings" onPress={auth.doneWithFirstEmail} />

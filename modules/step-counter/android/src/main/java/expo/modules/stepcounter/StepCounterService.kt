@@ -49,6 +49,9 @@ class StepCounterService : Service(), SensorEventListener2 {
   private var shownSteps = -1L
   /** A recorder read can finish after the service stopped; it mustn't post a notification then. */
   @Volatile private var destroyed = false
+  /** T18a: short accelerometer bursts while steps are reported (null on a phone that can't). */
+  private var movement: MovementSampler? = null
+  private var lastBurstAt = 0L
 
   private val refreshNotification = Runnable { updateNotification() }
   /** Best effort (it doesn't run while the phone sleeps): narrows the stretch a later restart can't account for. */
@@ -80,6 +83,7 @@ class StepCounterService : Service(), SensorEventListener2 {
     super.onCreate()
     store = StepStore.get(this)
     sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+    movement = MovementSampler(this, store)
     createChannel()
     try {
       ServiceCompat.startForeground(
@@ -124,6 +128,8 @@ class StepCounterService : Service(), SensorEventListener2 {
     )
     scheduleMidnight()
     updateNotification()
+    // Android's activity changes, recorded all day (T18a); the receiver is separate from a walk's.
+    ActivityTransitions.register(this, store)
     isRunning = true
   }
 
@@ -133,11 +139,15 @@ class StepCounterService : Service(), SensorEventListener2 {
     destroyed = true
     if (isRunning) store.setState(StepStore.LAST_ALIVE_AT, System.currentTimeMillis())
     sensorManager.unregisterListener(this)
+    runCatching { movement?.stop() }
     handler.removeCallbacksAndMessages(null)
     runCatching { unregisterReceiver(clockChanged) }
     // Turned off in the app (not stopped by Android): steps taken while it's
     // off aren't the counter's, so the next start is a fresh baseline.
-    if (store.getState(StepStore.ENABLED, 0) == 0L) store.clearCounterState()
+    if (store.getState(StepStore.ENABLED, 0) == 0L) {
+      store.clearCounterState()
+      ActivityTransitions.unregister(this)
+    }
     if (isRunning) store.log("counter", "stopped")
     isRunning = false
     super.onDestroy()
@@ -164,8 +174,14 @@ class StepCounterService : Service(), SensorEventListener2 {
       aliveUntil = previousAliveAt,
       now = now,
     )
-    val result = StepAttribution.attribute(store.counterState(), reading)
+    val before = store.counterState()
+    val result = StepAttribution.attribute(before, reading)
     store.saveAttribution(result)
+    maybeSampleMovement(
+      steps = if (before != null && reading.reading > before.reading) reading.reading - before.reading else 0L,
+      stepsAt = eventAt,
+      now = now,
+    )
     result.untimed?.let {
       val f = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
       store.log("untimed", "${it.steps} steps between ${f.format(Date(it.fromMs))} and ${f.format(Date(it.toMs))} (${it.reason})")
@@ -177,6 +193,22 @@ class StepCounterService : Service(), SensorEventListener2 {
     handler.removeCallbacks(refreshNotification)
     if (SystemClock.elapsedRealtime() - lastNotifiedElapsed > 30_000) updateNotification()
     handler.postDelayed(refreshNotification, 30_000)
+  }
+
+  /** New steps just reported: read the accelerometer for a short burst, unless Android says the phone is still. */
+  private fun maybeSampleMovement(steps: Long, stepsAt: Long, now: Long) {
+    try {
+      val sampler = movement ?: return
+      // The cheap checks first: this runs for every step event, on the main thread.
+      if (!MovementSchedule.canSample(now, stepsAt, steps, lastBurstAt)) return
+      val last = store.lastActivityTransition()
+      val still = MovementSchedule.isStill(last?.first, last?.second ?: false, last?.third ?: 0L, now)
+      if (!MovementSchedule.shouldSample(now, stepsAt, steps, lastBurstAt, still)) return
+      if (sampler.start(now)) lastBurstAt = now
+    } catch (e: Exception) {
+      // The step count matters more than the figures.
+      runCatching { store.log("movement", "burst not started: ${e.javaClass.simpleName}") }
+    }
   }
 
   private fun bootCount(): Long =

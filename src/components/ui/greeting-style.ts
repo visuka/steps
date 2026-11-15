@@ -6,6 +6,11 @@ export const GREETING_STYLE = {
   /** A minimum: grows with large text. */
   minHeight: CLEAN_SPEC.sizes.greeting.height,
   avatar: CLEAN_SPEC.sizes.greeting.avatar,
+  /** The date line, and the gap to the weather beside it (spec 5.1). */
+  dateHeight: CLEAN_SPEC.sizes.greeting.dateHeight,
+  dateGap: CLEAN_SPEC.space.s8,
+  /** The weather icon is taller than the date line: it hangs over by half the difference each side. */
+  weatherOverhang: (CLEAN_SPEC.icon.size - CLEAN_SPEC.sizes.greeting.dateHeight) / 2,
   avatarRadius: CLEAN_SPEC.radius.circle,
   minTouch: CLEAN_SPEC.sizes.nav.minTouch,
   /** The initial: s15 at 500. */

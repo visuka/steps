@@ -112,7 +112,7 @@ export const CLEAN_SPEC = {
     phoneHeight: 844,
     nav: { height: 72, slot: 48, dot: 4, fab: 56, fabLift: 7.5, sidePadding: 16, minTouch: 48 },
     button: { height: 48, editWidth: 112 },
-    greeting: { height: 48, avatar: 40 },
+    greeting: { height: 48, avatar: 40, dateHeight: 18 },
     week: { dayWidth: 40, dayHeight: 60, trackWidth: 8, trackHeight: 24 },
     hero: { height: 226, padding: 24, chartHeight: 64, barWidth: 6, tallestBar: 60, quietBar: 3 },
     tile: { height: 146, padding: 16, gap: 16, pipHeight: 4, pipGap: 4, pips: 8 },

@@ -15,6 +15,8 @@ import {
   labelTone,
   legendKinds,
   partFacts,
+  partMotion,
+  partMotionText,
   partStatus,
   partTitle,
   pathLengthM,
@@ -217,5 +219,34 @@ describe('numbers on tiles', () => {
     expect(labelTone('walking')).toBe('steps');
     expect(labelTone('vehicle')).toBe('near');
     expect(labelTone('still')).toBe('outline');
+  });
+});
+
+describe('part motion', () => {
+  // 1.8 km in 20 min with 2,400 steps: 5.4 km/h, 120 steps a minute, 0.75 m a step.
+  const p = { startT: 0, endT: 1_200_000, distanceM: 1800, movingS: 1200, steps: 2400 };
+
+  it('gives speed, pace and stride', () => {
+    const m = partMotion(p);
+    expect(m?.speedMs).toBeCloseTo(1.5);
+    expect(m?.stepsPerMin).toBeCloseTo(120);
+    expect(m?.strideM).toBeCloseTo(0.75);
+  });
+
+  it('falls back to the clock time when moving time is unknown', () => {
+    expect(partMotion({ ...p, movingS: 0 })?.speedMs).toBeCloseTo(1.5);
+  });
+
+  it('says nothing without steps, distance or time', () => {
+    expect(partMotion({ ...p, steps: null })).toBeNull();
+    expect(partMotion({ ...p, steps: 0 })).toBeNull();
+    expect(partMotion({ ...p, distanceM: 0 })).toBeNull();
+    expect(partMotion({ ...p, movingS: 0, endT: 0 })).toBeNull();
+    expect(partMotionText({ ...p, steps: null }, 'metric')).toBeNull();
+  });
+
+  it('writes it in the units of the person', () => {
+    expect(partMotionText(p, 'metric')).toBe('5.4 km/h · 120 steps/min · stride 0.75 m');
+    expect(partMotionText(p, 'imperial')).toBe('3.4 mph · 120 steps/min · stride 2.5 ft');
   });
 });

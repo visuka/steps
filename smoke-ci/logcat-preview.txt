@@ -1,0 +1,1037 @@
+--------- beginning of main
+11-14 12:14:24.287   560  1510 W InputManager-JNI: Input channel object '57f4d3a com.neutcrafts.steps/com.neutcrafts.steps.MainActivity (client)' was disposed without first being removed with the input manager!
+11-14 12:14:24.287   560  1617 I ImeTracker: com.neutcrafts.steps:7f62607d: onRequestHide at ORIGIN_SERVER reason HIDE_REMOVE_CLIENT fromUser false
+11-14 12:14:24.288   560  1617 I ImeTracker: com.neutcrafts.steps:7f62607d: onCancelled at PHASE_SERVER_SHOULD_HIDE
+11-14 12:14:24.289   560   597 I libprocessgroup: Removed cgroup /sys/fs/cgroup/uid_10209/pid_4582
+11-14 12:14:24.290   362   362 I Zygote  : Process 4582 exited due to signal 9 (Killed)
+11-14 12:14:24.301  1162  1162 I TopTaskTracker: onTaskMovedToFront: (moved taskInfo to front) taskId=7, baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10000100 cmp=com.google.android.apps.nexuslauncher/.NexusLauncherActivity }
+11-14 12:14:24.301  1162  1162 D SsBaseTemplateCard: No text view can be set up
+11-14 12:14:24.301  1162  1162 D SsBaseTemplateCard: Passed-in item info is null
+11-14 12:14:24.301  1162  1162 D SsBaseTemplateCard: Passed-in item info is null
+11-14 12:14:24.301  1162  1162 D SsBaseTemplateCard: Passed-in item info is null
+11-14 12:14:24.301  1162  1162 I SsBaseTemplateCard: Secondary card pane is null
+--------- beginning of system
+11-14 12:14:24.309   907  1279 V WindowManagerShell: onTransitionReady(transaction=2405181686743)
+11-14 12:14:24.327   907   948 V WindowManagerShell: onTransitionReady (#38) android.os.BinderProxy@d75ac3a: {id=38 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@6f356f4} m=TO_FRONT f=SHOW_WALLPAPER|MOVE_TO_TOP leash=Surface(name=Task=1)/@0x36e9e48 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0 taskParent=-1},{WCT{android.window.IWindowContainerToken$Stub$Proxy@ed28e1d} m=CLOSE f=NONE leash=Surface(name=Task=13)/@0xe0384e1 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0 taskParent=-1},{null m=TO_FRONT f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{ca77790 token=android.os.Binder@c5b0253})/@0x1025206 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0}]}
+11-14 12:14:24.327   907   948 V WindowManagerShell: Playing animation for (#38) android.os.BinderProxy@d75ac3a@0
+11-14 12:14:24.327   907   948 V WindowManagerShell:  try handler com.android.wm.shell.transition.DefaultMixedHandler@c7d4f01
+11-14 12:14:24.327   907   948 V WindowManagerShell:  try handler com.android.wm.shell.keyguard.KeyguardTransitionHandler@b3321a6
+11-14 12:14:24.328   907   948 V WindowManagerShell:  try handler com.android.wm.shell.pip.PipTransition@56a17e7
+11-14 12:14:24.328   907   948 V WindowManagerShell:  try handler com.android.wm.shell.activityembedding.ActivityEmbeddingController@51ebf94
+11-14 12:14:24.328   907   948 V WindowManagerShell:  try handler com.android.wm.shell.recents.RecentsTransitionHandler@ceeda3d
+11-14 12:14:24.328   907   948 V ShellRecents: RecentsTransitionHandler.startAnimation: no controller found
+11-14 12:14:24.328   907   948 V WindowManagerShell:  try handler com.android.wm.shell.splitscreen.StageCoordinator@5fb232
+11-14 12:14:24.328   907   948 V WindowManagerShell:  try handler com.android.wm.shell.transition.RemoteTransitionHandler@5b64b83
+11-14 12:14:24.328   907   948 V WindowManagerShell: Transition doesn't have explicit remote, search filters for match for {id=38 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@6f356f4} m=TO_FRONT f=SHOW_WALLPAPER|MOVE_TO_TOP leash=Surface(name=Task=1)/@0x36e9e48 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0 taskParent=-1},{WCT{android.window.IWindowContainerToken$Stub$Proxy@ed28e1d} m=CLOSE f=NONE leash=Surface(name=Task=13)/@0xe0384e1 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0 taskParent=-1},{null m=TO_FRONT f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{ca77790 token=android.os.Binder@c5b0253})/@0x1025206 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0}]}
+11-14 12:14:24.328   907   948 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x0 checks=[{atype=undefined independent=true modes=[OPEN,TO_FRONT] flags=IN_TASK_WITH_EMBEDDED_ACTIVITY mustBeTask=false order=ANY topActivity=ComponentInfo{com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity} launchCookie=null},{atype=undefined independent=true modes=[CLOSE,TO_BACK] flags=IN_TASK_WITH_EMBEDDED_ACTIVITY mustBeTask=false order=ANY topActivity=null launchCookie=null}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@e618892, appThread = android.app.IApplicationThread$Stub$Proxy@a0fd263, debugName = OverlaySwipeBack }}
+11-14 12:14:24.328   907   948 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x0 checks=[{atype=dream independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=ANY topActivity=null launchCookie=null},{atype=home independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null launchCookie=null}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@668ee60, appThread = android.app.IApplicationThread$Stub$Proxy@18eef19, debugName = LauncherToDream }}
+11-14 12:14:24.328   907   948 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x100 checks=[{atype=home independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=TOP topActivity=ComponentInfo{com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity} launchCookie=null},{atype=standard independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null launchCookie=null}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@d0b9bde, appThread = android.app.IApplicationThread$Stub$Proxy@32331bf, debugName = QuickstepLaunchHome }}
+11-14 12:14:24.328   907   948 D RemoteTransitionHandler: Found filterPair{{types=[] flags=0x0] notFlags=0x100 checks=[{atype=home independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=TOP topActivity=ComponentInfo{com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity} launchCookie=null},{atype=standard independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null launchCookie=null}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@d0b9bde, appThread = android.app.IApplicationThread$Stub$Proxy@32331bf, debugName = QuickstepLaunchHome }}
+11-14 12:14:24.328   907   948 V WindowManagerShell:  Delegate animation for (#38) to RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@d0b9bde, appThread = android.app.IApplicationThread$Stub$Proxy@32331bf, debugName = QuickstepLaunchHome }
+11-14 12:14:24.330   560   583 V WindowManager: Sent Transition (#38) createdAt=11-14 12:14:24.243 via request=TransitionRequestInfo { type = CLOSE, triggerTask = TaskInfo{userId=0 taskId=13 displayId=0 isRunning=false baseIntent=Intent { act=android.intent.action.VIEW dat=neutcraftssteps://design-preview/... flg=0x10000000 pkg=com.neutcrafts.steps cmp=com.neutcrafts.steps/.MainActivity } baseActivity=null topActivity=null origActivity=null realActivity=ComponentInfo{com.neutcrafts.steps/com.neutcrafts.steps.MainActivity} numActivities=0 lastActiveTime=90778 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{2d539 Task{94e5b72 #13 type=standard A=10209:com.neutcrafts.steps}}} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=null launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=true isVisibleRequested=true isSleeping=false locusId=null displayAreaFeatureId=1 isTopActivityTransparent=false appCompatTaskInfo=AppCompatTaskInfo { topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= falseisLetterboxEducationEnabled= false isLetterboxDoubleTapEnabled= false topActivityEligibleForUserAspectRatioButton= false topActivityBoundsLetterboxed= false isFromLetterboxDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 isUserFullscreenOverrideEnabled=false isSystemFullscreenOverrideEnabled=false cameraCompatTaskInfo=CameraCompatTaskInfo { cameraCompatControlState=hidden freeformCameraCompatMode=inactive}}}, pipTask = null, remoteTransition = null, displayChange = null, flags = 0, debugId = 38 }
+11-14 12:14:24.330   560   583 V WindowManager:     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
+11-14 12:14:24.330   560   583 V WindowManager:     info={id=38 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[
+11-14 12:14:24.330   560   583 V WindowManager:         {WCT{RemoteToken{5aa5ca5 Task{3d62155 #1 type=home}}} m=TO_FRONT f=SHOW_WALLPAPER|MOVE_TO_TOP leash=Surface(name=Task=1)/@0x31173d3 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0 taskParent=-1},
+11-14 12:14:24.330   560   583 V WindowManager:         {WCT{RemoteToken{2d539 Task{94e5b72 #13 type=standard A=10209:com.neutcrafts.steps}}} m=CLOSE f=NONE leash=Surface(name=Task=13)/@0x4be8383 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0 taskParent=-1},
+11-14 12:14:24.330   560   583 V WindowManager:         {null m=TO_FRONT f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{ca77790 token=android.os.Binder@c5b0253})/@0x1ad934f sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0}
+11-14 12:14:24.330   560   583 V WindowManager:     ]}
+11-14 12:14:24.337  1564  1826 W A       : CompleteServer request has failed and can't show offline suggestions.
+11-14 12:14:24.337  1564  1826 W A       : java.util.NoSuchElementException: Expected at least one element
+11-14 12:14:24.337  1564  1826 W A       : 	at kotlinx.coroutines.b.cs.a(PG:104)
+11-14 12:14:24.337  1564  1826 W A       : 	at kotlinx.coroutines.b.ch.jd(PG:11)
+11-14 12:14:24.337  1564  1826 W A       : 	at n.c.b.a.a.q(PG:12)
+11-14 12:14:24.337  1564  1826 W A       : 	at kotlinx.coroutines.d.am.x(PG:7)
+11-14 12:14:24.337  1564  1826 W A       : 	at kotlinx.coroutines.a.q(PG:14)
+11-14 12:14:24.337  1564  1826 W A       : 	at n.c.b.a.a.q(PG:36)
+11-14 12:14:24.337  1564  1826 W A       : 	at kotlinx.coroutines.bh.run(PG:112)
+11-14 12:14:24.337  1564  1826 W A       : 	at com.google.apps.tiktok.f.y.run(PG:3)
+11-14 12:14:24.337  1564  1826 W A       : 	at com.google.apps.tiktok.tracing.fl.run(PG:24)
+11-14 12:14:24.337  1564  1826 W A       : 	at com.google.android.libraries.k.x.run(PG:3)
+11-14 12:14:24.337  1564  1826 W A       : 	at com.google.common.n.c.c.run(PG:50)
+11-14 12:14:24.337  1564  1826 W A       : 	at com.google.android.libraries.k.e.run(PG:8)
+11-14 12:14:24.337  1564  1826 W A       : 	at java.lang.Thread.run(Thread.java:1012)
+11-14 12:14:24.337  1564  1826 W A       : 	at com.google.android.libraries.k.d.b.run(PG:74)
+11-14 12:14:24.341  1162  1162 D StateManager: createAtomicAnimation - fromState: Background, toState: Normal, partial trace:
+11-14 12:14:24.341  1162  1162 D StateManager: 	at com.android.quickstep.util.StaggeredWorkspaceAnim.prepareToAnimate(go/retraceme 31f9979659277bb965985aff1272c33e3c3c9e755b77166d20a2465454178f2c:22)
+11-14 12:14:24.341  1162  1162 D StateManager: 	at com.android.quickstep.util.StaggeredWorkspaceAnim.<init>(go/retraceme 31f9979659277bb965985aff1272c33e3c3c9e755b77166d20a2465454178f2c:4)
+11-14 12:14:24.341  1162  1162 D StateManager: 	at com.android.quickstep.util.StaggeredWorkspaceAnim.<init>(go/retraceme 31f9979659277bb965985aff1272c33e3c3c9e755b77166d20a2465454178f2c:1)
+11-14 12:14:24.342   560   989 W UserManagerService: Requested status bar icon for non-badged user 0
+11-14 12:14:24.342  1564  1915 W A       : #getSuggestions failed
+11-14 12:14:24.342  1564  1915 W A       : java.util.NoSuchElementException: Expected at least one element
+11-14 12:14:24.342  1564  1915 W A       : 	at kotlinx.coroutines.b.cs.a(PG:104)
+11-14 12:14:24.342  1564  1915 W A       : 	at kotlinx.coroutines.b.ch.jd(PG:11)
+11-14 12:14:24.342  1564  1915 W A       : 	at n.c.b.a.a.q(PG:12)
+11-14 12:14:24.342  1564  1915 W A       : 	at kotlinx.coroutines.d.am.x(PG:7)
+11-14 12:14:24.342  1564  1915 W A       : 	at kotlinx.coroutines.a.q(PG:14)
+11-14 12:14:24.342  1564  1915 W A       : 	at n.c.b.a.a.q(PG:36)
+11-14 12:14:24.342  1564  1915 W A       : 	at kotlinx.coroutines.bh.run(PG:112)
+11-14 12:14:24.342  1564  1915 W A       : 	at com.google.apps.tiktok.f.y.run(PG:3)
+11-14 12:14:24.342  1564  1915 W A       : 	at com.google.apps.tiktok.tracing.fl.run(PG:24)
+11-14 12:14:24.342  1564  1915 W A       : 	at com.google.android.libraries.k.x.run(PG:3)
+11-14 12:14:24.342  1564  1915 W A       : 	at com.google.common.n.c.c.run(PG:50)
+11-14 12:14:24.342  1564  1915 W A       : 	at com.google.android.libraries.k.e.run(PG:8)
+11-14 12:14:24.342  1564  1915 W A       : 	at java.lang.Thread.run(Thread.java:1012)
+11-14 12:14:24.342  1564  1915 W A       : 	at com.google.android.libraries.k.d.b.run(PG:74)
+11-14 12:14:24.351  1162  4679 E OneSearchSuggestProvider: Unable to get suggestions from AGA
+11-14 12:14:24.351  1162  4679 E OneSearchSuggestProvider: io.grpc.StatusRuntimeException: UNKNOWN
+11-14 12:14:24.351  1162  4679 E OneSearchSuggestProvider: 	at k3.e.a(go/retraceme 31f9979659277bb965985aff1272c33e3c3c9e755b77166d20a2465454178f2c:77)
+11-14 12:14:24.351  1162  4679 E OneSearchSuggestProvider: 	at i3.l.b(go/retraceme 31f9979659277bb965985aff1272c33e3c3c9e755b77166d20a2465454178f2c:43)
+11-14 12:14:24.351  1162  4679 E OneSearchSuggestProvider: 	at i3.l.a(go/retraceme 31f9979659277bb965985aff1272c33e3c3c9e755b77166d20a2465454178f2c:27)
+11-14 12:14:24.351  1162  4679 E OneSearchSuggestProvider: 	at i3.z.run(go/retraceme 31f9979659277bb965985aff1272c33e3c3c9e755b77166d20a2465454178f2c:7)
+11-14 12:14:24.351  1162  4679 E OneSearchSuggestProvider: 	at i3.m2.run(go/retraceme 31f9979659277bb965985aff1272c33e3c3c9e755b77166d20a2465454178f2c:19)
+11-14 12:14:24.351  1162  4679 E OneSearchSuggestProvider: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+11-14 12:14:24.351  1162  4679 E OneSearchSuggestProvider: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+11-14 12:14:24.351  1162  4679 E OneSearchSuggestProvider: 	at java.lang.Thread.run(Thread.java:1012)
+11-14 12:14:24.353   907   948 V WindowManagerShell:  animated by com.android.wm.shell.transition.RemoteTransitionHandler@5b64b83
+11-14 12:14:24.353   907   948 W Looper  : Slow dispatch took 44ms wmshell.main h=android.os.Handler c=com.android.wm.shell.transition.Transitions$TransitionPlayerImpl$$ExternalSyntheticLambda0@de32adb m=0
+11-14 12:14:24.358   560   682 I ImeTracker: com.google.android.apps.nexuslauncher:c89abe63: onRequestHide at ORIGIN_SERVER reason HIDE_UNSPECIFIED_WINDOW fromUser false
+11-14 12:14:24.358   560   682 I ImeTracker: com.google.android.apps.nexuslauncher:c89abe63: onCancelled at PHASE_SERVER_SHOULD_HIDE
+11-14 12:14:24.359  1320  1320 I GoogleInputMethodService: GoogleInputMethodService.onFinishInput():3157 
+11-14 12:14:24.380   397   417 I RanchuHwc: logCompositionFallbackIfChanged: layer 31 CompositionType fallback from 2 to 1
+11-14 12:14:24.380   397   417 I RanchuHwc: logCompositionFallbackIfChanged: layer 32 CompositionType fallback from 2 to 1
+11-14 12:14:24.381  1320  1320 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2248 repeatCheckTimes = 0, locked = false
+11-14 12:14:24.381  1320  1320 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1986 onStartInput(EditorInfo{EditorInfo{packageName=com.google.android.apps.nexuslauncher, inputType=0, inputTypeString=NULL, enableLearning=false, autoCorrection=false, autoComplete=false, imeOptions=0, privateImeOptions=null, actionName=UNSPECIFIED, actionLabel=null, initialSelStart=-1, initialSelEnd=-1, initialCapsMode=0, label=null, fieldId=0, fieldName=null, extras=null, hintText=null, hintLocales=[]}}, false)
+11-14 12:14:24.394  1164  1164 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.phenotype.service.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentApiService }
+11-14 12:14:24.417   560   587 W ActivityTaskManager: Unable to send transaction to client proc com.neutcrafts.steps: no app thread
+11-14 12:14:24.418  1320  1320 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2248 repeatCheckTimes = 1, locked = false
+11-14 12:14:24.419  1320  1320 I AndroidIME: InputBundleManager.loadActiveInputBundleId():450 loadActiveInputBundleId: und-Latn-x-password, password
+11-14 12:14:24.419   560  1618 W PackageConfigPersister: App-specific configuration not found for packageName: com.google.android.apps.nexuslauncher and userId: 0
+11-14 12:14:24.526   560  1618 W ActivityTaskManager: callingPackage for (uid=2000, pid=4683) has no WPC
+11-14 12:14:24.531   560  1618 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_USER_ASPECT_RATIO_OVERRIDE
+11-14 12:14:24.531   560  1618 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_USER_ASPECT_RATIO_FULLSCREEN_OVERRIDE
+11-14 12:14:24.531   560  1618 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_ORIENTATION_OVERRIDE
+11-14 12:14:24.531   560  1618 V GrammaticalInflectionUtils: AttributionSource: AttributionSource { uid = 10209, packageName = null, attributionTag = null, token = android.os.Binder@167bc1e, deviceId = 0, next = null } does not have READ_SYSTEM_GRAMMATICAL_GENDER permission.
+11-14 12:14:24.531   560  1618 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_RESIZEABLE_ACTIVITY_OVERRIDES
+11-14 12:14:24.532   560  1618 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_MIN_ASPECT_RATIO_OVERRIDE
+11-14 12:14:24.535   560  1618 I ActivityTaskManager: Add Task{94e5b72 #13 type=standard A=10209:com.neutcrafts.steps} to hidden list because adding Task{30e9b4f #14 type=standard A=10209:com.neutcrafts.steps}
+11-14 12:14:24.535   907   948 V WindowManagerShell: Transition requested (#39): android.os.BinderProxy@12a2978 TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=14 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.VIEW dat=neutcraftssteps://design-preview/... flg=0x10000000 pkg=com.neutcrafts.steps cmp=com.neutcrafts.steps/.MainActivity } baseActivity=ComponentInfo{com.neutcrafts.steps/com.neutcrafts.steps.MainActivity} topActivity=ComponentInfo{com.neutcrafts.steps/com.neutcrafts.steps.MainActivity} origActivity=null realActivity=ComponentInfo{com.neutcrafts.steps/com.neutcrafts.steps.MainActivity} numActivities=1 lastActiveTime=94995 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@2666851} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=Rect(0, 128 - 0, 0) topActivityInfo=ActivityInfo{90948b6 com.neutcrafts.steps.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isSleeping=false locusId=null displayAreaFeatureId=1 isTopActivityTransparent=false appCompatTaskInfo=AppCompatTaskInfo { topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= falseisLetterboxEducationEnabled= true isLetterboxDoubleTapEnabled= false topActivityEligibleForUserAspectRatioButton= false topActivityBoundsLetterboxed= false isFromLetterboxDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=1080 topActivityLetterboxHeight=2400 isUserFullscreenOverrideEnabled=false isSystemFullscreenOverrideEnabled=false cameraCompatTaskInfo=CameraCompatTaskInfo { cameraCompatControlState=hidden freeformCameraCompatMode=inactive}}}, pipTask = null, remoteTransition = null, displayChange = null, flags = 0, debugId = 39 }
+11-14 12:14:24.539   560  1618 I ActivityTaskManager: START u0 {act=android.intent.action.VIEW dat=neutcraftssteps://design-preview/... flg=0x10000000 pkg=com.neutcrafts.steps cmp=com.neutcrafts.steps/.MainActivity} with LAUNCH_SINGLE_TASK from uid 2000 (BAL_ALLOW_PERMISSION) result code=0
+11-14 12:14:24.551   560   586 V GrammaticalInflectionUtils: AttributionSource: AttributionSource { uid = 10209, packageName = null, attributionTag = null, token = android.os.Binder@167bc1e, deviceId = 0, next = null } does not have READ_SYSTEM_GRAMMATICAL_GENDER permission.
+11-14 12:14:24.572   907  1018 D SplashScreenView: Build android.window.SplashScreenView{cd8388d V.E...... ......ID 0,0-0,0}
+11-14 12:14:24.572   907  1018 D SplashScreenView: Icon: view: android.widget.ImageView{3593a42 V.ED..... ......I. 0,0-0,0 #1020504 android:id/splashscreen_icon_view} drawable: com.android.wm.shell.startingsurface.SplashscreenIconDrawableFactory$ImmobileIconDrawable@dca1a53 size: 504
+11-14 12:14:24.572   907  1018 D SplashScreenView: Branding: view: android.view.View{244af90 G.ED..... ......I. 0,0-0,0 #1020503 android:id/splashscreen_branding_view} drawable: null size w: 0 h: 0
+11-14 12:14:24.585   362   362 D Zygote  : Forked child process 4686
+11-14 12:14:24.589   560   596 I ActivityManager: Start proc 4686:com.neutcrafts.steps/u0a209 for next-top-activity {com.neutcrafts.steps/com.neutcrafts.steps.MainActivity}
+11-14 12:14:24.600  1162  1644 D EGL_emulation: app_time_stats: avg=2318.53ms min=391.56ms max=4245.49ms count=2
+11-14 12:14:24.601   907  1042 D EGL_emulation: app_time_stats: avg=758.54ms min=5.35ms max=4053.93ms count=6
+11-14 12:14:24.625  1162  1162 D SearchTargetUtil: query= size=0
+11-14 12:14:24.636  3352  3545 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434561
+11-14 12:14:24.636  1162  1162 W SplitSelectStateCtor: Missing session instanceIds
+11-14 12:14:24.636  1162  1162 D StatsLog: LAUNCHER_SPLIT_SELECTION_EXIT_INTERRUPTED
+11-14 12:14:24.638  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434562
+11-14 12:14:24.641  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f61a/lottie.json
+11-14 12:14:24.641  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f61a/lottie.json)
+11-14 12:14:24.641  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f618/lottie.json
+11-14 12:14:24.641  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f618/lottie.json)
+11-14 12:14:24.648  4686  4686 I eutcrafts.steps: Using CollectorTypeCMC GC.
+11-14 12:14:24.649  4686  4686 W eutcrafts.steps: Unexpected CPU variant for x86: x86_64.
+11-14 12:14:24.649  4686  4686 W eutcrafts.steps: Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, goldmont-without-sha-xsaves, tremont, kabylake, default
+11-14 12:14:24.651  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434564
+11-14 12:14:24.652  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434563
+11-14 12:14:24.654  4686  4686 E eutcrafts.steps: Not starting debugger since process cannot load the jdwp agent.
+11-14 12:14:24.654  3352  3545 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f970/lottie.json
+11-14 12:14:24.655  3352  3545 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f970/lottie.json)
+11-14 12:14:24.657  4686  4686 D nativeloader: Load libframework-connectivity-tiramisu-jni.so using APEX ns com_android_tethering for caller /apex/com.android.tethering/javalib/framework-connectivity-t.jar: ok
+11-14 12:14:24.660  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f60d/lottie.json
+11-14 12:14:24.660  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f60d/lottie.json)
+11-14 12:14:24.664   907   948 D WindowManagerShell: setLauncherKeepClearAreaHeight: visible=false, height=527
+11-14 12:14:24.664   560  2456 I AppsFilter: interaction: PackageSetting{8a56595 com.android.microdroid.empty_payload/10192} -> PackageSetting{582d0c8 com.neutcrafts.steps/10209} BLOCKED
+11-14 12:14:24.667  1162  1162 I TopTaskTracker: onTaskMovedToFront: (moved taskInfo to front) taskId=14, baseIntent=Intent { act=android.intent.action.VIEW dat=neutcraftssteps://design-preview/... flg=0x10000000 pkg=com.neutcrafts.steps cmp=com.neutcrafts.steps/.MainActivity }
+11-14 12:14:24.679   560  1512 D CoreBackPreview: Window{f7ca547 u0 Splash Screen com.neutcrafts.steps}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@5544ee3, mPriority=0, mIsAnimationCallback=false}
+11-14 12:14:24.687   560   855 I AppWidgetServiceImpl: Received broadcast: android.intent.action.PACKAGE_UNSTOPPED on user 0
+11-14 12:14:24.728   560   855 I AppWidgetServiceImpl: Updating package stopped masked state for uid 10209 package com.neutcrafts.steps isStopped false
+11-14 12:14:24.742   432   504 W VsyncModulator: setTransactionSchedule: Unexpected EarlyEnd
+11-14 12:14:24.749  4686  4686 D ApplicationLoaders: Returning zygote-cached class loader: /system_ext/framework/androidx.window.extensions.jar
+11-14 12:14:24.749  4686  4686 D ApplicationLoaders: Returning zygote-cached class loader: /system_ext/framework/androidx.window.sidecar.jar
+11-14 12:14:24.758  4686  4686 D nativeloader: Configuring clns-7 for other apk /data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/lib/x86_64:/data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/com.neutcrafts.steps
+11-14 12:14:24.761  4686  4686 V GraphicsEnvironment: Currently set values for:
+11-14 12:14:24.761  4686  4686 V GraphicsEnvironment:   angle_gl_driver_selection_pkgs=[]
+11-14 12:14:24.761  4686  4686 V GraphicsEnvironment:   angle_gl_driver_selection_values=[]
+11-14 12:14:24.761  4686  4686 V GraphicsEnvironment: Global.Settings values are invalid: number of packages: 0, number of values: 0
+11-14 12:14:24.761  4686  4686 V GraphicsEnvironment: Neither updatable production driver nor prerelease driver is supported.
+11-14 12:14:24.796  4686  4686 W FirebaseApp: Default FirebaseApp failed to initialize because no default options were found. This usually means that com.google.gms:google-services was not applied to your gradle project.
+11-14 12:14:24.796  4686  4686 I FirebaseInitProvider: FirebaseApp initialization unsuccessful
+11-14 12:14:24.797   907   948 W Looper  : Slow delivery took 30ms wmshell.main h=android.os.Handler c=null m=1
+11-14 12:14:24.798  4686  4686 D WM-WrkMgrInitializer: Initializing WorkManager with default configuration.
+11-14 12:14:24.799  4686  4686 D WM-PackageManagerHelper: Skipping component enablement for androidx.work.impl.background.systemjob.SystemJobService
+11-14 12:14:24.799  4686  4686 D WM-Schedulers: Created SystemJobScheduler and enabled SystemJobService
+11-14 12:14:24.802  4686  4686 W SoLoader: Initializing SoLoader: 0
+11-14 12:14:24.802  4686  4686 W SoLoader: Recording new base apk path: /data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk
+11-14 12:14:24.802  4686  4686 W SoLoader: Previously recorded 0 base apk paths.
+11-14 12:14:24.802  4686  4686 I SoLoader: Preparing SO source: DirectorySoSource[root = /vendor/lib64 flags = 2]
+11-14 12:14:24.802  4686  4686 I SoLoader: Preparing SO source: DirectorySoSource[root = /system/lib64 flags = 2]
+11-14 12:14:24.802  4686  4686 I SoLoader: Preparing SO source: DirectApkSoSource[root = [/data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!/lib/x86_64]]
+11-14 12:14:24.842  4686  4686 I SoLoader: Preparing SO source: ApplicationSoSource[DirectorySoSource[root = /data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/lib/x86_64 flags = 0]]
+11-14 12:14:24.842  4686  4686 I SoLoader: init finish: 4 SO sources prepared
+11-14 12:14:24.842  4686  4686 W SoLoader: SoLoader initialized: 8
+11-14 12:14:24.846  4686  4686 D nativeloader: Load /data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!/lib/x86_64/libc++_shared.so using ns clns-7 from class loader (caller=/data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!classes5.dex): ok
+11-14 12:14:24.848  4686  4686 D nativeloader: Load /data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!/lib/x86_64/libjsi.so using ns clns-7 from class loader (caller=/data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!classes5.dex): ok
+11-14 12:14:24.849  4686  4686 D nativeloader: Load /data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!/lib/x86_64/libfbjni.so using ns clns-7 from class loader (caller=/data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!classes5.dex): ok
+11-14 12:14:24.851  4686  4686 D nativeloader: Load /data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!/lib/x86_64/libreactnative.so using ns clns-7 from class loader (caller=/data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!classes5.dex): ok
+11-14 12:14:24.851  4686  4686 D jni_lib_merge: Entering merged library JNI_OnLoad.
+11-14 12:14:24.851  4686  4686 D jni_lib_merge: Preparing 13 pre-merged libs (including stub)
+11-14 12:14:24.851  4686  4686 D jni_lib_merge: Preparing to register libfabricjni_so.  onload_func: 0x78ec38786ae0
+11-14 12:14:24.851  4686  4686 D jni_lib_merge: Preparing to register libreact_devsupportjni_so.  onload_func: 0x78ec388753a0
+11-14 12:14:24.851  4686  4686 D jni_lib_merge: Preparing to register libreact_featureflagsjni_so.  onload_func: 0x78ec38886fe0
+11-14 12:14:24.851  4686  4686 D jni_lib_merge: Preparing to register libreact_newarchdefaults_so.  onload_func: 0x78ec388c67d0
+11-14 12:14:24.851  4686  4686 D jni_lib_merge: Preparing to register libreact_tracingjni_so.  onload_func: 0x78ec389d5c00
+11-14 12:14:24.851  4686  4686 D jni_lib_merge: Preparing to register libreactnativeblob_so.  onload_func: 0x78ec389daf70
+11-14 12:14:24.851  4686  4686 D jni_lib_merge: Preparing to register libreactnativejni_so.  onload_func: 0x78ec389e74f0
+11-14 12:14:24.851  4686  4686 D jni_lib_merge: Preparing to register libreactnativejni_common_so.  onload_func: 0x78ec389ebc40
+11-14 12:14:24.851  4686  4686 D jni_lib_merge: Preparing to register librninstance_so.  onload_func: 0x78ec38a13d70
+11-14 12:14:24.851  4686  4686 D jni_lib_merge: Preparing to register libturbomodulejsijni_so.  onload_func: 0x78ec38abc630
+11-14 12:14:24.851  4686  4686 D jni_lib_merge: Preparing to register libuimanagerjni_so.  onload_func: 0x78ec38ac3590
+11-14 12:14:24.851  4686  4686 D jni_lib_merge: Preparing to register libyoga_so.  onload_func: 0x78ec38acb130
+11-14 12:14:24.851  4686  4686 D jni_lib_merge: About to register 12 actual methods.
+11-14 12:14:24.854  4686  4686 D nativeloader: Load /data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!/lib/x86_64/libreact_codegen_rngesturehandler_codegen.so using ns clns-7 from class loader (caller=/data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!classes5.dex): ok
+11-14 12:14:24.854   361   361 I netd    : tetherGetStats() -> {[]} <0.38ms>
+11-14 12:14:24.858  4686  4686 D nativeloader: Load /data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!/lib/x86_64/libreact_codegen_rnscreens.so using ns clns-7 from class loader (caller=/data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!classes5.dex): ok
+11-14 12:14:24.858  4686  4686 D jni_lib_merge: Entering merged library JNI_OnLoad.
+11-14 12:14:24.858  4686  4686 D jni_lib_merge: Preparing 13 pre-merged libs (including stub)
+11-14 12:14:24.858  4686  4686 D jni_lib_merge: Preparing to register libfabricjni_so.  onload_func: 0x78ec38786ae0
+11-14 12:14:24.858  4686  4686 D jni_lib_merge: Preparing to register libreact_devsupportjni_so.  onload_func: 0x78ec388753a0
+11-14 12:14:24.858  4686  4686 D jni_lib_merge: Preparing to register libreact_featureflagsjni_so.  onload_func: 0x78ec38886fe0
+11-14 12:14:24.858  4686  4686 D jni_lib_merge: Preparing to register libreact_newarchdefaults_so.  onload_func: 0x78ec388c67d0
+11-14 12:14:24.858  4686  4686 D jni_lib_merge: Preparing to register libreact_tracingjni_so.  onload_func: 0x78ec389d5c00
+11-14 12:14:24.858  4686  4686 D jni_lib_merge: Preparing to register libreactnativeblob_so.  onload_func: 0x78ec389daf70
+11-14 12:14:24.858  4686  4686 D jni_lib_merge: Preparing to register libreactnativejni_so.  onload_func: 0x78ec389e74f0
+11-14 12:14:24.858  4686  4686 D jni_lib_merge: Preparing to register libreactnativejni_common_so.  onload_func: 0x78ec389ebc40
+11-14 12:14:24.858  4686  4686 D jni_lib_merge: Preparing to register librninstance_so.  onload_func: 0x78ec38a13d70
+11-14 12:14:24.858  4686  4686 D jni_lib_merge: Preparing to register libturbomodulejsijni_so.  onload_func: 0x78ec38abc630
+11-14 12:14:24.858  4686  4686 D jni_lib_merge: Preparing to register libuimanagerjni_so.  onload_func: 0x78ec38ac3590
+11-14 12:14:24.858  4686  4686 D jni_lib_merge: Preparing to register libyoga_so.  onload_func: 0x78ec38acb130
+11-14 12:14:24.858  4686  4686 D jni_lib_merge: About to register 12 actual methods.
+11-14 12:14:24.871   907   948 W Looper  : Drained
+11-14 12:14:24.873  4686  4686 D nativeloader: Load /data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!/lib/x86_64/libreact_codegen_rnsvg.so using ns clns-7 from class loader (caller=/data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!classes5.dex): ok
+11-14 12:14:24.873  4686  4686 D jni_lib_merge: Entering merged library JNI_OnLoad.
+11-14 12:14:24.873  4686  4686 D jni_lib_merge: Preparing 13 pre-merged libs (including stub)
+11-14 12:14:24.873  4686  4686 D jni_lib_merge: Preparing to register libfabricjni_so.  onload_func: 0x78ec38786ae0
+11-14 12:14:24.873  4686  4686 D jni_lib_merge: Preparing to register libreact_devsupportjni_so.  onload_func: 0x78ec388753a0
+11-14 12:14:24.873  4686  4686 D jni_lib_merge: Preparing to register libreact_featureflagsjni_so.  onload_func: 0x78ec38886fe0
+11-14 12:14:24.873  4686  4686 D jni_lib_merge: Preparing to register libreact_newarchdefaults_so.  onload_func: 0x78ec388c67d0
+11-14 12:14:24.873  4686  4686 D jni_lib_merge: Preparing to register libreact_tracingjni_so.  onload_func: 0x78ec389d5c00
+11-14 12:14:24.873  4686  4686 D jni_lib_merge: Preparing to register libreactnativeblob_so.  onload_func: 0x78ec389daf70
+11-14 12:14:24.873  4686  4686 D jni_lib_merge: Preparing to register libreactnativejni_so.  onload_func: 0x78ec389e74f0
+11-14 12:14:24.873  4686  4686 D jni_lib_merge: Preparing to register libreactnativejni_common_so.  onload_func: 0x78ec389ebc40
+11-14 12:14:24.873  4686  4686 D jni_lib_merge: Preparing to register librninstance_so.  onload_func: 0x78ec38a13d70
+11-14 12:14:24.873  4686  4686 D jni_lib_merge: Preparing to register libturbomodulejsijni_so.  onload_func: 0x78ec38abc630
+11-14 12:14:24.873  4686  4686 D jni_lib_merge: Preparing to register libuimanagerjni_so.  onload_func: 0x78ec38ac3590
+11-14 12:14:24.873  4686  4686 D jni_lib_merge: Preparing to register libyoga_so.  onload_func: 0x78ec38acb130
+11-14 12:14:24.873  4686  4686 D jni_lib_merge: About to register 12 actual methods.
+11-14 12:14:24.874   361   361 I netd    : bandwidthSetGlobalAlert(2097152) <0.11ms>
+11-14 12:14:24.879   361   361 I netd    : bandwidthRemoveInterfaceQuota(eth0) <0.46ms>
+11-14 12:14:24.880   361   361 I netd    : bandwidthSetInterfaceQuota(eth0, 9223372036854775807) <0.55ms>
+11-14 12:14:24.880  4686  4686 D nativeloader: Load /data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!/lib/x86_64/libreact_codegen_safeareacontext.so using ns clns-7 from class loader (caller=/data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!classes5.dex): ok
+11-14 12:14:24.882  4686  4686 D nativeloader: Load /data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!/lib/x86_64/libappmodules.so using ns clns-7 from class loader (caller=/data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!classes5.dex): ok
+11-14 12:14:24.886  3352  3545 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434565
+11-14 12:14:24.888   560   989 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ENABLE_FAKE_FOCUS
+11-14 12:14:24.888  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434566
+11-14 12:14:24.891  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f929/lottie.json
+11-14 12:14:24.891  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f929/lottie.json)
+11-14 12:14:24.908  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f973/lottie.json
+11-14 12:14:24.908  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f973/lottie.json)
+11-14 12:14:24.935   907  2099 V WindowManagerShell: onTransitionReady(transaction=2405181686766)
+11-14 12:14:24.972   560   583 V WindowManager: Sent Transition (#39) createdAt=11-14 12:14:24.532 via request=TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=14 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.VIEW dat=neutcraftssteps://design-preview/... flg=0x10000000 pkg=com.neutcrafts.steps cmp=com.neutcrafts.steps/.MainActivity } baseActivity=ComponentInfo{com.neutcrafts.steps/com.neutcrafts.steps.MainActivity} topActivity=ComponentInfo{com.neutcrafts.steps/com.neutcrafts.steps.MainActivity} origActivity=null realActivity=ComponentInfo{com.neutcrafts.steps/com.neutcrafts.steps.MainActivity} numActivities=1 lastActiveTime=94995 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{9ed5f0e Task{30e9b4f #14 type=standard A=10209:com.neutcrafts.steps}}} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=Rect(0, 128 - 0, 0) topActivityInfo=ActivityInfo{fdbed2f com.neutcrafts.steps.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isSleeping=false locusId=null displayAreaFeatureId=1 isTopActivityTransparent=false appCompatTaskInfo=AppCompatTaskInfo { topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= falseisLetterboxEducationEnabled= true isLetterboxDoubleTapEnabled= false topActivityEligibleForUserAspectRatioButton= false topActivityBoundsLetterboxed= false isFromLetterboxDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=1080 topActivityLetterboxHeight=2400 isUserFullscreenOverrideEnabled=false isSystemFullscreenOverrideEnabled=false cameraCompatTaskInfo=CameraCompatTaskInfo { cameraCompatControlState=hidden freeformCameraCompatMode=inactive}}}, pipTask = null, remoteTransition = null, displayChange = null, flags = 0, debugId = 39 }
+11-14 12:14:24.972   560   583 V WindowManager:     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
+11-14 12:14:24.972   560   583 V WindowManager:     info={id=39 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[
+11-14 12:14:24.972   560   583 V WindowManager:         {WCT{RemoteToken{9ed5f0e Task{30e9b4f #14 type=standard A=10209:com.neutcrafts.steps}}} m=OPEN f=NONE leash=Surface(name=Task=14)/@0xa25210 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0 taskParent=-1},
+11-14 12:14:24.972   560   583 V WindowManager:         {WCT{RemoteToken{5aa5ca5 Task{3d62155 #1 type=home}}} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0x31173d3 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0 taskParent=-1}
+11-14 12:14:24.972   560   583 V WindowManager:     ]}
+11-14 12:14:25.004   907   948 V WindowManagerShell: onTransitionReady (#39) android.os.BinderProxy@12a2978: {id=39 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@36d5f54} m=OPEN f=NONE leash=Surface(name=Task=14)/@0x5c107c1 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0 taskParent=-1},{WCT{android.window.IWindowContainerToken$Stub$Proxy@7955efd} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0x3d34b66 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0 taskParent=-1}]}
+11-14 12:14:25.009   907   948 V WindowManagerShell: Transition (#39) android.os.BinderProxy@12a2978@0 ready while (#38) android.os.BinderProxy@d75ac3a@0 is still animating. Notify the animating transition in case they can be merged
+11-14 12:14:25.010   907   948 V WindowManagerShell:    Merge into remote: RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@d0b9bde, appThread = android.app.IApplicationThread$Stub$Proxy@32331bf, debugName = QuickstepLaunchHome }
+11-14 12:14:25.013   560  1512 W UserManagerService: Requested status bar icon for non-badged user 0
+11-14 12:14:25.014  4686  4686 D AppCompatDelegate: Checking for metadata for AppLocalesMetadataHolderService : Service not found
+11-14 12:14:25.028   907   948 V WindowManagerShell: Transition animation finished (aborted=false), notifying core (#38) android.os.BinderProxy@d75ac3a@0
+11-14 12:14:25.029   560   583 V WindowManager: Finish Transition (#38): created at 11-14 12:14:24.243 collect-started=0.023ms request-sent=0.062ms started=11.163ms ready=61.599ms sent=63.362ms finished=784.949ms
+--------- beginning of kernel
+11-14 12:14:25.169     0     0 I binder  : 1512:560 cannot find target node
+11-14 12:14:25.206     0     0 I binder  : 560:1512 transaction async to 0:0 failed 369680/29189/-22, size 64-0 line 3344
+11-14 12:14:25.074  4686  4686 D nativeloader: Load /data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!/lib/x86_64/libhermesvm.so using ns clns-7 from class loader (caller=/data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!classes5.dex): ok
+11-14 12:14:25.075  4686  4686 D nativeloader: Load /data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!/lib/x86_64/libhermestooling.so using ns clns-7 from class loader (caller=/data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!classes5.dex): ok
+11-14 12:14:25.075  4686  4686 D jni_lib_merge: Entering merged library JNI_OnLoad.
+11-14 12:14:25.075  4686  4686 D jni_lib_merge: Preparing 4 pre-merged libs (including stub)
+11-14 12:14:25.075  4686  4686 D jni_lib_merge: Preparing to register libhermes_executor_so.  onload_func: 0x78ec3ffdc0d0
+11-14 12:14:25.075  4686  4686 D jni_lib_merge: Preparing to register libhermesinstancejni_so.  onload_func: 0x78ec3ffe38b0
+11-14 12:14:25.075  4686  4686 D jni_lib_merge: Preparing to register libjsijniprofiler_so.  onload_func: 0x78ec3ffe40f0
+11-14 12:14:25.075  4686  4686 D jni_lib_merge: About to register 3 actual methods.
+11-14 12:14:25.077  4686  4686 W unknown:BridgelessReact: ReactHost{0}.startSurface(surfaceId = 0): Schedule
+11-14 12:14:25.077  4686  4686 W unknown:BridgelessReact: ReactHost{0}.attachSurface(surfaceId = 0)
+11-14 12:14:25.078  4686  4706 W unknown:BridgelessReact: ReactHost{0}.getOrCreateReactInstanceTask()
+11-14 12:14:25.078  4686  4706 W unknown:BridgelessReact: ReactHost{0}.getOrCreateReactInstanceTask(): Start
+11-14 12:14:25.078  4686  4706 W unknown:BridgelessReact: ReactHost{0}.getJSBundleLoader()
+11-14 12:14:25.079  4686  4706 W unknown:BridgelessReact: ReactHost{0}.getOrCreateReactInstanceTask(): Creating BridgelessReactContext
+11-14 12:14:25.079  4686  4706 W unknown:BridgelessReact: ReactHost{0}.getOrCreateReactInstanceTask(): Creating ReactInstance
+11-14 12:14:25.080   560  1512 E IPCThreadState: Binder transaction failure. id: 369680, BR_*: 29189, error: -22 (Invalid argument)
+11-14 12:14:25.080   560  1512 W ActivityManager: pid 560 system sent binder code 7 with flags 1 to frozen apps and got error -32
+11-14 12:14:25.080   560  1512 D ActivityManager: Too many transaction errors, throttling freezer binder callback.
+11-14 12:14:25.080   560  1512 W WindowManager: Exception thrown during dispatchAppVisibility Window{57f4d3a u0 com.neutcrafts.steps/com.neutcrafts.steps.MainActivity EXITING}
+11-14 12:14:25.080   560  1512 W WindowManager: android.os.DeadObjectException
+11-14 12:14:25.080   560  1512 W WindowManager: 	at android.os.BinderProxy.transactNative(Native Method)
+11-14 12:14:25.080   560  1512 W WindowManager: 	at android.os.BinderProxy.transact(BinderProxy.java:586)
+11-14 12:14:25.080   560  1512 W WindowManager: 	at android.view.IWindow$Stub$Proxy.dispatchAppVisibility(IWindow.java:553)
+11-14 12:14:25.080   560  1512 W WindowManager: 	at com.android.server.wm.WindowState.sendAppVisibilityToClients(WindowState.java:3253)
+11-14 12:14:25.080   560  1512 W WindowManager: 	at com.android.server.wm.WindowContainer.sendAppVisibilityToClients(WindowContainer.java:1289)
+11-14 12:14:25.080   560  1512 W WindowManager: 	at com.android.server.wm.WindowToken.setClientVisible(WindowToken.java:403)
+11-14 12:14:25.080   560  1512 W WindowManager: 	at com.android.server.wm.ActivityRecord.setClientVisible(ActivityRecord.java:7166)
+11-14 12:14:25.080   560  1512 W WindowManager: 	at com.android.server.wm.ActivityRecord.postApplyAnimation(ActivityRecord.java:5881)
+11-14 12:14:25.080   560  1512 W WindowManager: 	at com.android.server.wm.ActivityRecord.commitVisibility(ActivityRecord.java:5823)
+11-14 12:14:25.080   560  1512 W WindowManager: 	at com.android.server.wm.Transition.finishTransition(Transition.java:1286)
+11-14 12:14:25.080   560  1512 W WindowManager: 	at com.android.server.wm.TransitionController.finishTransition(TransitionController.java:937)
+11-14 12:14:25.080   560  1512 W WindowManager: 	at com.android.server.wm.WindowOrganizerController.finishTransition(WindowOrganizerController.java:494)
+11-14 12:14:25.080   560  1512 W WindowManager: 	at android.window.IWindowOrganizerController$Stub.onTransact(IWindowOrganizerController.java:289)
+11-14 12:14:25.080   560  1512 W WindowManager: 	at com.android.server.wm.WindowOrganizerController.onTransact(WindowOrganizerController.java:204)
+11-14 12:14:25.080   560  1512 W WindowManager: 	at android.os.Binder.execTransactInternal(Binder.java:1500)
+11-14 12:14:25.080   560  1512 W WindowManager: 	at android.os.Binder.execTransact(Binder.java:1444)
+11-14 12:14:25.080   560  1512 W Process : Unable to open /proc/4582/status
+11-14 12:14:25.083   907   948 V WindowManagerShell: Playing animation for (#39) android.os.BinderProxy@12a2978@0
+11-14 12:14:25.083   907   948 V WindowManagerShell:  try handler com.android.wm.shell.transition.DefaultMixedHandler@c7d4f01
+11-14 12:14:25.083   907   948 V WindowManagerShell:  try handler com.android.wm.shell.keyguard.KeyguardTransitionHandler@b3321a6
+11-14 12:14:25.083   907   948 V WindowManagerShell:  try handler com.android.wm.shell.pip.PipTransition@56a17e7
+11-14 12:14:25.083   907   948 V WindowManagerShell:  try handler com.android.wm.shell.activityembedding.ActivityEmbeddingController@51ebf94
+11-14 12:14:25.083   907   948 V WindowManagerShell:  try handler com.android.wm.shell.recents.RecentsTransitionHandler@ceeda3d
+11-14 12:14:25.083   907   948 V ShellRecents: RecentsTransitionHandler.startAnimation: no controller found
+11-14 12:14:25.083   907   948 V WindowManagerShell:  try handler com.android.wm.shell.splitscreen.StageCoordinator@5fb232
+11-14 12:14:25.083   907   948 V WindowManagerShell:  try handler com.android.wm.shell.transition.RemoteTransitionHandler@5b64b83
+11-14 12:14:25.083   907   948 V WindowManagerShell: Transition doesn't have explicit remote, search filters for match for {id=39 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@36d5f54} m=OPEN f=NONE leash=Surface(name=Task=14)/@0x5c107c1 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0 taskParent=-1},{WCT{android.window.IWindowContainerToken$Stub$Proxy@7955efd} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0x3d34b66 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0 taskParent=-1}]}
+11-14 12:14:25.083   907   948 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x0 checks=[{atype=undefined independent=true modes=[OPEN,TO_FRONT] flags=IN_TASK_WITH_EMBEDDED_ACTIVITY mustBeTask=false order=ANY topActivity=ComponentInfo{com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity} launchCookie=null},{atype=undefined independent=true modes=[CLOSE,TO_BACK] flags=IN_TASK_WITH_EMBEDDED_ACTIVITY mustBeTask=false order=ANY topActivity=null launchCookie=null}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@e618892, appThread = android.app.IApplicationThread$Stub$Proxy@a0fd263, debugName = OverlaySwipeBack }}
+11-14 12:14:25.083   907   948 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x0 checks=[{atype=dream independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=ANY topActivity=null launchCookie=null},{atype=home independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null launchCookie=null}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@668ee60, appThread = android.app.IApplicationThread$Stub$Proxy@18eef19, debugName = LauncherToDream }}
+11-14 12:14:25.083   907   948 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x100 checks=[{atype=home independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=TOP topActivity=ComponentInfo{com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity} launchCookie=null},{atype=standard independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null launchCookie=null}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@d0b9bde, appThread = android.app.IApplicationThread$Stub$Proxy@32331bf, debugName = QuickstepLaunchHome }}
+11-14 12:14:25.083   907   948 V WindowManagerShell:  Delegate animation for (#39) to null
+11-14 12:14:25.083   907   948 V WindowManagerShell:  try handler com.android.wm.shell.transition.DefaultTransitionHandler@8d7558a
+11-14 12:14:25.084   907   948 V WindowManagerShell: start default transition animation, info = {id=39 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@36d5f54} m=OPEN f=NONE leash=Surface(name=Task=14)/@0x5c107c1 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0 taskParent=-1},{WCT{android.window.IWindowContainerToken$Stub$Proxy@7955efd} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0x3d34b66 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0 taskParent=-1}]}
+11-14 12:14:25.084   907   948 V WindowManagerShell: loadAnimation: anim=android.view.animation.AnimationSet@6eb1cc0 animAttr=0x13 type=OPEN isEntrance=false
+11-14 12:14:25.084   907   948 V WindowManagerShell: loadAnimation: anim=android.view.animation.AnimationSet@bc544ec animAttr=0x12 type=OPEN isEntrance=true
+11-14 12:14:25.085   907   948 V WindowManagerShell:  animated by com.android.wm.shell.transition.DefaultTransitionHandler@8d7558a
+11-14 12:14:25.085   907   948 W Looper  : Slow dispatch took 57ms wmshell.main h=android.os.Handler c=com.android.wm.shell.transition.RemoteTransitionHandler$1$$ExternalSyntheticLambda0@893534a m=0
+11-14 12:14:25.085   907   948 W Looper  : Slow delivery took 46ms wmshell.main h=android.os.Handler c=null m=19
+11-14 12:14:25.085   907   948 W Looper  : Drained
+11-14 12:14:25.093  1162  1162 I TopTaskTracker: onTaskRemoved: taskId=13
+11-14 12:14:25.093  1162  1162 I TopTaskTracker: onTaskRemoved: taskId=13
+11-14 12:14:25.098   560  2456 W UserManagerService: Requested status bar icon for non-badged user 0
+11-14 12:14:25.098   560  2456 W UserManagerService: Requested status bar icon for non-badged user 0
+11-14 12:14:25.126  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434567
+11-14 12:14:25.131  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434568
+11-14 12:14:25.138   907   948 W Looper  : Slow delivery took 44ms wmshell.main h=android.os.Handler c=android.window.TaskOrganizer$1$$ExternalSyntheticLambda0@7bc3f97 m=0
+11-14 12:14:25.139  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1fae0/lottie.json
+11-14 12:14:25.139  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1fae0/lottie.json)
+11-14 12:14:25.140   907   978 W Looper  : Slow delivery took 43ms wmshell.anim h=android.view.Choreographer$FrameHandler c=android.view.Choreographer$FrameDisplayEventReceiver@10195c7 m=0
+11-14 12:14:25.141  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f643/lottie.json
+11-14 12:14:25.141  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f643/lottie.json)
+11-14 12:14:25.142  4686  4706 I ExpoModulesCore: ✅ AppContext was initialized
+11-14 12:14:25.144  4686  4686 W unknown:BridgelessReact: ReactHost{0}.onHostResume(activity)
+11-14 12:14:25.144  4686  4686 W unknown:BridgelessReact: ReactHost{0}.ReactContext.onHostResume()
+11-14 12:14:25.159   907   948 V WindowManagerShell: Transition animation finished (aborted=false), notifying core (#39) android.os.BinderProxy@12a2978@0
+11-14 12:14:25.164   560   583 V WindowManager: Finish Transition (#39): created at 11-14 12:14:24.532 collect-started=0.026ms request-sent=2.912ms started=31.411ms ready=358.749ms sent=395.514ms finished=628.47ms
+11-14 12:14:25.164   907   948 V WindowManagerShell: Track 0 became idle
+11-14 12:14:25.164   907   948 V WindowManagerShell: All active transition animations finished
+11-14 12:14:25.165  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434569
+11-14 12:14:25.167  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434570
+11-14 12:14:25.171  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f642/lottie.json
+11-14 12:14:25.171  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f642/lottie.json)
+11-14 12:14:25.178  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f972/lottie.json
+11-14 12:14:25.178  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f972/lottie.json)
+11-14 12:14:25.179   907   948 W Looper  : Drained
+11-14 12:14:25.181   432   432 E BpTransactionCompletedListener: Failed to transact (-32)
+11-14 12:14:25.185  4686  4686 W HWUI    : Unknown dataspace 0
+11-14 12:14:25.225  4686  4686 I TaskService: Handling intent with action 'android.intent.action.BOOT_COMPLETED'.
+11-14 12:14:25.308  4686  4706 W unknown:BridgelessReact: ReactHost{0}.getOrCreateReactInstanceTask(): Loading JS Bundle
+11-14 12:14:25.308  4686  4706 W unknown:BridgelessReact: ReactHost{0}.getOrCreateReactInstanceTask(): DevSupportManager.onNewReactContextCreated()
+11-14 12:14:25.308  4686  4706 W unknown:BridgelessReact: ReactHost{0}.startSurface(surfaceId = 0): Execute
+11-14 12:14:25.318  1162  1162 D VRI[NexusLauncherActivity]: visibilityChanged oldVisibility=true newVisibility=false
+11-14 12:14:25.319  1162  1162 D NexusLauncherModelDelegate: notifySmartspaceEvent: SmartspaceTargetEvent{mSmartspaceTarget=null, mSmartspaceActionId='null', mEventType=7}
+11-14 12:14:25.350   560  1512 D CoreBackPreview: Window{fdeff3b u0 com.neutcrafts.steps/com.neutcrafts.steps.MainActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@2ecf096, mPriority=0, mIsAnimationCallback=false}
+11-14 12:14:25.352  4686  4708 D nativeloader: Load /data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!/lib/x86_64/libworklets.so using ns clns-7 from class loader (caller=/data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!classes5.dex): ok
+11-14 12:14:25.357   560  1619 W UserManagerService: Requested status bar icon for non-badged user 0
+11-14 12:14:25.367  4686  4700 I EGL_emulation: Opening libGLESv1_CM_emulation.so
+11-14 12:14:25.367  4686  4700 I EGL_emulation: Opening libGLESv2_emulation.so
+11-14 12:14:25.380  4686  4686 W unknown:BridgelessReact: ReactHost{0}.ReactContext.onHostResume()
+11-14 12:14:25.382  4686  4686 W unknown:BridgelessReact: ReactHost{0}.getOrCreateReactInstanceTask(): Executing ReactInstanceEventListeners
+11-14 12:14:25.382  4686  4686 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.uimanager.RootViewManager
+11-14 12:14:25.393  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434571
+11-14 12:14:25.398  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434572
+11-14 12:14:25.408  1162  1162 W FrameTracker: Missed App frame:UNKNOWN: 76, 33649, 0, CUJ=J<LAUNCHER_APP_CLOSE_TO_HOME>
+11-14 12:14:25.408  1162  1162 W FrameTracker: Missed SF frame:UNKNOWN: 76, 33649, 0, CUJ=J<LAUNCHER_APP_CLOSE_TO_HOME>
+11-14 12:14:25.408  1162  1162 W FrameTracker: Missing HWUI jank callback for vsyncId: 33649, CUJ=J<LAUNCHER_APP_CLOSE_TO_HOME>
+11-14 12:14:25.408  1162  1162 W FrameTracker: Missed App frame:UNKNOWN: 328, 33664, 285743862, CUJ=J<LAUNCHER_APP_CLOSE_TO_HOME>
+11-14 12:14:25.408  1162  1162 W FrameTracker: Missed App frame:UNKNOWN: 74, 33732, 0, CUJ=J<LAUNCHER_APP_CLOSE_TO_HOME>
+11-14 12:14:25.408  1162  1162 W FrameTracker: Missed SF frame:UNKNOWN: 74, 33732, 0, CUJ=J<LAUNCHER_APP_CLOSE_TO_HOME>
+11-14 12:14:25.408  1162  1162 W FrameTracker: Missing HWUI jank callback for vsyncId: 33732, CUJ=J<LAUNCHER_APP_CLOSE_TO_HOME>
+11-14 12:14:25.408  1162  1162 W FrameTracker: Missed App frame:UNKNOWN: 74, 33755, 165862706, CUJ=J<LAUNCHER_APP_CLOSE_TO_HOME>
+11-14 12:14:25.408  1162  1162 W FrameTracker: Missed SF frame:UNKNOWN: 74, 33755, 165862706, CUJ=J<LAUNCHER_APP_CLOSE_TO_HOME>
+11-14 12:14:25.408  1162  1162 W FrameTracker: Missed App frame:UNKNOWN: 88, 33777, 0, CUJ=J<LAUNCHER_APP_CLOSE_TO_HOME>
+11-14 12:14:25.408  1162  1162 W FrameTracker: Missed SF frame:UNKNOWN: 88, 33777, 0, CUJ=J<LAUNCHER_APP_CLOSE_TO_HOME>
+11-14 12:14:25.408  1162  1162 W FrameTracker: Missing HWUI jank callback for vsyncId: 33777, CUJ=J<LAUNCHER_APP_CLOSE_TO_HOME>
+11-14 12:14:25.408  1162  1162 W FrameTracker: Missed App frame:UNKNOWN: 74, 33799, 0, CUJ=J<LAUNCHER_APP_CLOSE_TO_HOME>
+11-14 12:14:25.408  1162  1162 W FrameTracker: Missed SF frame:UNKNOWN: 74, 33799, 0, CUJ=J<LAUNCHER_APP_CLOSE_TO_HOME>
+11-14 12:14:25.408  1162  1162 W FrameTracker: Missing HWUI jank callback for vsyncId: 33799, CUJ=J<LAUNCHER_APP_CLOSE_TO_HOME>
+11-14 12:14:25.408  1162  1162 W FrameTracker: Missed App frame:UNKNOWN: 74, 33837, 106141069, CUJ=J<LAUNCHER_APP_CLOSE_TO_HOME>
+11-14 12:14:25.408  1162  1162 W FrameTracker: Missed SF frame:UNKNOWN: 74, 33837, 106141069, CUJ=J<LAUNCHER_APP_CLOSE_TO_HOME>
+11-14 12:14:25.408  1162  1162 W FrameTracker: Missed App frame:UNKNOWN: 74, 33845, 150250119, CUJ=J<LAUNCHER_APP_CLOSE_TO_HOME>
+11-14 12:14:25.408  1162  1162 W FrameTracker: Missed SF frame:UNKNOWN: 74, 33845, 150250119, CUJ=J<LAUNCHER_APP_CLOSE_TO_HOME>
+11-14 12:14:25.424  4686  4700 W HWUI    : Failed to initialize 101010-2 format, error = EGL_SUCCESS
+11-14 12:14:25.433   560  2456 I BroadcastQueue: BOOT_COMPLETED_BROADCAST_COMPLETION_LATENCY_REPORTED action:android.intent.action.BOOT_COMPLETED dispatchLatency:7 completeLatency:756 dispatchRealLatency:7 completeRealLatency:756 receiversSize:3 userId:0 userType:android.os.usertype.full.SYSTEM
+11-14 12:14:25.433   560  1512 W UserManagerService: Requested status bar icon for non-badged user 0
+11-14 12:14:25.448  4686  4686 D nativeloader: Load /data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!/lib/x86_64/libmaplibre.so using ns clns-7 from class loader (caller=/data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!classes7.dex): ok
+11-14 12:14:25.464  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f979/lottie.json
+11-14 12:14:25.464  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f979/lottie.json)
+11-14 12:14:25.502  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f60a/lottie.json
+11-14 12:14:25.502  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f60a/lottie.json)
+11-14 12:14:25.506  4686  4707 D nativeloader: Load /data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!/lib/x86_64/libexpo-modules-jsi.so using ns clns-7 from class loader (caller=/data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!classes5.dex): ok
+11-14 12:14:25.508  4686  4707 D nativeloader: Load /data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!/lib/x86_64/libexpo-modules-core.so using ns clns-7 from class loader (caller=/data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!classes5.dex): ok
+11-14 12:14:25.508  4686  4707 W BridgelessReactContext: [WARNING] Bridgeless doesn't support CatalystInstance. Accessing an API that's not part of the new architecture is not encouraged usage.
+11-14 12:14:25.510  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434573
+11-14 12:14:25.525  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/263a_fe0f/lottie.json
+11-14 12:14:25.525  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/263a_fe0f/lottie.json)
+11-14 12:14:25.526  4686  4707 I ExpoModulesCore: ✅ JSI interop was installed
+11-14 12:14:25.530  4686  4707 D nativeloader: Load /data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!/lib/x86_64/libexpo-modules-v2.so using ns clns-7 from class loader (caller=/data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!classes7.dex): ok
+11-14 12:14:25.532  4686  4707 W ExpoModulesV2: expo.modules.haptics.arguments.NotificationType does not implement io.github.expo.modules.v2.Enumerable. It crosses to JavaScript here, but R8 keeps an enum's entries and its property only when it does, so a release build may fail on it or send its entry names instead
+11-14 12:14:25.532  4686  4707 W ExpoModulesV2: expo.modules.haptics.arguments.ImpactStyle does not implement io.github.expo.modules.v2.Enumerable. It crosses to JavaScript here, but R8 keeps an enum's entries and its property only when it does, so a release build may fail on it or send its entry names instead
+11-14 12:14:25.532  4686  4707 W ExpoModulesV2: expo.modules.haptics.arguments.HapticType does not implement io.github.expo.modules.v2.Enumerable. It crosses to JavaScript here, but R8 keeps an enum's entries and its property only when it does, so a release build may fail on it or send its entry names instead
+11-14 12:14:25.532  4686  4707 I ExpoModulesCore: ✅ Expo Modules v2 installed 3 module(s) on globalThis.expo.modules
+11-14 12:14:25.535   149   149 I hwservicemanager: getTransport: Cannot find entry android.hardware.graphics.mapper@4.0::IMapper/default in either framework or device VINTF manifest.
+11-14 12:14:25.535  4686  4700 I Gralloc4: mapper 4.x is not supported
+11-14 12:14:25.539  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434574
+11-14 12:14:25.670     0     0 I servicemanager: Caller(pid=4686,uid=10209,sid=u:r:untrusted_app:s0:c209,c256,c512,c768) Could not find android.hardware.graphics.allocator.IAllocator/default in the VINTF manifest. No alternative instances declared in VINTF.
+11-14 12:14:25.566  1162  1162 D BaseDepthController: setSurface:
+11-14 12:14:25.566  1162  1162 D BaseDepthController: 	mWaitingOnSurfaceValidity: false
+11-14 12:14:25.566  1162  1162 D BaseDepthController: 	mSurface: null
+11-14 12:14:25.566  1162  1162 D BaseDepthController: mSurface is null and mCurrentBlur is: 0
+11-14 12:14:25.567  1162  1162 D StateManager: goToState - fromState: Normal, toState: Normal, partial trace:
+11-14 12:14:25.567  1162  1162 D StateManager: 	at com.android.launcher3.statemanager.StateManager.moveToRestState(go/retraceme 31f9979659277bb965985aff1272c33e3c3c9e755b77166d20a2465454178f2c:4)
+11-14 12:14:25.567  1162  1162 D StateManager: 	at com.android.launcher3.statemanager.StateManager.moveToRestState(go/retraceme 31f9979659277bb965985aff1272c33e3c3c9e755b77166d20a2465454178f2c:1)
+11-14 12:14:25.567  1162  1162 D StateManager: 	at com.android.launcher3.statemanager.StatefulActivity.onStop(go/retraceme 31f9979659277bb965985aff1272c33e3c3c9e755b77166d20a2465454178f2c:34)
+11-14 12:14:25.567  1162  1162 D StatsLog: LAUNCHER_ONSTOP
+11-14 12:14:25.568   560  2456 I AppWidgetServiceImpl: setAppWidgetHidden() 0
+11-14 12:14:25.570  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434575
+11-14 12:14:25.572  1162  1162 D StatsLog: LAUNCHER_GOOGLE_SEARCH_RESTORE_LIST_SIZE_AFTER_ACTIVITY_RESTART
+11-14 12:14:25.576  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f60c/lottie.json
+11-14 12:14:25.576  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f60c/lottie.json)
+11-14 12:14:25.579  1162  1926 D OneSearchSuggestProvider: Shut down the binder channel
+11-14 12:14:25.580  1162  3874 I IPCThreadState: oneway function results for code 2 on binder at 0x78ee17e0d4f0 will be dropped but finished with status UNKNOWN_TRANSACTION
+11-14 12:14:25.581  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f60f/lottie.json
+11-14 12:14:25.581  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f60f/lottie.json)
+11-14 12:14:25.584  4686  4707 I ExpoModulesCore: ✅ Constants were exported
+11-14 12:14:25.588   361   361 I netd    : tetherGetStats() -> {[]} <0.27ms>
+11-14 12:14:25.591  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434577
+11-14 12:14:25.594  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f924/lottie.json
+11-14 12:14:25.594  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f924/lottie.json)
+11-14 12:14:25.595  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434576
+11-14 12:14:25.595  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f60b/lottie.json
+11-14 12:14:25.595  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f60b/lottie.json)
+11-14 12:14:25.610  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434579
+11-14 12:14:25.612  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434578
+11-14 12:14:25.613  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class expo.modules.kotlin.views.GroupViewManagerWrapper
+11-14 12:14:25.613  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.uimanager.LayoutShadowNode
+11-14 12:14:25.614  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class org.maplibre.reactnative.components.sources.geojsonsource.MLRNGeoJSONSourceManager
+11-14 12:14:25.614  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class org.maplibre.reactnative.components.annotations.markerview.MLRNMarkerViewManager
+11-14 12:14:25.614  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.ScreenContainerViewManager
+11-14 12:14:25.615  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.reanimated.view.REASharedTransitionBoundaryManager
+11-14 12:14:25.615  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f61b/lottie.json
+11-14 12:14:25.615  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f61b/lottie.json)
+11-14 12:14:25.616  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class org.maplibre.reactnative.components.images.MLRNImagesManager
+11-14 12:14:25.616  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.gamma.tabs.host.TabsHostViewManager
+11-14 12:14:25.616  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.ScreenStackHeaderConfigViewManager
+11-14 12:14:25.617  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.ScreenStackHeaderSubviewManager
+11-14 12:14:25.617  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.gamma.modals.formsheet.FormSheetHostViewManager
+11-14 12:14:25.618  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class org.maplibre.reactnative.components.layer.MLRNLayerManager
+11-14 12:14:25.618  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class org.maplibre.reactnative.components.location.MLRNNativeUserLocationManager
+11-14 12:14:25.618  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class org.maplibre.reactnative.components.sources.tilesources.rastersource.MLRNRasterSourceManager
+11-14 12:14:25.619  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f61d/lottie.json
+11-14 12:14:25.619  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f61d/lottie.json)
+11-14 12:14:25.619  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.gamma.scrollviewmarker.ScrollViewMarkerViewManager
+11-14 12:14:25.619  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.gamma.modals.formsheet.FormSheetContentWrapperViewManager
+11-14 12:14:25.620  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.ScreenContentWrapperManager
+11-14 12:14:25.620  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class org.maplibre.reactnative.components.mapview.MLRNAndroidTextureMapViewManager
+11-14 12:14:25.620  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class org.maplibre.reactnative.components.mapview.MLRNMapViewManager$MapShadowNode
+11-14 12:14:25.620  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.gamma.stack.screen.StackScreenViewManager
+11-14 12:14:25.620  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class org.maplibre.reactnative.components.sources.imagesource.MLRNImageSourceManager
+11-14 12:14:25.620  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class org.maplibre.reactnative.components.sources.tilesources.vectorsource.MLRNVectorSourceManager
+11-14 12:14:25.621  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.th3rdwave.safeareacontext.SafeAreaViewManager
+11-14 12:14:25.621  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.th3rdwave.safeareacontext.SafeAreaViewShadowNode
+11-14 12:14:25.621  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.ScreenViewManager
+11-14 12:14:25.621  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.gamma.stack.header.config.StackHeaderConfigViewManager
+11-14 12:14:25.622  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class org.maplibre.reactnative.components.annotations.callout.MLRNCalloutManager
+11-14 12:14:25.622  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.th3rdwave.safeareacontext.SafeAreaProviderManager
+11-14 12:14:25.622  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.SearchBarManager
+11-14 12:14:25.622  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class org.maplibre.reactnative.components.camera.MLRNCameraManager
+11-14 12:14:25.622  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class org.maplibre.reactnative.components.mapview.MLRNMapViewManager
+11-14 12:14:25.622  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.gamma.stack.host.StackHostViewManager
+11-14 12:14:25.622  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class org.maplibre.reactnative.components.sources.tilesources.rasterdemsource.MLRNRasterDEMSourceManager
+11-14 12:14:25.623  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class org.maplibre.reactnative.components.annotations.pointannotation.MLRNPointAnnotationManager
+11-14 12:14:25.623  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.ScreenFooterManager
+11-14 12:14:25.623  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.ModalScreenViewManager
+11-14 12:14:25.624  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.safearea.SafeAreaViewManager
+11-14 12:14:25.624  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.ScreenStackViewManager
+11-14 12:14:25.624  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.gamma.stack.header.subview.StackHeaderSubviewViewManager
+11-14 12:14:25.624  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class org.reactnative.maskedview.RNCMaskedViewManager
+11-14 12:14:25.625  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.gamma.tabs.screen.TabsScreenViewManager
+11-14 12:14:25.627  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434580
+11-14 12:14:25.627  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f61c/lottie.json
+11-14 12:14:25.628  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f61c/lottie.json)
+11-14 12:14:25.629  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434581
+11-14 12:14:25.630  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f92a/lottie.json
+11-14 12:14:25.630  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f92a/lottie.json)
+11-14 12:14:25.637  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434582
+11-14 12:14:25.641  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f974/lottie.json
+11-14 12:14:25.641  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f974/lottie.json)
+11-14 12:14:25.645  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434583
+11-14 12:14:25.650  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f614/lottie.json
+11-14 12:14:25.650  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f614/lottie.json)
+11-14 12:14:25.655  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434584
+11-14 12:14:25.658  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f97a/lottie.json
+11-14 12:14:25.658  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f97a/lottie.json)
+11-14 12:14:25.663  1164  1184 I FontLog : Received query Noto Color Emoji Compat, URI content://com.google.android.gms.fonts [CONTEXT service_id=132 ]
+11-14 12:14:25.663  1164  1184 I FontLog : Query [emojicompat-emoji-font] resolved to {Noto Color Emoji Compat, wdth 100.0, wght 400, ital 0.0, bestEffort false} [CONTEXT service_id=132 ]
+11-14 12:14:25.663  1164  1184 I FontLog : Fetch {Noto Color Emoji Compat, wdth 100.0, wght 400, ital 0.0, bestEffort false} end status Status{statusCode=SUCCESS, resolution=null} [CONTEXT service_id=132 ]
+11-14 12:14:25.664  1164  1184 I FontLog : Pulling font file for id = 13, cache size = 13 [CONTEXT service_id=132 ]
+11-14 12:14:25.665  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434585
+11-14 12:14:25.666  1164  1184 I FontLog : Pulling font file for id = 13, cache size = 13 [CONTEXT service_id=132 ]
+11-14 12:14:25.669  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f62c/lottie.json
+11-14 12:14:25.669  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f62c/lottie.json)
+11-14 12:14:25.673  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434586
+11-14 12:14:25.673  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f611/lottie.json
+11-14 12:14:25.673  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f611/lottie.json)
+11-14 12:14:25.678  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$DefsViewManager
+11-14 12:14:25.678  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.VirtualViewManager$RenderableShadowNode
+11-14 12:14:25.679  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$FeMergeManager
+11-14 12:14:25.680  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.safeareaview.ReactSafeAreaViewManager
+11-14 12:14:25.681  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434587
+11-14 12:14:25.682  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.gesturehandler.react.RNGestureHandlerDetectorViewManager
+11-14 12:14:25.682  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$LinearGradientManager
+11-14 12:14:25.683  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f610/lottie.json
+11-14 12:14:25.683  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f610/lottie.json)
+11-14 12:14:25.683  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$FeGaussianBlurManager
+11-14 12:14:25.684  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.progressbar.ReactProgressBarViewManager
+11-14 12:14:25.685  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.scroll.ReactHorizontalScrollViewManager
+11-14 12:14:25.685  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.text.ReactTextViewManager
+11-14 12:14:25.686  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$FeColorMatrixManager
+11-14 12:14:25.687  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.scroll.ReactHorizontalScrollContainerViewManager
+11-14 12:14:25.687  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$ClipPathViewManager
+11-14 12:14:25.688  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$SymbolManager
+11-14 12:14:25.689  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434588
+11-14 12:14:25.689  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$PatternManager
+11-14 12:14:25.690  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$FeBlendManager
+11-14 12:14:25.690  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.view.ReactViewManager
+11-14 12:14:25.690  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f636/lottie.json
+11-14 12:14:25.690  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f636/lottie.json)
+11-14 12:14:25.690  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.SvgViewManager
+11-14 12:14:25.691  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.switchview.ReactSwitchManager
+11-14 12:14:25.691  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$UseViewManager
+11-14 12:14:25.692  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$CircleViewManager
+11-14 12:14:25.692  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$TSpanViewManager
+11-14 12:14:25.692  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$FilterManager
+11-14 12:14:25.693  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$MarkerManager
+11-14 12:14:25.693  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.gesturehandler.react.RNGestureHandlerButtonViewManager
+11-14 12:14:25.694  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.modal.ReactModalHostManager
+11-14 12:14:25.694  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$ForeignObjectManager
+11-14 12:14:25.695  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$EllipseViewManager
+11-14 12:14:25.695  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$LineViewManager
+11-14 12:14:25.696  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$FeFloodManager
+11-14 12:14:25.696  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434589
+11-14 12:14:25.696  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$GroupViewManager
+11-14 12:14:25.697  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f636_200d_1f32b_fe0f/lottie.json
+11-14 12:14:25.697  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f636_200d_1f32b_fe0f/lottie.json)
+11-14 12:14:25.697  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$TextViewManager
+11-14 12:14:25.697  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$ImageViewManager
+11-14 12:14:25.698  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$FeCompositeManager
+11-14 12:14:25.698  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.image.ReactImageManager
+11-14 12:14:25.699  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$RadialGradientManager
+11-14 12:14:25.699  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$MaskManager
+11-14 12:14:25.700  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.unimplementedview.ReactUnimplementedViewManager
+11-14 12:14:25.700  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$RectViewManager
+11-14 12:14:25.700  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$TextPathViewManager
+11-14 12:14:25.701  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.scroll.ReactScrollViewManager
+11-14 12:14:25.701  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$FeOffsetManager
+11-14 12:14:25.701  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.horcrux.svg.RenderableViewManager$PathViewManager
+11-14 12:14:25.702  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.drawer.ReactDrawerLayoutManager
+11-14 12:14:25.702  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.swiperefresh.SwipeRefreshLayoutManager
+11-14 12:14:25.703  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.textinput.ReactTextInputManager
+11-14 12:14:25.704  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.text.SelectableTextViewManager
+11-14 12:14:25.704  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434590
+11-14 12:14:25.704  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.gesturehandler.react.RNGestureHandlerRootViewManager
+11-14 12:14:25.704  4686  4707 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.virtual.view.ReactVirtualViewManager
+11-14 12:14:25.705  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1fae5/lottie.json
+11-14 12:14:25.705  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1fae5/lottie.json)
+11-14 12:14:25.711  4686  4707 D nativeloader: Load /data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!/lib/x86_64/librnscreens.so using ns clns-7 from class loader (caller=/data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!classes6.dex): ok
+11-14 12:14:25.711  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434591
+11-14 12:14:25.714  4686  4707 W ExpoModulesV2: expo.modules.sqlite.SQLAction does not implement io.github.expo.modules.v2.Enumerable. It crosses to JavaScript here, but R8 keeps an enum's entries and its property only when it does, so a release build may fail on it or send its entry names instead
+11-14 12:14:25.715  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f910/lottie.json
+11-14 12:14:25.715  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f910/lottie.json)
+11-14 12:14:25.716  4686  4707 I ReactNativeJS: Running "main"
+11-14 12:14:25.719  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434592
+11-14 12:14:25.722  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1fae1/lottie.json
+11-14 12:14:25.722  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1fae1/lottie.json)
+11-14 12:14:25.723  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434593
+11-14 12:14:25.723  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f914/lottie.json
+11-14 12:14:25.723  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f914/lottie.json)
+11-14 12:14:25.730  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434594
+11-14 12:14:25.732  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f92b/lottie.json
+11-14 12:14:25.732  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f92b/lottie.json)
+11-14 12:14:25.735  4686  4707 D nativeloader: Load /data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!/lib/x86_64/libexpo-modules-worklets.so using ns clns-7 from class loader (caller=/data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!classes5.dex): ok
+11-14 12:14:25.738  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434595
+11-14 12:14:25.739  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1fae2/lottie.json
+11-14 12:14:25.739  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1fae2/lottie.json)
+11-14 12:14:25.745  4686  4686 I ExpoModulesCore: ✅ JSI interop was installed
+11-14 12:14:25.747  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434596
+11-14 12:14:25.748  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f92d/lottie.json
+11-14 12:14:25.748  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f92d/lottie.json)
+11-14 12:14:25.749  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434597
+11-14 12:14:25.751  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f971/lottie.json
+11-14 12:14:25.751  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f971/lottie.json)
+11-14 12:14:25.757  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434598
+11-14 12:14:25.757  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f917/lottie.json
+11-14 12:14:25.757  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f917/lottie.json)
+11-14 12:14:25.761  4686  4707 D nativeloader: Load /data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!/lib/x86_64/libreanimated.so using ns clns-7 from class loader (caller=/data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!classes5.dex): ok
+11-14 12:14:25.762  4686  4707 D nativeloader: Load /data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!/lib/x86_64/libgesturehandler.so using ns clns-7 from class loader (caller=/data/app/~~FIm9ZvBRVHRnkcCTxFRZYA==/com.neutcrafts.steps-qYsSqvtLR5lnJ-n5pBE5nA==/base.apk!classes5.dex): ok
+11-14 12:14:25.764  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434599
+11-14 12:14:25.767  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1fae3/lottie.json
+11-14 12:14:25.767  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1fae3/lottie.json)
+11-14 12:14:25.772  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434600
+11-14 12:14:25.772  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f631/lottie.json
+11-14 12:14:25.772  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f631/lottie.json)
+11-14 12:14:25.779  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434601
+11-14 12:14:25.781  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434602
+11-14 12:14:25.782  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f928/lottie.json
+11-14 12:14:25.782  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f928/lottie.json)
+11-14 12:14:25.784  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f9d0/lottie.json
+11-14 12:14:25.784  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f9d0/lottie.json)
+11-14 12:14:25.790  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434603
+11-14 12:14:25.791  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f612/lottie.json
+11-14 12:14:25.791  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f612/lottie.json)
+11-14 12:14:25.799  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434604
+11-14 12:14:25.803  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f644/lottie.json
+11-14 12:14:25.803  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f644/lottie.json)
+11-14 12:14:25.803  4686  4707 D DefaultLocationEngineProvider: DefaultLocationEngine will be used.
+11-14 12:14:25.805  4686  4707 I ReactNativeJS: design-preview ready: clean detail
+11-14 12:14:25.806  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434605
+11-14 12:14:25.807  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f62e_200d_1f4a8/lottie.json
+11-14 12:14:25.807  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f62e_200d_1f4a8/lottie.json)
+11-14 12:14:25.814  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434606
+11-14 12:14:25.814  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f624/lottie.json
+11-14 12:14:25.814  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f624/lottie.json)
+11-14 12:14:25.821  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434607
+11-14 12:14:25.826  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f620/lottie.json
+11-14 12:14:25.826  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f620/lottie.json)
+11-14 12:14:25.829  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434608
+11-14 12:14:25.834  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f621/lottie.json
+11-14 12:14:25.834  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f621/lottie.json)
+11-14 12:14:25.836  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434609
+11-14 12:14:25.840  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f92c/lottie.json
+11-14 12:14:25.840  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f92c/lottie.json)
+11-14 12:14:25.842  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434610
+11-14 12:14:25.846  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f61e/lottie.json
+11-14 12:14:25.846  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f61e/lottie.json)
+11-14 12:14:25.850  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434611
+11-14 12:14:25.859  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f613/lottie.json
+11-14 12:14:25.859  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f613/lottie.json)
+11-14 12:14:25.866   560   583 I ActivityTaskManager: Displayed com.neutcrafts.steps/.MainActivity for user 0: +1s335ms
+11-14 12:14:25.866  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434612
+11-14 12:14:25.870  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f61f/lottie.json
+11-14 12:14:25.870  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f61f/lottie.json)
+11-14 12:14:25.888  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434614
+11-14 12:14:25.888  4686  4686 D MLRNOfflineModule: No packs need migration
+11-14 12:14:25.889  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434613
+11-14 12:14:26.030     0     0 I logd    : logdr: UID=2000 GID=2000 PID=4739 n tail=0 logMask=99 pid=0 start=0ns deadline=0ns
+11-14 12:14:25.901  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f625/lottie.json
+11-14 12:14:25.901  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f625/lottie.json)
+11-14 12:14:25.903  4686  4686 D SplashScreenView: Building from parcel drawable: android.graphics.drawable.BitmapDrawable@cabb3a6
+11-14 12:14:25.903  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f622/lottie.json
+11-14 12:14:25.903  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f622/lottie.json)
+11-14 12:14:25.905  4686  4686 D SplashScreenView: Build android.window.SplashScreenView{b66a194 V.E...... ......ID 0,0-0,0}
+11-14 12:14:25.905  4686  4686 D SplashScreenView: Icon: view: androidx.appcompat.widget.AppCompatImageView{c66143d V.ED..... ......I. 0,0-0,0 #1020504 android:id/splashscreen_icon_view} drawable: android.graphics.drawable.BitmapDrawable@cabb3a6 size: 504
+11-14 12:14:25.905  4686  4686 D SplashScreenView: Branding: view: android.view.View{5cf6432 G.ED..... ......I. 0,0-0,0 #1020503 android:id/splashscreen_branding_view} drawable: null size w: 0 h: 0
+11-14 12:14:25.909   560   682 I ImeTracker: com.neutcrafts.steps:cba8f254: onRequestHide at ORIGIN_SERVER reason HIDE_UNSPECIFIED_WINDOW fromUser false
+11-14 12:14:25.910   560   682 I ImeTracker: com.neutcrafts.steps:cba8f254: onCancelled at PHASE_SERVER_SHOULD_HIDE
+11-14 12:14:25.916  1320  1320 I GoogleInputMethodService: GoogleInputMethodService.onFinishInput():3157 
+11-14 12:14:25.921  1320  1320 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2248 repeatCheckTimes = 0, locked = false
+11-14 12:14:25.921  1320  1320 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1986 onStartInput(EditorInfo{EditorInfo{packageName=com.neutcrafts.steps, inputType=0, inputTypeString=NULL, enableLearning=false, autoCorrection=false, autoComplete=false, imeOptions=0, privateImeOptions=null, actionName=UNSPECIFIED, actionLabel=null, initialSelStart=-1, initialSelEnd=-1, initialCapsMode=0, label=null, fieldId=0, fieldName=null, extras=null, hintText=null, hintLocales=[]}}, false)
+11-14 12:14:25.921  1320  1320 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2248 repeatCheckTimes = 1, locked = false
+11-14 12:14:25.922  1320  1320 I AndroidIME: InputBundleManager.loadActiveInputBundleId():450 loadActiveInputBundleId: und-Latn-x-password, password
+11-14 12:14:25.925   560  1512 W PackageConfigPersister: App-specific configuration not found for packageName: com.neutcrafts.steps and userId: 0
+11-14 12:14:26.107   907  1015 W WindowOnBackDispatcher: sendCancelIfRunning: isInProgress=false callback=android.view.ViewRootImpl$$ExternalSyntheticLambda11@d6d34bc
+11-14 12:14:26.107   560  1010 D CoreBackPreview: Window{f7ca547 u0 Splash Screen com.neutcrafts.steps}: Setting back callback null
+11-14 12:14:26.108   560  1010 W InputManager-JNI: Input channel object 'f7ca547 Splash Screen com.neutcrafts.steps (client)' was disposed without first being removed with the input manager!
+11-14 12:14:26.116  4686  4686 D SplashScreenView: remove starting view
+11-14 12:14:26.140  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434616
+11-14 12:14:26.141  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/2639_fe0f/lottie.json
+11-14 12:14:26.142  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/2639_fe0f/lottie.json)
+11-14 12:14:26.142  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434615
+11-14 12:14:26.144  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f641/lottie.json
+11-14 12:14:26.144  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f641/lottie.json)
+11-14 12:14:26.153  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434617
+11-14 12:14:26.154  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1fae4/lottie.json
+11-14 12:14:26.154  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1fae4/lottie.json)
+11-14 12:14:26.157  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434618
+11-14 12:14:26.158  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f615/lottie.json
+11-14 12:14:26.158  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f615/lottie.json)
+11-14 12:14:26.162  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434619
+11-14 12:14:26.163  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f630/lottie.json
+11-14 12:14:26.163  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f630/lottie.json)
+11-14 12:14:26.169  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434620
+11-14 12:14:26.171  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f628/lottie.json
+11-14 12:14:26.171  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f628/lottie.json)
+11-14 12:14:26.176  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434621
+11-14 12:14:26.177  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f627/lottie.json
+11-14 12:14:26.178  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f627/lottie.json)
+11-14 12:14:26.183  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434622
+11-14 12:14:26.185  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f626/lottie.json
+11-14 12:14:26.185  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f626/lottie.json)
+11-14 12:14:26.190  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434623
+11-14 12:14:26.191  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f62e/lottie.json
+11-14 12:14:26.191  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f62e/lottie.json)
+11-14 12:14:26.197  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434624
+11-14 12:14:26.199  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f62f/lottie.json
+11-14 12:14:26.199  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f62f/lottie.json)
+11-14 12:14:26.204  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434625
+11-14 12:14:26.205  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f632/lottie.json
+11-14 12:14:26.205  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f632/lottie.json)
+11-14 12:14:26.212  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434626
+11-14 12:14:26.212  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f633/lottie.json
+11-14 12:14:26.212  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f633/lottie.json)
+11-14 12:14:26.220  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434627
+11-14 12:14:26.221  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f92f/lottie.json
+11-14 12:14:26.221  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f92f/lottie.json)
+11-14 12:14:26.227  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434628
+11-14 12:14:26.228  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f616/lottie.json
+11-14 12:14:26.228  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f616/lottie.json)
+11-14 12:14:26.234  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434629
+11-14 12:14:26.237  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f623/lottie.json
+11-14 12:14:26.237  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f623/lottie.json)
+11-14 12:14:26.242  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434630
+11-14 12:14:26.243  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f629/lottie.json
+11-14 12:14:26.243  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f629/lottie.json)
+11-14 12:14:26.245  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434631
+11-14 12:14:26.246  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f62b/lottie.json
+11-14 12:14:26.246  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f62b/lottie.json)
+11-14 12:14:26.251  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434632
+11-14 12:14:26.253  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f635/lottie.json
+11-14 12:14:26.253  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f635/lottie.json)
+11-14 12:14:26.254  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434633
+11-14 12:14:26.256  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f635_200d_1f4ab/lottie.json
+11-14 12:14:26.256  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f635_200d_1f4ab/lottie.json)
+11-14 12:14:26.261  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434634
+11-14 12:14:26.262  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1fae8/lottie.json
+11-14 12:14:26.262  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1fae8/lottie.json)
+11-14 12:14:26.264  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434635
+11-14 12:14:26.265  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f976/lottie.json
+11-14 12:14:26.265  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f976/lottie.json)
+11-14 12:14:26.271  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434636
+11-14 12:14:26.273  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f975/lottie.json
+11-14 12:14:26.273  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f975/lottie.json)
+11-14 12:14:26.278  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434637
+11-14 12:14:26.285  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f922/lottie.json
+11-14 12:14:26.285  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f922/lottie.json)
+11-14 12:14:26.286  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434638
+11-14 12:14:26.288  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f92e/lottie.json
+11-14 12:14:26.288  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f92e/lottie.json)
+11-14 12:14:26.293  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434639
+11-14 12:14:26.294  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f634/lottie.json
+11-14 12:14:26.295  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f634/lottie.json)
+11-14 12:14:26.297  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434640
+11-14 12:14:26.304  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f62a/lottie.json
+11-14 12:14:26.304  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f62a/lottie.json)
+11-14 12:14:26.305  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434641
+11-14 12:14:26.306  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f927/lottie.json
+11-14 12:14:26.306  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f927/lottie.json)
+11-14 12:14:26.313  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434642
+11-14 12:14:26.315  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f912/lottie.json
+11-14 12:14:26.315  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f912/lottie.json)
+11-14 12:14:26.320  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434643
+11-14 12:14:26.322  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f915/lottie.json
+11-14 12:14:26.322  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f915/lottie.json)
+11-14 12:14:26.328  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434644
+11-14 12:14:26.329  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f637/lottie.json
+11-14 12:14:26.329  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f637/lottie.json)
+11-14 12:14:26.330  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434645
+11-14 12:14:26.331  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f925/lottie.json
+11-14 12:14:26.331  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f925/lottie.json)
+11-14 12:14:26.337  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434646
+11-14 12:14:26.338  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f607/lottie.json
+11-14 12:14:26.338  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f607/lottie.json)
+11-14 12:14:26.340  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434647
+11-14 12:14:26.342  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f920/lottie.json
+11-14 12:14:26.342  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f920/lottie.json)
+11-14 12:14:26.347  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434648
+11-14 12:14:26.349  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f911/lottie.json
+11-14 12:14:26.349  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f911/lottie.json)
+11-14 12:14:26.350  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434649
+11-14 12:14:26.351  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f913/lottie.json
+11-14 12:14:26.352  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f913/lottie.json)
+11-14 12:14:26.358  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434650
+11-14 12:14:26.360  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f60e/lottie.json
+11-14 12:14:26.360  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f60e/lottie.json)
+11-14 12:14:26.365  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434651
+11-14 12:14:26.366  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f978/lottie.json
+11-14 12:14:26.366  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f978/lottie.json)
+11-14 12:14:26.372  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434652
+11-14 12:14:26.374  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f921/lottie.json
+11-14 12:14:26.374  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f921/lottie.json)
+11-14 12:14:26.380  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434653
+11-14 12:14:26.383  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f4a9/lottie.json
+11-14 12:14:26.383  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f4a9/lottie.json)
+11-14 12:14:26.388  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434654
+11-14 12:14:26.389  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f608/lottie.json
+11-14 12:14:26.389  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f608/lottie.json)
+11-14 12:14:26.395  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434655
+11-14 12:14:26.398  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f47f/lottie.json
+11-14 12:14:26.398  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f47f/lottie.json)
+11-14 12:14:26.403  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434656
+11-14 12:14:26.404  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f47b/lottie.json
+11-14 12:14:26.404  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f47b/lottie.json)
+11-14 12:14:26.406  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434657
+11-14 12:14:26.407  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f480/lottie.json
+11-14 12:14:26.407  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f480/lottie.json)
+11-14 12:14:26.412  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434658
+11-14 12:14:26.418  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434659
+11-14 12:14:26.423  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f383/lottie.json
+11-14 12:14:26.423  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f383/lottie.json)
+11-14 12:14:26.425  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f916/lottie.json
+11-14 12:14:26.425  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f916/lottie.json)
+11-14 12:14:26.435  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434660
+11-14 12:14:26.436  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f47d/lottie.json
+11-14 12:14:26.436  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f47d/lottie.json)
+11-14 12:14:26.438  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434661
+11-14 12:14:26.447  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f31e/lottie.json
+11-14 12:14:26.447  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f31e/lottie.json)
+11-14 12:14:26.450  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434662
+11-14 12:14:26.455  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434663
+11-14 12:14:26.456  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f31b/lottie.json
+11-14 12:14:26.456  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f31b/lottie.json)
+11-14 12:14:26.457  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f31c/lottie.json
+11-14 12:14:26.457  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f31c/lottie.json)
+11-14 12:14:26.469  4746  4746 W BpBinder: Linking to death on android.gui.ISurfaceComposer but there are no threads (yet?) listening to incoming transactions. See ProcessState::startThreadPool and ProcessState::setThreadPoolMaxThreadCount. Generally you should setup the binder threadpool before other initialization steps.
+11-14 12:14:26.469  4746  4746 W ProcessState: Extra binder thread started, but 0 threads requested. Do not use *startThreadPool when zero threads are requested.
+11-14 12:14:26.482   149   149 I hwservicemanager: getTransport: Cannot find entry android.hardware.graphics.mapper@4.0::IMapper/default in either framework or device VINTF manifest.
+11-14 12:14:26.482  4746  4747 I Gralloc4: mapper 4.x is not supported
+11-14 12:14:26.616     0     0 I servicemanager: Caller(pid=4746,uid=2000,sid=u:r:shell:s0) Could not find android.hardware.graphics.allocator.IAllocator/default in the VINTF manifest. No alternative instances declared in VINTF.
+11-14 12:14:26.677  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434665
+11-14 12:14:26.677  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434664
+11-14 12:14:26.678  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f638/lottie.json
+11-14 12:14:26.678  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f638/lottie.json)
+11-14 12:14:26.679  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f63a/lottie.json
+11-14 12:14:26.679  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f63a/lottie.json)
+11-14 12:14:26.687  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434666
+11-14 12:14:26.688  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434667
+11-14 12:14:26.689  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f639/lottie.json
+11-14 12:14:26.689  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f639/lottie.json)
+11-14 12:14:26.690  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f63b/lottie.json
+11-14 12:14:26.690  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f63b/lottie.json)
+11-14 12:14:26.691   560   662 D ActivityManager: freezing 3825 com.google.android.settings.intelligence
+11-14 12:14:26.691   560   662 D ActivityManager: freezing 1073 com.android.settings
+11-14 12:14:26.692   560   662 D ActivityManager: freezing 3151 com.google.android.configupdater
+11-14 12:14:26.692   560   828 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET, states=14
+11-14 12:14:26.693   560   828 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET6, states=14
+11-14 12:14:26.693   560   828 D InetDiagMessage: Destroyed live tcp sockets for uids={10140} in 1ms
+11-14 12:14:26.742   560   828 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET, states=14
+11-14 12:14:26.742   560   828 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET6, states=14
+11-14 12:14:26.742   560   828 D InetDiagMessage: Destroyed live tcp sockets for uids={10135} in 0ms
+11-14 12:14:26.904  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434668
+11-14 12:14:26.905  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434669
+11-14 12:14:26.906  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f63c/lottie.json
+11-14 12:14:26.906  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f63c/lottie.json)
+11-14 12:14:26.906  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f63d/lottie.json
+11-14 12:14:26.906  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f63d/lottie.json)
+11-14 12:14:26.916  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434670
+11-14 12:14:26.917  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434671
+11-14 12:14:26.917  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f640/lottie.json
+11-14 12:14:26.917  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f640/lottie.json)
+11-14 12:14:26.918  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f63f/lottie.json
+11-14 12:14:26.918  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f63f/lottie.json)
+11-14 12:14:26.922   560   828 W IPCThreadState: Sending oneway calls to frozen process.
+11-14 12:14:26.923   560   828 W IPCThreadState: Sending oneway calls to frozen process.
+11-14 12:14:26.924   560   828 W IPCThreadState: Sending oneway calls to frozen process.
+11-14 12:14:26.924   560   828 W IPCThreadState: Sending oneway calls to frozen process.
+11-14 12:14:26.925  3578  3862 I BugleRcsEngine: handleMessage processing message:[NOTIFY_UPTIME_IGNORE_STATE_CHANGED] with [non-null]:RcsEngineImpl reference [CONTEXT log_prefix="RcsEngineImpl[DUAL_REG]:[7879cc60-eac6]>Handler" thread_id=77 ]
+11-14 12:14:26.926  3578  3632 I BugleRcsEngine: Connected state: [1], networkType: [WIFI] [CONTEXT thread_id=60 ]
+11-14 12:14:26.926  3352  3352 W JobService: onNetworkChanged() not implemented in androidx.work.impl.background.systemjob.SystemJobService. Must override in a subclass.
+11-14 12:14:26.926  3578  3862 I BugleRcsEngine: No RCS Configuration was found in Bugle for simID: redacted-pii:sim_id[chars:20,last3:897] [CONTEXT log_prefix="ProvisioningEngineDataRetriever" thread_id=77 ]
+11-14 12:14:26.927  1164  1184 I ChimeraSrvcProxy: NullBinder for android.net.action.RECOMMEND_NETWORKS triggering remote TransactionTooLargeException due to Service without Chimera impl
+11-14 12:14:26.927  1164  1184 W .gms.persistent: Large reply transaction of 1056768 bytes, interface descriptor , code 1
+11-14 12:14:27.131  4750  4750 W BpBinder: Linking to death on android.gui.ISurfaceComposer but there are no threads (yet?) listening to incoming transactions. See ProcessState::startThreadPool and ProcessState::setThreadPoolMaxThreadCount. Generally you should setup the binder threadpool before other initialization steps.
+11-14 12:14:27.131  4750  4750 W ProcessState: Extra binder thread started, but 0 threads requested. Do not use *startThreadPool when zero threads are requested.
+11-14 12:14:27.132  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434672
+11-14 12:14:27.140  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434673
+11-14 12:14:27.142  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f63e/lottie.json
+11-14 12:14:27.142  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f63e/lottie.json)
+11-14 12:14:27.145   149   149 I hwservicemanager: getTransport: Cannot find entry android.hardware.graphics.mapper@4.0::IMapper/default in either framework or device VINTF manifest.
+11-14 12:14:27.145  4750  4751 I Gralloc4: mapper 4.x is not supported
+11-14 12:14:27.277     0     0 I servicemanager: Caller(pid=4750,uid=2000,sid=u:r:shell:s0) Could not find android.hardware.graphics.allocator.IAllocator/default in the VINTF manifest. No alternative instances declared in VINTF.
+11-14 12:14:27.152  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f648/lottie.json
+11-14 12:14:27.153  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f648/lottie.json)
+11-14 12:14:27.156  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434674
+11-14 12:14:27.165  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f649/lottie.json
+11-14 12:14:27.165  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f649/lottie.json)
+11-14 12:14:27.173  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434675
+11-14 12:14:27.176  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434676
+11-14 12:14:27.178  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f64a/lottie.json
+11-14 12:14:27.178  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f64a/lottie.json)
+11-14 12:14:27.178  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f31f/lottie.json
+11-14 12:14:27.178  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f31f/lottie.json)
+11-14 12:14:27.186  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434677
+11-14 12:14:27.188  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/2728/lottie.json
+11-14 12:14:27.188  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/2728/lottie.json)
+11-14 12:14:27.190  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434678
+11-14 12:14:27.192  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/26a1/lottie.json
+11-14 12:14:27.192  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/26a1/lottie.json)
+11-14 12:14:27.196  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434679
+11-14 12:14:27.197  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f4a5/lottie.json
+11-14 12:14:27.197  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f4a5/lottie.json)
+11-14 12:14:27.200  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434680
+11-14 12:14:27.202  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f525/lottie.json
+11-14 12:14:27.202  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f525/lottie.json)
+11-14 12:14:27.205  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434681
+11-14 12:14:27.207  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f4af/lottie.json
+11-14 12:14:27.207  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f4af/lottie.json)
+11-14 12:14:27.211  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434682
+11-14 12:14:27.212  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f389/lottie.json
+11-14 12:14:27.212  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f389/lottie.json)
+11-14 12:14:27.216  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434683
+11-14 12:14:27.218  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f38a/lottie.json
+11-14 12:14:27.218  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f38a/lottie.json)
+11-14 12:14:27.221  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434684
+11-14 12:14:27.222  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/2764_fe0f/lottie.json
+11-14 12:14:27.222  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/2764_fe0f/lottie.json)
+11-14 12:14:27.226  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434685
+11-14 12:14:27.228  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f9e1/lottie.json
+11-14 12:14:27.228  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f9e1/lottie.json)
+11-14 12:14:27.233  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434686
+11-14 12:14:27.234  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f49b/lottie.json
+11-14 12:14:27.234  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f49b/lottie.json)
+11-14 12:14:27.237  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434687
+11-14 12:14:27.238  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f49a/lottie.json
+11-14 12:14:27.238  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f49a/lottie.json)
+11-14 12:14:27.242  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434688
+11-14 12:14:27.243  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1fa75/lottie.json
+11-14 12:14:27.243  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1fa75/lottie.json)
+11-14 12:14:27.247  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434689
+11-14 12:14:27.247  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f499/lottie.json
+11-14 12:14:27.247  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f499/lottie.json)
+11-14 12:14:27.253  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434690
+11-14 12:14:27.256  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f49c/lottie.json
+11-14 12:14:27.256  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f49c/lottie.json)
+11-14 12:14:27.257  3352  4006 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434691
+11-14 12:14:27.257  3352  3461 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f90e/lottie.json
+11-14 12:14:27.257  3352  3461 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f90e/lottie.json)
+11-14 12:14:27.265  3352  3544 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434692
+11-14 12:14:27.266  3352  3461 E MDD     : DownloadProgressMonitor: Can't find file group for uri: android://com.google.android.apps.messaging/files/datadownload/shared/public/datadownloadfile_1794658434693
+11-14 12:14:27.267  3352  4006 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f5a4/lottie.json
+11-14 12:14:27.267  3352  4006 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1f5a4/lottie.json)
+11-14 12:14:27.267  3352  3544 D dasx    : Starting download: https://fonts.gstatic.com/s/e/notoemoji/16.0/1fa76/lottie.json
+11-14 12:14:27.267  3352  3544 V dasx    : Is http uri, downloading (uri: https://fonts.gstatic.com/s/e/notoemoji/16.0/1fa76/lottie.json)
+11-14 12:14:27.290   560   594 D OomAdjuster: Not killing cached processes
+11-14 12:14:27.295  1398  1410 I AiAiEcho: Settings changed for uri: content://settings/secure/ui_night_mode
+11-14 12:14:27.295   560  1010 I ActivityTaskManager: Config changes=200 {1.0 310mcc260mnc [en_US] ldltr sw411dp w411dp h914dp 420dpi nrml long port finger qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1080, 2400) mAppBounds=Rect(0, 0 - 1080, 2400) mMaxBounds=Rect(0, 0 - 1080, 2400) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_0} as.3 s.139 fontWeightAdjustment=0}
+11-14 12:14:27.296  1398  1656 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+11-14 12:14:27.296  1398  1656 I AiAiEcho: EchoTargets: 
+11-14 12:14:27.296  1398  1656 I AiAiEcho: Filtered by AiAi flag check: 
+11-14 12:14:27.296  1398  1656 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+11-14 12:14:27.296  1398  1656 I AiAiEcho: Ranked targets strategy: SORT, count: 0, ranking metadata:  [CONTEXT ratelimit_period="10 SECONDS" ]
+11-14 12:14:27.297  1398  1656 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+11-14 12:14:27.297  1398  1656 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+11-14 12:14:27.297  1398  1656 I AiAiEcho: EchoTargets: 
+11-14 12:14:27.297  1398  1656 I AiAiEcho: Filtered by AiAi flag check: 
+11-14 12:14:27.297  1398  1656 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+11-14 12:14:27.297  1398  1656 I AiAiEcho: Ranked targets strategy: SORT, count: 0, ranking metadata:  [CONTEXT ratelimit_period="10 SECONDS" ]
+11-14 12:14:27.297  1398  1656 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+11-14 12:14:27.297  1398  1656 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface lockscreen with targets# 0 (types=[])
+11-14 12:14:27.297  1398  1656 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface home with targets# 0 (types=[])
+11-14 12:14:27.297   907   907 W PageIndicator: Total number of pages invalid: 0. Assuming 1 page.
+11-14 12:14:27.298  1162  1162 D SsBaseTemplateCard: No text view can be set up
+11-14 12:14:27.298  1162  1162 D SsBaseTemplateCard: Passed-in item info is null
+11-14 12:14:27.298  1162  1162 D SsBaseTemplateCard: Passed-in item info is null
+11-14 12:14:27.298  1162  1162 D SsBaseTemplateCard: Passed-in item info is null
+11-14 12:14:27.298  1162  1162 I SsBaseTemplateCard: Secondary card pane is null
+11-14 12:14:27.301   560  1010 V ActivityTaskManager: Sending to IME proc com.google.android.inputmethod.latin new config {1.0 310mcc260mnc [en_US] ldltr sw411dp w411dp h842dp 420dpi nrml long port finger qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1080, 2400) mAppBounds=Rect(0, 128 - 1080, 2337) mMaxBounds=Rect(0, 0 - 1080, 2400) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_0} as.3 s.186 fontWeightAdjustment=0}
+11-14 12:14:27.304   560  1010 I WindowManager: Override config changes=200 {1.0 310mcc260mnc [en_US] ldltr sw411dp w411dp h914dp 420dpi nrml long port finger qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1080, 2400) mAppBounds=Rect(0, 0 - 1080, 2400) mMaxBounds=Rect(0, 0 - 1080, 2400) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_0} as.3 s.139 fontWeightAdjustment=0} for displayId=0
+11-14 12:14:27.304   907   948 V WindowManagerShell: Transition requested (#40): android.os.BinderProxy@c994769 TransitionRequestInfo { type = CHANGE, triggerTask = null, pipTask = null, remoteTransition = null, displayChange = null, flags = 0, debugId = 40 }
+11-14 12:14:27.306   907   911 W ndroid.systemui: Missing inline cache for void com.android.systemui.statusbar.policy.Clock$2$$ExternalSyntheticLambda0.run()
+11-14 12:14:27.312   560   560 W WindowTokenClientController: Can't find attached WindowTokenClient for android.window.WindowTokenClient@de0df6e
+11-14 12:14:27.314   560  1010 W OptProp : Cannot read opt property android.window.PROPERTY_CAMERA_COMPAT_ALLOW_REFRESH
+11-14 12:14:27.320  1320  1320 I AppBase : AppBase.onConfigurationChanged():419 onConfigurationChanged() : NewConfig = {1.0 310mcc260mnc [en_US] ldltr sw411dp w411dp h842dp 420dpi nrml long port finger qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1080, 2400) mAppBounds=Rect(0, 128 - 1080, 2337) mMaxBounds=Rect(0, 0 - 1080, 2400) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_0} as.3 s.186 fontWeightAdjustment=0}
+11-14 12:14:27.326   432   432 I BpBinder: onLastStrongRef automatically unlinking death recipients: 
+11-14 12:14:27.331   907   948 V ShellDragAndDrop: Display changed: 0
+11-14 12:14:27.331   907   907 I NoBackGesture: Config changed: newConfig={1.0 310mcc260mnc [en_US] ldltr sw411dp w411dp h914dp 420dpi nrml long port finger qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1080, 2400) mAppBounds=Rect(0, 0 - 1080, 2400) mMaxBounds=Rect(0, 0 - 1080, 2400) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_0} as.4 s.195 fontWeightAdjustment=0} lastReportedConfig={1.0 310mcc260mnc [en_US] ldltr sw411dp w411dp h914dp 420dpi nrml long port night finger qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1080, 2400) mAppBounds=Rect(0, 0 - 1080, 2400) mMaxBounds=Rect(0, 0 - 1080, 2400) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_0} as.4 s.135 fontWeightAdjustment=0}
+11-14 12:14:27.331   907   907 I NoBackGesture: NavbarController: newConfig={1.0 310mcc260mnc [en_US] ldltr sw411dp w411dp h914dp 420dpi nrml long port finger qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1080, 2400) mAppBounds=Rect(0, 0 - 1080, 2400) mMaxBounds=Rect(0, 0 - 1080, 2400) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_0} as.4 s.195 fontWeightAdjustment=0} mTaskbarDelegate initialized=true willApplyConfigToNavbars=true navBarCount=0
+11-14 12:14:27.332   907   948 D ShellSplitScreen: onTaskInfoChanged: taskId=4 taskAct=null
+11-14 12:14:27.332   907   948 D ShellSplitScreen: onTaskInfoChanged: taskId=3 taskAct=null
+11-14 12:14:27.332  1320  1320 W GoogleInputMethodService: GoogleInputMethodService.onConfigurationChanged():1644 onConfigurationChanged() : NewConfig = {1.0 310mcc260mnc [en_US] ldltr sw411dp w411dp h914dp 420dpi nrml long port finger qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1080, 2400) mAppBounds=Rect(0, 0 - 1080, 2400) mMaxBounds=Rect(0, 0 - 1080, 2400) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_0} as.3 s.139 fontWeightAdjustment=0}
+11-14 12:14:27.332  1320  1320 I GoogleInputMethodService: GoogleInputMethodService.onConfigurationChanged():1645 device real metrics: DisplayMetrics{density=2.625, width=1080, height=2400, scaledDensity=2.625, xdpi=420.0, ydpi=420.0}
+11-14 12:14:27.333  1320  1320 I InputMethodEntryManager: InputMethodEntryManager.notifyCurrentInputMethodEntryOnContextChanged():521 notifyCurrentInputMethodEntryOnContextChanged()
+11-14 12:14:27.333  1320  1320 I InputMethodEntryManager: InputMethodEntryManager.notifyCurrentInputMethodEntryOnContextChanged():542 Notify current input method entry changed on context change
+11-14 12:14:27.333  1320  1320 I SystemSubtypesReportModule: SystemSubtypesReportModule$3.onCurrentInputMethodEntryChanged():136 entry: en-US, source: UNSPECIFIED
+11-14 12:14:27.333  1320  1320 I KeyboardContextProvider: KeyboardContextProvider$KeyboardContextCache.createKeyboardContext():173 createKeyboardContext(): en-US, jgg@c74f2d3(com.android.inputmethod.latin.LatinIME@b340dec), {1.0 310mcc260mnc [en_US] ldltr sw411dp w411dp h914dp 420dpi nrml long port finger qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1080, 2400) mAppBounds=Rect(0, 0 - 1080, 2400) mMaxBounds=Rect(0, 0 - 1080, 2400) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_0} as.3 s.46 fontWeightAdjustment=0}
+11-14 12:14:27.333  1320  1320 I GoogleInputMethodService: GoogleInputMethodService.onCurrentInputMethodEntryChanged():3655 onCurrentInputMethodEntryChanged(): imeDefsChanged=false, initializedEntryChanged=false, keyboardContextChanged=true
+11-14 12:14:27.333  1320  1320 I GoogleInputMethodService: GoogleInputMethodService.clearInputMethodServiceData():1613 clearInputMethodServiceData for entryChange
+11-14 12:14:27.334  1320  1320 I KeyboardHeightUtil: KeyboardHeightUtil.calculateMaxKeyboardBodyHeight():45 leave 281 height for app when ime window height:2272, header height:116 and isFullscreenMode:false, so the max keyboard body height is:1875
+11-14 12:14:27.334  1320  1320 I KeyboardHeightUtil: KeyboardHeightUtil.calculateMaxKeyboardBodyHeight():45 leave 281 height for app when ime window height:2272, header height:116 and isFullscreenMode:false, so the max keyboard body height is:1875
+11-14 12:14:27.334  1320  1320 I KeyboardModeManager: KeyboardModeManager.onCurrentInputMethodEntryChanged():1133 Reload data for context change
+11-14 12:14:27.335  1320  1320 I GoogleInputMethodService: GoogleInputMethodService.initializeInputMethodServiceData():1382 initializeInputMethodServiceData for kct{languageTag=en-US, variant=qwerty, hasLocalizedResources=true, conditionCacheKey=_cache_additional_ime_defs_for_condition_change=false_cache_ime_defs_for_condition_change=false_device=phone_device_size=default_enable_flick_symbols=false_enable_more_candidates_view_for_multilingual=false_enable_number_row=false_enable_preemptive_decode=true_enable_secondary_digits=true_enable_secondary_symbols=false_enable_show_foldable_layout_on_small_tablet=true_expressions=normal_four_or_more_letter_rows=false_keyboard_mode=normal_language=en-US_orientation=portrait_physical_keyboard=qwerty_rtl_layout=false_show_secondary_digits=true_show_suggestions=true_split_with_duplicate_keys=true_variant=qwerty, imeDef.stringId=ime_english_united_states, imeDef.className=com.google.android.apps.inputmethod.libs.latin5.LatinIme, imeDef.languageTag=en-US}
+11-14 12:14:27.335  1014  1074 W IPCThreadState: Sending oneway calls to frozen process.
+11-14 12:14:27.336  1014  1074 E SystemServiceRegistry: No service published for: ethernet
+11-14 12:14:27.336  1014  1074 E SystemServiceRegistry: android.os.ServiceManager$ServiceNotFoundException: No service published for: ethernet
+11-14 12:14:27.336  1014  1074 E SystemServiceRegistry: 	at android.os.ServiceManager.getServiceOrThrow(ServiceManager.java:203)
+11-14 12:14:27.336  1014  1074 E SystemServiceRegistry: 	at android.app.SystemServiceRegistry$145.createService(SystemServiceRegistry.java:2120)
+11-14 12:14:27.336  1014  1074 E SystemServiceRegistry: 	at android.app.SystemServiceRegistry$CachedServiceFetcher.getService(SystemServiceRegistry.java:2231)
+11-14 12:14:27.336  1014  1074 E SystemServiceRegistry: 	at android.app.SystemServiceRegistry.getSystemService(SystemServiceRegistry.java:1812)
+11-14 12:14:27.336  1014  1074 E SystemServiceRegistry: 	at android.app.ContextImpl.getSystemService(ContextImpl.java:2241)
+11-14 12:14:27.336  1014  1074 E SystemServiceRegistry: 	at android.content.ContextWrapper.getSystemService(ContextWrapper.java:936)
+11-14 12:14:27.336  1014  1074 E SystemServiceRegistry: 	at com.android.networkstack.tethering.Tethering.isEthernetSupported(Tethering.java:1579)
+11-14 12:14:27.336  1014  1074 E SystemServiceRegistry: 	at com.android.networkstack.tethering.Tethering.makeSupportedDownstreams(Tethering.java:2562)
+11-14 12:14:27.336  1014  1074 E SystemServiceRegistry: 	at com.android.networkstack.tethering.Tethering.updateSupportedDownstreams(Tethering.java:2536)
+11-14 12:14:27.336  1014  1074 E SystemServiceRegistry: 	at com.android.networkstack.tethering.Tethering.updateConfiguration(Tethering.java:549)
+11-14 12:14:27.336  1014  1074 E SystemServiceRegistry: 	at com.android.networkstack.tethering.Tethering.-$$Nest$mupdateConfiguration(Tethering.java:0)
+11-14 12:14:27.336  1014  1074 E SystemServiceRegistry: 	at com.android.networkstack.tethering.Tethering$StateReceiver.onReceive(Tethering.java:1186)
+11-14 12:14:27.336  1014  1074 E SystemServiceRegistry: 	at android.app.LoadedApk$ReceiverDispatcher$Args.lambda$getRunnable$0(LoadedApk.java:1814)
+11-14 12:14:27.336  1014  1074 E SystemServiceRegistry: 	at android.app.LoadedApk$ReceiverDispatcher$Args.$r8$lambda$mcNAAl1SQ4MyJPyDg8TJ2x2h0Rk(Unknown Source:0)
+11-14 12:14:27.336  1014  1074 E SystemServiceRegistry: 	at android.app.LoadedApk$ReceiverDispatcher$Args$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+11-14 12:14:27.336  1014  1074 E SystemServiceRegistry: 	at android.os.Handler.handleCallback(Handler.java:959)
+11-14 12:14:27.336  1014  1074 E SystemServiceRegistry: 	at android.os.Handler.dispatchMessage(Handler.java:100)
+11-14 12:14:27.336  1014  1074 E SystemServiceRegistry: 	at android.os.Looper.loopOnce(Looper.java:232)
+11-14 12:14:27.336  1014  1074 E SystemServiceRegistry: 	at android.os.Looper.loop(Looper.java:317)
+11-14 12:14:27.336  1014  1074 E SystemServiceRegistry: 	at android.os.HandlerThread.run(HandlerThread.java:85)
+11-14 12:14:27.337  1320  1320 I StyledKeyboardThemeBuilder: StyledKeyboardThemeBuilder.build():132 Pref: [], themeName: [silk:], darkMode: [false], cacheKey: [overlay_builtin_dynamic_color_light_base.binarypb:dynamic-gm3-light-fffefbff-ff475d92-21eef06c8465a51eb0abebf952ba428b]
+11-14 12:14:27.337  1320  1320 I KeyboardThemeProvider: KeyboardThemeProvider.applyKeyboardTheme():27 Apply keyboard theme: theme_border_stylesheet_noshadow_gsans_pillkey_silkpopup_hover_light_phone_bottom4dp_navredesign_400_overlay_builtin_dynamic_color_light_base.binarypb:dynamic-gm3-light-fffefbff-ff475d92-21eef06c8465a51eb0abebf952ba428b_port
+11-14 12:14:27.338   907   907 D Tonal   : Tonal Palette - index: 4. Main color: ff343e65
+11-14 12:14:27.338   907   907 D Tonal   : Colors: ff0b0c16, ff141627, ff1d2138, ff272d4c, ff343e65, ff41477e, ff4e5597, ff8184a4, ff898cc3, ff9e9ecd, ffb7b6d9, ffd9d7eb, ffefeef7
+11-14 12:14:27.338   907   907 D Tonal   : Gradients: 
+11-14 12:14:27.338   907   907 D Tonal   : 	Normal GradientColors(ff343e65, ff343e65)
+11-14 12:14:27.338   907   907 D Tonal   : 	Dark GradientColors(ff272d4c, ff272d4c)
+11-14 12:14:27.338   907   907 D Tonal   : 	Extra dark: GradientColors(ff1d2138, ff1d2138)
+11-14 12:14:27.338   907   907 D Tonal   : Tonal Palette - index: 4. Main color: ff343e65
+11-14 12:14:27.338   907   907 D Tonal   : Colors: ff0b0c16, ff141627, ff1d2138, ff272d4c, ff343e65, ff41477e, ff4e5597, ff8184a4, ff898cc3, ff9e9ecd, ffb7b6d9, ffd9d7eb, ffefeef7
+11-14 12:14:27.338   907   907 D Tonal   : Gradients: 
+11-14 12:14:27.338   907   907 D Tonal   : 	Normal GradientColors(ff343e65, ff343e65)
+11-14 12:14:27.338   907   907 D Tonal   : 	Dark GradientColors(ff272d4c, ff272d4c)
+11-14 12:14:27.338   907   907 D Tonal   : 	Extra dark: GradientColors(ff1d2138, ff1d2138)
+11-14 12:14:27.345  1320  1417 I SP      : Registering emoticon_content_description.2022081613, url: https://www.gstatic.com/android/keyboard/emoticon_content_desc/202208161305/superpacks_manifest.json, constraints: W:*:*:*, flags: bg, requested: 2022081613, current: -1
+11-14 12:14:27.346  4686  4700 D EGL_emulation: app_time_stats: avg=244.17ms min=6.57ms max=1225.89ms count=6
+11-14 12:14:27.353  1162  1162 D b/254119092: TaskbarManager#mComponentCallbacks.onConfigurationChanged: {1.0 310mcc260mnc [en_US] ldltr sw411dp w411dp h914dp 420dpi nrml long port finger qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1080, 2400) mAppBounds=Rect(0, 0 - 1080, 2400) mMaxBounds=Rect(0, 0 - 1080, 2400) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_0} as.3 s.139 fontWeightAdjustment=0}
+11-14 12:14:27.353  1162  1162 D b/254119092: mActivity and mContext agree taskbarIsPresent=false
+11-14 12:14:27.353  1162  1162 D b/254119092: ComponentCallbacks#onConfigurationChanged() configDiff={CONFIG_UI_MODE}
+11-14 12:14:27.353  1162  1162 D b/254119092: mActivity and mContext agree taskbarIsPresent=false
+11-14 12:14:27.353  1162  1162 D b/254119092: destroyExistingTaskbar: com.android.launcher3.taskbar.TaskbarActivityContext@5ed32ae
+11-14 12:14:27.353  1162  1162 D b/254119092: mActivity and mContext agree taskbarIsPresent=false
+11-14 12:14:27.366   432   508 I BpBinder: onLastStrongRef automatically unlinking death recipients: 
+11-14 12:14:27.366  1162  1162 D b/254119092: recreateTaskbar: isTaskbarEnabled=true [dp != null (i.e. mUserUnlocked)]=true FLAG_HIDE_NAVBAR_WINDOW=true dp.isTaskbarPresent=false
+11-14 12:14:27.366  1162  1162 D b/254119092: mActivity and mContext agree taskbarIsPresent=false
+11-14 12:14:27.369   907   907 D LocalImageResolver: Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+11-14 12:14:27.378  1320  1320 I AndroidIME: InputBundleManager.loadActiveInputBundleId():450 loadActiveInputBundleId: und-Latn-x-password, password
+11-14 12:14:27.378  1320  1320 W NotificationCenter: NotificationCenter$ListenerData.notifyOnExecutor():672 Heavy notify work detected on UI thread: |kcd->kff| takes 45ms
+11-14 12:14:27.378  1320  1320 I KeyboardContextProvider: KeyboardContextProvider.setBaseContextAndInvalidKeyboardContextCache():88 setBaseContextAndInvalidKeyboardContextCache(): com.android.inputmethod.latin.LatinIME@b340dec
+11-14 12:14:27.378  1320  1320 I DeviceModeMonitor2: DeviceModeMonitor2.onConfigurationChanged():62 
+11-14 12:14:27.378  1320  1320 I DeviceModeMonitor2: DeviceModeMonitor2.calculateAndNotify():72 Window metrics is not available, fallback to app context.
+11-14 12:14:27.378  1320  1320 I DeviceModeMonitor2: DeviceModeMonitor2.calculateAndNotify():101 Device mode 'phone' from display metrics 'DisplayMetrics{density=2.625, width=1080, height=2400, scaledDensity=2.625, xdpi=420.0, ydpi=420.0}' or smallestScreenWidthDp: 411
+11-14 12:14:27.378  1320  1320 I GoogleInputMethodService: GoogleInputMethodService.onConfigurationChanged():1665 changedMask : 200
+11-14 12:14:27.378  1320  1320 I GoogleInputMethodService: GoogleInputMethodService.clearInputMethodServiceData():1613 clearInputMethodServiceData for configurationChange
+11-14 12:14:27.378  1320  1320 I GoogleInputMethodService: GoogleInputMethodService.discardAllKeyboardViewAndInputView():1818 discardAllKeyboardViewAndInputView()
+11-14 12:14:27.378  1320  1320 I KeyboardModeManager: KeyboardModeManager.setInputViewKeyboardViewHolderProvider():625 setInputView() : supportsOneHandedMode=true supportsSplitMode=true
+11-14 12:14:27.378  1320  1320 I NormalModeController: NormalModeController.getKeyboardBodyViewHolderPaddingBottom():104 currentPrimeKeyboardType:SOFT systemPaddingBottom:-1
+11-14 12:14:27.378  1320  1320 I KeyboardModeManager: KeyboardModeManager.setInputViewKeyboardViewHolderProvider():613 setInputView() : supportsOneHandedMode=true, supportSplitMode=true
+11-14 12:14:27.379  1320  1320 I WindowMetricsNotification: WindowMetricsNotification.notify():106 WindowMetricsNotification{bounds=Rect(0, 128 - 1080, 2400), insets=Rect(0, 0 - 0, 0), densityDpi=420, smallestScreenWidthDp=411, displayWidth=1080, displayHeight=2400, xdpi=420.0, ydpi=420.0}; DisplayMetrics{density=2.625, width=1080, height=2400, scaledDensity=2.625, xdpi=420.0, ydpi=420.0}
+11-14 12:14:27.379  1320  1320 I WindowMetricsHelper: WindowMetricsHelper.predictAndNotify():140 Window metrics predicted.
+11-14 12:14:27.379  1320  1320 I GoogleInputMethodService: GoogleInputMethodService.initializeInputMethodServiceData():1382 initializeInputMethodServiceData for kct{languageTag=en-US, variant=qwerty, hasLocalizedResources=true, conditionCacheKey=_cache_additional_ime_defs_for_condition_change=false_cache_ime_defs_for_condition_change=false_device=phone_device_size=default_enable_flick_symbols=false_enable_more_candidates_view_for_multilingual=false_enable_number_row=false_enable_preemptive_decode=true_enable_secondary_digits=true_enable_secondary_symbols=false_enable_show_foldable_layout_on_small_tablet=true_expressions=normal_four_or_more_letter_rows=false_keyboard_mode=normal_language=en-US_orientation=portrait_physical_keyboard=qwerty_rtl_layout=false_show_secondary_digits=true_show_suggestions=true_split_with_duplicate_keys=true_variant=qwerty, imeDef.stringId=ime_english_united_states, imeDef.className=com.google.android.apps.inputmethod.libs.latin5.LatinIme, imeDef.languageTag=en-US}
+11-14 12:14:27.379  1320  1320 I StyledKeyboardThemeBuilder: StyledKeyboardThemeBuilder.build():132 Pref: [], themeName: [silk:], darkMode: [false], cacheKey: [overlay_builtin_dynamic_color_light_base.binarypb:dynamic-gm3-light-fffefbff-ff475d92-21eef06c8465a51eb0abebf952ba428b]
+11-14 12:14:27.379  1320  1320 I KeyboardThemeProvider: KeyboardThemeProvider.applyKeyboardTheme():27 Apply keyboard theme: theme_border_stylesheet_noshadow_gsans_pillkey_silkpopup_hover_light_phone_bottom4dp_navredesign_400_overlay_builtin_dynamic_color_light_base.binarypb:dynamic-gm3-light-fffefbff-ff475d92-21eef06c8465a51eb0abebf952ba428b_port
+11-14 12:14:27.381  1320  1320 I AndroidIME: InputBundleManager.loadActiveInputBundleId():450 loadActiveInputBundleId: und-Latn-x-password, password
+11-14 12:14:27.387  1320  1320 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1986 onStartInput(EditorInfo{EditorInfo{packageName=com.neutcrafts.steps, inputType=0, inputTypeString=NULL, enableLearning=false, autoCorrection=false, autoComplete=false, imeOptions=0, privateImeOptions=null, actionName=UNSPECIFIED, actionLabel=null, initialSelStart=-1, initialSelEnd=-1, initialCapsMode=0, label=null, fieldId=0, fieldName=null, extras=null, hintText=null, hintLocales=[]}}, true)

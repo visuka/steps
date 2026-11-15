@@ -215,7 +215,8 @@ export function restoreRunner(run: (onFound?: () => void) => Promise<void>) {
 
 /**
  * - `sent`: a code is on its way to `email` (or, when another account
- *   confirmed that email, a note saying so; the server answers the same).
+ *   confirmed that email, a sign-in code for that account; see
+ *   `confirmFirstEmailCode`; the server answers the same).
  * - `unavailable`: the server can't send emails now; the account works without.
  */
 export type EmailSendResult =
@@ -262,6 +263,25 @@ export async function confirmEmailCode(deps: PhoneDeps, code: string): Promise<C
   } catch (e) {
     return { kind: 'error', message: phoneMessage(e, 'code') };
   }
+}
+
+export type FirstConfirmResult = ConfirmResult | { kind: 'signed-in'; restoreKeyKept: boolean };
+
+/**
+ * The code for a new account's first email. A person who reinstalled has a
+ * new empty account here, but the email belongs to their old one: the server
+ * then sends a sign-in code for the old account, which `email/finish`
+ * refuses (`bad_code`). Try it as a sign-in code, and sign this phone in to
+ * the old account. If that fails too, say why, except when it also says the
+ * code is wrong: then the wrong-code message. (A failure after the server
+ * signed in, such as `start` throwing, is not "wrong code": the code is used up.)
+ */
+export async function confirmFirstEmailCode(deps: PhoneDeps, email: string, code: string): Promise<FirstConfirmResult> {
+  const first = await confirmEmailCode(deps, code);
+  if (first.kind === 'confirmed' || first.message !== PHONE_MESSAGES.badCode) return first;
+  const recovered = await finishRecovery(deps, email, code);
+  if (recovered.kind === 'signed-in') return recovered;
+  return recovered.message === PHONE_MESSAGES.badCode ? first : recovered;
 }
 
 /** The phone's fingerprint or PIN prompt; `no-lock` when the phone has no screen lock at all. */

@@ -1,12 +1,16 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { PremiumGate } from '@/components/premium-gate';
 import { ThemedText } from '@/components/themed-text';
 import { Button, Card, Screen, SectionHeader, Surface } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
+import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
+import { activityLabel, featuresText, type MinuteRow, minuteTime } from '@/health/minute-detail';
 import { phoneSplit } from '@/health/phone-steps';
+import { useHourMinutes } from '@/health/use-hour-minutes';
 import { useTheme } from '@/hooks/use-theme';
 import { addDays, startOfDay } from '@/lib/dates';
 import { formatSteps } from '@/lib/format';
@@ -24,7 +28,7 @@ const RECORDER_TEXT: Record<RecorderStatus, string> = {
 };
 
 const BY_HOUR_WHY =
-  'Google’s recorder keeps the time of every step. The app’s own counter only knows them while it runs; steps from while it was stopped are listed under "No known time" instead.';
+  'Google’s recorder keeps the time of every step. The app’s own counter only knows them while it runs; steps from while it was stopped are listed under "No known time" instead. Tap an hour to see its minutes: both counters, how regular the steps were, forward push and braking, speed gained and buzz from a short movement reading, and what Android thought you were doing. Nothing is removed from any count.';
 
 interface Check {
   recorder: RecorderStatus | null;
@@ -81,6 +85,9 @@ export default function StepCheckScreen() {
   const router = useRouter();
   const theme = useTheme();
   const [check, setCheck] = useState<Check | null>(null);
+  // The hour opened to show its minutes; the minutes are read by the hook.
+  const [openHour, setOpenHour] = useState<number | null>(null);
+  const minutes = useHourMinutes(openHour, lastSyncAt);
 
   const load = useCallback(() => readCheck().then(setCheck), []);
 
@@ -135,16 +142,31 @@ export default function StepCheckScreen() {
                   <ThemedText type="labelMedium" themeColor="onSurfaceVariant" style={styles.num}>
                     Counter
                   </ThemedText>
+                  <View style={styles.chevronSpace} />
                 </View>
                 {check.hours.map(([h, r, c]) => (
-                  <View key={h} style={[styles.row, styles.ruled, { borderTopColor: theme.outlineVariant }]}>
-                    <ThemedText type="bodyMedium" style={styles.hour}>{`${h}:00`}</ThemedText>
-                    <ThemedText type="bodyMedium" style={styles.num}>
-                      {formatSteps(r)}
-                    </ThemedText>
-                    <ThemedText type="bodyMedium" style={styles.num}>
-                      {formatSteps(c)}
-                    </ThemedText>
+                  <View key={h}>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityState={{ expanded: openHour === h }}
+                      accessibilityLabel={`${h}:00, recorder ${formatSteps(r)}, counter ${formatSteps(c)}`}
+                      accessibilityHint="Shows this hour minute by minute"
+                      onPress={() => setOpenHour(openHour === h ? null : h)}
+                      style={[styles.row, styles.ruled, { borderTopColor: theme.outlineVariant }]}>
+                      <ThemedText type="bodyMedium" style={styles.hour}>{`${h}:00`}</ThemedText>
+                      <ThemedText type="bodyMedium" style={styles.num}>
+                        {formatSteps(r)}
+                      </ThemedText>
+                      <ThemedText type="bodyMedium" style={styles.num}>
+                        {formatSteps(c)}
+                      </ThemedText>
+                      <Ionicons
+                        name={openHour === h ? 'chevron-down' : 'chevron-forward'}
+                        size={CLEAN_SPEC.icon.size}
+                        color={theme.onSurfaceVariant}
+                      />
+                    </Pressable>
+                    {openHour === h ? <Minutes rows={minutes.rows} loading={minutes.loading} /> : null}
                   </View>
                 ))}
                 <View style={[styles.row, styles.total, { borderTopColor: theme.outline }]}>
@@ -157,6 +179,7 @@ export default function StepCheckScreen() {
                   <ThemedText type="titleSmall" style={styles.num}>
                     {formatSteps(counterTotal)}
                   </ThemedText>
+                  <View style={styles.chevronSpace} />
                 </View>
               </Surface>
             </>
@@ -194,6 +217,53 @@ export default function StepCheckScreen() {
         </PremiumGate>
       ) : null}
     </Screen>
+  );
+}
+
+/** One hour minute by minute: steps from the recorder and the counter, the accelerometer figures, Android's activity. */
+function Minutes({ rows, loading }: { rows: MinuteRow[]; loading: boolean }) {
+  const theme = useTheme();
+  if (loading) return <MinutesNote text="Reading this hour…" />;
+  if (!rows.length) return <MinutesNote text="No steps or movement readings in this hour." />;
+  return (
+    <View style={styles.minutes}>
+      {rows.map((m) => (
+        <View
+          key={m.start}
+          style={[styles.minute, { borderTopColor: theme.outlineVariant }]}
+          accessible
+          accessibilityLabel={`${minuteTime(m.start)}. Recorder ${m.recorder ?? 'none'}, counter ${m.counter}. Android: ${activityLabel(m.activity)}. ${featuresText(m.features)}`}>
+          <View style={styles.minuteTop}>
+            <ThemedText type="labelLarge" style={styles.hour}>
+              {minuteTime(m.start)}
+            </ThemedText>
+            <ThemedText type="bodyMedium" style={styles.num}>
+              {m.recorder === null ? '–' : formatSteps(m.recorder)}
+            </ThemedText>
+            <ThemedText type="bodyMedium" style={styles.num}>
+              {formatSteps(m.counter)}
+            </ThemedText>
+            <View style={styles.chevronSpace} />
+          </View>
+          <ThemedText type="bodySmall" themeColor="onSurfaceVariant">
+            Android: {activityLabel(m.activity)}
+          </ThemedText>
+          <ThemedText type="bodySmall" themeColor="onSurfaceVariant">
+            {featuresText(m.features)}
+          </ThemedText>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function MinutesNote({ text }: { text: string }) {
+  return (
+    <View style={styles.minutes}>
+      <ThemedText type="bodySmall" themeColor="onSurfaceVariant" style={styles.minuteNote}>
+        {text}
+      </ThemedText>
+    </View>
   );
 }
 
@@ -241,6 +311,18 @@ const styles = StyleSheet.create({
   total: { borderTopWidth: 1, minHeight: 48 },
   hour: { flex: 1, fontVariant: ['tabular-nums'] },
   num: { width: 88, textAlign: 'right', fontVariant: ['tabular-nums'] },
+  /** The width of the row chevron, so the number columns line up. */
+  chevronSpace: { width: CLEAN_SPEC.icon.size },
+  minutes: { paddingBottom: Spacing.two },
+  minute: {
+    paddingLeft: Spacing.four,
+    paddingRight: Spacing.three,
+    paddingVertical: Spacing.one,
+    gap: Spacing.half,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  minuteTop: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
+  minuteNote: { paddingHorizontal: Spacing.three, paddingVertical: Spacing.two },
   stretch: {
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,

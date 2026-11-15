@@ -21,7 +21,7 @@ export interface NavigationItem {
   specIcon?: SpecIconName;
   /** Kept for existing callers; the Clean+ bar paints every selection in primary. */
   tone?: DataTone;
-  /** The middle "Log food" button: a 56 dp primary circle with a plus, lifted above the bar. */
+  /** The middle "Add" button: a 56 dp primary circle with a plus, lifted above the bar. */
   fab?: boolean;
 }
 

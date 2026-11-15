@@ -27,6 +27,7 @@ import { MaxContentWidth } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { greetingWords } from './model';
+import { WeatherBesideDate } from './weather-beside-date';
 import { tileValueStyle } from './value-style';
 import {
   AXIS_LABELS,
@@ -72,6 +73,7 @@ export function TodayClean({ v, look }: { v: TodayView; look: TodayFrameLook }) 
         initial={v.initial}
         greeting={greetingWords(v.nowHour)}
         onAvatarPress={v.on.profile}
+        beside={v.weather ? <WeatherBesideDate weather={v.weather} /> : undefined}
       />
       <WeekStrip
         days={days}

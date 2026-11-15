@@ -44,6 +44,106 @@ class StepStore(context: Context) :
   override fun onOpen(db: SQLiteDatabase) {
     super.onOpen(db)
     runCatching { ensureWalkTables(db) }
+    runCatching { ensureMovementTables(db) }
+  }
+
+  /** What T18a records all day: a burst's figures per minute, and Android's activity changes. Both kept 10 days. */
+  private fun ensureMovementTables(db: SQLiteDatabase) {
+    if (db.isReadOnly) return
+    db.execSQL(
+      "CREATE TABLE IF NOT EXISTS movement_minutes (minute INTEGER PRIMARY KEY NOT NULL, burst_ms INTEGER NOT NULL, " +
+        "samples INTEGER NOT NULL, rhythm REAL NOT NULL, push REAL NOT NULL, brake REAL NOT NULL, " +
+        "gain REAL NOT NULL, buzz REAL NOT NULL)"
+    )
+    db.execSQL(
+      "CREATE TABLE IF NOT EXISTS activity_transitions (t INTEGER NOT NULL, activity TEXT NOT NULL, enter INTEGER NOT NULL, " +
+        "PRIMARY KEY (t, activity, enter))"
+    )
+  }
+
+  /** One activity change as Android reported it. */
+  class Transition(val t: Long, val activity: String, val enter: Boolean)
+
+  /** Keeps the figures of one minute (a second burst in the same minute replaces the first). */
+  fun addMinuteFeatures(minute: Long, burstMs: Long, samples: Int, figures: MovementFeatures.Result) {
+    val db = writableDatabase
+    db.insertWithOnConflict("movement_minutes", null, ContentValues().apply {
+      put("minute", minute)
+      put("burst_ms", burstMs)
+      put("samples", samples)
+      put("rhythm", figures.rhythm)
+      put("push", figures.push)
+      put("brake", figures.brake)
+      put("gain", figures.speedGained)
+      put("buzz", figures.buzz)
+    }, SQLiteDatabase.CONFLICT_REPLACE)
+    db.execSQL("DELETE FROM movement_minutes WHERE minute < ?", arrayOf<Any>(minute - KEEP_MINUTES))
+  }
+
+  /** The minutes that start in [startMs, endMs), oldest first. */
+  fun minuteFeatures(startMs: Long, endMs: Long): List<Map<String, Any>> {
+    val result = mutableListOf<Map<String, Any>>()
+    readableDatabase.rawQuery(
+      "SELECT minute, burst_ms, rhythm, push, brake, gain, buzz FROM movement_minutes " +
+        "WHERE minute >= ? AND minute < ? ORDER BY minute",
+      arrayOf(Math.floorDiv(startMs, 60_000L).toString(), Math.floorDiv(endMs + 59_999, 60_000L).toString())
+    ).use {
+      while (it.moveToNext()) {
+        result.add(
+          mapOf(
+            "start" to (it.getLong(0) * 60_000).toDouble(),
+            "burstMs" to it.getLong(1).toDouble(),
+            "rhythm" to it.getDouble(2),
+            "push" to it.getDouble(3),
+            "brake" to it.getDouble(4),
+            "speedGained" to it.getDouble(5),
+            "buzz" to it.getDouble(6)
+          )
+        )
+      }
+    }
+    return result
+  }
+
+  /** Saves a result's changes in one transaction and drops what is over 10 days old. */
+  fun addActivityTransitions(rows: List<Transition>) {
+    val db = writableDatabase
+    db.beginTransaction()
+    try {
+      for (row in rows) {
+        db.insertWithOnConflict("activity_transitions", null, ContentValues().apply {
+          put("t", row.t)
+          put("activity", row.activity)
+          put("enter", if (row.enter) 1 else 0)
+        }, SQLiteDatabase.CONFLICT_IGNORE)
+      }
+      db.execSQL("DELETE FROM activity_transitions WHERE t < ?", arrayOf<Any>(System.currentTimeMillis() - KEEP_MINUTES * 60_000))
+      db.setTransactionSuccessful()
+    } finally {
+      db.endTransaction()
+    }
+  }
+
+  /** The changes in [startMs, endMs], oldest first. */
+  fun activityTransitions(startMs: Long, endMs: Long): List<Map<String, Any>> {
+    val result = mutableListOf<Map<String, Any>>()
+    readableDatabase.rawQuery(
+      "SELECT t, activity, enter FROM activity_transitions WHERE t >= ? AND t <= ? ORDER BY t, rowid",
+      arrayOf(startMs.toString(), endMs.toString())
+    ).use {
+      while (it.moveToNext()) {
+        result.add(mapOf("t" to it.getLong(0).toDouble(), "activity" to it.getString(1), "enter" to (it.getLong(2) == 1L)))
+      }
+    }
+    return result
+  }
+
+  /** The newest change: its activity and whether it was entered; null before any. */
+  /** The newest transition: activity, entered, and when (wall-clock ms). */
+  fun lastActivityTransition(): Triple<String, Boolean, Long>? {
+    readableDatabase.rawQuery("SELECT activity, enter, t FROM activity_transitions ORDER BY t DESC, rowid DESC LIMIT 1", null).use {
+      return if (it.moveToFirst()) Triple(it.getString(0), it.getLong(1) == 1L, it.getLong(2)) else null
+    }
   }
 
   private fun ensureWalkTables(db: SQLiteDatabase) {
@@ -506,6 +606,7 @@ class StepStore(context: Context) :
     db.execSQL("DELETE FROM state")
     db.execSQL("DELETE FROM walk_points")
     for (table in WALK_TABLES) runCatching { db.execSQL("DELETE FROM $table") }
+    for (table in MOVEMENT_TABLES) runCatching { db.execSQL("DELETE FROM $table") }
     db.execSQL("DELETE FROM text_state WHERE key IN (?, ?)", arrayOf<Any>(WALK_PLACE, WALK_EFFORT))
   }
 
@@ -541,6 +642,10 @@ class StepStore(context: Context) :
     const val WALK_EFFORT = "walkEffort"
 
     private val WALK_TABLES = listOf("walk_steps", "walk_pressure", "walk_activity", "walk_mode")
+    private val MOVEMENT_TABLES = listOf("movement_minutes", "activity_transitions")
+
+    /** The movement figures and activity changes are kept 10 days. */
+    private const val KEEP_MINUTES = 10L * 24 * 60
 
     @Volatile private var instance: StepStore? = null
 

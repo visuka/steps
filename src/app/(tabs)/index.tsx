@@ -95,6 +95,7 @@ export default function TodayScreen() {
 
   const view: TodayView = {
     dateLabel: extras.dateLabel,
+    weather: extras.weather,
     name: extras.name,
     initial: extras.initial,
     steps,
