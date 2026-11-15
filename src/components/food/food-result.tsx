@@ -549,7 +549,7 @@ function Ingredients({ food, s, edit, onStartEdit }: { food: FoodItem; s: Result
           <UiButton
             variant="text"
             compact
-            label="Change ingredients"
+            label="Edit recipe"
             accessibilityLabel="Change the ingredients and amounts"
             onPress={onStartEdit}
             style={styles.changeIngredients}
@@ -743,8 +743,9 @@ function Details({
         )
       ) : null}
 
+      <View>
       {onChangeIngredients && food.ingredients?.length ? (
-        <UiButton variant="text" compact label="Change ingredients" onPress={onChangeIngredients} style={styles.showAll} />
+        <UiButton variant="text" compact label="Edit recipe" onPress={onChangeIngredients} style={styles.showAll} />
       ) : null}
       {onUseOurGuess && isMine(food) ? (
         <UiButton
@@ -756,6 +757,7 @@ function Details({
           style={styles.showAll}
         />
       ) : null}
+      </View>
 
       {children}
 
@@ -861,7 +863,7 @@ const styles = StyleSheet.create({
   ingPart: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: RESULT.ingredientGap, paddingVertical: 4 },
   nutrients: { marginTop: RESULT.nutrientsGap },
   nutrientGroup: { marginTop: RESULT.nutrientGroupTop },
-  // "Change ingredients" lines up with the ingredient names (x 76: 24 margin + circle 40 + gap 12).
+  // "Edit recipe" lines up with the ingredient names (x 76: 24 margin + circle 40 + gap 12).
   changeRow: { paddingLeft: RESULT.circle + RESULT.ingredientGap },
   changeIngredients: { minHeight: RESULT.ingredientRowHeight, alignSelf: 'flex-start', marginLeft: -Spacing.three },
   changeNote: { marginTop: -CLEAN_SPEC.space.s8 },
