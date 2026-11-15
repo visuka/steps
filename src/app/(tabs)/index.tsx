@@ -1,12 +1,12 @@
 import { type Href, useFocusEffect, useRouter } from 'expo-router';
 import { type ComponentRef, useCallback, useEffect, useRef, useState } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppearanceNote } from '@/components/appearance-note';
 import { PremiumCard } from '@/components/premium-gate';
 import { ThemedText } from '@/components/themed-text';
-import { Button, Card, Snackbar, Why } from '@/components/ui';
+import { Button, Snackbar } from '@/components/ui';
 import { distanceOf, heroSpoken, percentOf, untimedNote } from '@/components/today/model';
 import { detailRoute, type DetailKind, walkingLine } from '@/components/today/today-actions';
 import { TodayClean } from '@/components/today/today-clean';
@@ -56,6 +56,11 @@ export default function TodayScreen() {
   const kcal = useTodayKcal(visits);
   const extras = useTodayExtras(visits);
   const activeWalk = useActiveWalk(visits);
+  const prompts = useTodayPrompts(todayKey);
+  // The first screen doesn't move: it scrolls only when its content can't fit (very large text).
+  const [viewH, setViewH] = useState(0);
+  const [contentH, setContentH] = useState(0);
+  const overflows = contentH > viewH + 1;
 
   useFocusEffect(
     useCallback(() => {
@@ -148,12 +153,22 @@ export default function TodayScreen() {
       note: (style) => <AppearanceNote style={style} />,
       below: (
         <BelowTheFold
-          weatherDay={todayKey}
           untimed={untimedNote(untimedSteps)}
+          suggestion={prompts.suggestion}
           onGoal={(dailyGoal) => updateProfile({ dailyGoal })}
-          onLocation={refresh}
         />
       ),
+      dateExtra: prompts.askLocation ? (
+        <WeatherOffer
+          onDismiss={prompts.dismissWeather}
+          onAllow={async () => {
+            if (await requestLocation()) {
+              prompts.setAskLocation(false);
+              refresh();
+            }
+          }}
+        />
+      ) : null,
       locked: details ? null : <PremiumCard />,
     },
   };
@@ -163,6 +178,11 @@ export default function TodayScreen() {
       <ScrollView
         ref={scroll}
         contentContainerStyle={{ paddingTop: insets.top }}
+        scrollEnabled={overflows}
+        overScrollMode={overflows ? 'auto' : 'never'}
+        bounces={overflows}
+        onLayout={(e) => setViewH(e.nativeEvent.layout.height)}
+        onContentSizeChange={(_, h) => setContentH(h)}
         keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl
@@ -194,19 +214,12 @@ export default function TodayScreen() {
   );
 }
 
-/** The untimed-steps note, a goal suggestion and the weather offer: what follows the tiles. */
-function BelowTheFold({
-  weatherDay,
-  untimed,
-  onGoal,
-  onLocation,
-}: {
-  weatherDay: string;
-  /** The untimed-steps note, or null when every step has a time. */
-  untimed: string | null;
-  onGoal: (goal: number) => void;
-  onLocation: () => void;
-}) {
+/**
+ * Today's occasional extras, kept small so the first screen fits without
+ * scrolling (owner, 15 Nov 2026): the goal suggestion is one line under the
+ * tiles, and the weather offer is a link beside the date (WeatherOffer).
+ */
+function useTodayPrompts(weatherDay: string) {
   const { repo, profile, dataVersion } = useApp();
   const [suggestion, setSuggestion] = useState<number | null>(null);
   const [askLocation, setAskLocation] = useState(false);
@@ -228,6 +241,47 @@ function BelowTheFold({
     };
   }, [repo, weatherDay, dataVersion, profile.dailyGoal]);
 
+  const dismissWeather = async () => {
+    await repo.setKv(WEATHER_PROMPT_KEY, true);
+    setAskLocation(false);
+  };
+  return { suggestion, askLocation, setAskLocation, dismissWeather };
+}
+
+const WEATHER_WHY =
+  'With your approximate location, the app notes the weather each day you open it, so Insights can show how heat and rain change your walking. Your location stays on this phone.';
+
+/** Beside the date when there's no weather yet: "Add weather" opens the offer. */
+function WeatherOffer({ onAllow, onDismiss }: { onAllow: () => void; onDismiss: () => void }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Add the weather to your days"
+      hitSlop={12}
+      onPress={() =>
+        Alert.alert('Add the weather to your days', `Approximate location only.\n\n${WEATHER_WHY}`, [
+          { text: 'Not now', style: 'cancel', onPress: onDismiss },
+          { text: 'Allow', onPress: onAllow },
+        ])
+      }>
+      <ThemedText type="bodySmall" themeColor="primary" maxFontSizeMultiplier={1.3}>
+        Add weather
+      </ThemedText>
+    </Pressable>
+  );
+}
+
+/** The untimed-steps note and the goal suggestion: one short line each under the tiles. */
+function BelowTheFold({
+  untimed,
+  suggestion,
+  onGoal,
+}: {
+  /** The untimed-steps note, or null when every step has a time. */
+  untimed: string | null;
+  suggestion: number | null;
+  onGoal: (goal: number) => void;
+}) {
   return (
     <>
       {untimed ? (
@@ -236,48 +290,12 @@ function BelowTheFold({
         </ThemedText>
       ) : null}
       {suggestion ? (
-        <Card title="New goal?" right={<ThemedText type="numeralSmall">{formatSteps(suggestion)}</ThemedText>}>
-          <ThemedText type="bodyMedium" themeColor="onSurfaceVariant">
-            From your last two weeks
+        <View style={styles.inline}>
+          <ThemedText type="bodySmall" themeColor="onSurfaceVariant" style={styles.grow}>
+            New goal from your last two weeks: {formatSteps(suggestion)} a day
           </ThemedText>
-          <Button label={`Use ${formatSteps(suggestion)}`} variant="tonal" onPress={() => onGoal(suggestion)} />
-        </Card>
-      ) : null}
-
-      {askLocation ? (
-        <Card title="Add the weather to your days">
-          <View style={styles.inline}>
-            <ThemedText type="bodyMedium" themeColor="onSurfaceVariant" style={styles.grow}>
-              Approximate location only
-            </ThemedText>
-            <Why
-              title="Weather"
-              text="With your approximate location, the app notes the weather each day you open it, so Insights can show how heat and rain change your walking. Your location stays on this phone."
-            />
-          </View>
-          <View style={styles.buttons}>
-            <Button
-              label="Not now"
-              variant="text"
-              compact
-              onPress={async () => {
-                await repo.setKv(WEATHER_PROMPT_KEY, true);
-                setAskLocation(false);
-              }}
-            />
-            <Button
-              label="Allow"
-              variant="tonal"
-              compact
-              onPress={async () => {
-                if (await requestLocation()) {
-                  setAskLocation(false);
-                  onLocation();
-                }
-              }}
-            />
-          </View>
-        </Card>
+          <Button label="Use" variant="text" compact onPress={() => onGoal(suggestion)} />
+        </View>
       ) : null}
     </>
   );
@@ -289,7 +307,7 @@ function sumOrNull(a: number | null, b: number | null): number | null {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  foot: { width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center', paddingTop: Spacing.two, paddingBottom: Spacing.five },
+  foot: { width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center', paddingTop: Spacing.one, paddingBottom: Spacing.two },
   statusInset: { position: 'absolute', top: 0, left: 0, right: 0 },
   snack: { position: 'absolute', bottom: Spacing.three },
   inline: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },

@@ -1,10 +1,8 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
+import { Alert, type StyleProp, type ViewStyle } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
-import { Button, Card } from '@/components/ui';
-import { ActiveTheme, Spacing } from '@/constants/theme';
+import { ActiveTheme } from '@/constants/theme';
 import { deviceStore, THEME_NOTE_KEY } from '@/constants/themes/choice';
 
 /** Read once per run: whether the note was already shown on this phone. */
@@ -24,10 +22,11 @@ function seenBefore(): boolean {
  * this visit until closed. Choosing opens Settings with the picker up.
  */
 /** `style` places the card (the themed Todays set their own margins). */
-export function AppearanceNote({ style }: { style?: StyleProp<ViewStyle> } = {}) {
+export function AppearanceNote(_props: { style?: StyleProp<ViewStyle> } = {}) {
   const router = useRouter();
-  const [show, setShow] = useState(() => !seenBefore());
+  const [show] = useState(() => !seenBefore());
 
+  // A one-time dialog rather than a card, so Today's first screen never grows (owner, 15 Nov 2026).
   useEffect(() => {
     if (!show) return;
     try {
@@ -35,32 +34,15 @@ export function AppearanceNote({ style }: { style?: StyleProp<ViewStyle> } = {})
     } catch {
       // Not saved: it may show once more; harmless.
     }
-  }, [show]);
+    Alert.alert(
+      `This look is ${ActiveTheme.name}`,
+      'There are eight to choose from, Clean+ the one you start with. Change it any time in Settings → Appearance.',
+      [
+        { text: 'Not now', style: 'cancel' },
+        { text: 'Choose a look', onPress: () => router.push({ pathname: '/settings', params: { appearance: '1' } }) },
+      ],
+    );
+  }, [show, router]);
 
-  if (!show) return null;
-  return (
-    <View style={style}>
-      <Card title={`This look is ${ActiveTheme.name}`}>
-        <ThemedText type="bodyMedium" themeColor="onSurfaceVariant">
-          There are eight to choose from, Clean+ the one you start with. Change it any time in Settings → Appearance.
-        </ThemedText>
-        <View style={styles.buttons}>
-          <Button label="Not now" variant="text" compact onPress={() => setShow(false)} />
-          <Button
-            label="Choose a look"
-            variant="tonal"
-            compact
-            onPress={() => {
-              setShow(false);
-              router.push({ pathname: '/settings', params: { appearance: '1' } });
-            }}
-          />
-        </View>
-      </Card>
-    </View>
-  );
+  return null;
 }
-
-const styles = StyleSheet.create({
-  buttons: { flexDirection: 'row', justifyContent: 'flex-end', gap: Spacing.two },
-});

@@ -101,6 +101,8 @@ export interface TodayView {
     below: ReactNode;
     /** The premium card, under the locked tiles for the free app. */
     locked: ReactNode;
+    /** Beside the date when there's no weather: the weather offer link. */
+    dateExtra?: ReactNode;
   };
 }
 

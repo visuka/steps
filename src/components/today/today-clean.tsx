@@ -73,7 +73,7 @@ export function TodayClean({ v, look }: { v: TodayView; look: TodayFrameLook }) 
         initial={v.initial}
         greeting={greetingWords(v.nowHour)}
         onAvatarPress={v.on.profile}
-        beside={v.weather ? <WeatherBesideDate weather={v.weather} /> : undefined}
+        beside={v.weather ? <WeatherBesideDate weather={v.weather} /> : (v.slots.dateExtra ?? undefined)}
       />
       <WeekStrip
         days={days}
