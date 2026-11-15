@@ -90,6 +90,7 @@ export function Screen({
                 type="headlineSmall"
                 accessibilityRole="header"
                 maxFontSizeMultiplier={1.3}
+                numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}
                 style={styles.title}>
                 {title}
               </ThemedText>

@@ -43,8 +43,8 @@ export function WaterBody({ water, onAdded }: { water: WaterHook; onAdded: (a: A
             <ThemedText type="numeralLarge" maxFontSizeMultiplier={NumeralMaxScale}>
               {glasses}
             </ThemedText>
-            <ThemedText type="titleMedium" themeColor="onSurfaceVariant">
-              {glassesOf !== null ? `of ${glassesOf} glasses` : glassWord}
+            <ThemedText type="titleMedium" themeColor="onSurfaceVariant" numberOfLines={1} style={styles.unit}>
+              {(glassesOf !== null ? `of ${glassesOf} glasses` : glassWord).replace(/ /g, ' ')}
             </ThemedText>
           </View>
           <ThemedText type="bodyMedium" themeColor="onSurfaceVariant">
@@ -118,5 +118,6 @@ const styles = StyleSheet.create({
   numberRow: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.two, flexWrap: 'wrap' },
   inline: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   links: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two, marginLeft: -Spacing.three },
-  grow: { flex: 1 },
+  grow: { flex: 1, minWidth: 0 },
+  unit: { flexShrink: 0 },
 });

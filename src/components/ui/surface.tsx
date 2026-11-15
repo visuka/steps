@@ -76,7 +76,7 @@ export function Card({
       {title || right ? (
         <View style={styles.header}>
           {title ? (
-            <ThemedText type="titleMedium" style={styles.title}>
+            <ThemedText type="titleMedium" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={styles.title}>
               {title}
             </ThemedText>
           ) : (

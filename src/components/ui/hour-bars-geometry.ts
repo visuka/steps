@@ -113,3 +113,22 @@ export function hourBarsLabel(hours: readonly number[], goal: number): string {
   const goalText = goal > 0 ? `, goal ${groupThousands(goal)}` : '';
   return `Steps by hour: ${groupThousands(total)} steps in total, busiest hour ${hourRange(busiest)} with ${groupThousands(steps[busiest])}${goalText}`;
 }
+
+/** About how wide "goal pace" is drawn, in chart units (caption size, 9 characters). */
+const LABEL_WIDTH = HOUR_CHART.labelFontSize * 0.6 * HOUR_CHART.labelText.length;
+
+/**
+ * Where "goal pace" can sit without a counted bar running through it: at the
+ * right end as drawn, at the left when an evening bar reaches it there, or
+ * nowhere when bars reach it at both ends.
+ */
+export function goalLabelSide(
+  bars: readonly { x: number; y: number; width: number; quiet?: boolean }[],
+  width: number,
+): 'end' | 'start' | null {
+  const top = HOUR_CHART.labelBaseline + 4;
+  const hits = (from: number, to: number) => bars.some((b) => !b.quiet && b.y < top && b.x < to && b.x + b.width > from);
+  if (!hits(width - LABEL_WIDTH - 4, width)) return 'end';
+  if (!hits(0, LABEL_WIDTH + 4)) return 'start';
+  return null;
+}

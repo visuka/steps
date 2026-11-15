@@ -36,7 +36,8 @@ export function scaled(n: number, scale: number = UiScale): number {
 }
 
 /**
- * The most the phone's text-size setting may enlarge the app's text. Text
- * still grows for people who need it, but the layout keeps its proportions.
+ * The phone's text-size setting does not enlarge the app's text: the owner
+ * wants the design's own sizes on every phone (15 Nov 2026). Sizes still
+ * follow the screen width (UiScale).
  */
-export const MaxTextScale = 1.15;
+export const MaxTextScale = 1;

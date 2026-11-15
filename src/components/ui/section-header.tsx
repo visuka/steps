@@ -75,7 +75,7 @@ export function SectionHeader({
         { marginTop: headerMarginTop(gap, interactive), minHeight: rowTouchHeight(interactive) },
         interactive ? styles.rowCentered : styles.rowBaseline,
       ]}>
-      <ThemedText type="labelLarge" accessibilityRole="header" maxFontSizeMultiplier={1.3} style={[styles.title, caption || why || action ? styles.titleBeside : null]}>
+      <ThemedText type="labelLarge" accessibilityRole="header" maxFontSizeMultiplier={1.3} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.title, caption || why || action ? styles.titleBeside : null]}>
         {title}
       </ThemedText>
       {caption || why || action ? (

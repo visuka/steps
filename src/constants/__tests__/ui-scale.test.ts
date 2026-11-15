@@ -23,8 +23,7 @@ describe('screen scale', () => {
     expect(scaled(24, 1)).toBe(24);
   });
 
-  it('lets the phone text size grow text a little, not double it', () => {
-    expect(MaxTextScale).toBeGreaterThan(1);
-    expect(MaxTextScale).toBeLessThanOrEqual(1.2);
+  it('keeps the design text sizes whatever the phone text size', () => {
+    expect(MaxTextScale).toBe(1);
   });
 });

@@ -7,7 +7,7 @@ import { fontFor } from '@/constants/themes/fonts';
 import { useTheme } from '@/hooks/use-theme';
 
 import { heroColors } from './hero-colors';
-import { HOUR_CHART, hourBars, hourBarsLabel } from './hour-bars-geometry';
+import { goalLabelSide, HOUR_CHART, hourBars, hourBarsLabel } from './hour-bars-geometry';
 
 export interface HourBarsProps {
   /** Steps for hours 0 to 23. */
@@ -42,6 +42,7 @@ export function HourBars({ hours, goal, width, now, tone = 'hero', height = HOUR
   if (w <= 0) return <View style={{ height, alignSelf: 'stretch' }} onLayout={onLayout} />;
 
   const g = hourBars({ hours, goal, width: w, now });
+  const labelSide = goalLabelSide(g.bars, w);
   const rect = (b: (typeof g.bars)[number], i: number, fill: string) => (
     <Rect key={i} x={b.x} y={b.y} width={b.width} height={b.height} rx={b.rx} fill={fill} />
   );
@@ -66,11 +67,11 @@ export function HourBars({ hours, goal, width, now, tone = 'hero', height = HOUR
             strokeDasharray={HOUR_CHART.goalDash.join(' ')}
           />
         ) : null}
-        {g.goalLineY != null ? (
+        {g.goalLineY != null && labelSide ? (
           <SvgText
-            x={w}
+            x={labelSide === 'end' ? w : 0}
             y={HOUR_CHART.labelBaseline}
-            textAnchor="end"
+            textAnchor={labelSide}
             fontFamily={fontFor(CLEAN_SPEC.weights.regular)}
             fontSize={HOUR_CHART.labelFontSize}
             fill={colors.label}>
@@ -82,3 +83,4 @@ export function HourBars({ hours, goal, width, now, tone = 'hero', height = HOUR
     </View>
   );
 }
+

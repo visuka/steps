@@ -717,7 +717,7 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
           <View style={styles.dayButton}>
             <Button
               kind="secondary"
-              label="Day before"
+              label="Previous"
               onPress={() => showDay(addDaysToKey(shownDay, -1))}
               disabled={shownDay <= firstDay}
             />
@@ -725,7 +725,7 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
           <View style={styles.dayButton}>
             <Button
               kind="secondary"
-              label="Next day"
+              label="Next"
               onPress={() => showDay(addDaysToKey(shownDay, 1))}
               disabled={listDay === null}
             />
