@@ -12,7 +12,7 @@ import { ThemedText } from '@/components/themed-text';
 import {
   BarTrack,
   Greeting,
-  heroColors,
+  heroPalette,
   HourBars,
   IconCircle,
   Pill,
@@ -24,7 +24,7 @@ import { midTone } from '@/components/ui/hero-colors';
 import { ICON_CIRCLE_STYLE, iconCircleRipple } from '@/components/ui/icon-circle-style';
 import { TILE_STYLE } from '@/components/ui/stat-tile-style';
 import { pressedColorOnAccent } from '@/components/ui/surface-style';
-import { MaxContentWidth } from '@/constants/theme';
+import { Look, MaxContentWidth } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { greetingWords } from './model';
@@ -121,15 +121,15 @@ export function TodayClean({ v, look }: { v: TodayView; look: TodayFrameLook }) 
 /** Accent block: "Steps" and the day's distance, the big number, the share pill, the hour chart, its axis. */
 function StepsHero({ v, chartWidth }: { v: TodayView; chartWidth: number }) {
   const theme = useTheme();
-  const hero = heroColors(theme);
+  const hero = heroPalette(theme, Look.heroFill);
   const numbers = heroNumbers(v.steps, v.goal);
   const H = L.hero;
   return (
     <Pressable
       accessible={false}
       onPress={v.on.steps}
-      android_ripple={{ color: pressedColorOnAccent(theme.onPrimary), foreground: true }}
-      style={[styles.hero, { backgroundColor: theme.primary }]}>
+      android_ripple={{ color: pressedColorOnAccent(hero.strong), foreground: true }}
+      style={[styles.hero, { backgroundColor: hero.fill }, Look.heroFill && { boxShadow: TILE_STYLE.boxShadow }]}>
       {/* One focus target for the figures; the chart below has its own spoken summary. */}
       <View
         accessible
@@ -150,7 +150,7 @@ function StepsHero({ v, chartWidth }: { v: TodayView; chartWidth: number }) {
         </View>
         <View style={styles.heroNumberRow}>
           <View style={styles.heroNumber}>
-            <ThemedText type="numeralHero" maxFontSizeMultiplier={1.3} style={{ color: hero.strong }}>
+            <ThemedText type="numeralHero" maxFontSizeMultiplier={1.3} style={{ color: hero.number }}>
               {numbers.value}
             </ThemedText>
             <ThemedText type="bodyMedium" maxFontSizeMultiplier={1.3} style={{ color: hero.label }}>
@@ -231,6 +231,7 @@ function StatTileFor({
         note={model.note}
         iconCircle={<IconCircle name={icon} tone={circleTone} size={TILE_STYLE.headerHeight} />}
         trailing={trailing}
+        tone={model.locked ? undefined : kind === 'walk' ? 'steps' : kind}
         valueStyle={tileValueStyle(kind, model)}
         onPress={onPress}
         accessibilityLabel={model.spoken}

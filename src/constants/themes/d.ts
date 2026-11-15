@@ -161,6 +161,7 @@ const theme: ThemeDef = {
   style: {
     tile: 'filled',
     hero: 'block',
+    heroFill: { fill: 'stepsContainer', ink: 'onStepsContainer', mark: 'steps' },
     bar: 'solid',
     navIndicator: 'tone',
     numeralTabular: true,

@@ -3,7 +3,7 @@
 import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
 import type { ColorScheme } from '@/constants/tokens';
 
-import { heroColors } from './hero-colors';
+import { type HeroFill, heroColors } from './hero-colors';
 
 export type PillVariant = 'tint' | 'hero' | 'warning';
 
@@ -27,9 +27,13 @@ type PillTheme = Pick<
 >;
 
 /** Fill and text colour of a variant, from theme roles only. */
-export function pillColors(theme: PillTheme, variant: PillVariant): { fill: string; text: string } {
+export function pillColors(theme: PillTheme, variant: PillVariant, heroFill?: HeroFill): { fill: string; text: string } {
   if (variant === 'hero') {
-    const h = heroColors(theme);
+    const h = heroColors(
+      heroFill
+        ? { primary: String(theme[heroFill.fill as keyof PillTheme] ?? theme.primary), onPrimary: String(theme[heroFill.ink as keyof PillTheme] ?? theme.onPrimary) }
+        : theme,
+    );
     return { fill: h.pill, text: h.strong };
   }
   if (variant === 'warning') return { fill: theme.errorContainer, text: theme.error };

@@ -24,7 +24,7 @@ export { Dialog, type DialogProps } from './dialog';
 export { Notice, type NoticeTone } from './notice';
 export { MaterialSwitch, ToggleRow } from './toggle-row';
 export { SpecIcon, type SpecIconName } from './icons';
-export { heroColors, type HeroColors, midTone } from './hero-colors';
+export { heroColors, type HeroColors, heroPalette, midTone } from './hero-colors';
 export { Pill, type PillProps } from './pill';
 export { IconCircle } from './icon-circle';
 export { Greeting } from './greeting';

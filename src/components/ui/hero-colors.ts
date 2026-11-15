@@ -7,7 +7,7 @@
  */
 
 import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
-import type { ColorScheme } from '@/constants/tokens';
+import type { ColorScheme, ThemeColor } from '@/constants/tokens';
 
 export interface HeroColors {
   /** Text and bars that count: white in Clean+. */
@@ -20,6 +20,39 @@ export interface HeroColors {
   quietBar: string;
   /** The dashed goal-pace line (heroGoalLine). */
   goalLine: string;
+}
+
+/**
+ * A look whose steps block is not primary (ThemeStyle.heroFill): C draws it on
+ * paper with saffron marks, D as the leaf block. Roles of the scheme.
+ */
+export interface HeroFill {
+  fill: ThemeColor;
+  ink: ThemeColor;
+  /** The counted bars (and the number when markNumber), e.g. C's saffron. */
+  mark?: ThemeColor;
+  markNumber?: boolean;
+}
+
+export interface HeroPalette extends HeroColors {
+  /** The block's own colour. */
+  fill: string;
+  /** Counted bars. */
+  mark: string;
+  /** The big number. */
+  number: string;
+}
+
+/** Every colour of the steps block for a look: primary unless the look names its own. */
+export function heroPalette(theme: ColorScheme, spec?: HeroFill): HeroPalette {
+  if (!spec) {
+    const h = heroColors(theme);
+    return { ...h, fill: theme.primary, mark: h.strong, number: h.strong };
+  }
+  const base = { primary: String(theme[spec.fill]), onPrimary: String(theme[spec.ink]) };
+  const h = heroColors(base);
+  const mark = spec.mark ? String(theme[spec.mark]) : h.strong;
+  return { ...h, fill: base.primary, mark, number: spec.markNumber ? mark : h.strong };
 }
 
 function parse(hex: string): [number, number, number] {

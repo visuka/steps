@@ -178,6 +178,7 @@ const theme: ThemeDef = {
   style: {
     tile: 'outlined',
     hero: 'bar',
+    heroFill: { fill: 'surfaceContainerLowest', ink: 'primary', mark: 'steps', markNumber: true },
     bar: 'segmented',
     navIndicator: 'neutral',
     numeralTabular: true,

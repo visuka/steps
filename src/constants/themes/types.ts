@@ -12,6 +12,7 @@
  * scripts fall back to the phone's Noto fonts; sizes follow the phone's text size.
  */
 
+import type { HeroFill } from '../../components/ui/hero-colors';
 import type { ColorScheme, FontWeightName, RadiusScale, ThemeColor, TypeScaleShape } from '../tokens';
 
 /** In the order the Appearance picker shows them: Clean+ first. */
@@ -68,6 +69,8 @@ export interface ThemeStyle {
    * - 'block': like 'bar', on a block of the tone's container colour (D).
    */
   hero: 'track' | 'ring' | 'bar' | 'block';
+  /** Today's steps block in roles other than primary/onPrimary (C paper and saffron, D leaf). */
+  heroFill?: HeroFill;
   /**
    * Straight progress bars (TickBar):
    * - 'ticked': ticks every tenth (park).

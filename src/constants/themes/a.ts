@@ -156,7 +156,7 @@ const scheme = schemeFromRoles(light);
 const theme: ThemeDef = {
   id: 'a',
   name: 'Daylight',
-  description: 'Clean and bright. White cards, a ring for steps.',
+  description: 'Clean and bright. White cards, deep teal for steps.',
   mode: 'light',
   colors: { light: scheme, dark: scheme },
   fonts: {

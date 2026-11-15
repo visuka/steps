@@ -6,7 +6,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-na
 import { ThemedText } from '@/components/themed-text';
 import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
 import type { DataTone } from '@/constants/theme';
-import { Motion } from '@/constants/theme';
+import { Look, Motion } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import type { IconName } from './button';
@@ -39,7 +39,7 @@ export interface StatTileProps {
   selected?: boolean;
   /** Another tile's detail is open: this one recedes. */
   dimmed?: boolean;
-  /** What the number is about. Accepted for callers; the Clean+ tile is white in every look, so it paints nothing. */
+  /** What the number is about. Looks with filled tiles (D) paint the tile in its container colour; others keep it white. */
   tone?: DataTone;
   /** 'muted' draws the value as quiet body text (a missing value such as "No walk yet"); 'mutedValue' keeps the value size in the muted colour. */
   valueStyle?: TileValueStyle;
@@ -69,6 +69,7 @@ export function StatTile({
   onPress,
   selected,
   dimmed,
+  tone,
   valueStyle = 'default',
   children,
   iconCircle,
@@ -124,7 +125,7 @@ export function StatTile({
   );
   const bottomPad = { paddingBottom: tileBottomPadding(!!note, !!children) };
   const shape: ViewStyle = {
-    backgroundColor: selected ? look.plate : theme.surfaceContainerLowest,
+    backgroundColor: selected ? look.plate : tilePlate(theme, tone),
     boxShadow: TILE_STYLE.boxShadow,
   };
   return (
@@ -171,3 +172,10 @@ const styles = StyleSheet.create({
   cleanNote: { marginTop: TILE_STYLE.noteGap },
   cleanExtra: { marginTop: TILE_STYLE.extraGap },
 });
+
+/** The tile's own colour: white, or its area's container in a look with filled tiles (Colour blocks). */
+function tilePlate(theme: ReturnType<typeof useTheme>, tone?: DataTone): string {
+  if (Look.tile !== 'filled' || !tone) return theme.surfaceContainerLowest;
+  const plate = (theme as unknown as Record<string, string | undefined>)[`${tone}Container`];
+  return plate ?? theme.surfaceContainerLowest;
+}

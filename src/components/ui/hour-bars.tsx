@@ -6,7 +6,9 @@ import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
 import { fontFor } from '@/constants/themes/fonts';
 import { useTheme } from '@/hooks/use-theme';
 
-import { heroColors } from './hero-colors';
+import { Look } from '@/constants/theme';
+
+import { heroPalette } from './hero-colors';
 import { goalLabelSide, HOUR_CHART, hourBars, hourBarsLabel } from './hour-bars-geometry';
 
 export interface HourBarsProps {
@@ -32,10 +34,10 @@ export function HourBars({ hours, goal, width, now, tone = 'hero', height = HOUR
   const w = width ?? measured;
   const onLayout = (e: LayoutChangeEvent) => setMeasured(e.nativeEvent.layout.width);
 
-  const hero = heroColors(theme);
+  const hero = heroPalette(theme, Look.heroFill);
   const colors =
     tone === 'hero'
-      ? { bar: hero.strong, quiet: hero.quietBar, line: hero.goalLine, label: hero.label }
+      ? { bar: hero.mark, quiet: hero.quietBar, line: hero.goalLine, label: hero.label }
       : { bar: theme.primary, quiet: theme.secondaryContainer, line: theme.outlineVariant, label: theme.onSurfaceVariant };
 
   // Until measured, an empty box of the right height (it reports its width).
