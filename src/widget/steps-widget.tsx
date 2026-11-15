@@ -3,6 +3,7 @@
 // react-native-android-widget, so only its widget primitives work here.
 import { FlexWidget, SvgWidget, TextWidget } from 'react-native-android-widget';
 
+import { ActiveTheme } from '@/constants/theme';
 import { dayKey } from '@/lib/dates';
 import { formatSteps } from '@/lib/format';
 
@@ -14,13 +15,16 @@ export interface WidgetData {
   updatedAt: number;
 }
 
+/** The widget sits on the home screen: the chosen look's dark colours (its only colours if it is light-only). */
+const W = ActiveTheme.colors.dark;
+
 function ringSvg(progress: number) {
   const r = 42;
   const c = 2 * Math.PI * r;
   const filled = Math.min(1, progress) * c;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-    <circle cx="50" cy="50" r="${r}" fill="none" stroke="#2A2F35" stroke-width="10"/>
-    <circle cx="50" cy="50" r="${r}" fill="none" stroke="#34D399" stroke-width="10" stroke-linecap="round"
+    <circle cx="50" cy="50" r="${r}" fill="none" stroke="${W.surfaceContainerHighest}" stroke-width="10"/>
+    <circle cx="50" cy="50" r="${r}" fill="none" stroke="${W.primary}" stroke-width="10" stroke-linecap="round"
       stroke-dasharray="${filled} ${c}" transform="rotate(-90 50 50)"/>
   </svg>`;
 }
@@ -44,7 +48,7 @@ export function StepsWidget({ data }: { data: WidgetData | null }) {
       style={{
         height: 'match_parent',
         width: 'match_parent',
-        backgroundColor: '#15181C',
+        backgroundColor: W.surface as `#${string}`,
         borderRadius: 24,
         padding: 14,
         flexDirection: 'row',
@@ -52,13 +56,13 @@ export function StepsWidget({ data }: { data: WidgetData | null }) {
       }}>
       <SvgWidget svg={ringSvg(progress)} style={{ height: 72, width: 72 }} />
       <FlexWidget style={{ flexDirection: 'column', marginLeft: 12 }}>
-        <TextWidget text="Today" style={{ fontSize: 13, color: '#9BA1A6' }} />
-        <TextWidget text={formatSteps(steps)} style={{ fontSize: 26, fontWeight: '700', color: '#FFFFFF' }} />
+        <TextWidget text="Today" style={{ fontSize: 13, color: W.onSurfaceVariant as `#${string}` }} />
+        <TextWidget text={formatSteps(steps)} style={{ fontSize: 26, fontWeight: '700', color: W.onSurface as `#${string}` }} />
         <TextWidget
           text={goal > 0 ? `of ${formatSteps(goal)} · ${Math.round(progress * 100)}%` : 'Open the app to start'}
-          style={{ fontSize: 13, color: '#9BA1A6' }}
+          style={{ fontSize: 13, color: W.onSurfaceVariant as `#${string}` }}
         />
-        <TextWidget text={`Updated ${updated}`} style={{ fontSize: 11, color: '#6B7178' }} />
+        <TextWidget text={`Updated ${updated}`} style={{ fontSize: 11, color: W.outline as `#${string}` }} />
       </FlexWidget>
     </FlexWidget>
   );
