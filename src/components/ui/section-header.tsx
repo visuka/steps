@@ -75,7 +75,7 @@ export function SectionHeader({
         { marginTop: headerMarginTop(gap, interactive), minHeight: rowTouchHeight(interactive) },
         interactive ? styles.rowCentered : styles.rowBaseline,
       ]}>
-      <ThemedText type="labelLarge" accessibilityRole="header" maxFontSizeMultiplier={1.3} style={styles.title}>
+      <ThemedText type="labelLarge" accessibilityRole="header" maxFontSizeMultiplier={1.3} style={[styles.title, caption || why || action ? styles.titleBeside : null]}>
         {title}
       </ThemedText>
       {caption || why || action ? (
@@ -104,6 +104,8 @@ const styles = StyleSheet.create({
   rowBaseline: { alignItems: 'baseline' },
   rowCentered: { alignItems: 'center' },
   title: { flexShrink: 1 },
+  // Beside a caption or a button the title keeps its words whole; the caption wraps instead.
+  titleBeside: { flexShrink: 0, maxWidth: '60%' },
   end: { flexDirection: 'row', flexShrink: 1, gap: SECTION.gap },
   caption: { flexShrink: 1, textAlign: 'right' },
   why: { minHeight: TouchTarget, justifyContent: 'center', paddingHorizontal: Spacing.one },

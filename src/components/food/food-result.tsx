@@ -488,7 +488,7 @@ function Ingredients({ food, s, edit, onStartEdit }: { food: FoodItem; s: Result
   return (
     <View style={styles.ingredients}>
       <View style={styles.sectionRow}>
-        <ThemedText type="labelLarge" accessibilityRole="header" maxFontSizeMultiplier={NumeralMaxScale} style={styles.shrink}>
+        <ThemedText type="labelLarge" accessibilityRole="header" maxFontSizeMultiplier={NumeralMaxScale} style={edit || food.pending ? styles.sectionTitle : styles.shrink}>
           Ingredients{perOther}
         </ThemedText>
         {edit ? (
@@ -808,6 +808,8 @@ const COULD_NOT = "Couldn't work it out. Check the connection and try again.";
 const DEEP_FRIED_NOTE = 'Cooked in a lot of hot oil, so it soaks some up: more fat and calories than the same food made another way.';
 
 const styles = StyleSheet.create({
+  // The heading keeps its words whole (never "Ingredient" / "s"); the note beside it wraps instead.
+  sectionTitle: { flexShrink: 0, maxWidth: '60%' },
   fill: { flex: 1 },
   inline: { borderRadius: CLEAN_SPEC.radius.card, overflow: 'hidden' },
   inlineBody: { paddingBottom: Spacing.three },
