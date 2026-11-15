@@ -77,6 +77,7 @@ export const PREMIUM_FEATURES = [
   { key: 'body', label: 'Weight and water' },
   { key: 'mood', label: 'Mood, with an evening check-in' },
   { key: 'insights', label: 'Insights: what helps you walk more' },
+  { key: 'buddies', label: 'Walk buddies: find walkers and chat' },
 ] as const;
 
 export type Feature = (typeof FREE_FEATURES)[number] | (typeof PREMIUM_FEATURES)[number]['key'];
@@ -90,6 +91,7 @@ export function isLocked(feature: Feature, open: boolean): boolean {
  * Step check stay free, with their premium parts locked inside them.
  */
 export const SCREEN_FEATURES = {
+  buddies: 'buddies',
   walks: 'walks',
   'walk/record': 'walks',
   'walk/[id]': 'walks',

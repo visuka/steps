@@ -9,6 +9,8 @@ import ActivityTab from '@/app/(tabs)/activity';
 import PlusTab from '@/app/(tabs)/plus';
 import { Detail } from '@/app/detail/[kind]';
 import { dayKey } from '@/lib/dates';
+import { BuddiesSource } from '@/buddies/use-buddies';
+import { SAMPLE_SOCIAL_API } from '@/design-preview/buddies-sample';
 import { WalkDetail } from '@/app/walk/[id]';
 import { TABS } from '@/components/app-tabs';
 import { FoodResultScreen } from '@/components/food/food-result';
@@ -126,7 +128,11 @@ function PreviewScreenBody({ screen, edit, mine }: { screen: PreviewScreen; edit
       );
     case 'plus':
       // The bar's plus: chats and groups.
-      return <PlusTab />;
+      return (
+        <BuddiesSource api={SAMPLE_SOCIAL_API}>
+          <PlusTab />
+        </BuddiesSource>
+      );
     case 'activity':
       // Activity on its Health side: the readings that were the Journal.
       return <ActivityTab />;

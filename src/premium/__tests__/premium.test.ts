@@ -352,6 +352,7 @@ describe('which screens are locked', () => {
     const screens = Object.keys(SCREEN_FEATURES).sort();
     expect(screens).toEqual(
       [
+        'buddies',
         'insights',
         'journal/bp',
         'journal/food',
