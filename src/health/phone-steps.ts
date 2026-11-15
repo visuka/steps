@@ -70,7 +70,16 @@ export async function phoneWindow(counter: PhoneCounter, startMs: number, endMs:
   if (endMs > split) {
     const from = Math.max(startMs, split);
     try {
-      minutes.push(...(await counter.getRecorderBuckets(from, endMs)));
+      const recorded = await counter.getRecorderBuckets(from, endMs);
+      minutes.push(...recorded);
+      // Google's recorder saves late, sometimes hours late (owner's phone, 15 Nov 2026: nothing after
+      // 11:00 while the counter had 1,500 steps). The counter stands in after the recorder's last saved
+      // minute; once the recorder catches up, those minutes are its again, so nothing counts twice.
+      const lastSaved = recorded.reduce((last, m) => Math.max(last, m.start), -Infinity);
+      const tailFrom = lastSaved === -Infinity ? from : lastSaved + MINUTE;
+      if (tailFrom < endMs) {
+        minutes.push(...(await counter.getBuckets(tailFrom, endMs)).filter((m) => m.start >= tailFrom));
+      }
     } catch {
       // Play services refused this time (updating, say): the counter stands in until it answers.
       minutes.push(...(await counter.getBuckets(from, endMs)).filter((m) => m.start >= from));

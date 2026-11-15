@@ -208,6 +208,24 @@ describe("the phone's two counters", () => {
     ]);
   });
 
+  it("fills the minutes after the recorder's last saved one from the counter, without counting twice", async () => {
+    // The recorder saved up to 10:02; the counter also has 10:05 and 10:06, not saved by the recorder yet.
+    const behind = fake({
+      getBuckets: async (s, e) =>
+        [at(10, 1), at(10, 2), at(10, 5), at(10, 6)].filter((m) => m >= Math.floor(s / MIN) * MIN && m < e).map((m) => ({ start: m, steps: 50 })),
+    });
+    const { minutes } = await phoneWindow(behind, at(10, 1), at(11), now);
+    expect(minutes.map((m) => [m.start, m.steps])).toEqual([
+      [at(10, 1), 70],
+      [at(10, 2), 70],
+      [at(10, 5), 50],
+      [at(10, 6), 50],
+    ]);
+    // Nothing saved by the recorder at all in the window: the counter covers it.
+    const silent = fake({ getRecorderBuckets: async () => [] });
+    expect((await phoneWindow(silent, at(10, 1), at(11), now)).minutes.map((m) => m.steps)).toEqual([50, 50]);
+  });
+
   it('falls back to the counter while Play services refuses, untimed steps included', async () => {
     const refusing = fake({
       getRecorderBuckets: async () => Promise.reject(new Error('updating')),
