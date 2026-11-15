@@ -851,3 +851,10 @@ Order: T16a (code) → T16b → T16c → T16d → T16e → T16f → T16g → T16
 | `google-services.json` in a public repo | kept out; written from a GitHub secret in CI |
 | Store review for user content | report, block, filter, terms switch, contact, deletion are all in; resubmit the content rating questionnaire when T16 ships |
 | Under-18 users lie at the gate | self-declaration is the bar for now; `under18` reports lead to a ban |
+
+## 12. Owner decisions (15 Nov 2026, testing phase)
+
+- **No names, only handles.** Nobody sees another person's name anywhere (buddies, clubs, chat, plans, family, pushes). The `name` field is dropped; people are shown by handle (`pid` inside the app).
+- **Anything that risks privacy is left out** of the test build; the rest is built.
+- **Grievance Officer: Sathyavathi Katuri** (email `grievance@neutcrafts.in`). Other legal work waits until after testing.
+- **A banned person can still see their own data** and can still ask to join other groups.
