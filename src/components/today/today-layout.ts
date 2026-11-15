@@ -41,8 +41,8 @@ export const TODAY_LAYOUT = {
     pipGap: S.sizes.tile.pipGap,
     pipRadius: S.radius.bar,
     /** The plus circle sits over the header's right end. */
-    plusSize: 32,
-    plusInset: 14,
+    plusSize: 28,
+    plusInset: 12,
   },
   /** The sleep bar is full at this many minutes (8 h). */
   sleepGoalMin: 8 * 60,

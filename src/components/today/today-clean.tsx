@@ -22,6 +22,7 @@ import {
 } from '@/components/ui';
 import { midTone } from '@/components/ui/hero-colors';
 import { ICON_CIRCLE_STYLE, iconCircleRipple } from '@/components/ui/icon-circle-style';
+import { TILE_STYLE } from '@/components/ui/stat-tile-style';
 import { pressedColorOnAccent } from '@/components/ui/surface-style';
 import { MaxContentWidth } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -228,7 +229,7 @@ function StatTileFor({
         value={model.value}
         unit={model.unit}
         note={model.note}
-        iconCircle={<IconCircle name={icon} tone={circleTone} />}
+        iconCircle={<IconCircle name={icon} tone={circleTone} size={TILE_STYLE.headerHeight} />}
         trailing={trailing}
         valueStyle={tileValueStyle(kind, model)}
         onPress={onPress}
@@ -243,7 +244,7 @@ function StatTileFor({
           accessibilityLabel="Add a glass of water"
           android_ripple={{ color: iconCircleRipple(theme, 'accentSolid'), foreground: true, borderless: true, radius: PLUS_TOUCH / 2 }}
           style={[styles.plus, { top: T.plusInset - PLUS_PAD, right: T.plusInset - PLUS_PAD }]}>
-          <IconCircle name="plus" tone="accentSolid" />
+          <IconCircle name="plus" tone="accentSolid" size={TILE_STYLE.headerHeight} />
         </Pressable>
       ) : null}
     </View>

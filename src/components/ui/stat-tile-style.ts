@@ -14,7 +14,7 @@ const NOTE_BOTTOM_PADDING = 6;
  * Compact tiles (owner, 15 Nov 2026: "tiles ... occupying a lot of space"):
  * smaller than the mockup's 146 dp so Today shows more without scrolling.
  */
-const COMPACT = { minHeight: 108, padding: 14, circle: 32, labelGap: 8 } as const;
+const COMPACT = { minHeight: 100, padding: 12, circle: 28, labelGap: 6, extraGap: 8 } as const;
 
 export const TILE_STYLE = {
   radius: CLEAN_SPEC.radius.tile,
@@ -28,7 +28,7 @@ export const TILE_STYLE = {
   /** Between the header and the label. */
   labelGap: COMPACT.labelGap,
   /** Between the value and the bar or pips. */
-  extraGap: CLEAN_SPEC.space.s12,
+  extraGap: COMPACT.extraGap,
   /** Between the value and a line of text instead of a bar (the walk tile). */
   noteGap: CLEAN_SPEC.space.s8,
 } as const;
