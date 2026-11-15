@@ -479,7 +479,13 @@ Applied to: messages, handles, display names, club name, area and about, family 
 ### 5.6 Legal contacts (IT Rules 2021, Apple 1.2, Google)
 
 - A Grievance Officer: name and email on `neutcrafts.in/steps/grievance` and in the app (Buddies settings → "Complaints"). Values in `src/constants/app.ts` as `GRIEVANCE = { name, email, url }` (owner question 3).
-- Targets kept by the owner: acknowledge in 24 h (automatic, 5.1); act on reports about prohibited content within 36 h; resolve every complaint within 7 days (the stricter 2026 figures; check against the gazette, owner question 4).
+- Grievance Officer (owner, 15 Nov 2026): the company director, or the owner; either may be named because Steps is not a "significant" intermediary (that needs 50 lakh+ users in India). Use a role email `grievance@neutcrafts.in` so the person can change later without an app update.
+- Complaint times, IT Rules 2021 as amended by G.S.R. 120(E), in force 20 Feb 2026 (checked 15 Nov 2026 against law-firm summaries and the MeitY FAQ; the lawyer confirms the gazette text):
+  - acknowledge a complaint within 24 h (automatic, 5.1);
+  - complaints asking to remove prohibited content: act within 36 h (was 72 h);
+  - nudity, sexual content, impersonation or morphed photos: remove within 2 h (was 24 h); the owner gets a high-priority push for these report reasons;
+  - every other complaint: resolve within 7 days (was 15);
+  - government or court orders: act within 3 h (was 36 h).
 - Pages on `neutcrafts.in` (owner or a separate bizpage task): `/steps/terms`, `/steps/buddies-rules` (what's not allowed, including a clear ban on child sexual abuse material and on under-18 users), `/steps/safety` (meeting tips), `/steps/grievance`, `/steps/delete-account`.
 
 ### 5.7 Retention of reported content
@@ -520,7 +526,7 @@ Callers:
 
 ### 6.4 Consent and the 18+ gate
 
-- First open of Walk buddies → the Start screen (7.3) with two switches the person must turn on: "I'm 18 or older" and "I agree to the Walk buddies rules" (links to rules, terms and privacy). Neither is pre-set. "Continue" stays disabled until both are on and the handle is valid. This is the "accept terms, cannot skip" step for Google and the 18+ check for decision 4. The server stores only `adultConfirmedOn` and `termsOn` + `termsVersion`.
+- First open of Walk buddies → the Start screen (7.3) with three switches the person must turn on: "I'm 18 or older", "I live in India" (11.1 question 7) and "I agree to the Walk buddies rules" (links to rules, terms and privacy). None is pre-set. "Continue" stays disabled until all are on and the handle is valid. This is the "accept terms, cannot skip" step for Google and the 18+ check for decision 4. The server stores only `adultConfirmedOn` and `termsOn` + `termsVersion`.
 - When `termsVersion` changes, or `termsOn` is more than 365 days old (IT Rules 3(1)(c) yearly notice), `GET /me` returns `"termsNeeded": true` and the app shows the Start screen again (rules switch only).
 - Family step sharing is **off until the member turns it on** (Health Connect "no social sharing without explicit consent", DPDP clear affirmative action). The owner's decision said "each member can turn it off"; this keeps that and adds "starts off" (owner question 2). The first time the family screen opens, a one-time note card asks "Share your daily steps with <family>?" with "Share" and "Not now".
 - Family alert: only the watched member turns it on, in their own family settings; it needs sharing on; wording is neutral and does not suggest a health problem.
@@ -815,13 +821,17 @@ Order: T16a (code) → T16b → T16c → T16d → T16e → T16f → T16g → T16
 
 ### 11.1 Questions (defaults are built until you answer)
 
-1. **Premium:** is Walk buddies premium (default) or free? Option: free to find, accept and chat; premium for clubs and family.
+1. **Premium:** answered (15 Nov 2026): every Walk buddies feature is premium.
 2. **Family step sharing starts off** (each member turns it on). Store rules point this way; OK?
-3. **Grievance Officer:** whose name and which email go on `neutcrafts.in` and in the app?
-4. **Complaint times:** the 2026 IT Rules amendment figures (36 h removal, 7 days to resolve) come from law-firm summaries. Check with a lawyer before the terms page goes up.
+3. **Grievance Officer:** answered in part: the director or the owner (5.6). Still needed: which name goes on the page.
+4. **Complaint times:** checked 15 Nov 2026 (5.6: 24 h acknowledge, 36 h removal, 2 h intimate or impersonation, 7 days resolve, 3 h orders). The lawyer still confirms the gazette text before the terms page goes up.
 5. **Report alert:** default is a push to your own phone (your account id in SSM `moderators`). Do you also want email? SES is sandbox-only, so the address must be verified there.
-6. **Ban scope:** default bans Walk buddies only; the person keeps using step counting. Shut the whole account instead?
-7. **GDPR:** EU and UK users mean an EU and a UK representative are probably needed (paid services). Launch Walk buddies in India first?
+6. **Ban scope:** answered (15 Nov 2026): a ban covers Walk buddies only; the person keeps counting steps and everything else.
+7. **Country:** answered (15 Nov 2026): India only. The GDPR representative question is dropped. Gate:
+   - the "Walk buddies" row shows only when the phone's region is India (`expo-localization` `regionCode === 'IN'`);
+   - the server refuses `PUT /me/area` for an area code outside India's box (lat 6–37.5, lon 68–97.5) with 403 `not_available`;
+   - the Start screen adds a third switch, "I live in India";
+   - the terms say Walk buddies is for people in India.
 8. **Deploy OK for T16a** and the push setup in 4.1.
 9. **Log retention:** CERT-In asks for 180 days of logs in India. T16a sets 180 days for the two new Lambdas; OK to change the existing functions' `LOG_RETENTION` (one month today) to 180 days too? Small cost.
 10. **Content rating answer:** default is "shares location with other users: yes (approximate area match only)". Check it against the questionnaire's wording when you fill it in.

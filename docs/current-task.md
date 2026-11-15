@@ -446,6 +446,11 @@ The stopped "screens match mockups" run left 28 changed files and new folders (a
    - Members see each other's daily steps and walk totals (each member can turn sharing off), cheer each other, and have a family chat.
    - Optional gentle alert for older family members: "No steps from Amma by 12:00", only if that member turns it on.
    - **18+ only (owner, 15 Nov 2026),** like all of Walk buddies, clubs included. No children's accounts or child members.
+8. **Answers to the T16-0 questions (owner, 15 Nov 2026).**
+   - Every Walk buddies feature is premium.
+   - A ban covers Walk buddies only; the person keeps counting steps.
+   - India only (phone region, area check on the server, and an "I live in India" switch; `docs/walk-buddies.md` 11.1 question 7).
+   - Grievance Officer: the director or the owner; the name is still to be chosen (`docs/walk-buddies.md` 5.6).
 
 ### Opus rules (safety and store rules)
 
@@ -492,7 +497,7 @@ The stopped "screens match mockups" run left 28 changed files and new folders (a
 
 **Not in scope:** public feeds, comments, photos, live location, and walking together in real time. (Groups are now in scope as clubs and families, decisions 6–7.) These can come later as separate requests.
 
-**Open before T16a:** the owner's OK to deploy the new stacks, and who reviews reports (the owner's email for the queue alert).
+**Open before T16a:** the owner's OK to deploy the new stacks, and the Grievance Officer name.
 
 ---
 
