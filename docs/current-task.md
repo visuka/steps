@@ -32,7 +32,7 @@ Status: **Approved design: Clean+ blue (14 Nov 2026).** T0 to T11 done; CI run 4
 | **T15a** | Sonnet | "Do T15a in docs/current-task.md" |
 | T15b | Sonnet | "Do T15b in docs/current-task.md" |
 | T15 check | Opus | "Review the CI screenshots" |
-| T15c-0 | owner | confirm "locally" = on the phone, and the open cooking values |
+| T15c-0 | owner | ~~on the phone~~ confirmed; the open cooking values still to answer |
 | T15c-1 | Sonnet | "Do T15c-1 in docs/current-task.md" (deploy only with T14, owner's OK) |
 | T15c-2 to T15c-4 | Sonnet | "Do T15c-2 in docs/current-task.md", then -3, then -4 |
 | T15c check | Opus | "Review the CI screenshots" |
@@ -339,7 +339,7 @@ The stopped "screens match mockups" run left 28 changed files and new folders (a
 
 ## T15c. Cooking method in "Edit recipe", and the phone does the maths (owner, 15 Nov 2026)
 
-**What the owner asked:** "Edit recipe" must know how each thing was cooked (boiled, oil fry, deep fry, salad…), because the nutrients depend on it. The AI only gives each ingredient's nutrient profile, plus the ingredient list and cooking methods when the person doesn't give them. **The calculation is done locally** (Opus reads this as: on the phone; confirm with the owner before T15c-1).
+**What the owner asked:** "Edit recipe" must know how each thing was cooked (boiled, oil fry, deep fry, salad…), because the nutrients depend on it. The AI only gives each ingredient's nutrient profile, plus the ingredient list and cooking methods when the person doesn't give them. **The calculation is done on the phone** (owner confirmed, 15 Nov 2026).
 
 **What exists today** (mapped 15 Nov 2026):
 - The cooking model is built on the server but **not deployed** (T14): `stepsinfra/lambda_src/python/steps/food/cooking.py`, the factor files in `stepsinfra/data/cooking/`, the design in `stepsinfra/docs/cooking-model.md`. It works per ingredient: record → yield → USDA retention → meat fat drip → frying oil uptake → totals (sections 2–7 there).
@@ -400,7 +400,7 @@ The stopped "screens match mockups" run left 28 changed files and new folders (a
 
 ### Tasks
 
-- **T15c-0 — owner (gate).** Confirm "locally" means on the phone, and accept or change the open values in decision 13.
+- **T15c-0 — owner (gate).** ~~Confirm "locally" means on the phone~~ (confirmed 15 Nov 2026). Still open: accept or change the values in decision 13 (T15c-2 to -4 may start without it).
 - **T15c-1 — server (Sonnet). Deploy needs the owner's OK; goes out with T14.**
   - `steps/food`: add `profile` to each ingredient line of estimate and recipe answers; add `POST /v1/food/ingredients` (batch up to 30 names, cached by name and country like the recipe cache).
   - New `scripts/export_app_cooking.py`: writes `cooking-c1.json` and `cooking-golden.json` into the app repo path given as an argument.
