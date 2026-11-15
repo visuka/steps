@@ -858,3 +858,7 @@ Order: T16a (code) → T16b → T16c → T16d → T16e → T16f → T16g → T16
 - **Anything that risks privacy is left out** of the test build; the rest is built.
 - **Grievance Officer: Sathyavathi Katuri** (email `grievance@neutcrafts.in`). Other legal work waits until after testing.
 - **A banned person can still see their own data** and can still ask to join other groups.
+- **Nearby walkers and Walker family are kept**, each turned on only with the person's own consent (owner: consent removes the privacy risk).
+- **A ban means removed from that one club only**; the person keeps everything else.
+- **Walk routes are included in backup** (docs/data-sync.md).
+- Push notifications wait until the owner has created the Firebase project.
