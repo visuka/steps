@@ -10,7 +10,7 @@ describe('stat tile style', () => {
   });
 
   it('nests the unit after one space', () => {
-    expect(valueWithUnit('5', 'of 8 glasses')).toEqual({ value: '5 ', unit: 'of 8 glasses' });
+    expect(valueWithUnit('5', 'of 8 glasses')).toEqual({ value: '5 ', unit: 'of 8 glasses' });
     expect(valueWithUnit('6 h 50', 'min')).toEqual({ value: '6 h 50 ', unit: 'min' });
     expect(valueWithUnit('2.3')).toEqual({ value: '2.3' });
   });

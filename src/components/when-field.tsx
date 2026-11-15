@@ -56,7 +56,7 @@ export function WhenField({ label = 'When', value, onChange }: WhenFieldProps) {
   return (
     <View style={styles.wrap}>
       <View style={styles.row}>
-        <ThemedText type="bodyLarge" style={styles.label}>
+        <ThemedText type="bodyMedium" themeColor="onSurfaceVariant">
           {label}
         </ThemedText>
         <Pressable
@@ -98,20 +98,12 @@ export function WhenField({ label = 'When', value, onChange }: WhenFieldProps) {
 
 const styles = StyleSheet.create({
   wrap: { gap: Spacing.two },
-  // A long date or a large font puts the date on a line of its own instead of squeezing the label.
-  row: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: Spacing.two,
-    minHeight: TouchTarget,
-  },
-  label: { flexShrink: 1 },
+  // Label above, field full width: every field lines up, at any width and font size.
+  row: { gap: Spacing.one },
   value: {
+    alignSelf: 'stretch',
     flexDirection: 'row',
     alignItems: 'center',
-    flexShrink: 1,
     gap: Spacing.two,
     minHeight: TouchTarget,
     paddingVertical: Spacing.two,
@@ -121,5 +113,5 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     overflow: 'hidden',
   },
-  valueText: { flexShrink: 1, fontVariant: ['tabular-nums'] },
+  valueText: { flex: 1, fontVariant: ['tabular-nums'] },
 });

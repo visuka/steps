@@ -35,7 +35,8 @@ export function tileBottomPadding(hasNote: boolean, hasExtra: boolean): number {
 
 /** The value and its unit as nested inline text: '5 ' then the unit (spec 3: one space). */
 export function valueWithUnit(value: string, unit?: string): { value: string; unit?: string } {
-  return unit ? { value: `${value} `, unit } : { value };
+  // The unit's words stay together: a narrow tile or a large font moves "of 1,900 kcal" down whole, never "kcal" alone.
+  return unit ? { value: `${value} `, unit: unit.replace(/ /g, ' ') } : { value };
 }
 
 /** What a screen reader says for the whole tile, e.g. "Water, 5 of 8 glasses". */
