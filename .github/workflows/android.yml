@@ -51,8 +51,10 @@ jobs:
       - name: Unit tests
         run: npm test
 
-  build-apk:
-    needs: check
+  # The step counter's timing rules (gaps, restarts, clock changes), on the JVM.
+  # Its own job, beside the APK build: it compiles a separate debug copy, which
+  # cost 4.5 minutes in line (build 36). Publish still waits for it.
+  kotlin-tests:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -71,6 +73,56 @@ jobs:
           java-version: 17
 
       - uses: gradle/actions/setup-gradle@v4
+        with:
+          # Builds run from combined, not the default branch; without this the cache is never saved.
+          cache-read-only: false
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate the Android project
+        run: npx expo prebuild --platform android --no-install
+
+      - name: Step counter unit tests
+        working-directory: android
+        run: ./gradlew :step-counter:testDebugUnitTest --no-daemon --build-cache --parallel
+
+  # Starts at once, beside check: publish waits for both, so a failing test still blocks the release.
+  build-apk:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      # CMake reads these: the React Native and Expo C++ goes through ccache, kept between runs.
+      CMAKE_C_COMPILER_LAUNCHER: ccache
+      CMAKE_CXX_COMPILER_LAUNCHER: ccache
+      CCACHE_MAXSIZE: 2G
+      CCACHE_SLOPPINESS: file_macro,time_macros,include_file_mtime,include_file_ctime
+      CCACHE_BASEDIR: ${{ github.workspace }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          # Builds run from combined, not the default branch; without this the cache is never saved.
+          cache-read-only: false
+
+      - name: Native compile cache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: android-native
+          max-size: 2G
 
       - name: Install dependencies
         run: npm ci
@@ -79,18 +131,18 @@ jobs:
       - name: Generate the Android project
         run: npx expo prebuild --platform android --no-install
 
-      # The step counter's timing rules (gaps, restarts, clock changes), on the JVM.
-      - name: Step counter unit tests
-        working-directory: android
-        run: ./gradlew :step-counter:testDebugUnitTest --no-daemon
-
       # 64-bit ARM for phones, plus x86_64 for the emulator in the smoke test:
       # React Native's library loader only looks for the emulator's own CPU
       # type, so an ARM-only APK can't start there. Building all four CPU types
       # took over an hour on GitHub's runners.
       - name: Build release APK
         working-directory: android
-        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a,x86_64
+        run: ./gradlew assembleRelease --no-daemon --build-cache --parallel -PreactNativeArchitectures=arm64-v8a,x86_64
+
+      - name: Native cache use
+        if: always()
+        continue-on-error: true
+        run: ccache --show-stats || true
 
       # Passkeys trust an app only by its signing certificate, so test APKs
       # must carry a key only we hold. The keystore is written to the runner's
@@ -208,7 +260,7 @@ jobs:
           retention-days: 7
 
   publish:
-    needs: smoke-test
+    needs: [check, kotlin-tests, smoke-test]
     runs-on: ubuntu-latest
     permissions:
       contents: write
