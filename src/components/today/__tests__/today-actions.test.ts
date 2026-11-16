@@ -5,8 +5,8 @@ import { DETAIL_ROUTES_LIVE, detailRoute, type DetailKind, walkingLine, walkingS
 const KINDS: DetailKind[] = ['steps', 'food', 'water', 'sleep', 'walk'];
 
 describe('detailRoute', () => {
-  it('opens /detail/<kind> for steps, food, water and sleep once the detail screens are live', () => {
-    for (const kind of KINDS.filter((k) => k !== 'walk')) {
+  it('opens /detail/<kind> for steps, water and sleep once the detail screens are live', () => {
+    for (const kind of KINDS.filter((k) => k !== 'walk' && k !== 'food')) {
       expect(detailRoute(kind, 'w1', true)).toEqual({ pathname: `/detail/${kind}` });
     }
   });
@@ -16,6 +16,10 @@ describe('detailRoute', () => {
     expect(detailRoute('food', null, false)).toEqual({ pathname: '/food' });
     expect(detailRoute('water', null, false)).toBeNull();
     expect(detailRoute('sleep', null, false)).toEqual({ pathname: '/activity', params: { section: 'sleep' } });
+  });
+
+  it('sends the Food tile to Food itself, now that Food is off the bar', () => {
+    for (const live of [true, false]) expect(detailRoute('food', null, live)).toEqual({ pathname: '/food' });
   });
 
   it('sends the Walk tile to the walks on Activity, never to /detail/walk', () => {

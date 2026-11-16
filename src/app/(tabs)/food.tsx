@@ -1,4 +1,4 @@
-import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { type Href, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 
@@ -58,6 +58,7 @@ export default function FoodTab() {
 
 function FoodScreen({ focusKey }: { focusKey?: string }) {
   const { repo } = useApp();
+  const router = useRouter();
   const premium = usePremium();
   const waterOn = !premium.isLocked('body');
   const nutrition = useNutrition();
@@ -107,6 +108,7 @@ function FoodScreen({ focusKey }: { focusKey?: string }) {
     <FoodResultHostView>
       <Screen
         title="Food"
+        onBack={() => router.navigate('/')}
         overlay={<Snackbar message={snack?.text ?? null} action={snack?.action} onDismiss={() => setSnack(null)} />}>
         <Segmented<Tab>
           options={[
@@ -151,6 +153,7 @@ function DayView({
   onNotForMe: (id: string, label: string) => void;
 }) {
   const { profile, updateProfile } = useApp();
+  const router = useRouter();
   const diet = profile.nutrition.diet;
   const t = data?.today ?? null;
   const totals = t?.total ?? {};
@@ -172,7 +175,15 @@ function DayView({
 
   return (
     <>
-      {ctx ? <CaloriesTrack eaten={kcal.eaten} target={ctx.kcalTarget ?? 2000} atLeast={kcal.partial} /> : null}
+      {ctx ? (
+        <CaloriesTrack
+          eaten={kcal.eaten}
+          target={ctx.kcalTarget ?? 2000}
+          atLeast={kcal.partial}
+          // Today's Food tile used to open this chart; it now opens Food, so the chart opens from here.
+          onPress={() => router.push('/detail/food' as unknown as Href)}
+        />
+      ) : null}
       <FoodLog focusKey={focusKey} />
       <FoodSetupCard />
       {note ? (

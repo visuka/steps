@@ -9,21 +9,24 @@ import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 /**
- * The bar, in order (icons as the mockup's nav): Today, Food, the chats button in the
- * middle (chats and groups), Activity (health readings and workouts), You.
- * Each thing lives in one tab. Journal is only a hidden route now, sending
- * old links to Food or Activity (see HIDDEN_ROUTES).
+ * The bar, in order: Today, the chats button in the middle (chats and
+ * groups), You. Food and Activity left the bar (owner, 16 Nov 2026): Today's
+ * Food tile and Log food open Food, its Walk tile opens Activity. They stay
+ * routes of this navigator (HIDDEN_ROUTES), so links to /food and /activity
+ * still work. Journal only sends old links to Food or Activity.
  */
 export const TABS: NavigationItem[] = [
   { key: 'index', label: 'Today', specIcon: 'today' },
-  { key: 'food', label: 'Food', specIcon: 'bowl' },
   { key: 'plus', label: 'Chats and groups', specIcon: 'chats', fab: true },
-  { key: 'activity', label: 'Activity', specIcon: 'pulse' },
   { key: 'you', label: 'You', specIcon: 'person' },
 ];
 
-/** Routes of the tabs navigator that have no slot in the bar but can still be opened. */
-export const HIDDEN_ROUTES = ['journal'] as const;
+/** Routes of the tabs navigator that have no slot in the bar but can still be opened, with their titles. */
+export const HIDDEN_ROUTES = [
+  { name: 'food', title: 'Food' },
+  { name: 'activity', title: 'Activity' },
+  { name: 'journal', title: 'Journal' },
+] as const;
 
 /** Every slot of the bar is a route. */
 const ROUTE_TABS = TABS;
@@ -70,8 +73,8 @@ function TabBar({ state, emitter, navigateToTab, insets }: BottomTabBarProps) {
 }
 
 /**
- * The Clean+ navigation bar: Today, Food, Chats and groups, Activity and You,
- * icons only. Journal is a hidden route (href null) that redirects old links.
+ * The Clean+ navigation bar: Today, Chats and groups and You, icons only.
+ * Food, Activity and Journal are hidden routes (href null).
  * Tabs move with a short shift (Material's shared axis), or cut with reduce motion.
  * System Back from any tab returns to Today, then leaves the app.
  */
@@ -90,8 +93,8 @@ export default function AppTabs() {
       {ROUTE_TABS.map((t) => (
         <Tabs.Screen key={t.key} name={t.key} options={{ title: t.label }} />
       ))}
-      {HIDDEN_ROUTES.map((name) => (
-        <Tabs.Screen key={name} name={name} options={{ title: 'Journal', href: null }} />
+      {HIDDEN_ROUTES.map((r) => (
+        <Tabs.Screen key={r.name} name={r.name} options={{ title: r.title, href: null }} />
       ))}
     </Tabs>
   );

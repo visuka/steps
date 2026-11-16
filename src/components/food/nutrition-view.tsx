@@ -32,14 +32,17 @@ export function CaloriesTrack({
   target,
   label = 'of about',
   atLeast = false,
+  onPress,
 }: {
   eaten: number;
   target: number;
   label?: string;
   atLeast?: boolean;
+  /** Opens the food chart (by hour, week, month). */
+  onPress?: () => void;
 }) {
   return (
-    <Card tone="food">
+    <Card tone="food" onPress={onPress} accessibilityLabel={onPress ? 'Food chart' : undefined}>
       <TrackProgress
         value={eaten}
         goal={target}

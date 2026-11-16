@@ -69,7 +69,7 @@ export default function ActivityTab() {
   }
 
   return (
-    <Screen title="Activity">
+    <Screen title="Activity" onBack={() => router.navigate('/')}>
       {/* The same two-way switch as Food's Today | This week, so it reads apart from the part chips below. */}
       <Segmented<Side>
         options={[
