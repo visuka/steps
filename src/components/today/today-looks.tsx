@@ -692,7 +692,7 @@ export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
   const ink = theme.onSurface;
 
   return (
-    <View style={[styles.column, { backgroundColor: look.background, paddingHorizontal: 24, gap: 16, paddingTop: 16 }]}>
+    <View style={[styles.column, { backgroundColor: look.background, paddingHorizontal: 24, gap: 12, paddingTop: 16 }]}>
       <View style={styles.spread}>
         <View style={{ flex: 1 }}>
           <View style={styles.dateRow}>
@@ -729,7 +729,7 @@ export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
         accessibilityRole="button"
         accessibilityLabel={v.stepsSpoken}
         android_ripple={{ color: `${ink}14`, foreground: true }}
-        style={[card, { padding: 24, overflow: 'hidden' }]}>
+        style={[card, { paddingHorizontal: 24, paddingVertical: 16, overflow: 'hidden' }]}>
         <View style={[styles.spread, { minHeight: 24 }]}>
           <T size={18} line={24} weight={600} color={quiet}>
             Steps today
@@ -738,29 +738,29 @@ export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
             {Math.max(0, Math.round(v.pct))}%
           </T>
         </View>
-        <T size={72} line={72} weight={700} color={ink} style={{ marginTop: 8, letterSpacing: -1 }} lines={1}>
+        <T size={56} line={56} weight={700} color={ink} style={{ marginTop: 4, letterSpacing: -1 }} lines={1}>
           {formatSteps(Math.max(0, v.steps))}
         </T>
         <T size={18} line={24} color={quiet}>
           of {formatSteps(v.goal)} goal
         </T>
-        <View style={[styles.track, { height: 16, borderRadius: 8, backgroundColor: theme.lane, marginTop: 16 }]}>
-          <View style={{ width: `${share(v) * 100}%`, height: 16, borderRadius: 8, backgroundColor: theme.steps }} />
+        <View style={[styles.track, { height: 12, borderRadius: 6, backgroundColor: theme.lane, marginTop: 12 }]}>
+          <View style={{ width: `${share(v) * 100}%`, height: 12, borderRadius: 6, backgroundColor: theme.steps }} />
         </View>
-        <View style={{ flexDirection: 'row', gap: 16, marginTop: 16 }}>
+        <View style={{ flexDirection: 'row', gap: 16, marginTop: 12 }}>
           <View style={{ flex: 1 }}>
-            <T size={24} line={32} weight={700} color={ink}>
+            <T size={24} line={28} weight={700} color={ink}>
               {d.value} {d.unit}
             </T>
-            <T size={16} line={24} color={quiet}>
+            <T size={16} line={20} color={quiet}>
               Distance
             </T>
           </View>
           <View style={{ flex: 1 }}>
-            <T size={24} line={32} weight={700} color={ink}>
+            <T size={24} line={28} weight={700} color={ink}>
               {Math.max(0, Math.round(v.activeMin ?? 0))} min
             </T>
-            <T size={16} line={24} color={quiet}>
+            <T size={16} line={20} color={quiet}>
               Active
             </T>
           </View>
@@ -769,10 +769,10 @@ export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
 
       {v.slots.walking}
 
-      <View style={{ flexDirection: 'row', gap: 16 }}>
+      <View style={{ flexDirection: 'row', gap: 12 }}>
         <Press onPress={tapFor(v, 'food')} label={m.food.spoken} ripple={`${ink}14`} style={[card, styles.eHalf]}>
           <ELabel icon={L ? 'lock' : 'bowl'} text="Food" color={L ? ink : theme.food} />
-          <T size={24} line={32} weight={700} color={ink} style={{ marginTop: 8 }}>
+          <T size={24} line={32} weight={700} color={ink} style={{ marginTop: 4 }}>
             {m.food.value}
           </T>
           {L ? null : (
@@ -788,7 +788,7 @@ export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
         </Press>
         <Press onPress={tapFor(v, 'sleep')} label={m.sleep.spoken} ripple={`${ink}14`} style={[card, styles.eHalf]}>
           <ELabel icon={L ? 'lock' : 'moon'} text="Sleep" color={L ? ink : theme.sleep} />
-          <T size={24} line={32} weight={700} color={ink} style={{ marginTop: 8 }}>
+          <T size={24} line={32} weight={700} color={ink} style={{ marginTop: 4 }}>
             {m.sleep.unit ? `${m.sleep.value} ${m.sleep.unit}` : m.sleep.value}
           </T>
           {L ? null : (
@@ -893,8 +893,8 @@ const styles = StyleSheet.create({
   dRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   circle48: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   circle40: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  eHalf: { flex: 1, padding: 16 },
-  eWater: { padding: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16 },
-  eGlass: { height: 56, minWidth: 56, paddingHorizontal: 16, borderRadius: 16, borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  eWalk: { minHeight: 64, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 16 },
+  eHalf: { flex: 1, paddingHorizontal: 16, paddingVertical: 12 },
+  eWater: { paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16 },
+  eGlass: { height: 48, minWidth: 48, paddingHorizontal: 16, borderRadius: 16, borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  eWalk: { minHeight: 56, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 16 },
 });
