@@ -1,6 +1,6 @@
 /**
  * The Clean+ Today (docs/design/clean-plus.png, spec 5.1 to 5.7, 7, 10), shared
- * by every look: greeting, week strip, the blue steps hero with its hour chart,
+ * by every look: greeting, the good-news ticker, the blue steps hero with its hour chart,
  * then the two-column tiles (Food, Water / Sleep, Walk). Numbers and wording
  * come from today-layout.ts and model.ts; this file only draws them.
  */
@@ -17,7 +17,6 @@ import {
   Pill,
   SpecIcon,
   StatTile,
-  WeekStrip,
 } from '@/components/ui';
 import { midTone } from '@/components/ui/hero-colors';
 import { ICON_CIRCLE_STYLE, iconCircleRipple } from '@/components/ui/icon-circle-style';
@@ -27,6 +26,7 @@ import { ActiveTheme, type DataTone, Look, MaxContentWidth } from '@/constants/t
 import { useTheme } from '@/hooks/use-theme';
 
 import { dailyQuote } from './model';
+import { NewsTicker } from './news-ticker';
 import { WeatherBesideDate } from './weather-beside-date';
 import { tileValueStyle } from './value-style';
 import {
@@ -37,7 +37,6 @@ import {
   heroPill,
   heroRight,
   lockedTileModel,
-  selectedDay,
   sleepTile,
   TILE_KINDS,
   tileWidth,
@@ -46,7 +45,6 @@ import {
   type TileModel,
   walkTile,
   waterTile,
-  weekShares,
 } from './today-layout';
 import { TodayBlocks, TodayCalm, TodaySport } from './today-looks';
 import type { TodayFrameLook, TodayView } from './view';
@@ -64,10 +62,10 @@ export function TodayClean({ v, look }: { v: TodayView; look: TodayFrameLook }) 
 }
 
 function TodayShared({ v, look }: { v: TodayView; look: TodayFrameLook }) {
+  const theme = useTheme();
   const { width: screen } = useWindowDimensions();
   const content = contentWidth(screen, look.gutter, MaxContentWidth);
   const tile = tileWidth(content);
-  const days = weekShares(v.week, v.goal);
   const food = foodTile(v.food);
   const water = waterTile(v.water);
   const sleep = sleepTile(v.sleep, v.sleepSpoken);
@@ -83,11 +81,21 @@ function TodayShared({ v, look }: { v: TodayView; look: TodayFrameLook }) {
         onAvatarPress={v.on.profile}
         beside={v.weather ? <WeatherBesideDate weather={v.weather} /> : (v.slots.dateExtra ?? undefined)}
       />
-      <WeekStrip
-        days={days}
-        selectedIndex={selectedDay(v.week)}
-        onSelect={(i) => v.on.calendar(v.week[i]?.key)}
-      />
+      {/* Where Monday to Sunday was: good news moving by (owner, 16 Nov 2026). */}
+      {v.news.length ? (
+        <NewsTicker
+          items={v.news}
+          onPress={v.on.news}
+          colors={{
+            background: theme.surfaceContainerHigh,
+            label: theme.stepsContainer,
+            labelInk: theme.onStepsContainer,
+            ink: theme.onSurface,
+            quiet: theme.onSurfaceVariant,
+            ripple: `${theme.onSurface}1A`,
+          }}
+        />
+      ) : null}
       <StepsHero v={v} chartWidth={heroChartWidth(content)} />
       {v.slots.walking}
       {v.details ? (

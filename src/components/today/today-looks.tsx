@@ -15,7 +15,7 @@ import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, type TextStyle, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
-import { SpecIcon, WeekStrip } from '@/components/ui';
+import { SpecIcon } from '@/components/ui';
 import type { SpecIconName } from '@/components/ui/icon-paths';
 import { ActiveTheme, MaxContentWidth, MaxTextScale } from '@/constants/theme';
 import type { ThemeFont } from '@/constants/themes/types';
@@ -35,7 +35,6 @@ import {
   type TileModel,
   walkTile,
   waterTile,
-  weekShares,
 } from './today-layout';
 import type { TodayFrameLook, TodayView } from './view';
 import { WeatherBesideDate } from './weather-beside-date';
@@ -213,14 +212,6 @@ export function TodaySport({ v, look }: { v: TodayView; look: TodayFrameLook }) 
   const segments = 8;
   const filled = share(v) * segments;
 
-  // This week, Monday to Sunday: the average of the days gone by with steps, today in orange.
-  const past = v.week.filter((x) => !x.today && !x.future && x.steps > 0);
-  const avg = past.length ? past.reduce((s, x) => s + x.steps, 0) / past.length : 0;
-  const scale = (steps: number) => {
-    const ref = avg > 0 ? avg : v.goal;
-    return ref > 0 ? Math.min(40, Math.round((steps / ref) * 32)) : 0;
-  };
-
   const label = (text: string, color = b.quiet) => (
     <T size={12} line={16} weight={600} caps color={color}>
       {text}
@@ -253,6 +244,24 @@ export function TodaySport({ v, look }: { v: TodayView; look: TodayFrameLook }) 
           <Avatar v={v} size={48} fill={theme.surfaceContainerHigh} ink={ink} weight={600} />
         </View>
       </View>
+
+      {/* Where Monday to Sunday was: good news moving by (owner, 16 Nov 2026). */}
+      {v.news.length ? (
+        <View style={styles.fInset}>
+          <NewsTicker
+            items={v.news}
+            onPress={v.on.news}
+            colors={{
+              background: theme.surfaceContainerHigh,
+              label: b.chip,
+              labelInk: b.onChip,
+              ink: ink,
+              quiet: quiet,
+              ripple: `${ink}1A`,
+            }}
+          />
+        </View>
+      ) : null}
 
       {/* The black block. */}
       <Pressable
@@ -306,39 +315,6 @@ export function TodaySport({ v, look }: { v: TodayView; look: TodayFrameLook }) 
           ))}
         </View>
 
-        <View style={[styles.fSection, { borderTopColor: b.rule }]}>
-          <View style={styles.spread}>
-            {label('This week')}
-            {avg > 0 ? label(`Avg ${formatSteps(Math.round(avg))}`) : null}
-          </View>
-          <View style={styles.weekBars}>
-            {avg > 0 ? <View style={[styles.avgLine, { borderTopColor: b.average }]} /> : null}
-            {v.week.map((day) => (
-              <Pressable
-                key={day.key}
-                disabled={day.future}
-                onPress={() => v.on.calendar(day.key)}
-                accessibilityRole="button"
-                accessibilityLabel={`${day.name}, ${formatSteps(day.steps)} steps`}
-                style={styles.weekCol}>
-                <View
-                  style={{
-                    height: day.future ? 0 : Math.max(day.steps > 0 ? 2 : 0, scale(day.steps)),
-                    borderRadius: 2,
-                    backgroundColor: day.today ? b.mark : day.steps >= avg ? b.barHigh : b.barLow,
-                  }}
-                />
-              </Pressable>
-            ))}
-          </View>
-          <View style={styles.weekLetters}>
-            {v.week.map((day) => (
-              <T key={day.key} size={12} line={16} weight={600} color={day.today ? b.text : b.quiet} style={styles.center}>
-                {day.letter}
-              </T>
-            ))}
-          </View>
-        </View>
       </Pressable>
 
       {v.slots.walking ? <View style={styles.fInset}>{v.slots.walking}</View> : null}
@@ -732,7 +708,21 @@ export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
         <Avatar v={v} size={48} fill={theme.primaryContainer} ink={theme.onPrimaryContainer} weight={700} />
       </View>
 
-      <WeekStrip days={weekShares(v.week, v.goal)} selectedIndex={selectedDay(v.week)} onSelect={(i) => v.on.calendar(v.week[i]?.key)} />
+      {/* Where Monday to Sunday was: good news moving by (owner, 16 Nov 2026). */}
+      {v.news.length ? (
+        <NewsTicker
+          items={v.news}
+          onPress={v.on.news}
+          colors={{
+            background: theme.surfaceContainerHigh,
+            label: theme.primaryContainer,
+            labelInk: theme.onPrimaryContainer,
+            ink: ink,
+            quiet: quiet,
+            ripple: `${ink}1A`,
+          }}
+        />
+      ) : null}
 
       <Pressable
         onPress={v.on.steps}
@@ -884,14 +874,8 @@ const styles = StyleSheet.create({
   segment: { flex: 1, borderRadius: 2, overflow: 'hidden' },
   fStats: { flexDirection: 'row' },
   fStat: { flex: 1, gap: 4 },
-  fSection: { borderTopWidth: 1, paddingTop: 12, gap: 8 },
   spread: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   spreadEnd: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 8 },
-  weekBars: { height: 40, flexDirection: 'row', gap: 8, alignItems: 'flex-end' },
-  weekCol: { flex: 1, height: 40, justifyContent: 'flex-end' },
-  avgLine: { position: 'absolute', left: 0, right: 0, bottom: 32, borderTopWidth: 1, borderStyle: 'dashed' },
-  weekLetters: { flexDirection: 'row', gap: 8 },
-  center: { flex: 1, textAlign: 'center' },
   fInset: { marginHorizontal: 16 },
   fRow: { flexDirection: 'row', alignItems: 'center', gap: 16, borderBottomWidth: 1, paddingVertical: 8 },
   fIcon: { width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },

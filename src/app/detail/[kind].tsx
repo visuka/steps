@@ -41,6 +41,7 @@ import {
   type Zone,
 } from '@/state/series';
 import { useSeries } from '@/state/use-series';
+import { useWaterToday } from '@/state/use-water';
 import { useClock } from '@/hooks/use-clock';
 
 const TITLES: Record<SeriesKind, string> = {
@@ -229,6 +230,7 @@ export function Detail({ kind, firstDay }: { kind: SeriesKind; firstDay: string 
           <SectionHeader gap="sub" title="Add or remove" />
           <PremiumGate feature={SCREEN_FEATURES['journal/water']}>
             <BodyLog kind="water" total={false} />
+            <WaterSnooze />
           </PremiumGate>
         </>
       ) : null}
@@ -414,3 +416,11 @@ const styles = StyleSheet.create({
   // Spec 10.3: disabled = same colours at opacity 0.4.
   disabled: { opacity: 0.4 },
 });
+
+/** After a water reminder today: stop the rest of today's (was on the Food tab's Water card). */
+function WaterSnooze() {
+  const water = useWaterToday();
+  const s = water.status;
+  if (!s?.remindedToday || s.snoozed) return null;
+  return <Button label="No more reminders today" variant="text" compact onPress={water.snooze} />;
+}

@@ -1,5 +1,5 @@
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { type ReactNode, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 
 import { Segmented } from '@/components/controls';
@@ -14,11 +14,9 @@ import {
   NutrientGroupCard,
   WatchCard,
 } from '@/components/food/nutrition-view';
-import { WaterCard } from '@/components/food/water-card';
 import { FoodLog } from '@/components/journal/food-log';
 import { PremiumGate } from '@/components/premium-gate';
 import { BAR_FAB_CLEARANCE, Screen, SectionHeader, Snackbar } from '@/components/ui';
-import type { LogEntry } from '@/data/types';
 import { dayKey } from '@/lib/dates';
 import { weekJudgedFor, weekReady, weekWaitText } from '@/nutrition/gaps';
 import { TAB_KEY } from '@/nutrition/notes';
@@ -32,7 +30,6 @@ import { useApp } from '@/state/app-state';
 import { useTodayKcal } from '@/state/use-calories';
 import { type NutritionData, useNutrition } from '@/state/use-nutrition';
 import { usePremium } from '@/state/use-premium';
-import { type AddedGlass, useWaterToday } from '@/state/use-water';
 import { waterWeek } from '@/water/today';
 
 type Tab = 'day' | 'week';
@@ -63,7 +60,6 @@ function FoodScreen({ focusKey }: { focusKey?: string }) {
   const { repo } = useApp();
   const premium = usePremium();
   const waterOn = !premium.isLocked('body');
-  const water = useWaterToday(waterOn);
   const nutrition = useNutrition();
   // Same figure as Today, read again each time the tab comes into view.
   const [visits, setVisits] = useState(0);
@@ -98,18 +94,6 @@ function FoodScreen({ focusKey }: { focusKey?: string }) {
     repo.setKv(TAB_KEY, t).catch(() => undefined);
   };
 
-  const onAdded = useCallback(
-    (a: AddedGlass | null) => {
-      if (!a) {
-        setSnack({ text: 'Couldn’t save that. Try again.' });
-        return;
-      }
-      const entry: LogEntry = a.entry;
-      setSnack({ text: a.text, action: { label: 'Undo', onPress: () => water.undo(entry) } });
-    },
-    [water],
-  );
-
   const onNotForMe = useCallback(
     (id: string, label: string) => {
       nutrition.notForMe(id, true);
@@ -137,7 +121,6 @@ function FoodScreen({ focusKey }: { focusKey?: string }) {
             data={nutrition.data}
             kcal={kcal}
             focusKey={focusKey}
-            water={waterOn ? <WaterCard water={water} onAdded={onAdded} /> : null}
             onMark={nutrition.markToday}
             onDismissNote={nutrition.dismissNote}
             onNotForMe={onNotForMe}
@@ -156,7 +139,6 @@ function DayView({
   data,
   kcal,
   focusKey,
-  water,
   onMark,
   onDismissNote,
   onNotForMe,
@@ -164,7 +146,6 @@ function DayView({
   data: NutritionData | null;
   kcal: ReturnType<typeof useTodayKcal>;
   focusKey?: string;
-  water: ReactNode;
   onMark: ReturnType<typeof useNutrition>['markToday'];
   onDismissNote: () => void;
   onNotForMe: (id: string, label: string) => void;
@@ -193,7 +174,6 @@ function DayView({
     <>
       {ctx ? <CaloriesTrack eaten={kcal.eaten} target={ctx.kcalTarget ?? 2000} atLeast={kcal.partial} /> : null}
       <FoodLog focusKey={focusKey} />
-      {water}
       <FoodSetupCard />
       {note ? (
         <GapNoteCard
