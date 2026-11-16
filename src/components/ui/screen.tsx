@@ -1,6 +1,7 @@
 import { BottomTabBarHeightContext } from 'expo-router/js-tabs';
-import { type ReactNode, use } from 'react';
+import { Children, type ReactNode, use } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import Animated, { FadeInDown, ReduceMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -74,7 +75,7 @@ export function Screen({
           ) : undefined
         }>
         <View style={styles.inner}>
-          <View style={styles.header}>
+          <Animated.View entering={rise(0)} style={styles.header}>
             <View style={styles.titleRow}>
               {onBack ? (
                 <Pressable
@@ -105,8 +106,12 @@ export function Screen({
                 {subtitle}
               </ThemedText>
             ) : null}
-          </View>
-          {children}
+          </Animated.View>
+          {Children.toArray(children).map((child, i) => (
+            <Animated.View key={keyOf(child, i)} entering={rise(i + 1)}>
+              {child}
+            </Animated.View>
+          ))}
         </View>
       </ScrollView>
       {/* The status bar's strip in the page colour: content scrolls under it, never under the clock. */}
@@ -119,6 +124,22 @@ export function Screen({
       ) : null}
     </View>
   );
+}
+
+/**
+ * The title and then each block rise into place when a screen opens, 50 ms
+ * apart (the sixth block on all at once), so the page settles rather than
+ * pops. Only on first draw; a cut with the phone's less-motion setting.
+ */
+function rise(i: number) {
+  return FadeInDown.delay(Math.min(i, 6) * 50)
+    .duration(320)
+    .reduceMotion(ReduceMotion.System);
+}
+
+function keyOf(child: ReactNode, i: number): string {
+  const k = child && typeof child === 'object' && 'key' in child ? child.key : null;
+  return k == null ? String(i) : String(k);
 }
 
 const styles = StyleSheet.create({

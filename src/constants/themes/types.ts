@@ -1,5 +1,5 @@
 /**
- * What a theme is. Each theme is one file in this folder (park.ts, a.ts … f.ts)
+ * What a theme is. The app keeps one, Calm and large (e.ts; the rest are archived)
  * exporting a ThemeDef as its default; index.ts lists them in order.
  *
  * Plain data with no React Native, so jest can check every theme. Font
@@ -15,12 +15,12 @@
 import type { HeroFill } from '../../components/ui/hero-colors';
 import type { ColorScheme, DataTone, FontWeightName, RadiusScale, ThemeColor, TypeScaleShape } from '../tokens';
 
-/** In the order the Appearance picker shows them: Clean+ first. */
-export const THEME_IDS = ['clean', 'park', 'a', 'b', 'c', 'd', 'e', 'f'] as const;
+/** The one look the app keeps (owner, 17 Nov 2026); the id stays 'e', as in the mockups. */
+export const THEME_IDS = ['e'] as const;
 export type ThemeId = (typeof THEME_IDS)[number];
 
-/** Clean+ (blue). */
-export const DEFAULT_THEME_ID: ThemeId = 'clean';
+/** Calm and large. */
+export const DEFAULT_THEME_ID: ThemeId = 'e';
 
 /** One loaded font file: the family name screens ask for, and the file. */
 export interface ThemeFont {

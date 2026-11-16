@@ -5,6 +5,7 @@ import Svg, { Circle } from 'react-native-svg';
 import { useTheme } from '@/hooks/use-theme';
 
 import { DONUT, donutColors, donutArcs, donutLabel } from './donut-geometry';
+import { TurnIn } from './grow';
 
 export interface DonutProps {
   /** Grams. */
@@ -22,6 +23,7 @@ export function Donut({ protein, carbs, fat, children }: DonutProps) {
   const colors = donutColors(theme);
   return (
     <View style={styles.box} accessible accessibilityRole="image" accessibilityLabel={donutLabel(protein, carbs, fat)}>
+      <TurnIn>
       <Svg width={DONUT.size} height={DONUT.size} viewBox={`0 0 ${DONUT.size} ${DONUT.size}`}>
         {arcs.map((a, i) => (
           <Circle
@@ -39,6 +41,7 @@ export function Donut({ protein, carbs, fat, children }: DonutProps) {
           />
         ))}
       </Svg>
+      </TurnIn>
       {children ? <View style={[StyleSheet.absoluteFill, styles.centre]}>{children}</View> : null}
     </View>
   );

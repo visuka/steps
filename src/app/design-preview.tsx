@@ -32,8 +32,8 @@ const TAB_OF: Record<Exclude<PreviewScreen, 'detail' | 'food' | 'news'>, string>
  * The real Today, Food result, Walk and hourly detail screens over the mockups'
  * sample day, in one theme, for CI to photograph next to the mockups:
  *
- *   neutcraftssteps://design-preview?theme=d&screen=today
- *   neutcraftssteps://design-preview?theme=clean&screen=detail&kind=water
+ *   neutcraftssteps://design-preview?theme=e&screen=today
+ *   neutcraftssteps://design-preview?theme=e&screen=detail&kind=water
  *
  * Opened with the app closed, the whole run is a preview (design-preview/
  * launch.ts): the link's theme, the sample day's clock, no sign-in, and none
@@ -52,7 +52,7 @@ export default function DesignPreviewRoute() {
   }, [shown]);
 
   if (!params) {
-    return <Notice text="Unknown preview. Use ?theme=clean|park|a|b|c|d|e|f&screen=today|food|walk|detail|plus|activity|news (detail also takes &kind=steps|active|food|water|sleep)." />;
+    return <Notice text="Unknown preview. Use ?theme=e&screen=today|food|walk|detail|plus|activity|news (detail also takes &kind=steps|active|food|water|sleep)." />;
   }
   if (params.theme !== ActiveTheme.id) {
     return <Notice text={`This run is in theme ${ActiveTheme.id}, not ${params.theme}. Close the app, then open the link again.`} />;

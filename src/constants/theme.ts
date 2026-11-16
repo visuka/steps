@@ -3,10 +3,8 @@
  * spacing scale, shapes, motion and the type scale with its fonts. Shared
  * shapes live in tokens.ts; each theme's values in themes/<id>.ts.
  *
- * The theme is picked once, at import, from the choice saved on the phone
- * (themes/choice.ts), so every StyleSheet.create below sees its fonts, type
- * and radius. Changing theme saves the choice and reloads the app
- * (themes/apply.ts). Light and dark switch live through useTheme().
+ * The app has one look, Calm and large (themes/e.ts), built once at import
+ * so every StyleSheet.create below sees its fonts, type and radius.
  *
  * Read colours with useTheme() (hooks/use-theme). Text styles come from
  * <ThemedText type="bodyLarge" /> or Type.bodyLarge; never hand-pick a size.

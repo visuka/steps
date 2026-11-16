@@ -1,13 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
 
-import clean from '@/constants/themes/clean';
-import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
-import d from '@/constants/themes/d';
 import { THEMES } from '@/constants/themes';
+import calm from '@/constants/themes/e';
 
 import { layerColor, MAP_STYLE_URL, mapSchemeFor, restyle } from '../map-style';
 
-const map = d.map!;
+const map = calm.map!;
 
 describe('themed map style', () => {
   it('paints land, water, parks, streets and labels in the theme colours', () => {
@@ -52,25 +50,7 @@ describe('the map never follows the phone dark mode', () => {
     }
   });
 
-  it('gives Clean+ the mockup map: its colours on the light base', () => {
-    const m = clean.map!;
-    expect(m.base).toBe('light');
-    expect(MAP_STYLE_URL[m.base]).toBe(MAP_STYLE_URL[mapSchemeFor('dark')]);
-    expect(m).toMatchObject({
-      land: CLEAN_SPEC.colors.mapLand,
-      water: CLEAN_SPEC.colors.mapWater,
-      park: CLEAN_SPEC.colors.mapBlock,
-      building: CLEAN_SPEC.colors.mapBlock,
-      road: CLEAN_SPEC.colors.white,
-      minorRoad: CLEAN_SPEC.colors.white,
-      route: CLEAN_SPEC.colors.accent,
-      routeWidth: 3,
-      casing: null,
-      height: CLEAN_SPEC.sizes.map.height,
-    });
-  });
-
-  it('repaints a style in the light colours in both phone modes', () => {
+  it('gives Calm and large its own map colours on the light base, in both phone modes', () => {
     const style = {
       version: 8,
       layers: [
@@ -78,17 +58,16 @@ describe('the map never follows the phone dark mode', () => {
         { id: 'water', type: 'fill', 'source-layer': 'water', paint: { 'fill-color': '#000' } },
       ],
     };
+    expect(map.base).toBe('light');
     for (const phone of ['light', 'dark'] as const) {
-      const out = restyle(style, clean.map!).layers;
-      expect(mapSchemeFor(phone)).toBe(clean.map!.base);
-      expect(out[0].paint?.['background-color']).toBe(CLEAN_SPEC.colors.mapLand);
-      expect(out[1].paint?.['fill-color']).toBe(CLEAN_SPEC.colors.mapWater);
+      const out = restyle(style, map).layers;
+      expect(mapSchemeFor(phone)).toBe(map.base);
+      expect(out[0].paint?.['background-color']).toBe(map.land);
+      expect(out[1].paint?.['fill-color']).toBe(map.water);
     }
   });
 
-  it('keeps each look its own map colours; only Night has a dark base', () => {
-    const dark = THEMES.filter((t) => t.map?.base === 'dark').map((t) => t.id);
-    expect(dark).toEqual(['b']);
-    for (const t of THEMES) if (t.map) expect(t.map.land).toMatch(/^#/);
+  it('the one look has a map, on the light base', () => {
+    for (const t of THEMES) expect(t.map?.base).toBe('light');
   });
 });

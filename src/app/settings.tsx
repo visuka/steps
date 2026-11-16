@@ -1,6 +1,6 @@
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Linking, Platform, Share, StyleSheet, View } from 'react-native';
 
@@ -8,11 +8,10 @@ import { AccountCard } from '@/components/auth/account-card';
 import { confirm } from '@/components/confirm';
 import { NameField, NumberField, Segmented, Stepper } from '@/components/controls';
 import { CountrySheet } from '@/components/country-sheet';
-import { ThemeSheet } from '@/components/theme-sheet';
 import { ThemedText } from '@/components/themed-text';
 import { Button, Card, ListRow, Notice, Screen, SectionHeader, Surface, ToggleRow, Why } from '@/components/ui';
 import { APP_NAME, SIGN_IN_MODE } from '@/constants/app';
-import { ActiveTheme, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { cleanName, NAME_MAX, profileStride } from '@/data/profile';
 import type { Sex } from '@/data/types';
 import { switchableSources } from '@/health/select-source';
@@ -67,9 +66,6 @@ export default function SettingsScreen() {
   const [exportError, setExportError] = useState<string | null>(null);
   const [hasLocation, setHasLocation] = useState<boolean | null>(null);
   const [countryOpen, setCountryOpen] = useState(false);
-  // Today's one-time note opens Settings with the picker already up.
-  const { appearance } = useLocalSearchParams<{ appearance?: string }>();
-  const [themeOpen, setThemeOpen] = useState(appearance === '1');
   const detected = phoneCountry();
   const recorderReady = StepCounter?.recorderStatus() === 'ready';
   const units = profile.units;
@@ -164,19 +160,6 @@ export default function SettingsScreen() {
   return (
     <Screen title="Settings" onBack={() => router.back()}>
       <AccountCard />
-
-      <SectionHeader title="Appearance" />
-      <Surface level={1} style={styles.list}>
-        <ListRow
-          icon="color-palette-outline"
-          title="Look"
-          supporting={ActiveTheme.name}
-          chevron
-          onPress={() => setThemeOpen(true)}
-          accessibilityHint="Choose how the app looks"
-        />
-      </Surface>
-      <ThemeSheet visible={themeOpen} onClose={() => setThemeOpen(false)} />
 
       {/* Testers only: a look at the free app without leaving the test. */}
       {premium.canPreviewFree ? (

@@ -3,12 +3,13 @@
 # smoke/: install output, logcat, a screenshot, and whether the app is still
 # alive 30 seconds after launch. Fails the job if it isn't.
 #
-# Then photographs the real Today, Food result, Walk and steps Detail screens
-# in the Clean+ look over the mockup's sample day (app/design-preview.tsx), for
-# checking against the mockup: smoke/clean-<screen>.png at the emulator's own
-# size, plus smoke/clean-today-dark.png and smoke/clean-detail-dark.png with the
-# phone in dark mode (the look must stay light). side-by-side.py then puts them
-# next to the mockup. These are evidence only: they never fail the job.
+# Then photographs the app's one look, Calm and large (theme e), over the
+# mockup's sample day (app/design-preview.tsx): smoke/calm-<screen>.png at the
+# emulator's own size, with a large font, at 360 dp, and with the phone in dark
+# mode (the look must stay light). The emulator runs with animations off, so
+# every photo shows the screens at rest; last, animations are switched on and
+# Today and the steps Detail are filmed (smoke/motion-*.mp4) so the movement
+# can be seen. These are evidence only: they never fail the job.
 set -u
 
 apk="$1"
@@ -87,56 +88,62 @@ capture() {
 # Stop the emulator's own apps from showing "isn't responding" boxes over the shots (review 3, item 23).
 adb shell settings put global hide_error_dialogs 1 || true
 adb shell cmd uimode night no
-for screen in today food walk detail; do
-  capture clean "$screen" "smoke/clean-$screen.png"
+for screen in today food walk detail plus activity news; do
+  capture e "$screen" "smoke/calm-$screen.png"
 done
-
-# The bar's plus: chats and groups.
-capture clean plus smoke/clean-plus-tab.png
-# Activity: Health and Workouts at the top, then the health readings.
-capture clean activity smoke/clean-activity.png
-
-# Every look's Today and Food, so each look's colours are checked (owner, 15 Nov 2026).
-for look in park a b c d e f; do
-  capture "$look" today "smoke/look-$look-today.png"
-  capture "$look" food "smoke/look-$look-food.png"
-done
-# Colour blocks' Steps detail (owner asked about its small text, 16 Nov 2026).
-capture d detail smoke/look-d-detail.png
-# The screens Today's Water and Sleep tiles open (graph, then add and remove), and Activity without them (16 Nov 2026).
-capture d detail smoke/look-d-water.png '&kind=water'
-capture d detail smoke/look-d-sleep.png '&kind=sleep'
-capture d activity smoke/look-d-activity.png
-# The good-news ticker's list (16 Nov 2026).
-capture d news smoke/look-d-news.png
+# The screens Today's Water and Sleep tiles open (graph, then add and remove).
+capture e detail smoke/calm-water.png '&kind=water'
+capture e detail smoke/calm-sleep.png '&kind=sleep'
+# The Food result opened on its ingredient editor (T15), and as the person's own version.
+capture e food smoke/calm-food-edit.png "&edit=1" edit
+capture e food smoke/calm-food-mine.png "&mine=1" mine
 
 # The largest common font size: every tile must still fit (fit any phone).
 adb shell settings put system font_scale 1.3
-capture clean today smoke/clean-today-large-font.png
-capture clean activity smoke/clean-activity-large-font.png
+capture e today smoke/calm-today-large-font.png
+capture e activity smoke/calm-activity-large-font.png
 adb shell settings put system font_scale 1.0
 
 # The owner's phone: 360 dp wide (1080 px at 480 dpi) with a larger text size.
-# The design must scale down to fit, not look oversized.
 adb shell wm density 480
 adb shell settings put system font_scale 1.2
 for screen in today food activity; do
-  capture clean "$screen" "smoke/clean-$screen-360dp.png"
+  capture e "$screen" "smoke/calm-$screen-360dp.png"
 done
 adb shell settings put system font_scale 1.0
 adb shell wm density 420
 
-# The Food result opened on its ingredient editor (T15).
-capture clean food smoke/clean-food-edit.png "&edit=1" edit
-# The person's own version: the Your version pill, and Use our guess again in the Edit panel.
-capture clean food smoke/clean-food-mine.png "&mine=1" mine
-
-# The Clean+ look with the phone in dark mode: it must look the same as the light shots.
+# With the phone in dark mode: it must look the same as the light shots.
 adb shell cmd uimode night yes
-capture clean today smoke/clean-today-dark.png
-capture clean detail smoke/clean-detail-dark.png
+capture e today smoke/calm-today-dark.png
+capture e detail smoke/calm-detail-dark.png
 adb shell cmd uimode night no
 
+# --- Motion ------------------------------------------------------------------
+# Animations on (the emulator starts with them off), then 8 s of each screen
+# from the moment it opens: the cards rising in, the counting, the walker, the
+# bowl, glass and moon, the charts growing.
+film() {
+  local screen="$1" out="$2" extra="${3:-}"
+  adb shell am force-stop "$pkg"
+  adb shell rm -f /sdcard/motion.mp4
+  adb shell screenrecord --time-limit 9 --bit-rate 6000000 /sdcard/motion.mp4 &
+  local rec=$!
+  sleep 1
+  adb shell "am start -a android.intent.action.VIEW -d '$scheme://design-preview?theme=e&screen=$screen$extra' $pkg" > /dev/null
+  wait "$rec" || true
+  sleep 1
+  adb pull /sdcard/motion.mp4 "$out" > /dev/null && echo "Filmed $out" || echo "::warning::$out: no film"
+}
+for scale in window_animation_scale transition_animation_scale animator_duration_scale; do
+  adb shell settings put global "$scale" 1
+done
+film today smoke/motion-today.mp4
+film detail smoke/motion-detail.mp4
+film food smoke/motion-food.mp4
+for scale in window_animation_scale transition_animation_scale animator_duration_scale; do
+  adb shell settings put global "$scale" 0
+done
 adb logcat -d > smoke/logcat-preview.txt
 adb shell am force-stop "$pkg"
-ls -l smoke/*.png
+ls -l smoke/*.png smoke/*.mp4

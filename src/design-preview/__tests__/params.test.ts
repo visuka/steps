@@ -15,20 +15,20 @@ describe('parsePreviewParams', () => {
     }
   });
 
-  it('takes the theme list the notice shows, clean among them', () => {
-    expect(THEME_IDS).toEqual(expect.arrayContaining(['clean', 'park', 'a', 'b', 'c', 'd', 'e', 'f']));
-    expect(parsePreviewParams({ theme: 'clean', screen: 'today' })).toEqual({ theme: 'clean', screen: 'today' });
+  it('takes the one look, Calm and large (e)', () => {
+    expect(THEME_IDS).toEqual(['e']);
+    expect(parsePreviewParams({ theme: 'e', screen: 'today' })).toEqual({ theme: 'e', screen: 'today' });
   });
 
   it('takes the detail screen with steps by default, and any of the five kinds', () => {
     expect(PREVIEW_SCREENS).toContain('detail');
     expect(PREVIEW_SCREENS).toContain('plus');
-    expect(parsePreviewParams({ theme: 'clean', screen: 'detail' })).toEqual({ theme: 'clean', screen: 'detail', kind: 'steps' });
+    expect(parsePreviewParams({ theme: 'e', screen: 'detail' })).toEqual({ theme: 'e', screen: 'detail', kind: 'steps' });
     for (const kind of ['steps', 'active', 'food', 'water', 'sleep']) {
-      expect(parsePreviewParams({ theme: 'clean', screen: 'detail', kind })).toEqual({ theme: 'clean', screen: 'detail', kind });
+      expect(parsePreviewParams({ theme: 'e', screen: 'detail', kind })).toEqual({ theme: 'e', screen: 'detail', kind });
     }
-    expect(parsePreviewParams({ theme: 'clean', screen: 'detail', kind: ['water', 'food'] })).toEqual({
-      theme: 'clean',
+    expect(parsePreviewParams({ theme: 'e', screen: 'detail', kind: ['water', 'food'] })).toEqual({
+      theme: 'e',
       screen: 'detail',
       kind: 'water',
     });
@@ -36,23 +36,23 @@ describe('parsePreviewParams', () => {
 
   it('falls back to steps for an unknown kind, and ignores kind on other screens', () => {
     for (const kind of ['walk', 'Steps', 'sleeping', '', []]) {
-      expect(parsePreviewParams({ theme: 'clean', screen: 'detail', kind })).toEqual({ theme: 'clean', screen: 'detail', kind: 'steps' });
+      expect(parsePreviewParams({ theme: 'e', screen: 'detail', kind })).toEqual({ theme: 'e', screen: 'detail', kind: 'steps' });
     }
-    expect(parsePreviewParams({ theme: 'clean', screen: 'today', kind: 'water' })).toEqual({ theme: 'clean', screen: 'today' });
+    expect(parsePreviewParams({ theme: 'e', screen: 'today', kind: 'water' })).toEqual({ theme: 'e', screen: 'today' });
   });
 
   it('takes the first of repeated params, as expo-router hands them over', () => {
-    expect(parsePreviewParams({ theme: ['b', 'c'], screen: ['walk'] })).toEqual({ theme: 'b', screen: 'walk' });
+    expect(parsePreviewParams({ theme: ['e', 'd'], screen: ['walk'] })).toEqual({ theme: 'e', screen: 'walk' });
   });
 
   it('refuses missing, unknown or differently written values rather than guess', () => {
     expect(parsePreviewParams({})).toBeNull();
-    expect(parsePreviewParams({ theme: 'd' })).toBeNull();
+    expect(parsePreviewParams({ theme: 'e' })).toBeNull();
     expect(parsePreviewParams({ screen: 'today' })).toBeNull();
     expect(parsePreviewParams({ theme: 'g', screen: 'today' })).toBeNull();
     expect(parsePreviewParams({ theme: 'D', screen: 'today' })).toBeNull();
-    expect(parsePreviewParams({ theme: 'd', screen: 'Today' })).toBeNull();
-    expect(parsePreviewParams({ theme: 'd', screen: 'insights' })).toBeNull();
+    expect(parsePreviewParams({ theme: 'e', screen: 'Today' })).toBeNull();
+    expect(parsePreviewParams({ theme: 'e', screen: 'insights' })).toBeNull();
     expect(parsePreviewParams({ theme: [], screen: 'today' })).toBeNull();
   });
 });
@@ -61,7 +61,7 @@ describe('preview links', () => {
   it('uses the app scheme from app.json and the route file name', () => {
     expect(SCHEME).toBe('neutcraftssteps');
     expect(PREVIEW_ROUTE).toBe('design-preview');
-    expect(previewUrl(SCHEME, { theme: 'd', screen: 'today' })).toBe('neutcraftssteps://design-preview?theme=d&screen=today');
+    expect(previewUrl(SCHEME, { theme: 'e', screen: 'today' })).toBe('neutcraftssteps://design-preview?theme=e&screen=today');
   });
 
   it('reads back every link it makes', () => {
@@ -75,65 +75,65 @@ describe('preview links', () => {
   });
 
   it('makes and reads the detail link with its kind', () => {
-    expect(previewUrl(SCHEME, { theme: 'clean', screen: 'detail', kind: 'water' })).toBe(
-      'neutcraftssteps://design-preview?theme=clean&screen=detail&kind=water',
+    expect(previewUrl(SCHEME, { theme: 'e', screen: 'detail', kind: 'water' })).toBe(
+      'neutcraftssteps://design-preview?theme=e&screen=detail&kind=water',
     );
-    expect(parsePreviewUrl('neutcraftssteps://design-preview?theme=clean&screen=detail&kind=sleep')).toEqual({
-      theme: 'clean',
+    expect(parsePreviewUrl('neutcraftssteps://design-preview?theme=e&screen=detail&kind=sleep')).toEqual({
+      theme: 'e',
       screen: 'detail',
       kind: 'sleep',
     });
-    expect(parsePreviewUrl('neutcraftssteps://design-preview?theme=clean&screen=detail&kind=nope')).toEqual({
-      theme: 'clean',
+    expect(parsePreviewUrl('neutcraftssteps://design-preview?theme=e&screen=detail&kind=nope')).toEqual({
+      theme: 'e',
       screen: 'detail',
       kind: 'steps',
     });
   });
 
   it('takes the triple-slash form, any param order, extra params and the dev client form', () => {
-    expect(parsePreviewUrl('neutcraftssteps:///design-preview?screen=walk&theme=f')).toEqual({ theme: 'f', screen: 'walk' });
-    expect(parsePreviewUrl('neutcraftssteps://design-preview?theme=a&x=1&screen=food#top')).toEqual({ theme: 'a', screen: 'food' });
-    expect(parsePreviewUrl('exp://192.168.1.4:8081/--/design-preview?theme=park&screen=today')).toEqual({
-      theme: 'park',
+    expect(parsePreviewUrl('neutcraftssteps:///design-preview?screen=walk&theme=e')).toEqual({ theme: 'e', screen: 'walk' });
+    expect(parsePreviewUrl('neutcraftssteps://design-preview?theme=e&x=1&screen=food#top')).toEqual({ theme: 'e', screen: 'food' });
+    expect(parsePreviewUrl('exp://192.168.1.4:8081/--/design-preview?theme=e&screen=today')).toEqual({
+      theme: 'e',
       screen: 'today',
     });
-    expect(parsePreviewUrl('neutcraftssteps://design-preview?theme=%63&screen=today')).toEqual({ theme: 'c', screen: 'today' });
+    expect(parsePreviewUrl('neutcraftssteps://design-preview?theme=%65&screen=today')).toEqual({ theme: 'e', screen: 'today' });
   });
 
   it('is null for no link, other routes and bad params', () => {
     expect(parsePreviewUrl(null)).toBeNull();
     expect(parsePreviewUrl(undefined)).toBeNull();
     expect(parsePreviewUrl('')).toBeNull();
-    expect(parsePreviewUrl('design-preview?theme=d&screen=today')).toBeNull();
+    expect(parsePreviewUrl('design-preview?theme=e&screen=today')).toBeNull();
     expect(parsePreviewUrl('neutcraftssteps://food?add=1')).toBeNull();
-    expect(parsePreviewUrl('neutcraftssteps://walk/design-preview?theme=d&screen=today')).toBeNull();
-    expect(parsePreviewUrl('neutcraftssteps://design-preview/today?theme=d&screen=today')).toBeNull();
-    expect(parsePreviewUrl('exp://192.168.1.4:8081/design-preview?theme=d&screen=today')).toBeNull();
+    expect(parsePreviewUrl('neutcraftssteps://walk/design-preview?theme=e&screen=today')).toBeNull();
+    expect(parsePreviewUrl('neutcraftssteps://design-preview/today?theme=e&screen=today')).toBeNull();
+    expect(parsePreviewUrl('exp://192.168.1.4:8081/design-preview?theme=e&screen=today')).toBeNull();
     expect(parsePreviewUrl('neutcraftssteps://design-preview')).toBeNull();
     expect(parsePreviewUrl('neutcraftssteps://design-preview?theme=z&screen=today')).toBeNull();
-    expect(parsePreviewUrl('neutcraftssteps://design-preview?theme=d&screen=%E0%A4')).toBeNull();
+    expect(parsePreviewUrl('neutcraftssteps://design-preview?theme=e&screen=%E0%A4')).toBeNull();
   });
 });
 
 describe('the food screen opened for editing (T15)', () => {
   it('takes edit=1 on the food screen only', () => {
-    expect(parsePreviewParams({ theme: 'clean', screen: 'food', edit: '1' })).toEqual({ theme: 'clean', screen: 'food', edit: true });
-    expect(parsePreviewParams({ theme: 'clean', screen: 'food', edit: '0' })).toEqual({ theme: 'clean', screen: 'food' });
-    expect(parsePreviewParams({ theme: 'clean', screen: 'today', edit: '1' })).toEqual({ theme: 'clean', screen: 'today' });
+    expect(parsePreviewParams({ theme: 'e', screen: 'food', edit: '1' })).toEqual({ theme: 'e', screen: 'food', edit: true });
+    expect(parsePreviewParams({ theme: 'e', screen: 'food', edit: '0' })).toEqual({ theme: 'e', screen: 'food' });
+    expect(parsePreviewParams({ theme: 'e', screen: 'today', edit: '1' })).toEqual({ theme: 'e', screen: 'today' });
   });
   it('round-trips through the link', () => {
-    const url = previewUrl('neutcraftssteps', { theme: 'clean', screen: 'food', edit: true });
-    expect(url).toBe('neutcraftssteps://design-preview?theme=clean&screen=food&edit=1');
-    expect(parsePreviewUrl(url)).toEqual({ theme: 'clean', screen: 'food', edit: true });
+    const url = previewUrl('neutcraftssteps', { theme: 'e', screen: 'food', edit: true });
+    expect(url).toBe('neutcraftssteps://design-preview?theme=e&screen=food&edit=1');
+    expect(parsePreviewUrl(url)).toEqual({ theme: 'e', screen: 'food', edit: true });
   });
 });
 
 describe('the food screen as the person\'s own version (T15)', () => {
   it('takes mine=1 on the food screen, and round-trips', () => {
-    expect(parsePreviewParams({ theme: 'clean', screen: 'food', mine: '1' })).toEqual({ theme: 'clean', screen: 'food', mine: true });
-    expect(parsePreviewParams({ theme: 'clean', screen: 'walk', mine: '1' })).toEqual({ theme: 'clean', screen: 'walk' });
-    const url = previewUrl('neutcraftssteps', { theme: 'clean', screen: 'food', mine: true });
-    expect(url).toBe('neutcraftssteps://design-preview?theme=clean&screen=food&mine=1');
-    expect(parsePreviewUrl(url)).toEqual({ theme: 'clean', screen: 'food', mine: true });
+    expect(parsePreviewParams({ theme: 'e', screen: 'food', mine: '1' })).toEqual({ theme: 'e', screen: 'food', mine: true });
+    expect(parsePreviewParams({ theme: 'e', screen: 'walk', mine: '1' })).toEqual({ theme: 'e', screen: 'walk' });
+    const url = previewUrl('neutcraftssteps', { theme: 'e', screen: 'food', mine: true });
+    expect(url).toBe('neutcraftssteps://design-preview?theme=e&screen=food&mine=1');
+    expect(parsePreviewUrl(url)).toEqual({ theme: 'e', screen: 'food', mine: true });
   });
 });

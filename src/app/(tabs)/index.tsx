@@ -3,13 +3,12 @@ import { type ComponentRef, useCallback, useEffect, useRef, useState } from 'rea
 import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppearanceNote } from '@/components/appearance-note';
 import { PremiumCard } from '@/components/premium-gate';
 import { ThemedText } from '@/components/themed-text';
 import { Button, Snackbar } from '@/components/ui';
 import { distanceOf, heroSpoken, percentOf, untimedNote } from '@/components/today/model';
 import { detailRoute, type DetailKind, walkingLine } from '@/components/today/today-actions';
-import { TodayClean } from '@/components/today/today-clean';
+import { TodayCalm } from '@/components/today/today-calm';
 import { TODAY_LAYOUT } from '@/components/today/today-layout';
 import { useActiveWalk } from '@/components/today/use-active-walk';
 import { useTodayExtras } from '@/components/today/use-today-extras';
@@ -34,7 +33,7 @@ import { useClock } from '@/hooks/use-clock';
 const WEATHER_PROMPT_KEY = 'weatherPromptDismissed';
 
 /**
- * Today: the Clean+ Today (components/today/today-clean.tsx) for every look,
+ * Today: the Calm and large Today (components/today/today-calm.tsx),
  * handed the same data, taps and premium lock. The first screen is the
  * greeting, week strip, steps hero (with its hour chart) and tiles; the goal
  * suggestion and weather offer follow below (the mood check-in is in Journal; spec 7 ends Today at the tiles). The status bar
@@ -47,7 +46,7 @@ export default function TodayScreen() {
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
   const premium = usePremium();
   const insets = useSafeAreaInsets();
-  // today-clean adds the 24 dp under the status bar; the safe-area inset is added here.
+  // today-calm adds the 16 dp under the status bar; the safe-area inset is added here.
   const look: TodayFrameLook = { background: theme.surface, gutter: TODAY_LAYOUT.sideMargin };
   const details = !premium.isLocked('today-details');
   const clock = useClock();
@@ -158,7 +157,6 @@ export default function TodayScreen() {
           onPress={() => router.push('/walk/record')}
         />
       ) : null,
-      note: (style) => <AppearanceNote style={style} />,
       below: (
         <BelowTheFold
           untimed={untimedNote(untimedSteps)}
@@ -202,7 +200,7 @@ export default function TodayScreen() {
             progressViewOffset={insets.top}
           />
         }>
-        <TodayClean v={view} look={look} />
+        <TodayCalm v={view} look={look} />
         <View style={[styles.foot, { paddingHorizontal: look.gutter }]}>
           <ThemedText type="bodySmall" themeColor="onSurfaceVariant">
             {syncLine}

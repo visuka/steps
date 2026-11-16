@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
 import { useEffect, useState } from 'react';
 import { Appearance } from 'react-native';
+import { useReducedMotion } from 'react-native-reanimated';
 
 import { AuthProvider, useAccess, useAuth } from '@/auth/auth-state';
 import { claimLocalData } from '@/auth/owner';
@@ -16,7 +17,6 @@ import { ConfirmHost } from '@/components/confirm-host';
 import { LockOffer, LockScreen } from '@/components/auth/lock-screen';
 import { Onboarding } from '@/components/onboarding';
 import { ActiveTheme, Colors, Fonts, ThemeMode } from '@/constants/theme';
-import { loadPreviewFonts } from '@/constants/themes/apply';
 import { fontMap } from '@/constants/themes/build';
 import { CLEAN_FONT_FILES } from '@/constants/themes/fonts';
 import { installPreviewClock } from '@/design-preview/clock';
@@ -125,15 +125,31 @@ export default function RootLayout() {
  * nothing on the phone is read or written. Never in a normal run.
  */
 function PreviewGate({ fontsReady, surface }: { fontsReady: boolean; surface: string }) {
+  const stack = useStackOptions(surface);
   useEffect(() => {
     if (fontsReady) SplashScreen.hideAsync();
   }, [fontsReady]);
   if (!fontsReady) return null;
   return (
     <SampleDataProvider>
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: surface } }} />
+      <Stack screenOptions={stack} />
     </SampleDataProvider>
   );
+}
+
+/**
+ * Every screen pushed over the tabs (Settings, the walk screens and their
+ * maps, recording, Food scan, details, chats…) slides in from the right and
+ * back out; a cut when the phone asks for less motion.
+ */
+function useStackOptions(surface: string) {
+  const reduced = useReducedMotion();
+  return {
+    headerShown: false,
+    contentStyle: { backgroundColor: surface },
+    animation: reduced ? ('none' as const) : ('slide_from_right' as const),
+    animationDuration: 280,
+  };
 }
 
 /**
@@ -159,14 +175,13 @@ function Gate({ fontsReady, surface }: { fontsReady: boolean; surface: string })
   const lock = useLock();
   const access = useAccess();
   const userId = auth.userId;
+  const stack = useStackOptions(surface);
   const [claimedFor, setClaimedFor] = useState<string | null>(null);
   const ready = access !== 'loading' && fontsReady;
 
   useEffect(() => {
     if (!ready) return;
     SplashScreen.hideAsync();
-    // The other themes' faces, for the Appearance picker's previews; never in the way of start-up.
-    loadPreviewFonts();
   }, [ready]);
 
   useEffect(() => {
@@ -194,7 +209,7 @@ function Gate({ fontsReady, surface }: { fontsReady: boolean; surface: string })
     <>
       {profile.onboarded ? (
         <>
-          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: surface } }} />
+          <Stack screenOptions={stack} />
           <PendingFoods signedIn={Boolean(userId)} />
         </>
       ) : (

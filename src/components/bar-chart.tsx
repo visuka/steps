@@ -6,6 +6,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { formatSteps } from '@/lib/format';
 
 import { chartSummary } from './bar-chart-speech';
+import { GrowColumn } from './ui/grow';
 
 const LABEL_WIDTH = 40;
 
@@ -69,16 +70,15 @@ export function BarChart({
         {goalY !== null ? (
           <View style={[styles.goalLine, { top: goalY, borderColor: theme.onSurfaceVariant }]} pointerEvents="none" />
         ) : null}
-        {bars.map((b) => {
+        {bars.map((b, i) => {
           const reached = goal ? b.value >= goal : false;
           const selected = selectedKey === b.key;
           const barColor = selected ? theme.onSurface : reached || !goal ? fill : theme.lane;
           const bar = (
-            <View
-              style={[
-                styles.bar,
-                { height: Math.max(b.value > 0 ? 3 : 0, (b.value / max) * height), backgroundColor: barColor },
-              ]}
+            <GrowColumn
+              index={i}
+              height={Math.max(b.value > 0 ? 3 : 0, (b.value / max) * height)}
+              style={[styles.bar, { backgroundColor: barColor }]}
             />
           );
           if (!onPressBar) {

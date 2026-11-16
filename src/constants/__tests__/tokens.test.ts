@@ -2,7 +2,6 @@ import { describe, expect, it } from '@jest/globals';
 
 import { tileColors } from '../../components/ui/tile-colors';
 import { THEMES } from '../themes';
-import park from '../themes/park';
 import { type ColorScheme, contrast, Module, Spacing, type ThemeColor, TYPE_ROLES } from '../tokens';
 
 /** Every theme in both schemes, e.g. "d light". A dark-only theme is checked twice; that's fine. */
@@ -47,7 +46,7 @@ const TEXT_PAIRS: [ThemeColor, ThemeColor][] = [
 
 describe('colour roles', () => {
   it('every scheme of every theme defines the same roles, all as #RRGGBB', () => {
-    const keys = Object.keys(park.colors.light).sort();
+    const keys = Object.keys(THEMES[0].colors.light).sort();
     for (const [name, scheme] of SCHEMES) {
       expect({ name, keys: Object.keys(scheme).sort() }).toEqual({ name, keys });
       for (const value of Object.values(scheme)) expect(value).toMatch(/^#[0-9A-F]{6}$/i);
@@ -145,15 +144,6 @@ describe('colour roles', () => {
 describe('grid and type', () => {
   it('spacing steps above a hairline are on the 4 dp half-module', () => {
     for (const [key, v] of Object.entries(Spacing)) if (key !== 'half') expect(v % (Module / 2)).toBe(0);
-  });
-
-  it('park: big numerals sit on whole 8 dp modules', () => {
-    for (const spec of Object.values(park.type)) {
-      if (spec.numeral) {
-        expect(spec.size % Module).toBe(0);
-        expect(spec.line % Module).toBe(0);
-      }
-    }
   });
 
   it.each(THEMES.map((t) => [t.id, t] as const))('%s: every type role is set, lines clear their size, numerals on the 4 dp half-module', (_id, t) => {

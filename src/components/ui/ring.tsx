@@ -5,7 +5,8 @@ import Svg, { Circle } from 'react-native-svg';
 import { type DataTone, toneColors } from '@/constants/tokens';
 import { useTheme } from '@/hooks/use-theme';
 
-import { clampShare, RING, ringArc, ringLabel, ringSize } from './ring-geometry';
+import { GrowArc } from './grow';
+import { clampShare, RING, ringLabel, ringSize } from './ring-geometry';
 
 export interface RingProps {
   value: number;
@@ -25,7 +26,6 @@ export function Ring({ value, goal, size = RING.minSize, stroke = RING.defaultSt
   const s = ringSize(size);
   const r = (s - stroke) / 2;
   const share = clampShare(value, goal);
-  const arc = ringArc(share, r);
   return (
     <View
       style={{ width: s, height: s }}
@@ -36,7 +36,8 @@ export function Ring({ value, goal, size = RING.minSize, stroke = RING.defaultSt
       <Svg width={s} height={s} viewBox={`0 0 ${s} ${s}`}>
         <Circle cx={s / 2} cy={s / 2} r={r} fill="none" stroke={theme.lane} strokeWidth={stroke} />
         {share > 0 ? (
-          <Circle
+          <GrowArc
+            share={share}
             cx={s / 2}
             cy={s / 2}
             r={r}
@@ -44,8 +45,6 @@ export function Ring({ value, goal, size = RING.minSize, stroke = RING.defaultSt
             stroke={toneColors(theme, tone).fill}
             strokeWidth={stroke}
             strokeLinecap="butt"
-            strokeDasharray={arc.dasharray}
-            strokeDashoffset={arc.offset}
             transform={`rotate(-90 ${s / 2} ${s / 2})`}
           />
         ) : null}

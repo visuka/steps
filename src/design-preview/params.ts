@@ -2,18 +2,18 @@
  * The design preview's link: which theme and which screen to draw over the
  * sample data, so CI can photograph every theme next to its mockup.
  *
- *   neutcraftssteps://design-preview?theme=d&screen=today
+ *   neutcraftssteps://design-preview?theme=e&screen=today
  *
  * theme: clean, park, a, b, c, d, e or f. screen: today, food, walk, detail, plus (the bar's plus: chats and groups) or activity.
  * Both are required and lower case; anything else is refused (the route says so
  * on screen rather than guess). The detail screen also takes kind (steps, active,
  * food, water or sleep; steps when missing or unknown):
  *
- *   neutcraftssteps://design-preview?theme=clean&screen=detail&kind=water
+ *   neutcraftssteps://design-preview?theme=e&screen=detail&kind=water
  * The food screen also takes mine=1: the sample dish as the person's own version, with its Edit panel open (T15).
  * It also takes edit=1: the result opened for editing its ingredients (T15).
  *
- *   neutcraftssteps://design-preview?theme=clean&screen=food&edit=1
+ *   neutcraftssteps://design-preview?theme=e&screen=food&edit=1
  * Plain string work only: React Native's URLSearchParams has no get().
  */
 
@@ -57,7 +57,7 @@ export function parsePreviewParams(raw: RawParams): PreviewParams | null {
   return { theme: theme as ThemeId, screen: screen as PreviewScreen };
 }
 
-/** The link that opens the preview, e.g. neutcraftssteps://design-preview?theme=d&screen=today. */
+/** The link that opens the preview, e.g. neutcraftssteps://design-preview?theme=e&screen=today. */
 export function previewUrl(scheme: string, p: PreviewParams): string {
   const kind = p.screen === 'detail' && p.kind ? `&kind=${p.kind}` : '';
   const edit = p.screen === 'food' ? (p.mine ? '&mine=1' : p.edit ? '&edit=1' : '') : '';

@@ -8,6 +8,7 @@ import { useTheme } from '@/hooks/use-theme';
 
 import { ActiveTheme, Look } from '@/constants/theme';
 
+import { GrowUp } from './grow';
 import { heroPalette } from './hero-colors';
 import { goalLabelSide, HOUR_CHART, hourBars, hourBarsLabel } from './hour-bars-geometry';
 
@@ -56,6 +57,7 @@ export function HourBars({ hours, goal, width, now, tone = 'hero', height = HOUR
   );
   return (
     <View style={{ height, alignSelf: width ? undefined : 'stretch' }} onLayout={width ? undefined : onLayout}>
+      <GrowUp>
       <Svg
         width={w}
         height={height}
@@ -88,6 +90,7 @@ export function HourBars({ hours, goal, width, now, tone = 'hero', height = HOUR
         ) : null}
         {g.bars.map((b, i) => (b.quiet ? null : rect(b, i, colors.bar)))}
       </Svg>
+      </GrowUp>
     </View>
   );
 }

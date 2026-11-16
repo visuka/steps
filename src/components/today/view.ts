@@ -25,7 +25,6 @@
  */
 
 import type { ReactNode } from 'react';
-import type { StyleProp, ViewStyle } from 'react-native';
 
 import type { NewsItem } from '@/api/news-read';
 
@@ -105,9 +104,7 @@ export interface TodayView {
   slots: {
     /** A walk being recorded: the 72 dp card between the hero and the tiles. */
     walking: ReactNode;
-    /** The one-time appearance note, placed with `style`; draws nothing once seen. */
-    note(style?: StyleProp<ViewStyle>): ReactNode;
-    /** Under the note: the untimed-steps note, the mood check-in, goal suggestion and weather offer. */
+    /** Under the tiles: the untimed-steps note, the mood check-in, goal suggestion and weather offer. */
     below: ReactNode;
     /** The premium card, under the locked tiles for the free app. */
     locked: ReactNode;

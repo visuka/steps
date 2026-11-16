@@ -9,7 +9,7 @@ import { Chip, NumberField, Button as OldButton, Stepper } from '@/components/co
 import { ThemedText } from '@/components/themed-text';
 import { Button as UiButton, Chip as UiChip, Donut, IconCircle, NutrientRow, Pill, SpecIcon } from '@/components/ui';
 import { donutColors } from '@/components/ui/donut-geometry';
-import { ActiveTheme, MaxContentWidth, NumeralMaxScale, Spacing } from '@/constants/theme';
+import { MaxContentWidth, NumeralMaxScale, Spacing } from '@/constants/theme';
 import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
 import { TELUGU_FONT } from '@/constants/themes/fonts';
 import { useTheme } from '@/hooks/use-theme';
@@ -21,7 +21,6 @@ import { PARTIAL_NOTE } from '@/nutrition/state';
 import type { FoodItem, NutrientKey, Nutrients } from '@/nutrition/types';
 import { glBand, glycemicIndex, type WatchOut, watchOuts } from '@/nutrition/watch';
 
-import { BlocksHero, BlocksInfoLine, BlocksIngredientChips, BlocksNutrientRow } from './food-result-blocks';
 import { amountsCaption, oilLine, resultLine, showsMethods } from './food-result-cooking';
 import { addEditRow, type EditRow, editLines, liveFood, patchEditRow, removeEditRow, setAllMethods, setRowMethod } from './food-result-edit';
 import { EditIngredientRows } from './food-result-edit-rows';
@@ -156,8 +155,6 @@ function Result({
   children,
 }: FoodResultProps & { screen?: boolean; onBack?: () => void }) {
   const theme = useTheme();
-  // Colour blocks draws its own mockup's result (food-result-blocks.tsx); every function stays.
-  const blocks = ActiveTheme.id === 'd';
   const [editing, setEditing] = useState(Boolean(showWorking));
   const [watchOpen, setWatchOpen] = useState<NutrientKey | null>(null);
   // The edit session of the ingredient list: the rows, the look-ups and the live numbers (use-recipe-edit.ts).
@@ -210,9 +207,9 @@ function Result({
 
   const body = (
     <>
-      <TopBar s={s} typed={Boolean(query)} mine={isMine(food)} onBack={back} onPortion={() => setEditing(!editing)} portionChip={!blocks} />
-      <Title query={query} script={script} food={food} compact={blocks} />
-      {blocks ? <BlocksHeroFor s={s} onPortion={() => setEditing(!editing)} /> : <Hero s={s} />}
+      <TopBar s={s} typed={Boolean(query)} mine={isMine(food)} onBack={back} onPortion={() => setEditing(!editing)} />
+      <Title query={query} script={script} food={food} />
+      <Hero s={s} />
       {editing ? (
         <Details
           s={s}
@@ -247,14 +244,11 @@ function Result({
             : null
         }
         onStartEdit={onChangeIngredients ? startEdit : undefined}
-        blocks={blocks}
       />
       <NutrientList
         s={s}
         open={watchOpen}
         onToggle={(k) => setWatchOpen(watchOpen === k ? null : k)}
-        blocks={blocks}
-        pending={blocks && Boolean(food.pending) && !rows}
       />
     </>
   );
@@ -282,8 +276,7 @@ function Result({
       ) : (
         <>
           <UiButton
-            variant={blocks ? 'outlined' : 'secondary'}
-            icon={blocks ? 'pencil-outline' : undefined}
+            variant="secondary"
             label="Edit"
             disabled={busy}
             accessibilityLabel="Edit the portion and details"
@@ -293,7 +286,6 @@ function Result({
           />
           <UiButton
             label={actionLabel}
-            icon={blocks ? 'checkmark' : undefined}
             disabled={busy}
             onPress={() => onDone(s.unit, s.quantity, s.n)}
             style={styles.save}
@@ -340,12 +332,9 @@ function TopBar({
   mine,
   onBack,
   onPortion,
-  portionChip = true,
 }: {
   s: ResultState;
   typed: boolean;
-  /** Colour blocks puts the portion in its hero instead. */
-  portionChip?: boolean;
   /** The person's own version of the dish (T15). */
   mine: boolean;
   onBack: () => void;
@@ -376,15 +365,13 @@ function TopBar({
         </Pressable>
         {mine ? <Pill label="Your version" /> : null}
       </View>
-      {portionChip ? (
-        <UiChip label={portion} trailingIcon="chevron-down" onPress={onPortion} accessibilityLabel={`Portion: ${portion}. Change it`} />
-      ) : null}
+      <UiChip label={portion} trailingIcon="chevron-down" onPress={onPortion} accessibilityLabel={`Portion: ${portion}. Change it`} />
     </View>
   );
 }
 
 /** The dish as typed (case kept, wraps, never cut), the same words in their own script, and the food found when it is named differently. */
-function Title({ query, script, food, compact }: { query?: string | null; script?: string | null; food: FoodItem; compact?: boolean }) {
+function Title({ query, script, food }: { query?: string | null; script?: string | null; food: FoodItem }) {
   const theme = useTheme();
   const { width, fontScale } = useContentWidth();
   const typed = query || food.name;
@@ -393,11 +380,11 @@ function Title({ query, script, food, compact }: { query?: string | null; script
   const lines = titleLayout(typed, width, fontScale);
   return (
     <View
-      style={[styles.title, compact ? styles.titleCompact : { minHeight: lines.height }]}
+      style={[styles.title, { minHeight: lines.height }]}
       accessible
       accessibilityRole="header"
       accessibilityLabel={[query ? `You typed ${query}` : food.name, script, found].filter(Boolean).join('. ')}>
-      <ThemedText type={compact ? 'titleLarge' : 'headlineSmall'} maxFontSizeMultiplier={NumeralMaxScale} style={compact ? styles.titleBold : undefined}>
+      <ThemedText type="headlineSmall" maxFontSizeMultiplier={NumeralMaxScale}>
         {typed}
       </ThemedText>
       {script ? (
@@ -477,28 +464,6 @@ function Hero({ s }: { s: ResultState }) {
   );
 }
 
-/** Colour blocks' hero, from the same numbers as Hero. */
-function BlocksHeroFor({ s, onPortion }: { s: ResultState; onPortion: () => void }) {
-  const least = (k: NutrientKey) => s.missing.includes(k);
-  const kcal = nutrientText('kcal', s.n.kcal ?? 0, least('kcal'), false);
-  const portion = portionText(s.quantity, s.unit, s.current.label);
-  const macros = MACROS.map((m) => {
-    const v = s.n[m.key];
-    return v === undefined
-      ? { text: '—', spoken: 'not known' }
-      : { text: nutrientText(m.key, v, least(m.key)), spoken: spokenNutrientText(m.key, v, least(m.key)) };
-  });
-  return (
-    <BlocksHero
-      portion={portion}
-      kcal={kcal}
-      spoken={`${portion}, ${spokenNutrientText('kcal', s.n.kcal ?? 0, least('kcal'))}`}
-      macros={macros}
-      onPortion={onPortion}
-    />
-  );
-}
-
 // ── ingredients ──────────────────────────────────────────────────────────
 
 interface EditView {
@@ -526,14 +491,11 @@ function Ingredients({
   s,
   edit,
   onStartEdit,
-  blocks,
 }: {
   food: FoodItem;
   s: ResultState;
   edit: EditView | null;
   onStartEdit?: () => void;
-  /** Colour blocks: outlined chips, and the pending note moves to the info line under the nutrients. */
-  blocks?: boolean;
 }) {
   const theme = useTheme();
   const { width, fontScale } = useContentWidth();
@@ -552,7 +514,7 @@ function Ingredients({
           <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={NumeralMaxScale} style={styles.pendingNote}>
             {amountsCaption(per?.label, edit.cooking)}
           </ThemedText>
-        ) : food.pending && !blocks ? (
+        ) : food.pending ? (
           <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={NumeralMaxScale} style={styles.pendingNote}>
             Some ingredients still being added
           </ThemedText>
@@ -587,8 +549,7 @@ function Ingredients({
           ) : null}
         </>
       ) : null}
-      {!edit && blocks ? <BlocksIngredientChips food={food} /> : null}
-      {edit || blocks ? null : list.map((ing, index) => {
+      {edit ? null : list.map((ing, index) => {
         const line = resultLine(ing);
         const grams = gramsText(ing.grams);
         const last = index === list.length - 1;
@@ -621,7 +582,7 @@ function Ingredients({
         );
       })}
       {edit || !onStartEdit ? null : (
-        <View style={blocks ? styles.changeRowBlocks : styles.changeRow}>
+        <View style={styles.changeRow}>
           <UiButton
             variant="text"
             compact
@@ -647,16 +608,10 @@ function NutrientList({
   s,
   open,
   onToggle,
-  blocks,
-  pending,
 }: {
   s: ResultState;
   open: NutrientKey | null;
   onToggle: (key: NutrientKey) => void;
-  /** Colour blocks: plain rows (a tap says the share of a day's need) and one info line. */
-  blocks?: boolean;
-  /** Colour blocks: the "still being added" line, shown here instead of beside Ingredients. */
-  pending?: boolean;
 }) {
   const [all, setAll] = useState(false);
   const flags = s.watch.filter(
@@ -667,9 +622,7 @@ function NutrientList({
     flags.map((f) => f.key),
   );
   const note = s.missing.length ? PARTIAL_NOTE : null;
-  const info = pending ? 'Some ingredients still being added · updates soon' : null;
   if (!first.length) {
-    if (blocks && (info || note)) return <BlocksInfoLine text={(info ?? note)!} />;
     return note ? (
       <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={NumeralMaxScale} style={styles.nutrients}>
         {note}
@@ -681,20 +634,6 @@ function NutrientList({
   const atLeast = shown.some(least);
   const row = (k: NutrientKey) => {
     const level = flags.find((f) => f.key === k)?.level;
-    if (blocks) {
-      return (
-        <BlocksNutrientRow
-          key={k}
-          k={k}
-          value={s.n[k]!}
-          least={least(k)}
-          high={level === 'high'}
-          flagged={Boolean(level)}
-          open={open === k}
-          onToggle={() => onToggle(k)}
-        />
-      );
-    }
     // The "High" pill is the warning styling; a flag of level medium keeps a plain row (the pill can only say High).
     const high = level === 'high';
     const line = (
@@ -731,7 +670,7 @@ function NutrientList({
           Nutrients
         </ThemedText>
         <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={NumeralMaxScale} style={styles.shrink}>
-          {blocks ? (atLeast ? 'at least' : '') : `${atLeast ? 'at least · ' : ''}bar shows % of daily need`}
+          {`${atLeast ? 'at least · ' : ''}bar shows % of daily need`}
         </ThemedText>
       </View>
       <View style={styles.nutrientGroup}>{shown.map(row)}</View>
@@ -739,8 +678,7 @@ function NutrientList({
         <UiButton variant="text" compact label={all ? 'Show fewer nutrients' : 'Show all nutrients'} onPress={() => setAll(!all)} style={styles.showAll} />
       ) : null}
       {/* "at least" in the caption already says it; the note is for a list with no "≥" row (spec 5.10). */}
-      {blocks && (info || (note && !atLeast)) ? <BlocksInfoLine text={(info ?? note)!} /> : null}
-      {!blocks && note && !atLeast ? (
+      {note && !atLeast ? (
         <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={NumeralMaxScale}>
           {note}
         </ThemedText>
@@ -909,8 +847,6 @@ const styles = StyleSheet.create({
   backGroup: { flexDirection: 'row', alignItems: 'center', gap: CLEAN_SPEC.space.s8, flexShrink: 1 },
   back: { minHeight: RESULT.topBarHeight, flexDirection: 'row', alignItems: 'center', gap: CLEAN_SPEC.space.s8, marginLeft: -4 },
   title: { marginTop: RESULT.titleGap },
-  titleCompact: { marginTop: 0 },
-  titleBold: { fontWeight: '700' },
   telugu: {
     fontFamily: TELUGU_FONT,
     fontSize: CLEAN_SPEC.type.telugu.size,
@@ -945,8 +881,6 @@ const styles = StyleSheet.create({
   nutrientGroup: { marginTop: RESULT.nutrientGroupTop },
   // "Edit recipe" lines up with the ingredient names (x 76: 24 margin + circle 40 + gap 12).
   changeRow: { paddingLeft: RESULT.circle + RESULT.ingredientGap },
-  // Colour blocks has no icon circles: Edit recipe lines up with the chips.
-  changeRowBlocks: { paddingLeft: 0, marginTop: CLEAN_SPEC.space.s4 },
   changeIngredients: { minHeight: RESULT.ingredientRowHeight, alignSelf: 'flex-start', marginLeft: -Spacing.three },
   changeNote: { marginTop: -CLEAN_SPEC.space.s8 },
   // The button's own side padding is pulled back so its text lines up with the text above it.

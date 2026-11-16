@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { useTheme } from '@/hooks/use-theme';
 
+import { GrowWidth } from './grow';
 import { clampShare, NUTRIENT_STYLE as S, nutrientLabel } from './nutrient-style';
 import { Pill } from './pill';
 
@@ -11,7 +12,7 @@ export function BarTrack({ share, color }: { share: number; color?: string }) {
   const theme = useTheme();
   return (
     <View style={[styles.track, { backgroundColor: theme.lane }]}>
-      <View style={[styles.fill, { width: `${clampShare(share) * 100}%`, backgroundColor: color ?? theme.primary }]} />
+      <GrowWidth share={clampShare(share)} style={[styles.fill, { backgroundColor: color ?? theme.primary }]} />
     </View>
   );
 }
