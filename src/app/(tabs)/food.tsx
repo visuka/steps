@@ -22,15 +22,13 @@ import { weekJudgedFor, weekReady, weekWaitText } from '@/nutrition/gaps';
 import { TAB_KEY } from '@/nutrition/notes';
 import { NUTRIENT } from '@/nutrition/nutrients';
 import { dayGlBand, nutrientState } from '@/nutrition/state';
-import { energySplit, needsAreDifferent, SPLIT_TEXT, splitVerdict } from '@/nutrition/targets';
+import { energySplit, SPLIT_TEXT, splitVerdict } from '@/nutrition/targets';
 import type { NutrientKey } from '@/nutrition/types';
 import { highWatchChips, MACRO_KEYS, MINERAL_KEYS, nutrientRows, overDays, VITAMIN_KEYS, type ViewContext, WATCH_KEYS } from '@/nutrition/view';
 import { SCREEN_FEATURES } from '@/premium/premium';
 import { useApp } from '@/state/app-state';
 import { useTodayKcal } from '@/state/use-calories';
 import { type NutritionData, useNutrition } from '@/state/use-nutrition';
-import { usePremium } from '@/state/use-premium';
-import { waterWeek } from '@/water/today';
 
 type Tab = 'day' | 'week';
 type Snack = { text: string; action?: { label: string; onPress: () => void } };
@@ -44,7 +42,7 @@ const MINERALS_WHY =
 
 /**
  * Food, a top-level tab: the day's energy on a red-oxide track, the food log,
- * water, and what the food adds up to, for the day or the week of full days.
+ * and what the food adds up to, for the day or the week of full days.
  * `?add=<any new value>` (Today's "Log food") opens the keyboard on the search.
  */
 export default function FoodTab() {
@@ -59,8 +57,6 @@ export default function FoodTab() {
 function FoodScreen({ focusKey }: { focusKey?: string }) {
   const { repo } = useApp();
   const router = useRouter();
-  const premium = usePremium();
-  const waterOn = !premium.isLocked('body');
   const nutrition = useNutrition();
   // Same figure as Today, read again each time the tab comes into view.
   const [visits, setVisits] = useState(0);
@@ -128,7 +124,7 @@ function FoodScreen({ focusKey }: { focusKey?: string }) {
             onNotForMe={onNotForMe}
           />
         ) : (
-          <WeekView data={nutrition.data} waterOn={waterOn} onNotForMe={onNotForMe} />
+          <WeekView data={nutrition.data} onNotForMe={onNotForMe} />
         )}
         {/* T10: the last chart clears the bar's Log-food FAB when scrolled to the end. */}
         <View style={{ height: BAR_FAB_CLEARANCE }} />
@@ -246,40 +242,22 @@ function storedWeekWords(data: NutritionData, ctx: ViewContext): Partial<Record<
 
 function WeekView({
   data,
-  waterOn,
   onNotForMe,
 }: {
   data: NutritionData | null;
-  waterOn: boolean;
   onNotForMe: (id: string, label: string) => void;
 }) {
-  const { repo, profile, dataVersion } = useApp();
-  const [waterMet, setWaterMet] = useState<number | null>(null);
-  // Same gate as the Sunday summary: only against a target the person saved.
-  const waterShown =
-    waterOn && profile.water.targetMl !== null && !profile.water.doctorLimit && !needsAreDifferent(profile, new Date().getFullYear());
-
-  useEffect(() => {
-    if (!waterShown) return;
-    let live = true;
-    waterWeek(repo, profile)
-      .then((w) => live && setWaterMet(w.metDays))
-      .catch(() => undefined);
-    return () => {
-      live = false;
-    };
-  }, [repo, profile, dataVersion, waterShown]);
+  // No water on Food (owner, 16 Nov 2026): water's week is on Today's water screen.
+  const { profile } = useApp();
 
   if (!data) return null;
   const { week } = data;
   const ready = weekReady(week.judgedDays);
-  const waterLine = !waterShown || waterMet === null ? null : `Water target met on ${waterMet} of 7 days`;
 
   if (!ready) {
     return (
       <>
         <NoteLine icon="calendar-outline" title={weekWaitText(week.judgedDays) ?? ''} hint={`Full days so far: ${week.judgedDays} of 7`} />
-        {waterLine ? <NoteLine icon="water-outline" title={waterLine} /> : null}
       </>
     );
   }
@@ -304,7 +282,6 @@ function WeekView({
         why="A full day has most of the day’s food logged, or was marked “That’s all for today”. Fasting days and light days are left out, so they don’t pull the average down."
       />
       <CaloriesTrack eaten={Math.round(avg.kcal ?? 0)} target={data.fullKcal} label="a day, of about" atLeast={Boolean(part.kcal)} />
-      {waterLine ? <NoteLine icon="water-outline" title={waterLine} /> : null}
       <MacrosCard
         {...group}
         rows={nutrientRows(MACRO_KEYS, avg, cov, ctx, judgedFor, 'of', part)}
