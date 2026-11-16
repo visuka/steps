@@ -1,7 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Linking, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Linking, Modal, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { confirm } from '@/components/confirm';
 import { Segmented } from '@/components/controls';
@@ -164,6 +165,10 @@ export default function RecordScreen() {
   // RouteMap is memoised, so the map keeps its source and camera between polls.
   const lines = useMemo(() => (live ? routeLines(live.points, live.parts, live.walk?.stretches) : []), [live]);
   const mode = data?.mode ?? null;
+  // The live map's full-screen view.
+  const [full, setFull] = useState(false);
+  const win = useWindowDimensions();
+  const insets = useSafeAreaInsets();
 
   // "You left Home": the recorder switched to outdoors on its own.
   useEffect(() => {
@@ -325,6 +330,20 @@ export default function RecordScreen() {
     backAtPlace(data.points, asPlace(mode.place), polledAt);
   const longRide = ride && phase === 'recording' && !longRideOk && now - (walkId ?? now) > LONG_RIDE_MS;
   const what = ride ? 'ride' : 'walk';
+  const showMap = !indoorNow && !indoorRide && lines.length > 0;
+  // Full screen: the time and the walk's (or ride's) numbers over the map.
+  const fullStats: [string, string][] = !w
+    ? []
+    : ride
+      ? [
+          ['Distance', formatDistance(w.distanceM, profile.units)],
+          ['Speed', formatSpeed(currentSpeedMs(data?.points ?? [], polledAt), profile.units)],
+        ]
+      : [
+          ...(hasSteps ? ([['Steps', formatSteps(w.steps ?? 0)]] as [string, string][]) : []),
+          ['Distance', formatDistance(w.distanceM, profile.units)],
+          ['Pace', formatPace(paceSecPerKm(w.distanceM, w.movingS), profile.units)],
+        ];
 
   const tile = (label: string, text: string, icon: IconName, note?: string) => {
     const [value, unit] = splitUnit(text);
@@ -456,9 +475,39 @@ export default function RecordScreen() {
         </Surface>
       ) : null}
 
-      {!indoorNow && !indoorRide && lines.length ? (
-        <RouteMap lines={lines} height={240} follow={phase === 'recording'} />
+      {showMap && !full ? (
+        <RouteMap lines={lines} height={240} follow={phase === 'recording'} onExpand={() => setFull(true)} />
       ) : null}
+      <Modal
+        visible={full && showMap}
+        animationType="fade"
+        statusBarTranslucent
+        navigationBarTranslucent
+        onRequestClose={() => setFull(false)}>
+        <RouteMap lines={lines} height={win.height} radius={0} follow onClose={() => setFull(false)}>
+          <View style={[styles.fullTop, { top: insets.top + Spacing.two }]} pointerEvents="none">
+            <View style={[styles.pill, { backgroundColor: theme.surfaceContainerHigh }]}>
+              <ThemedText type="labelLarge" maxFontSizeMultiplier={1.3}>
+                {formatClock(elapsedS)}
+              </ThemedText>
+            </View>
+          </View>
+        </RouteMap>
+        <View
+          style={[styles.fullStats, { bottom: insets.bottom + Spacing.three, backgroundColor: theme.surfaceContainerHigh }]}
+          pointerEvents="none">
+          {fullStats.map(([label, text]) => (
+            <View key={label} style={styles.fullStat}>
+              <ThemedText type="numeralSmall" maxFontSizeMultiplier={NumeralMaxScale} numberOfLines={1}>
+                {text}
+              </ThemedText>
+              <ThemedText type="labelMedium" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3} numberOfLines={1}>
+                {label}
+              </ThemedText>
+            </View>
+          ))}
+        </View>
+      </Modal>
 
       {rough && !indoorRide ? (
         <View style={styles.hint}>
@@ -588,6 +637,17 @@ function ProblemLine({ problem }: { problem: Problem }) {
 }
 
 const styles = StyleSheet.create({
+  fullTop: { position: 'absolute', left: Spacing.three, flexDirection: 'row' },
+  fullStats: {
+    position: 'absolute',
+    left: Spacing.three,
+    right: Spacing.three,
+    flexDirection: 'row',
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.three,
+    paddingHorizontal: Spacing.two,
+  },
+  fullStat: { flex: 1, alignItems: 'center', gap: 2 },
   flex: { flex: 1 },
   clip: { overflow: 'hidden' },
   group: { gap: Spacing.three },
