@@ -262,7 +262,7 @@ export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
         accessibilityRole="button"
         accessibilityLabel={v.stepsSpoken}
         android_ripple={{ color: `${ink}14`, foreground: true }}
-        style={[card, { paddingHorizontal: 24, paddingVertical: tight ? 12 : 16, overflow: 'hidden' }]}>
+        style={[card, { paddingHorizontal: 24, paddingVertical: tight ? 8 : 16, overflow: 'hidden' }]}>
         <View style={[styles.spread, { minHeight: 24 }]}>
           <T size={18} line={24} weight={600} color={quiet}>
             Steps today
@@ -305,7 +305,7 @@ export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
       {v.slots.walking}
 
       <Animated.View entering={enter(1)} style={{ flexDirection: 'row', gap: 12 }}>
-        <Press onPress={tapFor(v, 'food')} label={m.food.spoken} ripple={`${ink}14`} style={[card, styles.eHalf]}>
+        <Press onPress={tapFor(v, 'food')} label={m.food.spoken} ripple={`${ink}14`} style={[card, styles.eHalf, tight && styles.tightPad]}>
           <View style={styles.artRow}>
             <ELabel icon={L ? 'lock' : 'bowl'} text="Food" color={L ? ink : theme.food} />
             {L ? null : <FoodBowl share={m.food.share ?? 0} color={theme.food} container={theme.foodContainer} size={art} />}
@@ -322,7 +322,7 @@ export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
             </>
           )}
         </Press>
-        <Press onPress={tapFor(v, 'sleep')} label={m.sleep.spoken} ripple={`${ink}14`} style={[card, styles.eHalf]}>
+        <Press onPress={tapFor(v, 'sleep')} label={m.sleep.spoken} ripple={`${ink}14`} style={[card, styles.eHalf, tight && styles.tightPad]}>
           <View style={styles.artRow}>
             <ELabel icon={L ? 'lock' : 'moon'} text="Sleep" color={L ? ink : theme.sleep} />
             {L ? null : <SleepMoon color={theme.sleep} ground={theme.surfaceContainerLowest} size={art} />}
@@ -339,7 +339,7 @@ export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
       </Animated.View>
 
       <Animated.View entering={enter(2)}>
-      <Press onPress={tapFor(v, 'water')} label={m.water.spoken} ripple={`${ink}14`} style={[card, styles.eWater]}>
+      <Press onPress={tapFor(v, 'water')} label={m.water.spoken} ripple={`${ink}14`} style={[card, styles.eWater, tight && styles.tightPad]}>
         {L ? null : <WaterGlass share={waterShare(v)} color={theme.water} container={theme.waterContainer} width={tight ? 24 : 30} height={tight ? 34 : 42} />}
         <View style={{ flex: 1 }}>
           <ELabel icon={L ? 'lock' : 'drop'} text="Water" color={L ? ink : theme.water} />
@@ -412,6 +412,8 @@ const styles = StyleSheet.create({
   iconLabel: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   circle40: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   eHalf: { flex: 1, paddingHorizontal: 16, paddingVertical: 12 },
+  // A short screen: 8 dp above and below a card's contents instead of 12.
+  tightPad: { paddingVertical: 8 },
   artRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 4 },
   eWater: { paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
   eGlass: { height: 48, minWidth: 48, paddingHorizontal: 16, borderRadius: 16, borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
