@@ -3,33 +3,14 @@ import { useEffect, useState } from 'react';
 import { Keyboard, Platform } from 'react-native';
 
 import { useFoodResultCovering } from '@/components/food/food-result-cover';
-import { NavigationBar, type NavigationItem } from '@/components/ui/navigation-bar';
+import { NavigationBar } from '@/components/ui/navigation-bar';
 import { useReducedMotion } from '@/components/ui/motion';
+import { BAR_TABS, TAB_SCREENS } from '@/components/tab-routes';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
-/**
- * The bar, in order: Today, the chats button in the middle (chats and
- * groups), You. Food and Activity left the bar (owner, 16 Nov 2026): Today's
- * Food tile and Log food open Food, its Walk tile opens Activity. They stay
- * routes of this navigator (HIDDEN_ROUTES), so links to /food and /activity
- * still work. Journal only sends old links to Food or Activity.
- */
-export const TABS: NavigationItem[] = [
-  { key: 'index', label: 'Today', specIcon: 'today' },
-  { key: 'plus', label: 'Chats and groups', specIcon: 'chats', fab: true },
-  { key: 'you', label: 'You', specIcon: 'person' },
-];
-
-/** Routes of the tabs navigator that have no slot in the bar but can still be opened, with their titles. */
-export const HIDDEN_ROUTES = [
-  { name: 'food', title: 'Food' },
-  { name: 'activity', title: 'Activity' },
-  { name: 'journal', title: 'Journal' },
-] as const;
-
-/** Every slot of the bar is a route. */
-const ROUTE_TABS = TABS;
+/** The bar's buttons; the screens without one are in tab-routes.ts. */
+export const TABS = BAR_TABS;
 
 /** On Android the bar steps aside while the keyboard is up, so a search keeps its room. */
 function useKeyboardUp(): boolean {
@@ -64,7 +45,7 @@ function TabBar({ state, emitter, navigateToTab, insets }: BottomTabBarProps) {
   return (
     <NavigationBar
       items={TABS}
-      activeKey={ROUTE_TABS.some((t) => t.key === focused.name) ? focused.name : null}
+      activeKey={TABS.some((t) => t.key === focused.name) ? focused.name : null}
       onSelect={press}
       onReselect={press}
       bottomInset={insets.bottom}
@@ -74,7 +55,7 @@ function TabBar({ state, emitter, navigateToTab, insets }: BottomTabBarProps) {
 
 /**
  * The Clean+ navigation bar: Today, Chats and groups and You, icons only.
- * Food, Activity and Journal are hidden routes (href null).
+ * Food, Activity and Journal are screens without a button (never href null: see tab-routes.ts).
  * Tabs move with a short shift (Material's shared axis), or cut with reduce motion.
  * System Back from any tab returns to Today, then leaves the app.
  */
@@ -90,11 +71,8 @@ export default function AppTabs() {
         animation: reduced ? 'none' : 'shift',
         sceneStyle: { backgroundColor: Colors[dark ? 'dark' : 'light'].surface },
       }}>
-      {ROUTE_TABS.map((t) => (
-        <Tabs.Screen key={t.key} name={t.key} options={{ title: t.label }} />
-      ))}
-      {HIDDEN_ROUTES.map((r) => (
-        <Tabs.Screen key={r.name} name={r.name} options={{ title: r.title, href: null }} />
+      {TAB_SCREENS.map((r) => (
+        <Tabs.Screen key={r.name} name={r.name} options={{ title: r.title }} />
       ))}
     </Tabs>
   );
