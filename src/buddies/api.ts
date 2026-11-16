@@ -14,13 +14,14 @@ import {
   readChats,
   readMe,
   readMessage,
+  readNearby,
   readPage,
   readRequests,
   readWalker,
   SocialError,
   socialErrorFor,
 } from './read';
-import type { BuddyRow, ChatRow, Message, MessagePage, ReportReason, Requests, SocialMe, Walker } from './types';
+import type { BuddyRow, ChatRow, Message, MessagePage, Nearby, ReportReason, Requests, SocialMe, Walker } from './types';
 import { TERMS_VERSION } from './types';
 
 export interface SocialDeps {
@@ -93,6 +94,14 @@ export const socialApi = {
     const r = (await call('GET', `/walkers/${enc(handle)}`)) as { walker?: unknown } | null;
     return readWalker(r?.walker);
   },
+  /** Show me in this 5 km area (a geohash-5 code). */
+  setArea: async (area: string): Promise<void> => {
+    await call('PUT', '/me/area', { area });
+  },
+  clearArea: async (): Promise<void> => {
+    await call('DELETE', '/me/area');
+  },
+  nearby: async (): Promise<Nearby> => readNearby(await call('GET', '/nearby')),
   requests: async (): Promise<Requests> => readRequests(await call('GET', '/requests')),
   ask: async (pid: string): Promise<'requested' | 'buddies'> => {
     const r = (await call('POST', '/requests', { pid })) as { state?: unknown } | null;

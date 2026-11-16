@@ -30,8 +30,16 @@ export type SocialMe =
       name: string | null;
       handleChangeFrom: number;
       nearby: boolean;
+      /** The day the area was last sent, YYYY-MM-DD, or null. */
+      areaSetOn: string | null;
       counts: SocialCounts;
     };
+
+/** Walkers in my area: handles only, no names, areas or distances. */
+export interface Nearby {
+  walkers: Walker[];
+  areaSetOn: string | null;
+}
 
 export interface RequestRow {
   walker: Walker;

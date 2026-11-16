@@ -8,6 +8,7 @@ import type {
   ChatRow,
   Message,
   MessagePage,
+  Nearby,
   Relation,
   RequestRow,
   Requests,
@@ -32,6 +33,8 @@ export type SocialErrorKind =
   | 'terms'
   | 'conflict'
   | 'busy'
+  | 'outside'
+  | 'nearby_off'
   | 'other';
 
 export const SOCIAL_MESSAGES: Record<SocialErrorKind, string> = {
@@ -51,6 +54,8 @@ export const SOCIAL_MESSAGES: Record<SocialErrorKind, string> = {
   terms: 'Please agree to the Walk buddies rules.',
   conflict: "That can't be done right now.",
   busy: 'Too busy just now. Try again in a moment.',
+  outside: 'Walkers in your area works only in India for now.',
+  nearby_off: 'Show yourself to walkers in your area first.',
   other: 'Something went wrong. Try again.',
 };
 
@@ -86,6 +91,8 @@ const CODE_KIND: Record<string, SocialErrorKind> = {
   already: 'conflict',
   conflict: 'conflict',
   unavailable: 'busy',
+  not_available: 'outside',
+  nearby_off: 'nearby_off',
 };
 
 /** status null = the request never got an answer (offline). */
@@ -134,6 +141,7 @@ export function readMe(v: unknown): SocialMe {
     name: str(v.name, 80) || null,
     handleChangeFrom: num(v.handleChangeFrom),
     nearby: v.nearby === true,
+    areaSetOn: str(v.areaSetOn, 10) || null,
     counts: {
       requestsIn: num(c.requestsIn),
       unread: num(c.unread),
@@ -153,6 +161,12 @@ export function badgeCount(me: SocialMe | null): number {
 function readRows(v: unknown): RequestRow[] {
   if (!Array.isArray(v)) return [];
   return v.filter(isObj).map((r) => ({ walker: readWalker(r.walker), at: num(r.at) }));
+}
+
+export function readNearby(v: unknown): Nearby {
+  if (!isObj(v)) bad();
+  const list = Array.isArray(v.walkers) ? v.walkers : [];
+  return { walkers: list.map(readWalker), areaSetOn: str(v.areaSetOn, 10) || null };
 }
 
 export function readRequests(v: unknown): Requests {
