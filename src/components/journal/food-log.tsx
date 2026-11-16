@@ -391,6 +391,8 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
 
   const lookUp = async () => {
     const text = query.trim();
+    // A second tap while the same words are being looked up sends nothing (it doubled the server's work).
+    if (lookup.status === 'loading' && lookup.query === text) return;
     const run = ++lookupRun.current;
     // Sent only when picked, so the server can read a place from the text ("ordered pizza").
     const sent = placeIn.chosen ? here : null;
@@ -977,11 +979,14 @@ function SearchResult({ food, onPress, also }: { food: FoodItem; onPress: () => 
       accessibilityLabel={`${food.name}, 1 ${unit.label}, ${kcal} kcal`}
       android_ripple={{ color: theme.outlineVariant }}
       style={({ pressed }) => [styles.result, pressed && { backgroundColor: theme.surfaceContainerHighest }]}>
-      <ThemedText style={styles.entryName}>{food.name}</ThemedText>
-      <ThemedText type="small" themeColor="textSecondary">
-        {also ? `Also called ${also} · ` : ''}1 {unit.label} · {kcal} kcal
-        {isMine(food) ? ' · your version' : ''}
-      </ThemedText>
+      {/* Name over its details: side by side, a long "Also called" line squeezed the name to a letter a line. */}
+      <View style={styles.entryName}>
+        <ThemedText>{food.name}</ThemedText>
+        <ThemedText type="small" themeColor="textSecondary">
+          {also ? `Also called ${also} · ` : ''}1 {unit.label} · {kcal} kcal
+          {isMine(food) ? ' · your version' : ''}
+        </ThemedText>
+      </View>
     </Pressable>
   );
 }
