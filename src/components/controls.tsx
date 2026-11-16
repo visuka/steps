@@ -200,6 +200,9 @@ export function TextField({
   maxLength,
   autoFocus,
   keyboardType,
+  plain,
+  onSubmit,
+  returnKeyType,
 }: {
   value: string;
   onChangeText: (t: string) => void;
@@ -212,6 +215,11 @@ export function TextField({
   autoFocus?: boolean;
   /** 'number-pad' for digits kept as text (a barcode number keeps its leading zeros). */
   keyboardType?: 'default' | 'number-pad';
+  /** An ID or code: no capitals, autocorrect or suggestions added by the keyboard. */
+  plain?: boolean;
+  /** The keyboard's Enter / Search key. */
+  onSubmit?: () => void;
+  returnKeyType?: 'search' | 'done' | 'go';
 }) {
   const theme = useTheme();
   return (
@@ -228,6 +236,11 @@ export function TextField({
       maxLength={maxLength}
       autoFocus={autoFocus}
       keyboardType={keyboardType}
+      autoCapitalize={plain ? 'none' : undefined}
+      autoCorrect={plain ? false : undefined}
+      autoComplete={plain ? 'off' : undefined}
+      onSubmitEditing={onSubmit}
+      returnKeyType={returnKeyType}
       accessibilityLabel={label}
       style={inputStyle(theme, [styles.input, styles.textField, multiline && styles.multiline])}
     />

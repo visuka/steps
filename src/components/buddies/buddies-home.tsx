@@ -72,7 +72,7 @@ function JoinForm({ onJoined }: { onJoined: (me: SocialMe) => void }) {
         Find walkers by their ID, become walk buddies and chat. Only accepted buddies can message you.
       </ThemedText>
       <SectionTitle>Your walker ID</SectionTitle>
-      <TextField label="Walker ID" value={handle} onChangeText={setHandle} placeholder="@your_id" maxLength={21} />
+      <TextField label="Walker ID" value={handle} onChangeText={setHandle} placeholder="@your_id" maxLength={21} plain />
       <ThemedText type="bodySmall" themeColor={problem ? 'error' : 'onSurfaceVariant'} maxFontSizeMultiplier={1.3}>
         {problem ?? '3–20 letters, numbers or _. You can change it once a month.'}
       </ThemedText>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { chatItems, cleanHandle, countLabel, handleProblem, mergeMessages, messageProblem, newClientId, newestId, nextDelay } from '../chat-logic';
+import { chatItems, cleanHandle, searchHandle, countLabel, handleProblem, mergeMessages, messageProblem, newClientId, newestId, nextDelay } from '../chat-logic';
 import { badgeCount, displayName, readChats, readMe, readPage, readWalker, socialErrorFor } from '../read';
 import type { Message } from '../types';
 
@@ -15,6 +15,7 @@ const msg = (id: string, at: number, mine = false, text = 'hi', pid = mine ? 'me
 describe('walker ID', () => {
   it('cleans and checks like the server', () => {
     expect(cleanHandle(' @ravi_walks ')).toBe('ravi_walks');
+    expect(searchHandle(' ravi _walks. ')).toBe('ravi_walks');
     expect(handleProblem('ravi_walks')).toBeNull();
     expect(handleProblem('ab')).not.toBeNull();
     expect(handleProblem('a'.repeat(21))).not.toBeNull();

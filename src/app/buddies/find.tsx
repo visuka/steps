@@ -1,13 +1,13 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Keyboard, StyleSheet, View } from 'react-native';
 
 import { PersonRow, SectionTitle, useSnack } from '@/components/buddies/parts';
 import { TextField } from '@/components/controls';
 import { PremiumGate } from '@/components/premium-gate';
 import { ThemedText } from '@/components/themed-text';
 import { Button, Screen, Snackbar, Surface } from '@/components/ui';
-import { cleanHandle, handleProblem } from '@/buddies/chat-logic';
+import { handleProblem, searchHandle } from '@/buddies/chat-logic';
 import { SocialError } from '@/buddies/read';
 import type { Walker } from '@/buddies/types';
 import { attempt, useSocialApi, useSocialMe } from '@/buddies/use-buddies';
@@ -27,9 +27,16 @@ export default function FindWalkers() {
   const back = () => (router.canGoBack() ? router.back() : router.replace('/plus'));
 
   const search = async () => {
-    const h = cleanHandle(q);
+    const h = searchHandle(q);
+    // The keyboard would hide the message below.
+    Keyboard.dismiss();
     const problem = handleProblem(h);
     if (problem) return show(problem);
+    if (me?.joined && me.handle.toLowerCase() === h.toLowerCase()) {
+      setFound(null);
+      setMissing(false);
+      return show('That is your own ID. Ask your friend for theirs.');
+    }
     setBusy(true);
     setFound(null);
     setMissing(false);
@@ -78,7 +85,7 @@ export default function FindWalkers() {
   return (
     <PremiumGate feature={SCREEN_FEATURES.buddies} title="Find walkers" onBack={back}>
       <Screen title="Find walkers" onBack={back} overlay={<Snackbar message={snack} onDismiss={dismiss} />}>
-        <TextField label="Walker ID" value={q} onChangeText={setQ} placeholder="Walker ID, e.g. ravi_walks" maxLength={21} onEndEditing={undefined} />
+        <TextField label="Walker ID" value={q} onChangeText={setQ} placeholder="Walker ID, e.g. ravi_walks" maxLength={24} plain onSubmit={search} returnKeyType="search" />
         <Button label="Search" icon="search-outline" onPress={search} loading={busy} disabled={!q.trim() || busy} style={styles.gap} />
         {found ? (
           <Surface level={1} style={styles.list}>
@@ -87,7 +94,7 @@ export default function FindWalkers() {
         ) : null}
         {missing ? (
           <ThemedText themeColor="onSurfaceVariant" style={styles.gap}>
-            No walker with that ID.
+            No walker with that ID. Check the spelling, or ask them to open Walk buddies and read out their ID.
           </ThemedText>
         ) : null}
         <SectionTitle>Your own ID</SectionTitle>

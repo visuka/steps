@@ -14,6 +14,11 @@ export function cleanHandle(raw: string): string {
   return raw.trim().replace(/^@+/, '');
 }
 
+/** For a search: also drop spaces anywhere and a trailing dot or comma (keyboards add them). */
+export function searchHandle(raw: string): string {
+  return cleanHandle(raw.replace(/\s+/g, '')).replace(/[.,]+$/, '');
+}
+
 /** A plain reason the ID can't be used, or null. */
 export function handleProblem(raw: string): string | null {
   const h = cleanHandle(raw);
