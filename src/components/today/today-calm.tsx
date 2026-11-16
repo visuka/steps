@@ -15,6 +15,7 @@ import Animated, { FadeInDown, ReduceMotion } from 'react-native-reanimated';
 import { SpecIcon } from '@/components/ui';
 import type { SpecIconName } from '@/components/ui/icon-paths';
 import { ActiveTheme, MaxContentWidth, MaxTextScale } from '@/constants/theme';
+import { scaled } from '@/constants/ui-scale';
 import type { ThemeFont } from '@/constants/themes/types';
 import { useTheme } from '@/hooks/use-theme';
 import { formatSteps } from '@/lib/format';
@@ -79,8 +80,9 @@ function T({
       style={[
         {
           fontFamily: face(weight, num),
-          fontSize: size,
-          lineHeight: line,
+          // Sizes follow the screen width, as everywhere in the app (ui-scale.ts): smaller on a 360 dp phone.
+          fontSize: scaled(size),
+          lineHeight: scaled(line),
           color,
           fontVariant: ['tabular-nums'],
           includeFontPadding: false,
@@ -183,9 +185,9 @@ function Beside({ v }: { v: TodayView }) {
   return v.weather ? <WeatherBesideDate weather={v.weather} /> : (v.slots.dateExtra ?? null);
 }
 
-function LogFood({ v, fill, ink, radius, size, weight }: { v: TodayView; fill: string; ink: string; radius: number; size: number; weight: Weight }) {
+function LogFood({ v, fill, ink, radius, size, weight, height }: { v: TodayView; fill: string; ink: string; radius: number; size: number; weight: Weight; height: number }) {
   return (
-    <Press onPress={v.on.logFood} label="Log food" ripple={`${ink}33`} style={[styles.logFood, { backgroundColor: fill, borderRadius: radius }]}>
+    <Press onPress={v.on.logFood} label="Log food" ripple={`${ink}33`} style={[styles.logFood, { height, backgroundColor: fill, borderRadius: radius }]}>
       <SpecIcon name="plus" color={ink} size={20} />
       <T size={size} line={24} weight={weight} color={ink}>
         Log food
@@ -216,9 +218,9 @@ export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
   // The steps and their share count up when Today opens.
   const steps = useCountUp(Math.max(0, v.steps));
   const pct = useCountUp(Math.max(0, v.pct));
-  // A small phone or large text (the owner's 360 dp phone at 1.2): tighter, so Today still fits without scrolling.
-  const { height, fontScale } = useWindowDimensions();
-  const tight = height / Math.max(1, fontScale) < 760;
+  // A short screen (the owner's 360 x 800 dp phone): tighter, so Today still fits without scrolling.
+  const { height } = useWindowDimensions();
+  const tight = height < 860;
   const art = tight ? 28 : 32;
 
   return (
@@ -385,7 +387,7 @@ export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
       </Animated.View>
 
       <Tail v={v} gutter={0} />
-      <LogFood v={v} fill={theme.primary} ink={theme.onPrimary} radius={20} size={18} weight={700} />
+      <LogFood v={v} fill={theme.primary} ink={theme.onPrimary} radius={20} size={18} weight={700} height={tight ? 48 : 56} />
     </View>
   );
 }
@@ -406,7 +408,7 @@ const styles = StyleSheet.create({
   dateRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', columnGap: 8 },
   baseline: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', columnGap: 8 },
   spread: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  logFood: { height: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 8 },
+  logFood: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 8 },
   iconLabel: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   circle40: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   eHalf: { flex: 1, paddingHorizontal: 16, paddingVertical: 12 },
