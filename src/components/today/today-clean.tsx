@@ -50,13 +50,22 @@ import {
   waterTile,
   weekShares,
 } from './today-layout';
+import { TodayBlocks, TodayCalm, TodaySport } from './today-looks';
 import type { TodayFrameLook, TodayView } from './view';
 
 /** The plus circle's touch target: at least 48 dp, the circle centred in it, where the bare circle was. */
 const PLUS_TOUCH = Math.max(ICON_CIRCLE_STYLE.minTouch, L.tile.plusSize);
 const PLUS_PAD = (PLUS_TOUCH - L.tile.plusSize) / 2;
 
+/** Looks with a Today of their own in the mockups draw it (today-looks.tsx); the rest share Clean+. */
 export function TodayClean({ v, look }: { v: TodayView; look: TodayFrameLook }) {
+  if (ActiveTheme.id === 'f') return <TodaySport v={v} look={look} />;
+  if (ActiveTheme.id === 'd') return <TodayBlocks v={v} look={look} />;
+  if (ActiveTheme.id === 'e') return <TodayCalm v={v} look={look} />;
+  return <TodayShared v={v} look={look} />;
+}
+
+function TodayShared({ v, look }: { v: TodayView; look: TodayFrameLook }) {
   const { width: screen } = useWindowDimensions();
   const content = contentWidth(screen, look.gutter, MaxContentWidth);
   const tile = tileWidth(content);

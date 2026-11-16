@@ -91,6 +91,8 @@ export interface TodayView {
     profile(): void;
     /** A week-strip day was tapped: open that day (its key, "2026-11-14"). */
     calendar(dayKey?: string): void;
+    /** The looks' "Log food" button (D, E, F): the Food tab. */
+    logFood(): void;
   };
   slots: {
     /** A walk being recorded: the 72 dp card between the hero and the tiles. */

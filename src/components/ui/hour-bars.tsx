@@ -22,13 +22,15 @@ export interface HourBarsProps {
   now?: number | null;
   /** 'hero' on the blue block, 'plain' on white (the hourly detail screen). */
   tone?: 'hero' | 'plain';
+  /** Explicit colours, for a look that draws the chart on its own plate (D's leaf block, E's white card). */
+  colors?: { bar: string; quiet: string; line: string; label: string };
 }
 
 /**
  * The 24-bar hour chart of spec 5.4. Back to front: quiet bars, goal line,
  * "goal pace" label, counted bars. One SVG, one spoken summary.
  */
-export function HourBars({ hours, goal, width, now, tone = 'hero', height = HOUR_CHART.height }: HourBarsProps) {
+export function HourBars({ hours, goal, width, now, tone = 'hero', height = HOUR_CHART.height, colors: given }: HourBarsProps) {
   const theme = useTheme();
   const [measured, setMeasured] = useState(0);
   const w = width ?? measured;
@@ -36,9 +38,10 @@ export function HourBars({ hours, goal, width, now, tone = 'hero', height = HOUR
 
   const hero = heroPalette(theme, Look.heroFill, ActiveTheme.block);
   const colors =
-    tone === 'hero'
+    given ??
+    (tone === 'hero'
       ? { bar: hero.mark, quiet: hero.quietBar, line: hero.goalLine, label: hero.label }
-      : { bar: theme.primary, quiet: theme.secondaryContainer, line: theme.outlineVariant, label: theme.onSurfaceVariant };
+      : { bar: theme.primary, quiet: theme.secondaryContainer, line: theme.outlineVariant, label: theme.onSurfaceVariant });
 
   // Until measured, an empty box of the right height (it reports its width).
   if (w <= 0) return <View style={{ height, alignSelf: 'stretch' }} onLayout={onLayout} />;

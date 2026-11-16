@@ -144,6 +144,7 @@ export default function TodayScreen() {
       profile: () => router.navigate('/you'),
       // The readings take no day yet, so a tapped day opens Activity's health readings.
       calendar: () => router.navigate({ pathname: '/activity', params: { section: 'sleep' } }),
+      logFood: () => router.navigate('/food'),
     },
     slots: {
       walking: activeWalk ? (
