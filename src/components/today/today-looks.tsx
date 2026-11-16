@@ -549,7 +549,7 @@ export function TodayBlocks({ v, look }: { v: TodayView; look: TodayFrameLook })
             </T>
           </View>
         </View>
-        <View style={[styles.baseline, { marginTop: 8 }]}>
+        <View style={[styles.baseline, { marginTop: 4 }]}>
           <T size={48} line={52} weight={800} color={leaf} style={{ letterSpacing: -1 }}>
             {formatSteps(Math.max(0, v.steps))}
           </T>
@@ -557,10 +557,10 @@ export function TodayBlocks({ v, look }: { v: TodayView; look: TodayFrameLook })
             of {formatSteps(v.goal)}
           </T>
         </View>
-        <View style={[styles.track, { height: 8, borderRadius: 4, backgroundColor: `${white}CC`, marginTop: 16 }]}>
+        <View style={[styles.track, { height: 8, borderRadius: 4, backgroundColor: `${white}CC`, marginTop: 12 }]}>
           <View style={{ width: `${share(v) * 100}%`, height: 8, borderRadius: 4, backgroundColor: theme.steps }} />
         </View>
-        <View style={{ flexDirection: 'row', gap: 32, marginTop: 16 }}>
+        <View style={{ flexDirection: 'row', gap: 32, marginTop: 12 }}>
           <View>
             <T size={20} line={24} weight={800} color={leaf}>
               {d.value} {d.unit}
@@ -642,7 +642,7 @@ export function TodayBlocks({ v, look }: { v: TodayView; look: TodayFrameLook })
         onPress={tapFor(v, 'sleep')}
         label={m.sleep.spoken}
         ripple={`${theme.onSleepContainer}22`}
-        style={[styles.dTile, styles.dRow, { backgroundColor: L ? theme.surfaceContainerHigh : theme.sleepContainer, padding: 16 }]}>
+        style={[styles.dTile, styles.dRow, { backgroundColor: L ? theme.surfaceContainerHigh : theme.sleepContainer, paddingHorizontal: 16, paddingVertical: 12 }]}>
         <View style={[styles.circle48, { backgroundColor: white }]}>
           <SpecIcon name={L ? 'lock' : 'moon'} color={L ? theme.onSurface : theme.onSleepContainer} size={20} />
         </View>
@@ -905,7 +905,7 @@ const styles = StyleSheet.create({
   dHalf: { flex: 1, padding: 16 },
   dRound: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   dChip: { height: 24, paddingHorizontal: 8, borderRadius: 12, justifyContent: 'center' },
-  dGlass: { marginTop: 16, height: 48, borderRadius: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  dGlass: { marginTop: 12, height: 48, borderRadius: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   dRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   circle48: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   circle40: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
