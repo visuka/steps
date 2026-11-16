@@ -6,7 +6,7 @@ export default function JournalRedirect() {
   if (params.section === 'food') return <Redirect href="/food" />;
   return (
     <Redirect
-      href={{ pathname: '/activity', params: { section: params.section ?? 'sleep', ...(params.n ? { n: params.n } : {}) } }}
+      href={{ pathname: '/activity', params: { section: params.section ?? 'heart', ...(params.n ? { n: params.n } : {}) } }}
     />
   );
 }

@@ -18,9 +18,9 @@ describe('detailRoute', () => {
     expect(detailRoute('sleep', null, false)).toEqual({ pathname: '/activity', params: { section: 'sleep' } });
   });
 
-  it('sends the Walk tile to its walk or Activity, never to /detail/walk', () => {
+  it('sends the Walk tile to the walks on Activity, never to /detail/walk', () => {
     for (const live of [true, false]) {
-      expect(detailRoute('walk', 'w1', live)).toEqual({ pathname: '/walk/[id]', params: { id: 'w1' } });
+      expect(detailRoute('walk', 'w1', live)).toEqual({ pathname: '/activity', params: { section: 'workouts' } });
       expect(detailRoute('walk', null, live)).toEqual({ pathname: '/activity', params: { section: 'workouts' } });
     }
   });

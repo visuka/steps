@@ -143,8 +143,8 @@ export default function TodayScreen() {
       // The locked tiles have no screen of their own: the premium card below them is the target.
       premium: () => scroll.current?.scrollToEnd({ animated: true }),
       profile: () => router.navigate('/you'),
-      // The readings take no day yet, so a tapped day opens Activity's health readings.
-      calendar: () => router.navigate({ pathname: '/activity', params: { section: 'sleep' } }),
+      // The calendar opens that day's steps, with Week and Month a tap away.
+      calendar: (key) => router.push({ pathname: '/detail/steps', params: key ? { date: key } : {} } as unknown as Href),
       logFood: () => router.navigate('/food'),
     },
     slots: {

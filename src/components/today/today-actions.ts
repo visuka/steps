@@ -21,15 +21,16 @@ export interface DetailTarget {
 /**
  * The screen a tap on `kind` opens: /detail/<kind> for steps, food, water and
  * sleep (the series screen's kinds, state/series.ts). The Walk tile has no
- * detail screen: it opens today's walk (`walkId`), or Activity when there is
- * none. Null only in the old (not live) layout, where Water acted in place.
+ * detail screen: it opens the walks on Activity. `_walkId` is kept for callers.
+ * Null only in the old (not live) layout, where Water acted in place.
  */
 export function detailRoute(
   kind: DetailKind,
-  walkId: string | null = null,
+  _walkId: string | null = null,
   live: boolean = DETAIL_ROUTES_LIVE,
 ): DetailTarget | null {
-  if (kind === 'walk') return walkId ? { pathname: '/walk/[id]', params: { id: walkId } } : { pathname: '/activity', params: { section: 'workouts' } };
+  // The Walk tile opens the walks: a Week and Month chart, Start, and every walk to open or delete (owner, 16 Nov 2026).
+  if (kind === 'walk') return { pathname: '/activity', params: { section: 'workouts' } };
   if (live) return { pathname: `/detail/${kind}` };
   switch (kind) {
     case 'steps':

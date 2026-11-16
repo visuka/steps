@@ -3,23 +3,26 @@ import { StyleSheet, View } from 'react-native';
 import { BloodPressureLog } from '@/components/journal/bp-log';
 import { BodyLog } from '@/components/journal/body-log';
 import { HeartLog } from '@/components/journal/heart-log';
-import { MoodLog } from '@/components/journal/mood-log';
-import { SleepLog } from '@/components/journal/sleep-log';
 import { PremiumGate } from '@/components/premium-gate';
 import { Chip } from '@/components/ui/chip';
 import { Spacing } from '@/constants/theme';
 import { SCREEN_FEATURES } from '@/premium/premium';
 
-export type HealthPart = 'sleep' | 'heart' | 'bp' | 'weight' | 'water' | 'mood';
+export type HealthPart = 'heart' | 'bp' | 'weight';
 
+/** Sleep, water and mood moved to the screens Today's tiles open (owner, 16 Nov 2026). */
 export const HEALTH_PARTS: { value: HealthPart; label: string }[] = [
-  { value: 'sleep', label: 'Sleep' },
   { value: 'heart', label: 'Heart' },
   { value: 'bp', label: 'Blood pressure' },
   { value: 'weight', label: 'Weight' },
-  { value: 'water', label: 'Water' },
-  { value: 'mood', label: 'Mood' },
 ];
+
+/** Where the parts that moved off Activity live now: old links and notifications land there. */
+export const MOVED_PARTS: Record<string, '/detail/sleep' | '/detail/water'> = {
+  sleep: '/detail/sleep',
+  mood: '/detail/sleep',
+  water: '/detail/water',
+};
 
 /** A link's `section` as a health part; "body" is the old name for the first of its parts. */
 export function healthPart(param: unknown): HealthPart | null {
@@ -41,11 +44,9 @@ export function HealthLog({ part, onPart }: { part: HealthPart; onPart: (p: Heal
         ))}
       </View>
       <PremiumGate feature={SCREEN_FEATURES[`journal/${part}`]}>
-        {part === 'sleep' ? <SleepLog /> : null}
         {part === 'heart' ? <HeartLog /> : null}
         {part === 'bp' ? <BloodPressureLog /> : null}
-        {part === 'weight' || part === 'water' ? <BodyLog key={part} kind={part} /> : null}
-        {part === 'mood' ? <MoodLog /> : null}
+        {part === 'weight' ? <BodyLog kind="weight" /> : null}
       </PremiumGate>
     </>
   );

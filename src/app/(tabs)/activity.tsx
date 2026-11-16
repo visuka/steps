@@ -1,10 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { type Href, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Segmented } from '@/components/controls';
-import { HealthLog, type HealthPart, healthPart } from '@/components/health-log';
+import { PeriodChart } from '@/components/detail/period-chart';
+import { HealthLog, type HealthPart, healthPart, MOVED_PARTS } from '@/components/health-log';
 import { PremiumGate } from '@/components/premium-gate';
 import { RouteSketch } from '@/components/route-sketch';
 import { ThemedText } from '@/components/themed-text';
@@ -42,15 +43,21 @@ function sideOf(param: unknown): Side | null {
 }
 
 /**
- * Activity: health readings (sleep, heart, blood pressure, weight, water,
- * mood) and workouts (start a walk or a ride, your places, everything
+ * Activity: health readings (heart, blood pressure, weight; sleep, water and
+ * mood are on the screens Today's tiles open) and workouts (start a walk or a ride, your places, everything
  * recorded). The old /walks and /journal addresses land here.
  */
 export default function ActivityTab() {
   const params = useLocalSearchParams<{ section?: string; n?: string }>();
+  const router = useRouter();
   const [side, setSide] = useState<Side>(sideOf(params.section) ?? 'health');
-  const [part, setPart] = useState<HealthPart>(healthPart(params.section) ?? 'sleep');
+  const [part, setPart] = useState<HealthPart>(healthPart(params.section) ?? 'heart');
   const linkKey = `${params.section ?? ''}|${params.n ?? ''}`;
+  // A link to sleep, water or mood (notifications, Insights, older links) opens its new screen.
+  const moved = params.section ? MOVED_PARTS[params.section] : undefined;
+  useEffect(() => {
+    if (moved) router.push(moved as unknown as Href);
+  }, [moved, linkKey, router]);
   const [lastLink, setLastLink] = useState(linkKey);
   // Links (Insights, notifications, Today) switch even when the tab is already mounted.
   if (linkKey !== lastLink) {
@@ -92,6 +99,7 @@ function Workouts() {
   const [places, setPlaces] = useState<string[]>([]);
   const [active, setActive] = useState<number | null>(null);
   const [monthAgo, setMonthAgo] = useState(0);
+  const [span, setSpan] = useState<'week' | 'month'>('week');
 
   useFocusEffect(
     useCallback(() => {
@@ -130,6 +138,16 @@ function Workouts() {
 
   return (
     <>
+      {/* Distance walked per day, the graph the Walk tile on Today leads to. */}
+      <Segmented<'week' | 'month'>
+        options={[
+          { value: 'week', label: 'Week' },
+          { value: 'month', label: 'Month' },
+        ]}
+        value={span}
+        onChange={setSpan}
+      />
+      <PeriodChart kind="walk" period={span} tone="steps" noun="Walks" format={(m) => formatDistance(m, profile.units)} />
       {active ? (
         <Surface level={3} style={styles.clip}>
           <ListRow

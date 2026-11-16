@@ -103,6 +103,10 @@ for look in park a b c d e f; do
 done
 # Colour blocks' Steps detail (owner asked about its small text, 16 Nov 2026).
 capture d detail smoke/look-d-detail.png
+# The screens Today's Water and Sleep tiles open (graph, then add and remove), and Activity without them (16 Nov 2026).
+capture d detail smoke/look-d-water.png '&kind=water'
+capture d detail smoke/look-d-sleep.png '&kind=sleep'
+capture d activity smoke/look-d-activity.png
 
 # The largest common font size: every tile must still fit (fit any phone).
 adb shell settings put system font_scale 1.3

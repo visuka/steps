@@ -46,7 +46,7 @@ const CHART_WHY = 'The dashed line is 7 hours, the least most adults are advised
 const morningFor = (wakeAt: number, entry: SleepEntry | null) =>
   entry && wakeAt === entry.endAt ? entry.date : nightOf(wakeAt);
 
-export function SleepLog() {
+export function SleepLog({ chart = true }: { chart?: boolean } = {}) {
   const { repo, dataVersion, touch } = useApp();
   const clock = useClockStyle();
   const vitals = useVitalsConnection();
@@ -211,11 +211,13 @@ export function SleepLog() {
 
       <ConnectHealth what="sleep and heart rate" />
 
-      <SectionHeader title="Last two weeks" why={nights.length ? CHART_WHY : undefined} />
+      <SectionHeader title="Last two weeks" why={nights.length && chart ? CHART_WHY : undefined} />
       {nights.length === 0 ? (
         <EmptyState icon="moon-outline" title="No nights logged yet" hint="Save last night above to start." />
       ) : (
         <>
+          {/* The Sleep screen draws its own Week and Month chart above this log. */}
+          {chart ? (
           <Card>
             {weekAverage !== null ? (
               <View style={styles.value}>
@@ -240,6 +242,7 @@ export function SleepLog() {
               describeBar={(b) => `${formatDayLong(b.key)}, ${b.value ? formatSleep(b.value) : 'none'}`}
             />
           </Card>
+          ) : null}
 
           <EntryList>
             {[...nights].reverse().map((n) => {

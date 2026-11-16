@@ -2,9 +2,22 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { confirmDelete } from '@/components/confirm';
+import { Segmented } from '@/components/controls';
+import { type Period, PERIOD_OPTIONS, PeriodChart } from '@/components/detail/period-chart';
 import { QuarterRows, SeriesChart } from '@/components/detail/series-chart';
+import { BodyLog } from '@/components/journal/body-log';
+import { EntryList, EntryRow } from '@/components/journal/entry-parts';
+import { MoodLog } from '@/components/journal/mood-log';
+import { SleepLog } from '@/components/journal/sleep-log';
+import { PremiumGate } from '@/components/premium-gate';
 import { ThemedText } from '@/components/themed-text';
-import { Card, EmptyState, ListRow, NutrientRow, Pill, Screen, SectionHeader, SpecIcon } from '@/components/ui';
+import { Button, Card, EmptyState, ListRow, Notice, NutrientRow, Pill, Screen, SectionHeader, SpecIcon } from '@/components/ui';
+import type { DataTone } from '@/constants/tokens';
+import { deleteFood } from '@/data/entries';
+import { copyStore } from '@/health/select-source';
+import { SCREEN_FEATURES } from '@/premium/premium';
+import type { TotalsKind } from '@/state/use-daily-totals';
 import { groupThousands, hourRange } from '@/components/ui/hour-bars-geometry';
 import { NumeralMaxScale } from '@/constants/theme';
 import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
@@ -14,6 +27,8 @@ import { formatSteps, formatWater } from '@/lib/format';
 import { useApp } from '@/state/app-state';
 import {
   clockAt,
+  dayEndMs,
+  dayStartMs,
   deviceZone,
   formatMinutes,
   isDayKey,
@@ -59,6 +74,8 @@ export function Detail({ kind, firstDay }: { kind: SeriesKind; firstDay: string 
   const theme = useTheme();
   const { profile } = useApp();
   const [day, setDay] = useState(firstDay);
+  // Day, Week or Month at the top (owner, 16 Nov 2026: each tile's screen shows a graph over time).
+  const [period, setPeriod] = useState<Period>('day');
   const [hour, setHour] = useState<number | null>(null);
   const clock = useClock();
   const today = clock.today;
@@ -81,7 +98,23 @@ export function Detail({ kind, firstDay }: { kind: SeriesKind; firstDay: string 
   const dayLabel = isToday ? 'Today' : day === addDaysToKey(today, -1) ? 'Yesterday' : formatDayLong(day);
 
   return (
-    <Screen title={TITLES[kind]} subtitle={formatDayLong(day)} onBack={() => router.back()}>
+    <Screen title={TITLES[kind]} subtitle={period === 'day' ? formatDayLong(day) : undefined} onBack={() => router.back()}>
+      <Segmented<Period> options={PERIOD_OPTIONS} value={period} onChange={setPeriod} />
+
+      {period !== 'day' ? (
+        <PeriodChart
+          kind={kind as TotalsKind}
+          period={period}
+          tone={TONES[kind]}
+          noun={TITLES[kind]}
+          format={(v) => periodText(kind, v, units)}
+          onPickDay={(key) => {
+            go(key);
+            setPeriod('day');
+          }}
+        />
+      ) : (
+      <>
       <View style={styles.dayRow}>
         <DayArrow label="Previous day" icon="chevron-left" disabled={!prev} onPress={() => go(prev)} color={theme.onSurface} />
         <Pill label={dayLabel} />
@@ -162,44 +195,56 @@ export function Detail({ kind, firstDay }: { kind: SeriesKind; firstDay: string 
           <Card>
             <SeriesChart hours={series.hours} what={TITLES[kind]} unit={kind === 'food' ? 'kcal' : 'ml'} now={nowHour} />
           </Card>
-          <SectionHeader gap="sub" title="Entries" />
-          {series.entries.length === 0 ? (
-            <Note
-              text={series.ready ? (kind === 'food' ? 'No food logged on this day.' : 'No water logged on this day.') : '—'}
-            />
-          ) : (
-            <>
-              <Card>
-                {series.entries.map((e, i) => (
-                  <ListRow
-                    key={e.id}
-                    title={e.name ?? 'Water'}
-                    supporting={clockAt(e.at, tz)}
-                    trailingText={kind === 'food' ? `${groupThousands(e.value)} kcal` : formatWater(e.value, units)}
-                    last={i === series.entries.length - 1}
-                  />
-                ))}
-              </Card>
-              <SectionHeader gap="sub" title="Total per hour" />
-              <Card>
-                {series.hours
-                  .map((v, h) => ({ v, h }))
-                  .filter((x) => x.v > 0)
-                  .map((x, i, all) => (
-                    <ListRow
-                      key={x.h}
-                      title={hourRange(x.h)}
-                      trailingText={kind === 'food' ? `${groupThousands(x.v)} kcal` : formatWater(x.v, units)}
-                      last={i === all.length - 1}
-                    />
-                  ))}
-              </Card>
-            </>
-          )}
+        </>
+      ) : null}
+
+      {kind === 'food' ? <FoodEntries day={day} entries={series.entries} ready={series.ready} /> : null}
+
+      {(kind === 'food' || kind === 'water') && series.hours.some((v) => v > 0) ? (
+        <>
+          <SectionHeader gap="sub" title="Total per hour" />
+          <Card>
+            {series.hours
+              .map((v, h) => ({ v, h }))
+              .filter((x) => x.v > 0)
+              .map((x, i, all) => (
+                <ListRow
+                  key={x.h}
+                  title={hourRange(x.h)}
+                  trailingText={kind === 'food' ? `${groupThousands(x.v)} kcal` : formatWater(x.v, units)}
+                  last={i === all.length - 1}
+                />
+              ))}
+          </Card>
         </>
       ) : null}
 
       {kind === 'sleep' ? <SleepBody nights={series.nights} ready={series.ready} tz={tz} /> : null}
+      </>
+      )}
+
+      {/* Add and remove, under the graph, so Today's tile leads straight to it (owner, 16 Nov 2026). */}
+      {kind === 'water' ? (
+        <>
+          <SectionHeader gap="sub" title="Add or remove" />
+          <PremiumGate feature={SCREEN_FEATURES['journal/water']}>
+            <BodyLog kind="water" total={false} />
+          </PremiumGate>
+        </>
+      ) : null}
+      {kind === 'sleep' ? (
+        <>
+          <SectionHeader gap="sub" title="Add or remove" />
+          <PremiumGate feature={SCREEN_FEATURES['journal/sleep']}>
+            <SleepLog chart={false} />
+          </PremiumGate>
+          <SectionHeader gap="sub" title="Mood" />
+          <PremiumGate feature={SCREEN_FEATURES['journal/mood']}>
+            <MoodLog />
+          </PremiumGate>
+        </>
+      ) : null}
+      {kind === 'food' ? <Button icon="add" label="Log food" onPress={() => router.navigate('/food')} /> : null}
     </Screen>
   );
 }
@@ -266,6 +311,59 @@ function Total({ value, unit }: { value: string; unit?: string }) {
         </ThemedText>
       ) : null}
     </View>
+  );
+}
+
+const TONES: Record<SeriesKind, DataTone> = { steps: 'steps', active: 'steps', food: 'food', water: 'water', sleep: 'sleep' };
+
+/** A day's total in the Week and Month charts, with its unit. */
+function periodText(kind: SeriesKind, v: number, units: Parameters<typeof formatWater>[1]): string {
+  if (kind === 'steps') return `${formatSteps(v)} steps`;
+  if (kind === 'food') return `${groupThousands(v)} kcal`;
+  if (kind === 'water') return formatWater(v, units);
+  return formatMinutes(v);
+}
+
+/** The day's food, each with Delete; tapping Log food below adds more. */
+function FoodEntries({ day, entries, ready }: { day: string; entries: ReturnType<typeof useSeries>['entries']; ready: boolean }) {
+  const { repo, touch } = useApp();
+  const [gone, setGone] = useState<string[]>([]);
+  const [note, setNote] = useState<string | null>(null);
+  const shown = entries.filter((e) => !gone.includes(e.id));
+  const remove = async (id: string) => {
+    setGone((g) => [...g, id]);
+    setNote(null);
+    try {
+      const found = (await repo.getFoods(dayStartMs(day, deviceZone), dayEndMs(day, deviceZone))).find((f) => f.id === id);
+      if (found && (await deleteFood(repo, copyStore, found)) === 'failed') {
+        setNote(`Deleted here, but couldn't delete the copy in ${copyStore.label}.`);
+      }
+    } catch {
+      setGone((g) => g.filter((x) => x !== id));
+      setNote("Couldn't delete that entry. Please try again.");
+    }
+    touch();
+  };
+  return (
+    <>
+      <SectionHeader gap="sub" title="Eaten" />
+      {shown.length === 0 ? (
+        <Note text={ready ? 'No food logged on this day.' : '—'} />
+      ) : (
+        <EntryList>
+          {shown.map((e) => (
+            <EntryRow
+              key={e.id}
+              title={`${e.name ?? 'Food'} · ${groupThousands(e.value)} kcal`}
+              supporting={clockAt(e.at, deviceZone)}
+              onDelete={() => confirmDelete('entry', () => remove(e.id))}
+              deleteLabel={`Delete ${e.name ?? 'this food'}`}
+            />
+          ))}
+        </EntryList>
+      )}
+      {note ? <Notice tone="problem" text={note} /> : null}
+    </>
   );
 }
 

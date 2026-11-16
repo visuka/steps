@@ -43,7 +43,8 @@ interface Note {
 }
 
 /** Weight or water entries, on the Journal tab. */
-export function BodyLog({ kind }: { kind: LogKind }) {
+/** `total` false leaves out the big Today/Latest number, for a screen that shows it above. */
+export function BodyLog({ kind, total = true }: { kind: LogKind; total?: boolean }) {
   const { repo, source, profile, dataVersion, touch, updateProfile } = useApp();
   const theme = useTheme();
   const clock = useClockStyle();
@@ -195,6 +196,7 @@ export function BodyLog({ kind }: { kind: LogKind }) {
   return (
     <>
       <Card>
+        {total ? (
         <View style={styles.hero}>
           <ThemedText type="labelLarge" themeColor="onSurfaceVariant">
             {kind === 'weight' ? 'Latest' : 'Today'}
@@ -203,6 +205,7 @@ export function BodyLog({ kind }: { kind: LogKind }) {
             {kind === 'weight' ? (shown[0] ? formatWeight(shown[0].value, units) : '—') : formatWater(waterToday, units)}
           </ThemedText>
         </View>
+        ) : null}
         {kind === 'water' ? (
           <View style={styles.quick}>
             {quickMl(profile.water.glassMl).map((ml) => (
