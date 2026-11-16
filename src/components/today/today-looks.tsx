@@ -738,12 +738,14 @@ export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
             {Math.max(0, Math.round(v.pct))}%
           </T>
         </View>
-        <T size={56} line={56} weight={700} color={ink} style={{ marginTop: 4, letterSpacing: -1 }} lines={1}>
-          {formatSteps(Math.max(0, v.steps))}
-        </T>
-        <T size={18} line={24} color={quiet}>
-          of {formatSteps(v.goal)} goal
-        </T>
+        <View style={[styles.baseline, { marginTop: 4 }]}>
+          <T size={56} line={56} weight={700} color={ink} style={{ letterSpacing: -1 }} lines={1}>
+            {formatSteps(Math.max(0, v.steps))}
+          </T>
+          <T size={18} line={24} color={quiet} lines={1}>
+            of {formatSteps(v.goal)} goal
+          </T>
+        </View>
         <View style={[styles.track, { height: 12, borderRadius: 6, backgroundColor: theme.lane, marginTop: 12 }]}>
           <View style={{ width: `${share(v) * 100}%`, height: 12, borderRadius: 6, backgroundColor: theme.steps }} />
         </View>
@@ -772,7 +774,7 @@ export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
       <View style={{ flexDirection: 'row', gap: 12 }}>
         <Press onPress={tapFor(v, 'food')} label={m.food.spoken} ripple={`${ink}14`} style={[card, styles.eHalf]}>
           <ELabel icon={L ? 'lock' : 'bowl'} text="Food" color={L ? ink : theme.food} />
-          <T size={24} line={32} weight={700} color={ink} style={{ marginTop: 4 }}>
+          <T size={24} line={28} weight={700} color={ink} style={{ marginTop: 4 }}>
             {m.food.value}
           </T>
           {L ? null : (
@@ -788,7 +790,7 @@ export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
         </Press>
         <Press onPress={tapFor(v, 'sleep')} label={m.sleep.spoken} ripple={`${ink}14`} style={[card, styles.eHalf]}>
           <ELabel icon={L ? 'lock' : 'moon'} text="Sleep" color={L ? ink : theme.sleep} />
-          <T size={24} line={32} weight={700} color={ink} style={{ marginTop: 4 }}>
+          <T size={24} line={28} weight={700} color={ink} style={{ marginTop: 4 }}>
             {m.sleep.unit ? `${m.sleep.value} ${m.sleep.unit}` : m.sleep.value}
           </T>
           {L ? null : (
@@ -802,7 +804,7 @@ export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
       <Press onPress={tapFor(v, 'water')} label={m.water.spoken} ripple={`${ink}14`} style={[card, styles.eWater]}>
         <View style={{ flexShrink: 1 }}>
           <ELabel icon={L ? 'lock' : 'drop'} text="Water" color={L ? ink : theme.water} />
-          <T size={24} line={32} weight={700} color={ink}>
+          <T size={24} line={28} weight={700} color={ink}>
             {L ? m.water.value : v.water.of ? `${v.water.glasses} of ${v.water.of} glasses` : `${v.water.glasses} ${v.water.glasses === 1 ? 'glass' : 'glasses'}`}
           </T>
         </View>
