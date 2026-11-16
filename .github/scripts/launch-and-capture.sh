@@ -101,6 +101,8 @@ for look in park a b c d e f; do
   capture "$look" today "smoke/look-$look-today.png"
   capture "$look" food "smoke/look-$look-food.png"
 done
+# Colour blocks' Steps detail (owner asked about its small text, 16 Nov 2026).
+capture d detail smoke/look-d-detail.png
 
 # The largest common font size: every tile must still fit (fit any phone).
 adb shell settings put system font_scale 1.3

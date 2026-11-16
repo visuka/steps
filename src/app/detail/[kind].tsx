@@ -6,6 +6,7 @@ import { QuarterRows, SeriesChart } from '@/components/detail/series-chart';
 import { ThemedText } from '@/components/themed-text';
 import { Card, EmptyState, ListRow, NutrientRow, Pill, Screen, SectionHeader, SpecIcon } from '@/components/ui';
 import { groupThousands, hourRange } from '@/components/ui/hour-bars-geometry';
+import { NumeralMaxScale } from '@/constants/theme';
 import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
 import { useTheme } from '@/hooks/use-theme';
 import { addDaysToKey, formatDayLong } from '@/lib/dates';
@@ -88,8 +89,26 @@ export function Detail({ kind, firstDay }: { kind: SeriesKind; firstDay: string 
       </View>
 
       {kind === 'steps' ? (
+        <Total value={formatSteps(total)} unit={profile.dailyGoal > 0 ? `of ${formatSteps(profile.dailyGoal)} steps` : 'steps'} />
+      ) : null}
+      {kind === 'active' ? (
+        <Total
+          value={
+            series.minutesMissing
+              ? series.ready && series.storedActiveMin != null
+                ? formatMinutes(series.storedActiveMin)
+                : '—'
+              : formatMinutes(total)
+          }
+          unit="active"
+        />
+      ) : null}
+      {kind === 'food' ? <Total value={groupThousands(total)} unit="kcal" /> : null}
+      {kind === 'water' ? <Total value={formatWater(total, units)} /> : null}
+
+      {kind === 'steps' ? (
         <>
-          <SectionHeader title="By hour" caption={`${formatSteps(total)} steps`} />
+          <SectionHeader title="By hour" />
           <Card>
             <SeriesChart
               hours={series.hours}
@@ -123,20 +142,13 @@ export function Detail({ kind, firstDay }: { kind: SeriesKind; firstDay: string 
 
       {kind === 'active' ? (
         <>
-          <SectionHeader title="By hour" caption={series.minutesMissing ? undefined : formatMinutes(total)} />
-          {series.minutesMissing ? (
-            <Card>
-              <ThemedText type="bodyLarge" maxFontSizeMultiplier={1.3}>
-                {series.ready && series.storedActiveMin != null ? formatMinutes(series.storedActiveMin) : '—'}
-              </ThemedText>
-              <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
-                Active minutes for the day
-              </ThemedText>
-            </Card>
-          ) : (
-            <Card>
-              <SeriesChart hours={series.hours} what="Active minutes" unit="min" now={nowHour} />
-            </Card>
+          {series.minutesMissing ? null : (
+            <>
+              <SectionHeader title="By hour" />
+              <Card>
+                <SeriesChart hours={series.hours} what="Active minutes" unit="min" now={nowHour} />
+              </Card>
+            </>
           )}
           {series.ready && series.minutesMissing ? (
             <Note text="Minute data not available for this day, so only the day's total is shown." />
@@ -146,7 +158,7 @@ export function Detail({ kind, firstDay }: { kind: SeriesKind; firstDay: string 
 
       {kind === 'food' || kind === 'water' ? (
         <>
-          <SectionHeader title="By hour" caption={kind === 'food' ? `${groupThousands(total)} kcal` : formatWater(total, units)} />
+          <SectionHeader title="By hour" />
           <Card>
             <SeriesChart hours={series.hours} what={TITLES[kind]} unit={kind === 'food' ? 'kcal' : 'ml'} now={nowHour} />
           </Card>
@@ -241,9 +253,25 @@ function SleepBody({ nights, ready, tz }: { nights: ReturnType<typeof useSeries>
   );
 }
 
+/** The day's total, large, under the day picker: the first thing the screen says. */
+function Total({ value, unit }: { value: string; unit?: string }) {
+  return (
+    <View style={styles.total} accessible accessibilityLabel={unit ? `${value} ${unit}` : value}>
+      <ThemedText type="numeralLarge" maxFontSizeMultiplier={NumeralMaxScale} numberOfLines={1} adjustsFontSizeToFit>
+        {value}
+      </ThemedText>
+      {unit ? (
+        <ThemedText type="titleMedium" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3} numberOfLines={1} style={styles.unit}>
+          {unit}
+        </ThemedText>
+      ) : null}
+    </View>
+  );
+}
+
 function Note({ text }: { text: string }) {
   return (
-    <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
+    <ThemedText type="bodyMedium" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
       {text}
     </ThemedText>
   );
@@ -277,6 +305,8 @@ function DayArrow({
 
 const styles = StyleSheet.create({
   dayRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  total: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', gap: CLEAN_SPEC.space.s8, marginTop: CLEAN_SPEC.space.s16 },
+  unit: { flexShrink: 1 },
   arrow: {
     width: CLEAN_SPEC.sizes.nav.minTouch,
     height: CLEAN_SPEC.sizes.nav.minTouch,

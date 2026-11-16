@@ -9,6 +9,9 @@ import { useTheme } from '@/hooks/use-theme';
 import { quarterClock, quartersOfHour, seriesLabel, share } from '@/state/series';
 
 /** The hours the axis names under the bars (12 am, 6 am, 12 pm, 6 pm). */
+/** The detail screen's chart is taller than Today's, so the bars read at a glance. */
+export const DETAIL_CHART_HEIGHT = Math.max(HOUR_CHART.height, 160);
+
 const AXIS: readonly { hour: number; text: string }[] = [
   { hour: 0, text: '12 am' },
   { hour: 6, text: '6 am' },
@@ -30,6 +33,8 @@ export interface SeriesChartProps {
   /** With this, a tap on an hour selects it. */
   selected?: number | null;
   onSelect?: (hour: number | null) => void;
+  /** Drawing height; defaults to DETAIL_CHART_HEIGHT. */
+  height?: number;
 }
 
 /**
@@ -37,7 +42,7 @@ export interface SeriesChartProps {
  * invisible tap target per hour on top when `onSelect` is given. The selected
  * hour gets a primaryContainer slot behind its bar.
  */
-export function SeriesChart({ hours, what, unit, goal = 0, now, selected, onSelect }: SeriesChartProps) {
+export function SeriesChart({ hours, what, unit, goal = 0, now, selected, onSelect, height = DETAIL_CHART_HEIGHT }: SeriesChartProps) {
   const theme = useTheme();
   const [width, setWidth] = useState(0);
   const onLayout = (e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width);
@@ -45,7 +50,7 @@ export function SeriesChart({ hours, what, unit, goal = 0, now, selected, onSele
 
   return (
     <View onLayout={onLayout}>
-      <View style={{ height: HOUR_CHART.height }}>
+      <View style={{ height }}>
         {selected != null && width > 0 ? (
           <View
             pointerEvents="none"
@@ -53,7 +58,7 @@ export function SeriesChart({ hours, what, unit, goal = 0, now, selected, onSele
           />
         ) : null}
         <View accessible accessibilityRole="image" accessibilityLabel={seriesLabel(what, unit, hours)}>
-          <HourBars hours={hours} goal={goal} width={width || undefined} now={now} tone="plain" />
+          <HourBars hours={hours} goal={goal} width={width || undefined} height={height} now={now} tone="plain" />
         </View>
         {onSelect && width > 0
           ? hours.map((v, h) => (
@@ -70,7 +75,7 @@ export function SeriesChart({ hours, what, unit, goal = 0, now, selected, onSele
       </View>
       <View style={styles.axis} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         {AXIS.map((a) => (
-          <ThemedText key={a.hour} type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
+          <ThemedText key={a.hour} type="bodyMedium" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
             {a.text}
           </ThemedText>
         ))}

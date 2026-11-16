@@ -46,7 +46,7 @@ export function HourBars({ hours, goal, width, now, tone = 'hero', height = HOUR
   // Until measured, an empty box of the right height (it reports its width).
   if (w <= 0) return <View style={{ height, alignSelf: 'stretch' }} onLayout={onLayout} />;
 
-  const g = hourBars({ hours, goal, width: w, now });
+  const g = hourBars({ hours, goal, width: w, now, height });
   const labelSide = goalLabelSide(g.bars, w);
   const rect = (b: (typeof g.bars)[number], i: number, fill: string) => (
     <Rect key={i} x={b.x} y={b.y} width={b.width} height={b.height} rx={b.rx} fill={fill} />
@@ -56,7 +56,7 @@ export function HourBars({ hours, goal, width, now, tone = 'hero', height = HOUR
       <Svg
         width={w}
         height={height}
-        viewBox={`0 0 ${w} ${HOUR_CHART.height}`}
+        viewBox={`0 0 ${w} ${height}`}
         accessible
         accessibilityRole="image"
         accessibilityLabel={hourBarsLabel(hours, goal)}>

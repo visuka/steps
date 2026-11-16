@@ -500,10 +500,18 @@ export function TodayBlocks({ v, look }: { v: TodayView; look: TodayFrameLook })
             {dailyQuote(v.dayKey)}
           </T>
         </View>
-        <Avatar v={v} size={48} fill={theme.sleepContainer} ink={theme.onSleepContainer} weight={800} />
+        {/* The week strip is gone (owner, 16 Nov 2026: the date is already at the top); the calendar stays one tap away. */}
+        <View style={styles.headButtons}>
+          <Press
+            onPress={() => v.on.calendar(v.week[selectedDay(v.week)]?.key)}
+            label="Calendar"
+            ripple={`${theme.onSurface}1A`}
+            style={[styles.dRound, { backgroundColor: theme.surfaceContainerHigh }]}>
+            <CalendarIcon color={theme.onSurface} />
+          </Press>
+          <Avatar v={v} size={48} fill={theme.sleepContainer} ink={theme.onSleepContainer} weight={800} />
+        </View>
       </View>
-
-      <WeekStrip days={weekShares(v.week, v.goal)} selectedIndex={selectedDay(v.week)} onSelect={(i) => v.on.calendar(v.week[i]?.key)} />
 
       <Pressable
         onPress={v.on.steps}
@@ -518,8 +526,8 @@ export function TodayBlocks({ v, look }: { v: TodayView; look: TodayFrameLook })
               Steps
             </T>
           </View>
-          <View style={[styles.dChip, { backgroundColor: white }]}>
-            <T size={13} line={24} weight={800} color={leaf}>
+          <View style={[styles.dChip, { backgroundColor: `${white}CC` }]}>
+            <T size={13} line={24} weight={700} color={leaf}>
               {Math.max(0, Math.round(v.pct))}%
             </T>
           </View>
@@ -532,8 +540,8 @@ export function TodayBlocks({ v, look }: { v: TodayView; look: TodayFrameLook })
             of {formatSteps(v.goal)}
           </T>
         </View>
-        <View style={[styles.track, { height: 16, borderRadius: 8, backgroundColor: white, marginTop: 16 }]}>
-          <View style={{ width: `${share(v) * 100}%`, height: 16, borderRadius: 8, backgroundColor: theme.steps }} />
+        <View style={[styles.track, { height: 8, borderRadius: 4, backgroundColor: `${white}CC`, marginTop: 16 }]}>
+          <View style={{ width: `${share(v) * 100}%`, height: 8, borderRadius: 4, backgroundColor: theme.steps }} />
         </View>
         <View style={{ flexDirection: 'row', gap: 32, marginTop: 16 }}>
           <View>
@@ -544,7 +552,7 @@ export function TodayBlocks({ v, look }: { v: TodayView; look: TodayFrameLook })
               Distance
             </T>
           </View>
-          <View style={{ width: 1, backgroundColor: `${theme.steps}66` }} />
+          <View style={{ width: StyleSheet.hairlineWidth, backgroundColor: `${theme.steps}55` }} />
           <View>
             <T size={20} line={24} weight={800} color={leaf}>
               {Math.max(0, Math.round(v.activeMin ?? 0))} min
@@ -878,6 +886,7 @@ const styles = StyleSheet.create({
   track: { overflow: 'hidden' },
   dTile: { borderRadius: 28 },
   dHalf: { flex: 1, padding: 16 },
+  dRound: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   dChip: { height: 24, paddingHorizontal: 8, borderRadius: 12, justifyContent: 'center' },
   dGlass: { marginTop: 16, height: 48, borderRadius: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   dRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },

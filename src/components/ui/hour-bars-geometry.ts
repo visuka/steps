@@ -56,9 +56,12 @@ export interface HourBarsInput {
   width: number;
   /** Today's current hour: later hours are drawn quiet even if they hold data. */
   now?: number | null;
+  /** Drawing height; the tallest bar grows with it (the detail screen draws taller). */
+  height?: number;
 }
 
-export function hourBars({ hours, goal, width, now }: HourBarsInput): HourBarsGeometry {
+export function hourBars({ hours, goal, width, now, height: chartHeight = HOUR_CHART.height }: HourBarsInput): HourBarsGeometry {
+  const tallest = HOUR_CHART.tallest + Math.max(0, chartHeight - HOUR_CHART.height);
   const pitch = width / HOUR_CHART.slots;
   const steps = Array.from({ length: HOUR_CHART.slots }, (_, h) => {
     const v = hours[h] ?? 0;
@@ -69,10 +72,10 @@ export function hourBars({ hours, goal, width, now }: HourBarsInput): HourBarsGe
   const scaleMax = Math.max(...steps, goalPerHour * HOUR_CHART.goalHeadroom);
   const bars = steps.map((s, h): HourBar => {
     const quiet = s <= 0;
-    const height = quiet ? HOUR_CHART.quietHeight : Math.max(HOUR_CHART.minBarHeight, (s / scaleMax) * HOUR_CHART.tallest);
+    const height = quiet ? HOUR_CHART.quietHeight : Math.max(HOUR_CHART.minBarHeight, (s / scaleMax) * tallest);
     return {
       x: HOUR_CHART.barInset + h * pitch,
-      y: HOUR_CHART.height - height,
+      y: chartHeight - height,
       width: HOUR_CHART.barWidth,
       height,
       rx: quiet ? HOUR_CHART.quietHeight / 2 : HOUR_CHART.barWidth / 2,
@@ -81,7 +84,7 @@ export function hourBars({ hours, goal, width, now }: HourBarsInput): HourBarsGe
   });
   const goalLineY =
     goalPerHour > 0 && scaleMax > 0
-      ? Math.max(HOUR_CHART.goalLineTop, HOUR_CHART.height - (goalPerHour / scaleMax) * HOUR_CHART.tallest)
+      ? Math.max(HOUR_CHART.goalLineTop, chartHeight - (goalPerHour / scaleMax) * tallest)
       : null;
   return { bars, goalLineY, pitch, scaleMax };
 }
