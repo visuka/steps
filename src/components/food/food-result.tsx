@@ -621,7 +621,7 @@ function Ingredients({
         );
       })}
       {edit || !onStartEdit ? null : (
-        <View style={styles.changeRow}>
+        <View style={blocks ? styles.changeRowBlocks : styles.changeRow}>
           <UiButton
             variant="text"
             compact
@@ -945,6 +945,8 @@ const styles = StyleSheet.create({
   nutrientGroup: { marginTop: RESULT.nutrientGroupTop },
   // "Edit recipe" lines up with the ingredient names (x 76: 24 margin + circle 40 + gap 12).
   changeRow: { paddingLeft: RESULT.circle + RESULT.ingredientGap },
+  // Colour blocks has no icon circles: Edit recipe lines up with the chips.
+  changeRowBlocks: { paddingLeft: 0, marginTop: CLEAN_SPEC.space.s4 },
   changeIngredients: { minHeight: RESULT.ingredientRowHeight, alignSelf: 'flex-start', marginLeft: -Spacing.three },
   changeNote: { marginTop: -CLEAN_SPEC.space.s8 },
   // The button's own side padding is pulled back so its text lines up with the text above it.

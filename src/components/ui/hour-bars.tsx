@@ -48,6 +48,9 @@ export function HourBars({ hours, goal, width, now, tone = 'hero', height = HOUR
 
   const g = hourBars({ hours, goal, width: w, now, height });
   const labelSide = goalLabelSide(g.bars, w);
+  // On a taller chart (the detail screen) the label sits just above its line, not at the top.
+  const labelY =
+    height > HOUR_CHART.height && g.goalLineY != null ? Math.max(HOUR_CHART.labelBaseline, g.goalLineY - 6) : HOUR_CHART.labelBaseline;
   const rect = (b: (typeof g.bars)[number], i: number, fill: string) => (
     <Rect key={i} x={b.x} y={b.y} width={b.width} height={b.height} rx={b.rx} fill={fill} />
   );
@@ -75,7 +78,7 @@ export function HourBars({ hours, goal, width, now, tone = 'hero', height = HOUR
         {g.goalLineY != null && labelSide ? (
           <SvgText
             x={labelSide === 'end' ? w : 0}
-            y={HOUR_CHART.labelBaseline}
+            y={labelY}
             textAnchor={labelSide}
             fontFamily={fontFor(CLEAN_SPEC.weights.regular)}
             fontSize={HOUR_CHART.labelFontSize}
