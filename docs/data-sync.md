@@ -128,14 +128,14 @@ Same table `steps-user-data`, same partition `PK USER#<sub>`.
 | --- | --- |
 | `POST /v1/sync` | Body `{"deviceId", "records":[...]}`, at most 200 records and 512 KB. Validates each record by kind. **Unknown fields reject that record** (no silent drop, so the phone never deletes data the server did not keep). Writes with the `updatedAt` condition. For `day` it also writes `DAY#<date>` in today's shape. Answer: `{"saved":[{kind,id,updatedAt}], "stale":[{kind,id,record}], "rejected":[{kind,id,error}], "serverTime"}` (4.3) |
 | `GET /v1/sync?since=<cursor>&kinds=&limit=` | Changed records in server-time order from GSI1, up to 500 records or 1 MB per page, plus `next` cursor and `total` estimate (for the progress bar). `kinds` is a filter on the query, so it still reads the skipped items; it is fine for restore step 1, not for frequent polling |
-| `POST /v1/routes/{walkId}` | Returns a short-lived presigned PUT URL for the walk's route file |
-| `GET /v1/routes/{walkId}` | Returns a short-lived presigned GET URL, 404 if none |
+| `POST /v1/routes/{walkId}` | **Premium only** (owner, 16 Nov 2026). Returns a short-lived signed upload URL for the walk's route file. Free user: 403 `premium_required`. Premium list unreadable: 503, the phone keeps the route and tries again later |
+| `GET /v1/routes/{walkId}` | Returns a short-lived signed download URL, 404 if none. **No premium check**: a route saved while premium always comes back, even after premium ends |
 | `DELETE /v1/sync` | "Delete my backup": removes all `REC#`, `DAY#`, `DETAIL#` items and the routes, keeps the account |
 | `DELETE /v1/me` | Already exists; must also remove the routes and the person's lake files (5.5) |
 
 Per-user limits so one phone cannot run up cost: `POST /v1/sync` 120 calls an hour, `GET /v1/sync` 600 pages an hour (using the existing `LIMIT#` counters). The whole API today has one throttle (50 a second, burst 100); a restore wave could starve sign-in, so give `/v1/sync` its own route throttle.
 
-**No premium check on any backup route.** `POST /v1/sync`, `GET /v1/sync`, the route URLs and `GET /v1/days` work the same for free and premium users. Restore must not wait on `GET /v1/me`: it answers 503 when the premium list cannot be read, and that must never stop or empty a restore.
+**No premium check on any backup route except route-file upload.** `POST /v1/sync`, `GET /v1/sync`, `GET /v1/routes/{walkId}` and `GET /v1/days` work the same for free and premium users. Only `POST /v1/routes/{walkId}` (saving the map line of a walk) is premium (owner, 16 Nov 2026). A free user's walk record (time, steps, distance, parts) is still backed up; only the map line stays on that phone. Restore must not wait on `GET /v1/me`: it answers 503 when the premium list cannot be read, and that must never stop or empty a restore.
 
 ### 5.3 Validation, per kind
 
@@ -143,7 +143,10 @@ A schema per kind in `lambda_src/python/steps/data/records.py` with field names,
 
 **Old app, newer data.** The field list has a version `v`. If a phone on an older app edits a record that a newer app wrote (stored `v` higher than the incoming `v`), the server merges: the incoming fields replace the stored ones, and fields the older app does not know are kept. Without this, a second phone on an old version would silently strip new fields on every edit. The server must be deployed before any app version that raises `v`.
 
-### 5.4 Walk routes in S3
+### 5.4 Walk routes in file storage (premium)
+
+- **Premium only** (owner, 16 Nov 2026): only premium users' routes are uploaded. The app checks `premium` before asking for an upload URL, and the server checks again (403 `premium_required`). A free user who restores on a new phone gets the walk without its map; the walk screen says "Map saved on your old phone only. Premium keeps maps in your backup." When a free user upgrades, routes still on the phone are uploaded then.
+- Storage moves to GCP Cloud Storage with the server move (stepsinfra docs/current-task.md): bucket in asia-south1, signed URLs instead of S3 presigned URLs, same key layout.
 
 - Private bucket `steps-routes` (or a prefix in a new private bucket, **not** the lake): key `routes/<sub>/<walkId>.gz`, gzipped JSON of the points (`t`, lat, lon, accuracy, altitude). About 20–60 KB per hour of walking.
 - Max 2 MB per file (presigned PUT with content-length limit). Server-side encryption on, public access blocked, Intelligent-Tiering.
@@ -174,7 +177,7 @@ Today the lake files are `days/dt=<date>/<aid>.json`. Deleting one person's file
 - The server never trusts a user id from the app; every read and write uses the `sub` from the token.
 - Data is used only to give the person their data back and to show their trends. The lake holds no name, email, food, walks, routes, places, weight or blood pressure.
 - The privacy policy and Play "Data safety" form must be updated **before** the release that turns backup on (owner).
-- **Owner question:** is backup free for everyone? Plan: yes, backup and restore are free; premium covers analytics only.
+- **Owner decided (16 Nov 2026):** backup and restore are free for everyone, except walk map lines (route files), which are premium.
 
 ### 6.1 Premium and free users
 
@@ -280,10 +283,10 @@ Also, for the owner and testers on Android 14+: keep "past data" allowed in Heal
 14. **Health Connect swaps on a new phone deleting restored rows** and tombstoning them on the server. Fixed by deleting only rows this device read (4.2).
 15. **An old app version stripping new fields.** Fixed by the `v` merge (5.3).
 16. **A new install uploading over the good server copy** before it is pulled. Fixed by no uploads until the first restore has finished (4.2).
-17. **Premium gating hiding or losing history.** Backup routes never check premium, and pruning never depends on it (6.1, 4.5).
+17. **Premium gating hiding or losing history.** Backup routes never check premium except route-file upload; downloads of saved routes never check it; pruning never depends on it (6.1, 4.5). A phone must never delete a free user's local route file because the upload was refused.
 
 ## 10. Owner questions
 
 1. Walk maps and places backup: on or off by default? (Plan: off until turned on.)
-2. Backup free for everyone? (Plan: yes; premium = analytics.)
+2. Backup free for everyone? **Decided 16 Nov 2026: yes, except walk map lines (premium).**
 3. OK to deploy P1 server changes when ready? (Deploys always ask first.)
