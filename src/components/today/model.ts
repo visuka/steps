@@ -186,3 +186,34 @@ export function walkSpoken(walk: WalkFigure | null): string {
   if (walk.steps != null) parts.push(`${formatSteps(walk.steps)} steps`);
   return parts.join(', ');
 }
+
+/** Short lines for the top of Today, one a day, in place of the greeting (owner's ask, 16 Nov 2026). Our own words; kept short so each fits one line. */
+export const DAILY_QUOTES: readonly string[] = [
+  'Every step counts.',
+  'Small steps, big days.',
+  'Start where you stand.',
+  'Move a little, feel a lot.',
+  'Slow is still forward.',
+  'Your pace, your path.',
+  'Keep going, gently.',
+  'Fresh air, clear mind.',
+  'Show up for yourself today.',
+  'A short walk is never wasted.',
+  'Little by little, every day.',
+  'The best step is the next one.',
+  'Steady beats speedy.',
+  'Be kind to your body today.',
+  'Every walk is a fresh start.',
+  'Walk it out.',
+  'Strong legs, calm mind.',
+  'Today is yours to move.',
+  'One more walk, one better day.',
+  'Breathe deep, step light.',
+];
+
+/** The line for a day key (YYYY-MM-DD): the same all day, a new one tomorrow. */
+export function dailyQuote(day: string): string {
+  let h = 0;
+  for (let i = 0; i < day.length; i++) h = (h * 31 + day.charCodeAt(i)) >>> 0;
+  return DAILY_QUOTES[h % DAILY_QUOTES.length];
+}

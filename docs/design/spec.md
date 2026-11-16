@@ -209,6 +209,7 @@ All are 24-unit viewBox shapes, drawn with `fill="none"`, stroke 1.5, round caps
 | chevron-down | `path M7 10l5 5 5-5` |
 | drop (Water) | `path M12 3.5c3 3.6 6 7 6 10.5a6 6 0 0 1-12 0c0-3.5 3-6.9 6-10.5z` |
 | plus | `path M12 6v12M6 12h12` |
+| chats (Chats and groups, the bar's middle button; added 16 Nov 2026) | `path M15 8V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h1v2.5L9 13` `path M11 10.5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-1V19l-3-2.5h-2a2 2 0 0 1-2-2z` |
 | moon (Sleep) | `path M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5z` |
 | walker | `circle cx13 cy4.5 r1.5` · `path M9.5 21l2.5-6.5 2.5 2.5V21` · `path M12 14.5l1.2-5.5 2.8 2.5 2.5.5` · `path M13.2 9l-3.2 1.5-1.5 3` |
 | today (clock ring, nav) | `circle cx12 cy12 r8` · `path M12 4a8 8 0 0 1 8 8` · `path M12 8.5v3.5l2.5 1.5` |

@@ -13,7 +13,6 @@ import {
   BarTrack,
   Greeting,
   heroPalette,
-  HourBars,
   IconCircle,
   Pill,
   SpecIcon,
@@ -27,11 +26,10 @@ import { pressedColorOnAccent } from '@/components/ui/surface-style';
 import { ActiveTheme, type DataTone, Look, MaxContentWidth } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-import { greetingWords } from './model';
+import { dailyQuote } from './model';
 import { WeatherBesideDate } from './weather-beside-date';
 import { tileValueStyle } from './value-style';
 import {
-  AXIS_LABELS,
   contentWidth,
   foodTile,
   heroChartWidth,
@@ -81,7 +79,7 @@ function TodayShared({ v, look }: { v: TodayView; look: TodayFrameLook }) {
         date={v.dateLabel}
         name={v.name ?? ''}
         initial={v.initial}
-        greeting={greetingWords(v.nowHour)}
+        title={dailyQuote(v.dayKey)}
         onAvatarPress={v.on.profile}
         beside={v.weather ? <WeatherBesideDate weather={v.weather} /> : (v.slots.dateExtra ?? undefined)}
       />
@@ -132,7 +130,6 @@ function StepsHero({ v, chartWidth }: { v: TodayView; chartWidth: number }) {
   const theme = useTheme();
   const hero = heroPalette(theme, Look.heroFill, ActiveTheme.block);
   const numbers = heroNumbers(v.steps, v.goal);
-  const H = L.hero;
   return (
     <Pressable
       accessible={false}
@@ -169,19 +166,7 @@ function StepsHero({ v, chartWidth }: { v: TodayView; chartWidth: number }) {
           <Pill label={heroPill(v.pct)} variant="hero" />
         </View>
       </View>
-      <View style={{ marginTop: H.chartGap }}>
-        <HourBars hours={v.hourly} goal={v.goal} now={v.nowHour} width={chartWidth} tone="hero" />
-      </View>
-      <View
-        style={styles.axis}
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants">
-        {AXIS_LABELS.map((label, i) => (
-          <ThemedText key={i} type="bodySmall" maxFontSizeMultiplier={1.3} style={[styles.axisLabel, { color: hero.label }]}>
-            {label}
-          </ThemedText>
-        ))}
-      </View>
+      {/* The hour chart was taken off Today at the owner's ask (16 Nov 2026); it stays on the Steps detail screen. */}
     </Pressable>
   );
 }
@@ -316,8 +301,6 @@ const styles = StyleSheet.create({
     columnGap: L.hero.ofGap,
   },
   heroNumber: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', columnGap: L.hero.ofGap },
-  axis: { marginTop: L.hero.axisGap, flexDirection: 'row' },
-  axisLabel: { flex: 1 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', columnGap: L.tileGap, rowGap: L.tileGap },
   tileWrap: { flexGrow: 1 },
   tile: { flexGrow: 1, flexBasis: 'auto' },

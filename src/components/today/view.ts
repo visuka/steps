@@ -53,6 +53,8 @@ export interface TodayView {
   hourly: number[];
   /** The current hour, 0 to 23: later hours draw quiet. */
   nowHour: number;
+  /** Today's day key, YYYY-MM-DD; picks the line at the top. */
+  dayKey: string;
   /** Premium: the four tiles with their figures. Free: the steps hero, the walk card, four locked tiles and the premium card. */
   details: boolean;
   food: {

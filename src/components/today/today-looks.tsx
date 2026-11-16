@@ -15,16 +15,15 @@ import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, type TextStyle, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
-import { HourBars, SpecIcon, WeekStrip } from '@/components/ui';
+import { SpecIcon, WeekStrip } from '@/components/ui';
 import type { SpecIconName } from '@/components/ui/icon-paths';
 import { ActiveTheme, MaxContentWidth, MaxTextScale } from '@/constants/theme';
 import type { ThemeFont } from '@/constants/themes/types';
 import { useTheme } from '@/hooks/use-theme';
 import { formatSteps } from '@/lib/format';
 
-import { greetingFor } from './model';
+import { dailyQuote } from './model';
 import {
-  AXIS_LABELS,
   foodTile,
   lockedTileModel,
   pipsFor,
@@ -134,22 +133,6 @@ function walkSub(model: TileModel, v: TodayView): string {
   return [v.walk.time, model.note].filter(Boolean).join(' · ');
 }
 
-/** The hour chart with its axis, in the given colours. */
-function Hours({ v, colors, height = 32 }: { v: TodayView; colors: { bar: string; quiet: string; line: string; label: string }; height?: number }) {
-  return (
-    <View>
-      <HourBars hours={v.hourly} goal={v.goal} now={v.nowHour} height={height} colors={colors} />
-      <View style={styles.axis} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-        {AXIS_LABELS.map((label, i) => (
-          <T key={i} size={11} line={14} weight={500} color={colors.label} style={styles.axisLabel}>
-            {label}
-          </T>
-        ))}
-      </View>
-    </View>
-  );
-}
-
 function Press({
   onPress,
   label,
@@ -245,10 +228,12 @@ export function TodaySport({ v, look }: { v: TodayView; look: TodayFrameLook }) 
 
   return (
     <View style={[styles.column, { backgroundColor: look.background }]}>
-      {/* Header: greeting over the date, the calendar and you. */}
+      {/* Header: the day's line over the date, the calendar and you. */}
       <View style={[styles.fHeader, { paddingHorizontal: 16 }]}>
         <View style={{ flex: 1 }}>
-          {label(greetingFor(v.nowHour, v.name), quiet)}
+          <T size={13} line={18} weight={500} color={quiet} lines={1}>
+            {dailyQuote(v.dayKey)}
+          </T>
           <View style={styles.dateRow}>
             <T size={20} line={24} weight={600} color={ink}>
               {v.dateLabel}
@@ -318,13 +303,6 @@ export function TodaySport({ v, look }: { v: TodayView; look: TodayFrameLook }) 
               {label(s.label)}
             </View>
           ))}
-        </View>
-
-        <View style={[styles.fSection, { borderTopColor: b.rule }]}>
-          <View style={styles.spread}>
-            {label('Today by hour')}
-          </View>
-          <Hours v={v} colors={{ bar: b.mark, quiet: b.lane, line: b.average, label: b.quiet }} height={28} />
         </View>
 
         <View style={[styles.fSection, { borderTopColor: b.rule }]}>
@@ -518,8 +496,8 @@ export function TodayBlocks({ v, look }: { v: TodayView; look: TodayFrameLook })
             </T>
             <Beside v={v} />
           </View>
-          <T size={28} line={32} weight={800} color={theme.onSurface} lines={1} style={{ letterSpacing: -0.3 }}>
-            {greetingFor(v.nowHour, v.name)}
+          <T size={22} line={28} weight={800} color={theme.onSurface} lines={1} style={{ letterSpacing: -0.3 }}>
+            {dailyQuote(v.dayKey)}
           </T>
         </View>
         <Avatar v={v} size={48} fill={theme.sleepContainer} ink={theme.onSleepContainer} weight={800} />
@@ -575,9 +553,6 @@ export function TodayBlocks({ v, look }: { v: TodayView; look: TodayFrameLook })
               Active
             </T>
           </View>
-        </View>
-        <View style={{ marginTop: 16 }}>
-          <Hours v={v} colors={{ bar: theme.steps, quiet: `${white}B3`, line: `${leaf}66`, label: leaf }} />
         </View>
       </Pressable>
 
@@ -726,7 +701,7 @@ export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
             <Beside v={v} />
           </View>
           <T size={18} line={24} color={quiet} lines={1}>
-            {greetingFor(v.nowHour, v.name)}
+            {dailyQuote(v.dayKey)}
           </T>
         </View>
         <Avatar v={v} size={48} fill={theme.primaryContainer} ink={theme.onPrimaryContainer} weight={700} />
@@ -774,9 +749,6 @@ export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
               Active
             </T>
           </View>
-        </View>
-        <View style={{ marginTop: 16 }}>
-          <Hours v={v} colors={{ bar: theme.steps, quiet: theme.lane, line: theme.outline, label: quiet }} />
         </View>
       </Pressable>
 
@@ -895,8 +867,6 @@ const styles = StyleSheet.create({
   avgLine: { position: 'absolute', left: 0, right: 0, bottom: 32, borderTopWidth: 1, borderStyle: 'dashed' },
   weekLetters: { flexDirection: 'row', gap: 8 },
   center: { flex: 1, textAlign: 'center' },
-  axis: { flexDirection: 'row', marginTop: 4 },
-  axisLabel: { flex: 1 },
   fInset: { marginHorizontal: 16 },
   fRow: { flexDirection: 'row', alignItems: 'center', gap: 16, borderBottomWidth: 1, paddingVertical: 8 },
   fIcon: { width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },

@@ -56,6 +56,7 @@ export function useTodayExtras(reload: number) {
     distanceUnit: profile.units === 'metric' ? 'km' : 'mi',
     hourly,
     nowHour: clock.hour,
+    dayKey: clock.today,
     sleep: sleepFigure,
     sleepSpoken: sleepSpoken(sleepFigure),
     walk: walkFigure,

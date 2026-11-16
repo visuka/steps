@@ -114,6 +114,7 @@ export default function TodayScreen() {
     activeMin,
     hourly: extras.hourly,
     nowHour: extras.nowHour,
+    dayKey: extras.dayKey,
     details,
     food: {
       text: eatenText,

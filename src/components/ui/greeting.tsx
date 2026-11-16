@@ -19,10 +19,12 @@ export interface GreetingProps {
   greeting?: string;
   /** Drawn beside the date, gap 8 (Today's weather); the caller labels it for TalkBack. */
   beside?: ReactNode;
+  /** Shown in place of "Good morning, Ravi" (Today shows the day's line). */
+  title?: string;
 }
 
 /** Date over "Good morning, Ravi" on the left, the avatar on the right. */
-export function Greeting({ date, name, initial, onAvatarPress, greeting = 'Hello', beside }: GreetingProps) {
+export function Greeting({ date, name, initial, onAvatarPress, greeting = 'Hello', beside, title }: GreetingProps) {
   const theme = useTheme();
   const letter = initial ?? initialOf(name);
   const avatar = (
@@ -44,8 +46,8 @@ export function Greeting({ date, name, initial, onAvatarPress, greeting = 'Hello
           </ThemedText>
           {beside}
         </View>
-        <ThemedText type="titleLarge" accessibilityRole="header" maxFontSizeMultiplier={1.3}>
-          {greetingTitle(greeting, name)}
+        <ThemedText type="titleLarge" accessibilityRole="header" maxFontSizeMultiplier={1.3} numberOfLines={title ? 1 : undefined}>
+          {title ?? greetingTitle(greeting, name)}
         </ThemedText>
       </View>
       {letter === '' ? null : onAvatarPress ? (

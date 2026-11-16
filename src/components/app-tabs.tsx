@@ -9,7 +9,7 @@ import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 /**
- * The bar, in order (icons as the mockup's nav): Today, Food, the plus in the
+ * The bar, in order (icons as the mockup's nav): Today, Food, the chats button in the
  * middle (chats and groups), Activity (health readings and workouts), You.
  * Each thing lives in one tab. Journal is only a hidden route now, sending
  * old links to Food or Activity (see HIDDEN_ROUTES).
@@ -17,7 +17,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 export const TABS: NavigationItem[] = [
   { key: 'index', label: 'Today', specIcon: 'today' },
   { key: 'food', label: 'Food', specIcon: 'bowl' },
-  { key: 'plus', label: 'Chats and groups', specIcon: 'plus', fab: true },
+  { key: 'plus', label: 'Chats and groups', specIcon: 'chats', fab: true },
   { key: 'activity', label: 'Activity', specIcon: 'pulse' },
   { key: 'you', label: 'You', specIcon: 'person' },
 ];
