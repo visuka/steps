@@ -180,7 +180,8 @@ export function Walker({
   walking?: boolean;
   cheer?: boolean;
 }) {
-  const t = useLoop(520, { on: walking && !cheer, rest: 0.5 });
+  // At rest (less motion, or no walk yet) it stands mid-stride, so it still reads as walking.
+  const t = useLoop(520, { on: walking && !cheer, rest: 0.1 });
   const bob = useLoop(900, { on: cheer });
   const w = Math.round(size * 0.6);
   const stroke = Math.max(2, Math.round(size * 0.1));

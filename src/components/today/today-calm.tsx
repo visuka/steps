@@ -9,7 +9,7 @@
  */
 
 import type { ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, type TextStyle, View } from 'react-native';
+import { Pressable, StyleSheet, Text, type TextStyle, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeInDown, ReduceMotion } from 'react-native-reanimated';
 
 import { SpecIcon } from '@/components/ui';
@@ -55,6 +55,7 @@ function T({
   color,
   style,
   lines,
+  fit,
   children,
 }: {
   size: number;
@@ -65,11 +66,15 @@ function T({
   color: string;
   style?: TextStyle;
   lines?: number;
+  /** One line that shrinks to fit its box (to 70 %) rather than wrap. */
+  fit?: boolean;
   children: ReactNode;
 }) {
   return (
     <Text
-      numberOfLines={lines}
+      numberOfLines={fit ? 1 : lines}
+      adjustsFontSizeToFit={fit}
+      minimumFontScale={fit ? 0.7 : undefined}
       maxFontSizeMultiplier={MaxTextScale}
       style={[
         {
@@ -211,9 +216,13 @@ export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
   // The steps and their share count up when Today opens.
   const steps = useCountUp(Math.max(0, v.steps));
   const pct = useCountUp(Math.max(0, v.pct));
+  // A small phone or large text (the owner's 360 dp phone at 1.2): tighter, so Today still fits without scrolling.
+  const { height, fontScale } = useWindowDimensions();
+  const tight = height / Math.max(1, fontScale) < 760;
+  const art = tight ? 28 : 32;
 
   return (
-    <View style={[styles.column, { backgroundColor: look.background, paddingHorizontal: 24, gap: 12, paddingTop: 16 }]}>
+    <View style={[styles.column, { backgroundColor: look.background, paddingHorizontal: 24, gap: tight ? 8 : 12, paddingTop: tight ? 8 : 16 }]}>
       <View style={styles.spread}>
         <View style={{ flex: 1 }}>
           <View style={styles.dateRow}>
@@ -251,7 +260,7 @@ export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
         accessibilityRole="button"
         accessibilityLabel={v.stepsSpoken}
         android_ripple={{ color: `${ink}14`, foreground: true }}
-        style={[card, { paddingHorizontal: 24, paddingVertical: 16, overflow: 'hidden' }]}>
+        style={[card, { paddingHorizontal: 24, paddingVertical: tight ? 12 : 16, overflow: 'hidden' }]}>
         <View style={[styles.spread, { minHeight: 24 }]}>
           <T size={18} line={24} weight={600} color={quiet}>
             Steps today
@@ -261,7 +270,7 @@ export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
           </T>
         </View>
         <View style={[styles.baseline, { marginTop: 4 }]}>
-          <T size={56} line={56} weight={700} color={ink} style={{ letterSpacing: -1 }} lines={1}>
+          <T size={tight ? 44 : 56} line={tight ? 46 : 56} weight={700} color={ink} style={{ letterSpacing: -1 }} lines={1}>
             {formatSteps(steps)}
           </T>
           <T size={18} line={24} color={quiet} lines={1}>
@@ -296,17 +305,15 @@ export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
       <Animated.View entering={enter(1)} style={{ flexDirection: 'row', gap: 12 }}>
         <Press onPress={tapFor(v, 'food')} label={m.food.spoken} ripple={`${ink}14`} style={[card, styles.eHalf]}>
           <View style={styles.artRow}>
-            <View style={{ flex: 1 }}>
-              <ELabel icon={L ? 'lock' : 'bowl'} text="Food" color={L ? ink : theme.food} />
-              <T size={24} line={28} weight={700} color={ink} style={{ marginTop: 4 }}>
-                {m.food.value}
-              </T>
-            </View>
-            {L ? null : <FoodBowl share={m.food.share ?? 0} color={theme.food} container={theme.foodContainer} size={40} />}
+            <ELabel icon={L ? 'lock' : 'bowl'} text="Food" color={L ? ink : theme.food} />
+            {L ? null : <FoodBowl share={m.food.share ?? 0} color={theme.food} container={theme.foodContainer} size={art} />}
           </View>
+          <T size={24} line={28} weight={700} color={ink} fit>
+            {m.food.value}
+          </T>
           {L ? null : (
             <>
-              <T size={16} line={24} color={quiet}>
+              <T size={16} line={24} color={quiet} fit>
                 of {v.food.target} kcal
               </T>
               <GrowBar share={m.food.share ?? 0} height={8} color={theme.food} track={theme.foodContainer} delay={150} style={{ marginTop: 8 }} />
@@ -315,14 +322,12 @@ export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
         </Press>
         <Press onPress={tapFor(v, 'sleep')} label={m.sleep.spoken} ripple={`${ink}14`} style={[card, styles.eHalf]}>
           <View style={styles.artRow}>
-            <View style={{ flex: 1 }}>
-              <ELabel icon={L ? 'lock' : 'moon'} text="Sleep" color={L ? ink : theme.sleep} />
-              <T size={24} line={28} weight={700} color={ink} style={{ marginTop: 4 }}>
-                {m.sleep.unit ? `${m.sleep.value} ${m.sleep.unit}` : m.sleep.value}
-              </T>
-            </View>
-            {L ? null : <SleepMoon color={theme.sleep} ground={theme.surfaceContainerLowest} size={40} />}
+            <ELabel icon={L ? 'lock' : 'moon'} text="Sleep" color={L ? ink : theme.sleep} />
+            {L ? null : <SleepMoon color={theme.sleep} ground={theme.surfaceContainerLowest} size={art} />}
           </View>
+          <T size={24} line={28} weight={700} color={ink} fit>
+            {m.sleep.unit ? `${m.sleep.value} ${m.sleep.unit}` : m.sleep.value}
+          </T>
           {L ? null : (
             <T size={16} line={24} color={quiet}>
               Last night
@@ -333,10 +338,10 @@ export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
 
       <Animated.View entering={enter(2)}>
       <Press onPress={tapFor(v, 'water')} label={m.water.spoken} ripple={`${ink}14`} style={[card, styles.eWater]}>
-        {L ? null : <WaterGlass share={waterShare(v)} color={theme.water} container={theme.waterContainer} width={30} height={42} />}
+        {L ? null : <WaterGlass share={waterShare(v)} color={theme.water} container={theme.waterContainer} width={tight ? 24 : 30} height={tight ? 34 : 42} />}
         <View style={{ flex: 1 }}>
           <ELabel icon={L ? 'lock' : 'drop'} text="Water" color={L ? ink : theme.water} />
-          <T size={24} line={28} weight={700} color={ink}>
+          <T size={24} line={28} weight={700} color={ink} fit>
             {L ? m.water.value : v.water.of ? `${v.water.glasses} of ${v.water.of} glasses` : `${v.water.glasses} ${v.water.glasses === 1 ? 'glass' : 'glasses'}`}
           </T>
         </View>
@@ -405,7 +410,7 @@ const styles = StyleSheet.create({
   iconLabel: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   circle40: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   eHalf: { flex: 1, paddingHorizontal: 16, paddingVertical: 12 },
-  artRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  artRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 4 },
   eWater: { paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
   eGlass: { height: 48, minWidth: 48, paddingHorizontal: 16, borderRadius: 16, borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
   eWalk: { minHeight: 56, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 16 },

@@ -52,7 +52,8 @@ export function NutrientRow({ name, value, share, warn, pill }: NutrientRowProps
 
 const styles = StyleSheet.create({
   row: { minHeight: S.minHeight, flexDirection: 'row', alignItems: 'center', gap: S.gap },
-  name: { width: S.nameWidth, flexDirection: 'row', alignItems: 'center', gap: S.pillGap },
+  // At least the spec's width; wider when a name and its High pill need it, so a word never breaks.
+  name: { minWidth: S.nameWidth, maxWidth: '60%', flexDirection: 'row', alignItems: 'center', gap: S.pillGap },
   nameText: { flexShrink: 1 },
   bar: { flex: 1 },
   track: { height: S.barHeight, borderRadius: S.barRadius, overflow: 'hidden' },
