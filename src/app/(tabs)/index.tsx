@@ -26,6 +26,7 @@ import { PARTIAL_NOTE } from '@/nutrition/state';
 import { dayKcalTarget } from '@/nutrition/targets';
 import { useApp } from '@/state/app-state';
 import { useTodayKcal } from '@/state/use-calories';
+import { useGoodNews } from '@/state/use-good-news';
 import { usePremium } from '@/state/use-premium';
 import { type AddedGlass, useWaterToday } from '@/state/use-water';
 import { useClock } from '@/hooks/use-clock';
@@ -58,6 +59,7 @@ export default function TodayScreen() {
   const kcal = useTodayKcal(visits);
   const extras = useTodayExtras(visits);
   const activeWalk = useActiveWalk(visits);
+  const news = useGoodNews();
   const prompts = useTodayPrompts(todayKey);
   // The first screen doesn't move: it scrolls only when its content can't fit (very large text).
   const [viewH, setViewH] = useState(0);
@@ -133,6 +135,7 @@ export default function TodayScreen() {
     walk: extras.walk,
     walkSpoken: extras.walkSpoken,
     week: extras.week,
+    news,
     on: {
       food: () => open('food'),
       water: () => open('water'),
@@ -146,6 +149,7 @@ export default function TodayScreen() {
       // The calendar opens that day's steps, with Week and Month a tap away.
       calendar: (key) => router.push({ pathname: '/detail/steps', params: key ? { date: key } : {} } as unknown as Href),
       logFood: () => router.navigate('/food'),
+      news: () => router.push('/news' as Href),
     },
     slots: {
       walking: activeWalk ? (

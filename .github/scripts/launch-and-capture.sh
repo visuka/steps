@@ -107,6 +107,8 @@ capture d detail smoke/look-d-detail.png
 capture d detail smoke/look-d-water.png '&kind=water'
 capture d detail smoke/look-d-sleep.png '&kind=sleep'
 capture d activity smoke/look-d-activity.png
+# The good-news ticker's list (16 Nov 2026).
+capture d news smoke/look-d-news.png
 
 # The largest common font size: every tile must still fit (fit any phone).
 adb shell settings put system font_scale 1.3

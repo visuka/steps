@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import TodayScreen from '@/app/(tabs)/index';
+import NewsRoute from '@/app/news';
 import ActivityTab from '@/app/(tabs)/activity';
 import PlusTab from '@/app/(tabs)/plus';
 import { Detail } from '@/app/detail/[kind]';
@@ -25,7 +26,7 @@ import { useTheme } from '@/hooks/use-theme';
 import type { SeriesKind } from '@/state/series';
 
 /** The tab each mockup screen shows as selected in its navigation bar (the detail screen is a stack screen: no bar). */
-const TAB_OF: Record<Exclude<PreviewScreen, 'detail' | 'food'>, string> = { today: 'index', walk: 'activity', plus: 'plus', activity: 'activity' };
+const TAB_OF: Record<Exclude<PreviewScreen, 'detail' | 'food' | 'news'>, string> = { today: 'index', walk: 'activity', plus: 'plus', activity: 'activity' };
 
 /**
  * The real Today, Food result, Walk and hourly detail screens over the mockups'
@@ -51,7 +52,7 @@ export default function DesignPreviewRoute() {
   }, [shown]);
 
   if (!params) {
-    return <Notice text="Unknown preview. Use ?theme=clean|park|a|b|c|d|e|f&screen=today|food|walk|detail|plus|activity (detail also takes &kind=steps|active|food|water|sleep)." />;
+    return <Notice text="Unknown preview. Use ?theme=clean|park|a|b|c|d|e|f&screen=today|food|walk|detail|plus|activity|news (detail also takes &kind=steps|active|food|water|sleep)." />;
   }
   if (params.theme !== ActiveTheme.id) {
     return <Notice text={`This run is in theme ${ActiveTheme.id}, not ${params.theme}. Close the app, then open the link again.`} />;
@@ -60,6 +61,14 @@ export default function DesignPreviewRoute() {
     return (
       <SampleDataProvider>
         <DetailPreview kind={params.kind ?? 'steps'} />
+      </SampleDataProvider>
+    );
+  }
+  if (params.screen === 'news') {
+    // The ticker's list: a stack screen, so no navigation bar under it.
+    return (
+      <SampleDataProvider>
+        <NewsRoute />
       </SampleDataProvider>
     );
   }

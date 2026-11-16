@@ -23,6 +23,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { formatSteps } from '@/lib/format';
 
 import { dailyQuote } from './model';
+import { NewsTicker } from './news-ticker';
 import {
   foodTile,
   lockedTileModel,
@@ -487,8 +488,8 @@ export function TodayBlocks({ v, look }: { v: TodayView; look: TodayFrameLook })
   const L = m.locked;
 
   return (
-    <View style={[styles.column, { backgroundColor: look.background, paddingHorizontal: 16, gap: 8, paddingTop: 24 }]}>
-      <View style={[styles.spreadEnd, { marginBottom: 8 }]}>
+    <View style={[styles.column, { backgroundColor: look.background, paddingHorizontal: 16, gap: 8, paddingTop: 16 }]}>
+      <View style={styles.spreadEnd}>
         <View style={{ flex: 1 }}>
           <View style={styles.dateRow}>
             <T size={16} line={20} weight={500} color={theme.onSurfaceVariant}>
@@ -513,12 +514,28 @@ export function TodayBlocks({ v, look }: { v: TodayView; look: TodayFrameLook })
         </View>
       </View>
 
+      {/* Where the week strip was: good news moving by, under the day's quote (owner, 16 Nov 2026). */}
+      {v.news.length ? (
+        <NewsTicker
+          items={v.news}
+          onPress={v.on.news}
+          colors={{
+            background: theme.surfaceContainerHigh,
+            label: theme.stepsContainer,
+            labelInk: theme.onStepsContainer,
+            ink: theme.onSurface,
+            quiet: theme.onSurfaceVariant,
+            ripple: `${theme.onSurface}1A`,
+          }}
+        />
+      ) : null}
+
       <Pressable
         onPress={v.on.steps}
         accessibilityRole="button"
         accessibilityLabel={v.stepsSpoken}
         android_ripple={{ color: `${leaf}22`, foreground: true }}
-        style={[styles.dTile, { backgroundColor: theme.stepsContainer, padding: 24, overflow: 'hidden' }]}>
+        style={[styles.dTile, { backgroundColor: theme.stepsContainer, paddingHorizontal: 24, paddingVertical: 20, overflow: 'hidden' }]}>
         <View style={[styles.spread, { height: 24 }]}>
           <View style={styles.iconLabel}>
             <SpecIcon name="walker" color={leaf} size={18} />

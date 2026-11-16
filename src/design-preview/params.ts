@@ -24,7 +24,7 @@ import { parseKind, type SeriesKind } from '@/state/series';
 export const PREVIEW_ROUTE = 'design-preview';
 
 /** The mockup screens, in the mockups' order, then the hourly detail. */
-export const PREVIEW_SCREENS = ['today', 'food', 'walk', 'detail', 'plus', 'activity'] as const;
+export const PREVIEW_SCREENS = ['today', 'food', 'walk', 'detail', 'plus', 'activity', 'news'] as const;
 export type PreviewScreen = (typeof PREVIEW_SCREENS)[number];
 
 export interface PreviewParams {

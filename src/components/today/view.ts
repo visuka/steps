@@ -27,6 +27,8 @@
 import type { ReactNode } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 
+import type { NewsItem } from '@/api/news-read';
+
 import type { Measure, SleepFigure, WalkFigure, WeekDay } from './model';
 import type { TodayWeather } from './weather-line';
 
@@ -80,6 +82,8 @@ export interface TodayView {
   /** "Morning walk, 2.3 km, 32 minutes, 3,120 steps" or "Walk, no walk yet today". */
   walkSpoken: string;
   week: WeekDay[];
+  /** Good-news headlines for the ticker under the quote (Colour blocks); [] = no ticker. */
+  news: NewsItem[];
   on: {
     food(): void;
     water(): void;
@@ -95,6 +99,8 @@ export interface TodayView {
     calendar(dayKey?: string): void;
     /** The looks' "Log food" button (D, E, F): the Food tab. */
     logFood(): void;
+    /** The good-news ticker: every headline as a list. */
+    news(): void;
   };
   slots: {
     /** A walk being recorded: the 72 dp card between the hero and the tiles. */
