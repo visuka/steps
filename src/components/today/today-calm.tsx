@@ -27,7 +27,7 @@ import { formatSteps } from '@/lib/format';
 import { dailyQuote } from './model';
 import { NewsTicker } from './news-ticker';
 import { activeRange } from './steps-tile-model';
-import { Glasses, GoalBar, HourDots, NowLine, PillBar, Scale, useCountUp } from './time-of-day-parts';
+import { Glasses, GoalBar, HourDots, NowLine, PillBar, Scale, SleepBar, useCountUp } from './time-of-day-parts';
 import {
   foodTile,
   lockedTileModel,
@@ -214,6 +214,24 @@ function Figure({ value, unit, size, p }: { value: string; unit?: string; size: 
 /** The small Active bar is full at 30 active minutes. */
 const ACTIVE_BAR_MIN = 30;
 
+/** A card's figure, plain medium weight, the unit small right after it: "4.6km", "1,280kcal" (owner's reference). */
+function Amount({ value, unit, size, p }: { value: string; unit?: string; size: number; p: DayPalette }) {
+  return (
+    <Text
+      numberOfLines={1}
+      adjustsFontSizeToFit
+      minimumFontScale={0.7}
+      maxFontSizeMultiplier={MaxTextScale}
+      style={{ fontFamily: face(500), fontSize: scaled(size), lineHeight: scaled(size + 6), letterSpacing: -0.4, color: p.text, includeFontPadding: false, fontVariant: ['tabular-nums'] }}>
+      {value}
+      {unit ? <Text style={{ fontSize: scaled(Math.round(size * 0.64)), letterSpacing: 0 }}>{` ${unit}`}</Text> : null}
+    </Text>
+  );
+}
+
+/** Soft shadow under cards and the selected buttons (owner's reference). */
+const LIFT = { elevation: 2, shadowColor: '#00000038' } as const;
+
 /** "4.05": one decimal under 10, none above. */
 function short(n: number): string {
   return n < 10 ? String(Math.round(n * 10) / 10) : String(Math.round(n));
@@ -252,8 +270,8 @@ function Stat({
   return (
     <Press onPress={onPress} label={spoken} ripple={`${p.text}14`} style={[card, styles.half]}>
       <Head icon={icon} text={label} color={p.muted} more={p.text} />
-      <View style={{ marginTop: tight ? 0 : 4 }}>
-        <Figure value={value} unit={unit} size={tight ? 22 : 24} p={p} />
+      <View style={{ marginTop: tight ? 2 : 6 }}>
+        <Amount value={value} unit={unit} size={tight ? 20 : 22} p={p} />
       </View>
       <View style={{ marginTop: tight ? 4 : 8 }}>
         <PillBar share={s} color={color} p={p} marks={lean ? undefined : marks} />
@@ -265,9 +283,10 @@ function Stat({
 /** Today's top row: the avatar, the Nutrition / Activity switch and the calendar. */
 function TopBar({ v, p, tight }: { v: TodayView; p: DayPalette; tight: boolean }) {
   const h = tight ? styles.short : null;
+  const r = tight ? styles.shortRound : null;
   return (
     <View style={styles.topBar}>
-      <Press onPress={v.on.profile} label="Your profile" ripple={`${p.main}22`} style={[styles.round, h, { backgroundColor: p.card }]}>
+      <Press onPress={v.on.profile} label="Your profile" ripple={`${p.main}22`} style={[styles.round, r, LIFT, { backgroundColor: p.card }]}>
         {v.initial ? (
           <T size={15} line={20} weight={700} color={p.main}>
             {v.initial}
@@ -280,11 +299,11 @@ function TopBar({ v, p, tight }: { v: TodayView; p: DayPalette; tight: boolean }
         <Press onPress={v.on.logFood} label="Nutrition, opens Food" ripple={`${p.text}14`} style={styles.switchPart}>
           <Label text="Nutrition" color={p.muted} />
         </Press>
-        <View accessible accessibilityRole="tab" accessibilityState={{ selected: true }} accessibilityLabel="Activity, this screen" style={[styles.switchPart, { backgroundColor: p.card }]}>
+        <View accessible accessibilityRole="tab" accessibilityState={{ selected: true }} accessibilityLabel="Activity, this screen" style={[styles.switchPart, LIFT, { backgroundColor: p.card }]}>
           <Label text="Activity" color={p.text} />
         </View>
       </View>
-      <Press onPress={() => v.on.calendar()} label="Calendar: steps by day" ripple={`${p.main}22`} style={[styles.round, h, { backgroundColor: p.card }]}>
+      <Press onPress={() => v.on.calendar()} label="Calendar: steps by day" ripple={`${p.main}22`} style={[styles.round, r, LIFT, { backgroundColor: p.card }]}>
         <SpecIcon name="calendar" color={p.main} size={18} />
       </Press>
     </View>
@@ -298,7 +317,7 @@ function Section({ text, p }: { text: string; p: DayPalette }) {
       accessibilityRole="header"
       numberOfLines={1}
       maxFontSizeMultiplier={MaxTextScale}
-      style={{ fontFamily: 'monospace', fontSize: scaled(14), lineHeight: scaled(18), letterSpacing: 1.5, color: p.text, includeFontPadding: false, marginTop: 2 }}>
+      style={{ fontFamily: 'monospace', fontWeight: '700', fontSize: scaled(15), lineHeight: scaled(20), letterSpacing: 1.2, color: p.text, includeFontPadding: false, marginTop: 2 }}>
       {text.toUpperCase()}
     </Text>
   );
@@ -357,7 +376,7 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
   const gap = tight ? 8 : 10;
   const padV = tight ? 9 : 12;
   // No outline: soft white cards on the grey ground (owner's reference).
-  const card = { backgroundColor: p.card, borderRadius: 20, paddingHorizontal: 16, paddingVertical: padV };
+  const card = { backgroundColor: p.card, borderRadius: 20, paddingHorizontal: 16, paddingVertical: padV, ...LIFT };
   const steps = useCountUp(Math.max(0, v.steps));
   const range = activeRange(v.hourly, v.nowHour);
   const now = new Date();
@@ -407,6 +426,7 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
             <Figure value={formatSteps(steps)} unit="Steps" size={tight ? 34 : 42} p={p} />
             {past > 0 ? null : <Label text={`${formatSteps(toGo)} to go`} color={p.muted} style={{ marginBottom: scaled(8) }} />}
           </View>
+          <View style={{ height: 1, backgroundColor: p.edge, marginTop: tight ? 6 : 10 }} />
           <View style={{ marginTop: tight ? 4 : 6 }}>
             <NowLine time={time} p={p} />
           </View>
@@ -470,7 +490,9 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
       <Rise delay={180} duration={700} distance={10} style={[styles.pair, { gap }]}>
         <Press onPress={tapFor(v, 'food')} label={m.food.spoken} ripple={ripple} style={[card, styles.half]}>
           <Head icon={L ? 'lock' : 'bowl'} text="Food" color={p.muted} more={L ? undefined : p.text} />
-          <Value value={m.food.value} unit={L ? undefined : 'kcal'} p={p} tight={tight} />
+          <View style={{ marginTop: tight ? 2 : 6 }}>
+            <Amount value={m.food.value} unit={L ? undefined : 'kcal'} size={tight ? 20 : 22} p={p} />
+          </View>
           {L ? null : (
             <>
               <T size={12} line={16} color={p.muted} fit>
@@ -484,14 +506,16 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
         </Press>
         <Press onPress={tapFor(v, 'sleep')} label={m.sleep.spoken} ripple={ripple} style={[card, styles.half]}>
           <Head icon={L ? 'lock' : 'moon'} text="Sleep" color={p.muted} more={L ? undefined : p.text} />
-          <Value value={m.sleep.value} unit={L ? undefined : m.sleep.unit} p={p} tight={tight} />
+          <View style={{ marginTop: tight ? 2 : 6 }}>
+            <Amount value={m.sleep.value} unit={L ? undefined : m.sleep.unit} size={tight ? 20 : 22} p={p} />
+          </View>
           {L ? null : (
             <>
               <T size={12} line={16} color={p.muted}>
                 Last night
               </T>
               <View style={{ marginTop: tight ? 4 : 8 }}>
-                <PillBar share={m.sleep.share ?? 0} color={p.accent} p={p} />
+                <SleepBar share={m.sleep.share ?? 0} p={p} />
               </View>
             </>
           )}
@@ -562,28 +586,14 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
   );
 }
 
-/** A card's figure, 21 bold, with its unit in 13 semibold ("1,280 kcal", "6 h 50 min"). */
-function Value({ value, unit, p, tight }: { value: string; unit?: string; p: DayPalette; tight?: boolean }) {
-  return (
-    <Text
-      numberOfLines={1}
-      adjustsFontSizeToFit
-      minimumFontScale={0.7}
-      maxFontSizeMultiplier={MaxTextScale}
-      style={[styles.value, { fontFamily: face(700), fontSize: scaled(21), lineHeight: scaled(26), color: p.text }, tight ? { marginTop: 3 } : null]}>
-      {value}
-      {unit ? <Text style={{ fontFamily: face(600), fontSize: scaled(13), letterSpacing: 0 }}> {unit}</Text> : null}
-    </Text>
-  );
-}
-
 const styles = StyleSheet.create({
   column: { width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center', flexGrow: 1, paddingHorizontal: 18, paddingTop: 8, paddingBottom: 10 },
-  topBar: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
   round: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  short: { height: 36, minWidth: 36 },
-  switch: { flex: 1, maxWidth: 260, marginHorizontal: 'auto', height: 40, borderRadius: 20, padding: 3, flexDirection: 'row' },
-  switchPart: { flex: 1, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  short: { height: 36 },
+  shortRound: { width: 36, height: 36, borderRadius: 18 },
+  switch: { height: 40, borderRadius: 20, padding: 3, flexDirection: 'row' },
+  switchPart: { paddingHorizontal: 14, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   subLine: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 18 },
   weather: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   spread: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
@@ -597,5 +607,4 @@ const styles = StyleSheet.create({
   dot: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
   dotTight: { width: 34, height: 34, borderRadius: 17 },
   logFood: { height: 48, borderRadius: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  value: { marginTop: 6, letterSpacing: -0.3, includeFontPadding: false, fontVariant: ['tabular-nums'] },
 });

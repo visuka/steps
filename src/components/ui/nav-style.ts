@@ -13,15 +13,15 @@ export const NAV = {
   /** No hairline on top. */
   hairline: 0,
   sidePadding: 8,
-  /** Each round button. */
-  slotWidth: 48,
+  /** Each round button (the touch area stays 48). */
+  slotWidth: 44,
   /** Space between the buttons. */
-  slotGap: 16,
+  slotGap: 12,
   iconSize: 22,
   minTouch: CLEAN_SPEC.sizes.nav.minTouch,
 } as const;
 
-/** The drawn slot: a 48 dp circle. */
+/** The drawn slot: a 44 dp circle. */
 export const SLOT_VISUAL_HEIGHT = NAV.slotWidth;
 
 /** The touch area of a slot: at least 48 x 48, centred on the drawn slot. */

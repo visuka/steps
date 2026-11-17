@@ -29,7 +29,7 @@ import type { DayPalette } from '@/constants/day-part';
 import { MaxTextScale } from '@/constants/theme';
 import { scaled } from '@/constants/ui-scale';
 
-import { goalSegments, hourDots, STEPS_TILE } from './steps-tile-model';
+import { clusterDots, goalPills, hourDots, type Pill, pillRun, STEPS_TILE } from './steps-tile-model';
 
 const clamp01 = (x: number) => (Number.isFinite(x) ? Math.min(1, Math.max(0, x)) : 0);
 
@@ -52,16 +52,11 @@ export const TOD = {
   /** The hour dots: rows per hour, the dot and the gap between rows. */
   dotRows: STEPS_TILE.dotRows,
   dot: 3,
-  dotGap: 2,
-  /** The goal bar: segments, height and gap. */
-  goalSegments: STEPS_TILE.goalSegments,
+  dotGap: 1.5,
+  /** The goal bar and Sleep's pills: height. */
   goalHeight: 8,
-  segmentGap: 3,
   /** The rounded bars of Distance, Active, Food and Sleep. */
   pill: 8,
-  /** The small bars under Distance and Active. */
-  miniSegments: 12,
-  miniHeight: 4,
 } as const;
 
 /* ───────────── Motion ───────────── */
@@ -296,20 +291,27 @@ export function HourDots({ hourly, nowHour, p, gap }: { hourly: number[]; nowHou
   const pulse = useAnimatedStyle(() => ({ opacity: blink.value }));
   const { dotRows: rows, dot } = TOD;
   const dotGap = gap ?? TOD.dotGap;
-  const column = (n: number, color: string) =>
-    Array.from({ length: rows }, (_, r) => (
-      <View key={r} style={{ width: dot, height: dot, borderRadius: dot / 2, backgroundColor: rows - r <= n ? color : p.wash === p.bg ? '#E6E6E6' : p.edge }} />
-    ));
+  // Only the steps are drawn; an hour with none keeps one faint dot on the base line.
+  const column = (n: number, color: string, k: number) => (
+    <View key={k} style={[styles.dotColumn, { gap: dotGap }]}>
+      {Array.from({ length: rows }, (_, r) => {
+        const up = rows - r;
+        const bg = up <= n ? color : up === 1 ? p.edge : 'transparent';
+        return <View key={r} style={{ width: dot, height: dot, borderRadius: dot / 2, backgroundColor: bg }} />;
+      })}
+    </View>
+  );
+  const cluster = (n: number, color: string) => clusterDots(n).map((c, k) => column(c, color, k));
   return (
     <View {...hidden} style={[styles.dots, { height: rows * dot + (rows - 1) * dotGap }]}>
       {counts.map((n, i) =>
         i === nowHour ? (
-          <Animated.View key={i} style={[styles.dotColumn, { gap: dotGap }, pulse]}>
-            {column(Math.max(1, n), p.accent)}
+          <Animated.View key={i} style={[styles.cluster, pulse]}>
+            {cluster(Math.max(1, n), p.accent)}
           </Animated.View>
         ) : (
-          <View key={i} style={[styles.dotColumn, { gap: dotGap }]}>
-            {column(n, p.ringA)}
+          <View key={i} style={styles.cluster}>
+            {cluster(n, p.muted)}
           </View>
         ),
       )}
@@ -317,59 +319,53 @@ export function HourDots({ hourly, nowHour, p, gap }: { hourly: number[]; nowHou
   );
 }
 
-/* ───────────── Segmented bars ───────────── */
+/* ───────────── Pill runs: the goal bar and Sleep ───────────── */
 
-/** Fine upright grey strokes inside a segment still to walk. */
-function Hatch({ color, height }: { color: string; height: number }) {
+/** Fine upright grey strokes: what is still to come. */
+function Rest({ p, h }: { p: DayPalette; h: number }) {
   return (
-    <View style={[styles.hatch, { height }]}>
-      {Array.from({ length: 3 }, (_, i) => (
-        <View key={i} style={{ width: 1, height, backgroundColor: color }} />
+    <View style={[styles.pillRest, { height: h, borderRadius: h / 2 }]}>
+      {Array.from({ length: 80 }, (_, i) => (
+        <View key={i} style={{ width: 1, height: h, backgroundColor: p.track }} />
       ))}
     </View>
   );
 }
 
 /**
- * A segmented bar: each segment black, red or hatched grey, from `colorOf`.
- * It is shown left to right once (a card-coloured cover slides off), then stays.
+ * Pills of mixed length, black or red, over `filled` of the bar (growing in
+ * once), then the strokes; with `dot`, a red dot at the end of the pills.
  */
-function Segments({ n, height, colorOf, p, delay }: { n: number; height: number; colorOf: (i: number) => string | null; p: DayPalette; delay: number }) {
-  const g = useGrow(1, 1100, delay);
-  const cover = useAnimatedStyle(() => ({ left: `${g.value * 100}%` }));
+export function PillRun({ pills, filled, p, dot, marks }: { pills: Pill[]; filled: number; p: DayPalette; dot?: boolean; marks?: string[] }) {
+  const g = useGrow(filled, 1300, 250);
+  const grow = useAnimatedStyle(() => ({ width: `${g.value * 100}%` }));
+  const h = TOD.goalHeight;
   return (
-    <View {...hidden} style={[styles.segments, { height, gap: TOD.segmentGap }]}>
-      {Array.from({ length: n }, (_, i) => {
-        const c = colorOf(i);
-        return (
-          <View key={i} style={[styles.segment, { height, backgroundColor: c ?? undefined }]}>
-            {c ? null : <Hatch color={p.track} height={height} />}
-          </View>
-        );
-      })}
-      <Animated.View style={[styles.cover, { backgroundColor: p.card }, cover]} />
+    <View {...hidden}>
+      <View style={[styles.pillTrack, { height: h, borderRadius: h / 2 }]}>
+        <Animated.View style={[styles.run, { height: h }, grow]}>
+          {pills.map((x, i) => (
+            <View key={i} style={{ flex: x.w, minWidth: 2, height: h, borderRadius: h / 2, backgroundColor: x.red ? p.accent : p.ringB }} />
+          ))}
+          {dot && pills.length ? <View style={{ width: h, height: h, borderRadius: h / 2, backgroundColor: p.accent }} /> : null}
+        </Animated.View>
+        <Rest p={p} h={h} />
+      </View>
+      {marks ? <Scale marks={marks} p={p} /> : null}
     </View>
   );
 }
 
-/** The goal bar: black segments to the goal, hatched grey for what is left, red past it. */
+/** The goal bar: black pills to the steps with the leading one red, red past the goal, strokes for what is left. */
 export function GoalBar({ steps, goal, p }: { steps: number; goal: number; p: DayPalette }) {
-  const { done, extra } = goalSegments(steps, goal);
-  return (
-    <Segments
-      n={TOD.goalSegments}
-      height={TOD.goalHeight}
-      p={p}
-      delay={250}
-      colorOf={(i) => (i < done ? (extra === 0 && i === done - 1 && done < TOD.goalSegments ? p.accent : p.ringB) : i < done + extra ? p.accent : null)}
-    />
-  );
+  const { filled, pills } = goalPills(steps, goal);
+  return <PillRun pills={pills} filled={filled} p={p} />;
 }
 
-/** A thin bar under Distance and Active: `share` of its segments black, the rest hatched. */
-export function MiniBar({ share, p }: { share: number; p: DayPalette }) {
-  const lit = Math.round(clamp01(share) * TOD.miniSegments);
-  return <Segments n={TOD.miniSegments} height={TOD.miniHeight} p={p} delay={400} colorOf={(i) => (i < lit ? p.ringB : null)} />;
+/** Sleep's bar: black pills with a red dot at their end. */
+export function SleepBar({ share, p }: { share: number; p: DayPalette }) {
+  const f = clamp01(share);
+  return <PillRun pills={pillRun(f, null, false)} filled={f} p={p} dot />;
 }
 
 /* ───────────── Pill bars, scales and the now line ───────────── */
@@ -411,11 +407,7 @@ export function PillBar({ share, color, p, marks, tip }: { share: number; color:
         <Animated.View style={[styles.pillFill, { height: h, borderRadius: h / 2, backgroundColor: color }, fill]}>
           {tip && share >= 0.15 ? <View style={[styles.tip, { backgroundColor: tip }]} /> : null}
         </Animated.View>
-        <View style={[styles.pillRest, { height: h, borderRadius: h / 2 }]}>
-          {Array.from({ length: 80 }, (_, i) => (
-            <View key={i} style={{ width: 1, height: h, backgroundColor: p.track }} />
-          ))}
-        </View>
+        <Rest p={p} h={h} />
       </View>
       {marks ? <Scale marks={marks} p={p} /> : null}
     </View>
@@ -449,8 +441,8 @@ const styles = StyleSheet.create({
   water: { position: 'absolute', left: 0, right: 0, bottom: 0, height: '80%', opacity: 0.8 },
   dots: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
   dotColumn: { flexDirection: 'column' },
-  segments: { flexDirection: 'row', alignItems: 'stretch' },
-  segment: { flex: 1, borderRadius: 4, overflow: 'hidden' },
+  cluster: { flexDirection: 'row', gap: 1, alignItems: 'flex-end' },
+  run: { flexDirection: 'row', gap: 3, overflow: 'hidden' },
   pillTrack: { flexDirection: 'row', overflow: 'hidden' },
   pillFill: { alignItems: 'flex-end', justifyContent: 'center', paddingRight: 2 },
   tip: { width: 4, height: 4, borderRadius: 2 },
@@ -459,6 +451,4 @@ const styles = StyleSheet.create({
   nowRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   nowDot: { width: 5, height: 5, borderRadius: 2.5 },
   nowLine: { flex: 1, height: 1 },
-  hatch: { flexDirection: 'row', justifyContent: 'space-evenly' },
-  cover: { position: 'absolute', top: 0, bottom: 0, right: 0 },
 });

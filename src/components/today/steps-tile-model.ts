@@ -1,11 +1,11 @@
 /**
  * The Steps tile's figures (owner, 17 Nov 2026; docs/design.md "Current:
  * Today"), kept apart from the drawing so jest can check them without React
- * Native: dots per hour, the hours on your feet, the goal bar's segments.
+ * Native: dots per hour, the hours on your feet, the pills of the bars.
  */
 
-/** Rows of dots per hour, and segments in the goal bar. */
-export const STEPS_TILE = { dotRows: 8, goalSegments: 16 } as const;
+/** Rows of dots per hour. */
+export const STEPS_TILE = { dotRows: 8 } as const;
 
 /**
  * How many dots each hour lights (0..dotRows): steps against the day's busiest
@@ -26,19 +26,51 @@ export function activeRange(hourly: number[], nowHour: number): string | null {
   return `${hh(lit[0])} – ${last === nowHour ? 'NOW' : hh(last + 1)}`;
 }
 
+/** One rounded piece of a bar: its share of the whole bar, and whether it is red. */
+export interface Pill {
+  w: number;
+  red: boolean;
+}
+
+/** Pill lengths, as shares of the whole bar, repeated: long and short mixed (owner's reference). */
+export const PILL_PATTERN = [0.075, 0.035, 0.12, 0.05, 0.095, 0.04, 0.13, 0.06] as const;
+
 /**
- * The goal bar's segments: black up to the steps (to the goal at most), red
- * for steps past the goal, the rest still to walk. Past the goal the bar
- * stands for all the steps, so the red part shows how far past.
+ * A filled stretch (0..1 of the bar) cut into pills of mixed length. With
+ * `goalAt`, the pills after it are red (steps past the goal); otherwise the
+ * last pill is red when `leadRed` (where you are now). No slivers at the end.
  */
-export function goalSegments(steps: number, goal: number, n: number = STEPS_TILE.goalSegments): { done: number; extra: number; left: number } {
+export function pillRun(filled: number, goalAt: number | null = null, leadRed = true): Pill[] {
+  const f = Number.isFinite(filled) ? Math.min(1, Math.max(0, filled)) : 0;
+  const out: Pill[] = [];
+  let a = 0;
+  for (let i = 0; a < f - 1e-6 && i < 200; i++) {
+    let b = Math.min(f, a + PILL_PATTERN[i % PILL_PATTERN.length]);
+    if (f - b < 0.02) b = f;
+    if (goalAt !== null && a < goalAt - 1e-6 && b > goalAt + 1e-6) b = goalAt;
+    out.push({ w: b - a, red: goalAt !== null && a >= goalAt - 1e-6 });
+    a = b;
+  }
+  if (goalAt === null && leadRed && out.length) out[out.length - 1].red = true;
+  return out;
+}
+
+/**
+ * The goal bar: black pills up to the steps with the leading one red, the
+ * rest still to walk. Past the goal the bar stands for all the steps: black
+ * up to the goal, red after it.
+ */
+export function goalPills(steps: number, goal: number): { filled: number; pills: Pill[] } {
   const s = Math.max(0, Number(steps) || 0);
   const g = Math.max(0, Number(goal) || 0);
-  if (g <= 0) return { done: 0, extra: 0, left: n };
-  if (s <= g) {
-    const done = Math.min(n, Math.round((s / g) * n));
-    return { done, extra: 0, left: n - done };
-  }
-  const done = Math.max(1, Math.min(n - 1, Math.round((g / s) * n)));
-  return { done, extra: n - done, left: 0 };
+  if (g <= 0 || s <= 0) return { filled: 0, pills: [] };
+  if (s <= g) return { filled: s / g, pills: pillRun(s / g) };
+  return { filled: 1, pills: pillRun(1, g / s) };
+}
+
+/** An hour's dots as a small peak of three columns: the middle the tallest. */
+export function clusterDots(n: number): [number, number, number] {
+  const k = Math.max(0, Math.round(Number(n) || 0));
+  if (k === 0) return [0, 0, 0];
+  return [Math.max(1, Math.round(k * 0.6)), k, Math.max(1, Math.round(k * 0.8))];
 }

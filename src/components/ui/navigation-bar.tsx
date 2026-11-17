@@ -49,7 +49,7 @@ export interface NavigationBarProps {
 
 /**
  * The bottom bar (docs/design.md "Bottom bar", owner 17 Nov 2026): 60 dp plus
- * the system inset, on the screen's ground, a row of 48 dp round buttons 16
+ * the system inset, on the screen's ground, a row of 44 dp round buttons 12
  * apart. The selected one is a near-white circle with a black icon, the
  * others grey circles with grey icons. Labels are not drawn; TalkBack says them.
  */
@@ -100,7 +100,7 @@ function Destination({ item, active, color, fill, onPress }: { item: NavigationI
       aria-selected={active}
       android_ripple={{ color: `${color}1F`, borderless: true, radius: NAV.slotWidth / 2 }}
       style={styles.touch}>
-      <View style={[styles.visual, { backgroundColor: fill }]}>
+      <View style={[styles.visual, { backgroundColor: fill }, active ? styles.lift : null]}>
         {item.specIcon ? (
           <SpecIcon name={item.specIcon} color={color} size={NAV.iconSize} />
         ) : ionicon ? (
@@ -125,4 +125,6 @@ const styles = StyleSheet.create({
   // The touch area is at least 48 x 48; the drawn slot sits in its middle.
   touch: { width: touch.width, minHeight: touch.height, alignItems: 'center', justifyContent: 'center' },
   visual: { width: NAV.slotWidth, height: SLOT_VISUAL_HEIGHT, borderRadius: NAV.slotWidth / 2, alignItems: 'center', justifyContent: 'center' },
+  // The selected circle sits on a soft shadow.
+  lift: { elevation: 3, shadowColor: '#00000040' },
 });

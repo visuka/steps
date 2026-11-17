@@ -1,10 +1,10 @@
 /**
  * The Steps tile's figures (owner, 17 Nov 2026): dots per hour, the hours on
- * your feet, and the goal bar's black, red and hatched segments.
+ * your feet, and the bars' black and red pills.
  */
 import { describe, expect, it } from '@jest/globals';
 
-import { activeRange, goalSegments, hourDots } from '../steps-tile-model';
+import { activeRange, clusterDots, goalPills, hourDots, pillRun } from '../steps-tile-model';
 
 const day = Array.from({ length: 24 }, () => 0);
 const hours = (pairs: [number, number][]) => {
@@ -46,21 +46,47 @@ describe('activeRange', () => {
   });
 });
 
-describe('goalSegments', () => {
-  it('fills black up to the steps before the goal', () => {
-    expect(goalSegments(3500, 7000, 28)).toEqual({ done: 14, extra: 0, left: 14 });
-    expect(goalSegments(0, 7000, 28)).toEqual({ done: 0, extra: 0, left: 28 });
+describe('pillRun', () => {
+  const sum = (p: { w: number }[]) => p.reduce((t, x) => t + x.w, 0);
+  it('fills exactly the share with mixed lengths and a red lead', () => {
+    const p = pillRun(0.6);
+    expect(sum(p)).toBeCloseTo(0.6, 6);
+    expect(new Set(p.map((x) => x.w.toFixed(3))).size).toBeGreaterThan(2);
+    expect(p[p.length - 1].red).toBe(true);
+    expect(p.slice(0, -1).every((x) => !x.red)).toBe(true);
+  });
+  it('can stay all black', () => {
+    expect(pillRun(0.5, null, false).every((x) => !x.red)).toBe(true);
+  });
+  it('turns red after the goal', () => {
+    const p = pillRun(1, 0.5);
+    expect(sum(p)).toBeCloseTo(1, 6);
+    expect(sum(p.filter((x) => !x.red))).toBeCloseTo(0.5, 6);
+    expect(sum(p.filter((x) => x.red))).toBeCloseTo(0.5, 6);
+  });
+  it('is empty at nothing and copes with bad numbers', () => {
+    expect(pillRun(0)).toEqual([]);
+    expect(pillRun(NaN)).toEqual([]);
+  });
+});
+
+describe('goalPills', () => {
+  it('fills up to the steps before the goal', () => {
+    expect(goalPills(3500, 7000).filled).toBeCloseTo(0.5);
+    expect(goalPills(0, 7000)).toEqual({ filled: 0, pills: [] });
+    expect(goalPills(5000, 0)).toEqual({ filled: 0, pills: [] });
   });
   it('shows the steps past the goal in red', () => {
-    expect(goalSegments(14000, 7000, 28)).toEqual({ done: 14, extra: 14, left: 0 });
-    expect(goalSegments(7000, 7000, 28)).toEqual({ done: 28, extra: 0, left: 0 });
+    const g = goalPills(14000, 7000);
+    expect(g.filled).toBe(1);
+    expect(g.pills.filter((x) => x.red).reduce((t, x) => t + x.w, 0)).toBeCloseTo(0.5, 6);
   });
-  it('keeps at least one segment of each colour past the goal', () => {
-    const s = goalSegments(1_000_000, 7000, 28);
-    expect(s.done).toBe(1);
-    expect(s.extra).toBe(27);
-  });
-  it('is all left without a goal', () => {
-    expect(goalSegments(5000, 0, 28)).toEqual({ done: 0, extra: 0, left: 28 });
+});
+
+describe('clusterDots', () => {
+  it('makes a small peak, the middle tallest', () => {
+    expect(clusterDots(0)).toEqual([0, 0, 0]);
+    expect(clusterDots(1)).toEqual([1, 1, 1]);
+    expect(clusterDots(8)).toEqual([5, 8, 6]);
   });
 });

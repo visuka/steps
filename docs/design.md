@@ -56,9 +56,18 @@ The owner sent the reference next to build 80 and asked for every difference to 
 - Motion as before: blocks rise once, bars grow once, the count counts up, the hour now keeps blinking, the news keeps moving. With "Remove animations" on, nothing moves.
 - Today must not scroll at 360 x 800 with normal text.
 
+### Second pass on the reference (owner, 17 Nov 2026: "Yes, make all 10")
+
+- Hour dots: only the steps are drawn, as a small peak of three columns per hour (the middle tallest); an hour with none keeps one faint dot on the base line. Lit dots #5E5E5E; the hour now red and blinking.
+- Goal bar and Sleep: pills of mixed length (`PILL_PATTERN`), 8 high, 3 apart. Goal: black with the leading pill red; past the goal black to the goal, red after. Sleep: black pills with a red dot at their end. Food keeps its black bar with a red tip; Active red; Distance grey.
+- A faint line (#E4E4E4) under the steps count. "x TO GO" stays (it replaced the percentage).
+- Distance, Active, Food and Sleep figures: one style, medium 22 (20 on short screens) with the unit small right after it ("4.6 km").
+- FOOD & SLEEP title: bold mono 15.
+- The switch is a compact pill in the middle (each half sized to its word); the selected half, the round top buttons and the cards sit on a soft shadow (elevation 2).
+
 ### Bottom bar (every screen)
 
-A row of 48 dp round buttons, 16 apart, centred, on the screen's own ground, no hairline; 60 dp plus the system inset. The selected one is a #FBFBFB circle with a black icon, the others #E4E4E4 circles with grey icons. Labels are not drawn; TalkBack still says each name (`nav-style.ts`, `navigation-bar.tsx`).
+A row of 44 dp round buttons (48 dp touch), 12 apart, centred, on the screen's own ground, no hairline; 60 dp plus the system inset. The selected one is a #FBFBFB circle on a soft shadow with a black icon, the others #E4E4E4 circles with grey icons. Labels are not drawn; TalkBack still says each name (`nav-style.ts`, `navigation-bar.tsx`).
 
 ## History
 
