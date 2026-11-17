@@ -1,6 +1,6 @@
 # Current task: T18 — Today in "Time of day" colours, and the labelled bottom bar
 
-Approved by the owner on 17 Nov 2026 ("Yup let us go for time of day"). The design, every value and the palettes are in `docs/design.md`, section "Current: Today Time of day". The mockup is `docs/design/today-time-of-day.html` (the "Time of day" chip).
+Approved by the owner on 17 Nov 2026 ("Yup let us go for time of day"). The owner also confirmed ("Yes go ahead", 17 Nov 2026): the hours Dawn 05:00 / Noon 11:00 / Dusk 16:30; the day colours on Today and the bar only; the hour bars under the ring come back. The design, every value and the palettes are in `docs/design.md`, section "Current: Today Time of day". The mockup is `docs/design/today-time-of-day.html` (the "Time of day" chip).
 
 ## Who does what next
 
