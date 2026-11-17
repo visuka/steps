@@ -73,10 +73,15 @@ export default function TodayScreen() {
   // A new screen size starts again.
   const [gapCut, setGapCut] = useState(0);
   const [cutFor, setCutFor] = useState(viewH);
+  // The height each step was worked out from: one step per new measurement, so a render before
+  // the shorter page is measured can't squeeze again (CI run 44148115854 squeezed too far).
+  const [cutAt, setCutAt] = useState(0);
   if (cutFor !== viewH) {
     setCutFor(viewH);
     setGapCut(0);
-  } else if (viewH > 0 && overflows && gapCut < MAX_SQUEEZE) {
+    setCutAt(0);
+  } else if (viewH > 0 && overflows && gapCut < MAX_SQUEEZE && contentH !== cutAt) {
+    setCutAt(contentH);
     setGapCut(Math.min(MAX_SQUEEZE, gapCut + Math.max(1, Math.ceil((contentH - viewH) / (TODAY_GAPS * scaled(1))))));
   }
 
