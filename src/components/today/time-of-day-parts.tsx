@@ -286,11 +286,12 @@ function useBlink(): SharedValue<number> {
  * for none, the hour now in red and gently blinking (the screen's one
  * continuous movement).
  */
-export function HourDots({ hourly, nowHour, p }: { hourly: number[]; nowHour: number; p: DayPalette }) {
+export function HourDots({ hourly, nowHour, p, gap }: { hourly: number[]; nowHour: number; p: DayPalette; gap?: number }) {
   const counts = hourDots(hourly, nowHour);
   const blink = useBlink();
   const pulse = useAnimatedStyle(() => ({ opacity: blink.value }));
-  const { dotRows: rows, dot, dotGap } = TOD;
+  const { dotRows: rows, dot } = TOD;
+  const dotGap = gap ?? TOD.dotGap;
   const column = (n: number, color: string) =>
     Array.from({ length: rows }, (_, r) => (
       <View key={r} style={{ width: dot, height: dot, borderRadius: dot / 2, backgroundColor: rows - r <= n ? color : p.edge }} />

@@ -189,14 +189,14 @@ function Head({ icon, text, color }: { icon: SpecIconName; text: string; color: 
 const ACTIVE_BAR_MIN = 30;
 
 /** One of the two small tiles under the goal bar: a label, the figure and a thin bar. */
-function Mini({ label, value, share: s, p }: { label: string; value: string; share: number; p: DayPalette }) {
+function Mini({ label, value, share: s, p, tight }: { label: string; value: string; share: number; p: DayPalette; tight: boolean }) {
   return (
-    <View style={[styles.mini, { backgroundColor: p.bg }]}>
+    <View style={[styles.mini, { backgroundColor: p.bg }, tight ? { paddingVertical: 6 } : null]}>
       <Label text={label} color={p.muted} />
-      <T size={16} line={20} weight={600} color={p.text} style={{ marginTop: 2 }} fit>
+      <T size={16} line={20} weight={600} color={p.text} style={{ marginTop: tight ? 0 : 2 }} fit>
         {value}
       </T>
-      <View style={{ marginTop: 6 }}>
+      <View style={{ marginTop: tight ? 4 : 6 }}>
         <MiniBar share={s} p={p} />
       </View>
     </View>
@@ -241,9 +241,9 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
   const m = modelsOf(v);
   const d = distanceText(v);
   const L = m.locked;
-  // A very short screen: tighter, so Today still fits without scrolling.
+  // A short screen (360 x 800 and below): tighter, so Today still fits without scrolling (CI run 44063597324).
   const { height } = useWindowDimensions();
-  const tight = height < 740;
+  const tight = height < 820;
   const gap = tight ? 8 : 10;
   const padV = tight ? 10 : 12;
   const card = { backgroundColor: p.card, borderColor: p.edge, borderWidth: 1, borderRadius: 16, paddingHorizontal: 16, paddingVertical: padV };
@@ -300,14 +300,14 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
             </View>
           </View>
           <View style={styles.count}>
-            <T size={34} line={40} weight={600} color={p.text} style={{ letterSpacing: -0.8, flexShrink: 1 }} fit>
+            <T size={34} line={tight ? 36 : 40} weight={600} color={p.text} style={{ letterSpacing: -0.8, flexShrink: 1 }} fit>
               {formatSteps(steps)}
             </T>
             <Label text="Steps" color={p.muted} style={{ marginBottom: scaled(6) }} />
             <Label text={`${pct}%`} color={p.text} style={{ marginLeft: 'auto', marginBottom: scaled(6) }} />
           </View>
           <View style={{ marginTop: tight ? 6 : 10 }}>
-            <HourDots hourly={v.hourly} nowHour={v.nowHour} p={p} />
+            <HourDots hourly={v.hourly} nowHour={v.nowHour} p={p} gap={tight ? 2 : undefined} />
           </View>
           <View style={styles.axis}>
             {['00', '06', '12', '18'].map((t, i) => (
@@ -317,7 +317,7 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
           <View style={{ marginTop: tight ? 8 : 12 }}>
             <GoalBar steps={v.steps} goal={v.goal} p={p} />
           </View>
-          <View style={[styles.spread, { marginTop: 6 }]}>
+          <View style={[styles.spread, { marginTop: tight ? 4 : 6 }]}>
             <Label text={`Goal ${formatSteps(v.goal)}`} color={p.muted} />
             {past > 0 ? (
               <View style={styles.head}>
@@ -328,9 +328,9 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
               <Label text={`${formatSteps(Math.max(0, v.goal - v.steps))} to go`} color={p.muted} />
             )}
           </View>
-          <View style={[styles.pair, { marginTop: tight ? 8 : 10, gap: 8 }]}>
-            <Mini label="Distance" value={`${d.value} ${d.unit}`} share={share(v)} p={p} />
-            <Mini label="Active" value={`${active} min`} share={active / ACTIVE_BAR_MIN} p={p} />
+          <View style={[styles.pair, { marginTop: tight ? 6 : 10, gap: 8 }]}>
+            <Mini label="Distance" value={`${d.value} ${d.unit}`} share={share(v)} p={p} tight={tight} />
+            <Mini label="Active" value={`${active} min`} share={active / ACTIVE_BAR_MIN} p={p} tight={tight} />
           </View>
         </Pressable>
       </Rise>
@@ -346,7 +346,7 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
               <T size={12} line={16} color={p.muted} fit>
                 of {v.food.target} kcal
               </T>
-              <View style={{ marginTop: 10 }}>
+              <View style={{ marginTop: tight ? 6 : 10 }}>
                 <MiniBar share={m.food.share ?? 0} p={p} />
               </View>
             </>
@@ -360,7 +360,7 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
               <T size={12} line={16} color={p.muted}>
                 Last night
               </T>
-              <View style={{ marginTop: 10 }}>
+              <View style={{ marginTop: tight ? 6 : 10 }}>
                 <MiniBar share={m.sleep.share ?? 0} p={p} />
               </View>
             </>
@@ -396,7 +396,7 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
 
       <Rise delay={300} duration={700} distance={10}>
         <Press onPress={tapFor(v, 'walk')} label={m.walk.spoken} ripple={ripple} style={[card, styles.row, { gap: 12 }]}>
-          <View style={[styles.dot, { backgroundColor: p.plate }]}>
+          <View style={[styles.dot, { backgroundColor: p.plate }, tight ? styles.dotTight : null]}>
             <SpecIcon name={L ? 'lock' : 'walker'} color={p.main} size={20} />
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
@@ -464,6 +464,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   plus: { width: 34, height: 34, borderRadius: 17, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
   dot: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
+  dotTight: { width: 34, height: 34, borderRadius: 17 },
   logFood: { height: 48, borderRadius: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   value: { marginTop: 6, letterSpacing: -0.3, includeFontPadding: false, fontVariant: ['tabular-nums'] },
 });
