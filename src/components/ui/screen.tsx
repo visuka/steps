@@ -1,7 +1,6 @@
 import { BottomTabBarHeightContext } from 'expo-router/js-tabs';
 import { Children, type ReactNode, use } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown, ReduceMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -9,6 +8,7 @@ import { MaxContentWidth } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { SpecIcon } from './icons';
+import { Rise } from './rise';
 import { SCREEN, backHitSlop, bottomOffset, bottomPadding, subtitleIndent, topPadding } from './screen-style';
 
 export interface ScreenProps {
@@ -75,7 +75,7 @@ export function Screen({
           ) : undefined
         }>
         <View style={styles.inner}>
-          <Animated.View entering={rise(0)} style={styles.header}>
+          <Rise style={styles.header}>
             <View style={styles.titleRow}>
               {onBack ? (
                 <Pressable
@@ -106,11 +106,11 @@ export function Screen({
                 {subtitle}
               </ThemedText>
             ) : null}
-          </Animated.View>
+          </Rise>
           {Children.toArray(children).map((child, i) => (
-            <Animated.View key={keyOf(child, i)} entering={rise(i + 1)}>
+            <Rise key={keyOf(child, i)} delay={Math.min(i + 1, 6) * 50}>
               {child}
-            </Animated.View>
+            </Rise>
           ))}
         </View>
       </ScrollView>
@@ -126,16 +126,11 @@ export function Screen({
   );
 }
 
-/**
+/*
  * The title and then each block rise into place when a screen opens, 50 ms
  * apart (the sixth block on all at once), so the page settles rather than
  * pops. Only on first draw; a cut with the phone's less-motion setting.
  */
-function rise(i: number) {
-  return FadeInDown.delay(Math.min(i, 6) * 50)
-    .duration(320)
-    .reduceMotion(ReduceMotion.System);
-}
 
 function keyOf(child: ReactNode, i: number): string {
   const k = child && typeof child === 'object' && 'key' in child ? child.key : null;

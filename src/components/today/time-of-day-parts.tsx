@@ -12,7 +12,6 @@ import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 import Animated, {
   Easing,
-  FadeInDown,
   ReduceMotion,
   type SharedValue,
   useAnimatedProps,
@@ -47,15 +46,6 @@ export const TOD = {
 } as const;
 
 /* ───────────── Motion ───────────── */
-
-/** Each block rises 10 dp and fades in, 700 ms, once (a cut with less motion). */
-export function rise(delayMs: number) {
-  return FadeInDown.withInitialValues({ opacity: 0, transform: [{ translateY: 10 }] })
-    .delay(delayMs)
-    .duration(700)
-    .easing(Easing.bezier(0.2, 0.8, 0.2, 1).factory())
-    .reduceMotion(ReduceMotion.System);
-}
 
 /** A share 0..1 that grows from nothing when first shown, then eases to each new value. */
 export function useGrow(share: number, ms = 900, delay = 0): SharedValue<number> {
@@ -100,18 +90,34 @@ export function useCountUp(target: number, ms = 900): number {
 
 /* ───────────── Gradients ───────────── */
 
-/** The steps card's soft diagonal gradient, filling its parent (the card clips it to its corners). */
+/**
+ * The steps card's soft diagonal gradient, filling its parent (the card clips
+ * it to its corners). The card's size is measured and drawn in exact dp: a
+ * "100%" Svg left an undrawn strip on the right and at the bottom (T18 CI).
+ */
 export function HeroGradient({ p }: { p: DayPalette }) {
+  const [size, setSize] = useState({ w: 0, h: 0 });
   return (
-    <Svg {...hidden} style={StyleSheet.absoluteFill} width="100%" height="100%" pointerEvents="none">
-      <Defs>
-        <LinearGradient id="todHero" x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0" stopColor={p.heroTop} />
-          <Stop offset="1" stopColor={p.heroBottom} />
-        </LinearGradient>
-      </Defs>
-      <Rect x="0" y="0" width="100%" height="100%" fill="url(#todHero)" />
-    </Svg>
+    <View
+      {...hidden}
+      pointerEvents="none"
+      style={[StyleSheet.absoluteFill, { backgroundColor: p.heroBottom }]}
+      onLayout={(e) => {
+        const { width, height } = e.nativeEvent.layout;
+        setSize({ w: Math.ceil(width), h: Math.ceil(height) });
+      }}>
+      {size.w > 0 && size.h > 0 ? (
+        <Svg width={size.w} height={size.h}>
+          <Defs>
+            <LinearGradient id="todHero" x1="0" y1="0" x2={size.w} y2={size.h} gradientUnits="userSpaceOnUse">
+              <Stop offset="0" stopColor={p.heroTop} />
+              <Stop offset="1" stopColor={p.heroBottom} />
+            </LinearGradient>
+          </Defs>
+          <Rect x={0} y={0} width={size.w} height={size.h} fill="url(#todHero)" />
+        </Svg>
+      ) : null}
+    </View>
   );
 }
 

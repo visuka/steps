@@ -9,9 +9,9 @@
 
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, type TextStyle, useWindowDimensions, View } from 'react-native';
-import Animated from 'react-native-reanimated';
 
 import { SpecIcon } from '@/components/ui';
+import { Rise } from '@/components/ui/rise';
 import type { SpecIconName } from '@/components/ui/icon-paths';
 import { WeatherIcon } from '@/components/walk/walk-icons';
 import type { DayPalette } from '@/constants/day-part';
@@ -23,7 +23,7 @@ import { formatSteps } from '@/lib/format';
 
 import { dailyQuote } from './model';
 import { NewsTicker } from './news-ticker';
-import { Glasses, HeroGradient, HourBars, Meter, rise, StepsRing, useCountUp } from './time-of-day-parts';
+import { Glasses, HeroGradient, HourBars, Meter, StepsRing, useCountUp } from './time-of-day-parts';
 import {
   foodTile,
   lockedTileModel,
@@ -223,7 +223,7 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
 
   return (
     <View style={[styles.column, { gap }]}>
-      <Animated.View entering={rise(0)} style={styles.top}>
+      <Rise delay={0} duration={700} distance={10} style={styles.top}>
         <View style={{ flex: 1, minWidth: 0 }}>
           <T size={22} line={28} weight={700} color={p.text} style={{ letterSpacing: -0.3 }} lines={1}>
             {v.dateLabel}
@@ -239,20 +239,20 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
             <SpecIcon name="person" color={p.main} />
           )}
         </Press>
-      </Animated.View>
+      </Rise>
 
       {/* Good news moving by (owner, 16 Nov 2026). */}
       {v.news.length ? (
-        <Animated.View entering={rise(50)}>
+        <Rise delay={50} duration={700} distance={10}>
           <NewsTicker
             items={v.news}
             onPress={v.on.news}
             colors={{ background: p.newsBg, label: p.card, labelInk: p.main, ink: p.text, quiet: p.muted, ripple: `${p.text}1A` }}
           />
-        </Animated.View>
+        </Rise>
       ) : null}
 
-      <Animated.View entering={rise(100)}>
+      <Rise delay={100} duration={700} distance={10}>
         <Pressable
           onPress={v.on.steps}
           accessibilityRole="button"
@@ -301,11 +301,11 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
             ))}
           </View>
         </Pressable>
-      </Animated.View>
+      </Rise>
 
       {v.slots.walking}
 
-      <Animated.View entering={rise(180)} style={styles.pair}>
+      <Rise delay={180} duration={700} distance={10} style={styles.pair}>
         <Press onPress={tapFor(v, 'food')} label={m.food.spoken} ripple={ripple} style={[card, styles.half]}>
           <Head icon={L ? 'lock' : 'bowl'} text="Food" iconColor={L ? p.text : p.food} color={p.text} />
           <Value value={m.food.value} unit={L ? undefined : 'kcal'} p={p} />
@@ -330,9 +330,9 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
             </>
           )}
         </Press>
-      </Animated.View>
+      </Rise>
 
-      <Animated.View entering={rise(240)}>
+      <Rise delay={240} duration={700} distance={10}>
         <Press onPress={tapFor(v, 'water')} label={m.water.spoken} ripple={ripple} style={[card, styles.row]}>
           <View style={{ flexShrink: 1, minWidth: 0 }}>
             <Head icon={L ? 'lock' : 'drop'} text="Water" iconColor={L ? p.text : p.water} color={p.text} />
@@ -356,9 +356,9 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
             </>
           )}
         </Press>
-      </Animated.View>
+      </Rise>
 
-      <Animated.View entering={rise(300)}>
+      <Rise delay={300} duration={700} distance={10}>
         <Press onPress={tapFor(v, 'walk')} label={m.walk.spoken} ripple={ripple} style={[card, styles.row, { gap: 12 }]}>
           <View style={[styles.dot, { backgroundColor: p.plate }]}>
             <SpecIcon name={L ? 'lock' : 'walker'} color={p.main} size={20} />
@@ -380,18 +380,18 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
           ) : null}
           <SpecIcon name="chevron-right" color={p.muted} size={14} />
         </Press>
-      </Animated.View>
+      </Rise>
 
       <Tail v={v} />
 
-      <Animated.View entering={rise(360)} style={{ marginTop: 'auto' }}>
+      <Rise delay={360} duration={700} distance={10} style={{ marginTop: 'auto' }}>
         <Press onPress={v.on.logFood} label="Log food" ripple={`${p.onMain}33`} style={[styles.logFood, { backgroundColor: p.main }]}>
           <SpecIcon name="plus" color={p.onMain} size={20} />
           <T size={15} line={20} weight={600} color={p.onMain}>
             Log food
           </T>
         </Press>
-      </Animated.View>
+      </Rise>
     </View>
   );
 }
