@@ -1,542 +1,114 @@
-# Current task: Build 22 — the chosen Clean+ look, hourly detail, bug fixes
+# Current task: T18 — Today in "Time of day" colours, and the labelled bottom bar
 
-Status: **Approved design: Clean+ blue (14 Nov 2026).** T0 to T11 done; CI run 43591624287 gave the first screenshots. T12 review 1 and its fixes are done; CI run 43596886754 gave new screenshots. T12 review 2 done and its fixes (items 19–22) are done by Sonnet (b2b473d); Review 3 (item 23, Haiku) is done. Review 4 (CI run 43612325716) gave items 24 and 25, fixed by Haiku (0844c07). Review 5 (CI run 43618948597) is clean. **T12 done: the owner gave the final design OK (14 Nov 2026).** New owner request: **T15** (correct a dish's ingredients and amounts, and remember them), planned below. Sonnet can start T15a now; it does not touch the review files.
+Approved by the owner on 17 Nov 2026 ("Yup let us go for time of day"). The design, every value and the palettes are in `docs/design.md`, section "Current: Today Time of day". The mockup is `docs/design/today-time-of-day.html` (the "Time of day" chip).
 
 ## Who does what next
 
-| Step | Model | Say to it |
+| Task | Who | The line to give it |
 | --- | --- | --- |
-| ~~T1~~ | done | |
-| ~~T1 check~~ | done | |
-| ~~T2~~ | done | |
-| ~~T2 check~~ | done | |
-| ~~T3~~ | done | |
-| ~~T4~~ | done | |
-| ~~T4 check~~ | done | |
-| ~~T5~~ | done | |
-| ~~T6, T7, T8, T9~~ | done | |
-| ~~T10~~ | done | |
-| ~~T11~~ | done (CI run 43591624287) | |
-| ~~T12 review 1~~ | done | `docs/design/review-1.md` |
-| ~~Review 1 fixes~~ | done (Sonnet) | |
-| ~~T11 re-run~~ | done (CI run 43596886754) | |
-| ~~T12 review 2~~ | done | `docs/design/review-2.md` |
-| ~~Review 2 fixes~~ | done (Sonnet, b2b473d) | |
-| T11 re-run | running | CI run 43599840988 |
-| ~~T12 review 3~~ | done | `docs/design/review-3.md`: item 23 for Haiku |
-| ~~Review 3 fix~~ | done (Haiku, 1219365) | |
-| ~~T12 review 4~~ | done | `docs/design/review-4.md`: items 24–25 for Haiku |
-| ~~Review 4 fix~~ | done | items 24–25 (0844c07) |
-| ~~T12 review 5~~ | done | `docs/design/review-5.md`: clean; **owner's final design OK, 14 Nov 2026** |
-| T17 (later) | owner + Opus | fast design loop: planned after T12/T15 are seen |
-| **T15a** | Sonnet | "Do T15a in docs/current-task.md" |
-| T15b | Sonnet | "Do T15b in docs/current-task.md" |
-| T15 check | Opus | "Review the CI screenshots" |
-| T15c-0 | owner | ~~on the phone~~ confirmed; the open cooking values still to answer |
-| T15c-1 | Sonnet | "Do T15c-1 in docs/current-task.md" (deploy only with T14, owner's OK) |
-| T15c-2 to T15c-4 | Sonnet | "Do T15c-2 in docs/current-task.md", then -3, then -4 |
-| T15c check | Opus | "Review the CI screenshots" |
-| ~~T16-0~~ | done (15 Nov 2026) | `docs/walk-buddies.md`; owner questions in its section 11 |
-| T16a–d | Sonnet | after T16-0; T16a deploy needs the owner's OK |
-| T13 | Haiku | only after the owner's OK |
-| T14 | Sonnet | only after the owner's OK |
+| **T18a** | Sonnet | "Do T18a in docs/current-task.md" |
+| T18b | Sonnet | "Do T18b in docs/current-task.md" |
+| T18c | Sonnet | "Do T18c in docs/current-task.md" |
+| T18d | Sonnet | "Do T18d in docs/current-task.md" |
+| T18 check | Opus | "Review the T18 CI screenshots" |
+| T18e (fixes from the check) | Sonnet or Haiku, as the check says | written by Opus after the check |
 
-Switch to the model shown, give it the line, and come back to Opus at each "check" row.
-Written by Opus, 14 Nov 2026. Implement with Sonnet / Haiku as marked.
+T18a, T18b and T18c touch different files and can be done in any order; T18d comes last.
+
+Still open from before (details in `docs/tasks-archive/build-22-and-open-tasks.md`): T13 and T14 (only with the owner's OK), T15c (cooking method in Edit recipe), T16 (walk buddies), T17 (fast design loop).
 
 ## Goal
 
-1. The app looks exactly like the Clean+ mockup the owner picks (font, colours, sizes, spacing, shapes).
-2. Tapping any Today tile opens an hourly (or finer) time series for that day, with previous days.
-3. Fix the build 21 bugs: header under the status bar, Log food button covering the chart, Today Food 0 kcal vs Food tab 185 kcal, dark walk map.
-4. Screenshots of the real app are checked against the mockup before build 22 is sent.
-5. (Separate, needs its own OK) Deploy the cooking-model server.
+1. Today looks exactly like the mockup, in Dawn, Noon or Dusk colours by the phone's local time.
+2. The bottom bar has three labelled buttons: Today (house), Chats, Profile. No lifted round button.
+3. **Nothing Today does changes** (owner's rule 6): every tap, number, slot and screen stays.
+4. Today fits a 360 x 800 dp phone without scrolling; with large text nothing is cut off or overlaps.
 
 ## Rules for every task
 
-- App repo: this repo, branch `combined`. Checks: `npx tsc --noEmit` and `npx jest` must pass after each task.
-- Keep each file's line endings as they are.
-- Do not commit or push unless the owner says so. Never deploy without the owner's OK.
-- Sizes: the mockup phone is 390 px wide. Use **1 mockup px = 1 dp**. On wider phones (Pixel 6 = 411 dp) the extra width goes to the cards, not to bigger text.
-- Every value (font, size, weight, line height, colour, radius, padding, gap, shadow) comes from `docs/design/spec.md`. Never guess a value. If the spec is missing one, stop and add it to the spec from the mockup HTML first.
-- The look is always light. The phone's dark mode must not change it.
-- Read `docs/design.md` and `docs/architecture.md` first. Never edit `docs/design.md` (Opus only).
-- After finishing a task, append a short entry to `docs/completed-tasks.md` (date, task id, what changed, test counts, anything left open).
-- **Keep changes cheap (owner, 14 Nov 2026; see T17).** New code must not make later design changes harder:
-  - A screen or component only draws. Loading, saving and multi-step flows (API call, Health copy, repo write) go in a hook or a plain function in the feature folder, with a jest test. Never add new `repo.*`, `@/api` or Health calls inside a `.tsx` view.
-  - Every new size, colour, radius or gap goes in the theme (`src/constants/themes/`) or `clean-spec.ts`, never inline in a component.
-  - When a task adds or moves a design value or a screen's view file, add one line for it to `docs/design/map.md` (once T17 has created it).
-
-## Order
-
-T0 → T1 → T2 → T3 → T4 → T5 → (T6, T7, T8, T9, T10 can run in any order) → T11 → T12 → T15a → T15b → T15 check → T15c → T13. T14 is separate. T16 (walk buddies) starts after T15. T17 (fast design loop) is planned with the owner once T12 and T15 are seen.
-
----
-
-## T0. Owner picks the design (gate)
-
-- **DONE 14 Nov 2026: Clean+ blue** (Poppins, #1F4FD8). Faults fixed by Opus. Mockup: `docs/design/clean-plus.html` / `.png`.
-- Bottom bar: Today, Food, (+ Log food), Activity, You — icons only. The Journal tab goes; Journal opens from the You tab and from tapping a day in Today's week strip (see `docs/design.md`). This changes `src/app/(tabs)/_layout.tsx`, `src/app/(tabs)/you.tsx` and `navigation-bar.tsx` in T5/T6.
-- **Files:** none.
-- **Risk:** Starting before the pick wastes all later work.
-- **Done when:** the owner has named one.
-- **Model:** none (owner).
-
-## T1. Sort out the unfinished work in the working tree
-
-**DONE 14 Nov 2026 (Sonnet), checked by Opus.** Result: `docs/design/leftover-review.md`. Its three deviations are accepted; their follow-ups are now in T4, T6, T7 and T8.
-
-The stopped "screens match mockups" run left 28 changed files and new folders (about 1,700 lines). They are not reviewed.
-
-- **What:** Keep what helps the single chosen look; drop the rest.
-  - Keep (review, then keep): `src/app/design-preview.tsx`, `src/design-preview/*` (fixed sample day for screenshots), the capture loop in `.github/scripts/launch-and-capture.sh` and `.github/workflows/android.yml`, `src/components/map-style.ts` (+ test), the fixes in `src/state/use-calories.ts`, `src/components/ui/screen.tsx`, `src/app/(tabs)/food.tsx`.
-  - Drop: the six per-look Today screens `src/components/today/today-a.tsx` … `today-f.tsx` and any per-look branches in `src/constants/themes/a.ts`–`f.ts` that only served them.
-  - Write the result to `docs/design/leftover-review.md`: each file, keep / drop / change, one line why.
-- **Files:** everything listed in `git status`; `docs/design/leftover-review.md` (new).
-- **Risk:** Throwing away the real bug fixes along with the per-look screens. Use `git diff <file>` per file; do not `git checkout .`.
-- **Done when:** `git status` matches the review file; tsc and jest pass.
-- **Model:** **Sonnet** (reading and sorting). Opus checks the review file (5 minutes).
-
-## T2. Write the per-element design spec
-
-- **What:**
-  1. Copy the chosen mockup into the repo: `docs/design/clean-plus.html` and `docs/design/clean-plus.png` (already done by Opus).
-  2. Write `docs/design/spec.md`: one table per screen (Today, Food result, Walk, nav bar), one row per element. Columns: element, font family, weight, size, line height, colour (hex), background, radius, padding, gap/margin, border, shadow, icon size. Plus a colour table (all CSS variables) and a type scale.
-  3. Write `src/constants/themes/clean-spec.ts`: the same values as a typed object (the tests in T4 read it).
-- **Files:** `docs/design/clean-plus.html`, `docs/design/clean-plus.png`, `docs/design/spec.md`, `src/constants/themes/clean-spec.ts` (all new).
-- **Risk:** Missing elements (the build 21 failure). Go through the HTML rule by rule and element by element; every class used in the markup must appear in the spec. Telugu text uses Noto Sans Telugu — include it.
-- **Done when:** a script or manual check shows every CSS class in the HTML is in spec.md; every value in `clean-spec.ts` equals spec.md.
-- **Model:** **Sonnet.** Opus reviews spec.md against the PNG before T3.
-
-## T3. Add the fonts
-
-- **What:** Install `@expo-google-fonts/poppins` (weights 300, 400, 500 only) and `@expo-google-fonts/noto-sans-telugu`. Load them at start in `src/app/_layout.tsx` (keep the splash screen up until loaded). On Android each weight is its own family name (e.g. `Poppins_500Medium`); add a helper `fontFor(weight)` in `src/constants/themes/fonts.ts`.
-- **Files:** `package.json`, `package-lock.json`, `app.json` (expo-font plugin if needed), `src/app/_layout.tsx`, `src/constants/themes/fonts.ts` (new).
-- **Risk:** Using `fontWeight` with a custom font on Android falls back to the system font — always use the family name per weight. App size grows; load only the weights in the spec.
-- **Done when:** `fontFor` has a test for each weight in the spec; tsc and jest pass.
-- **Model:** **Haiku.**
-
-## T4. The "Clean" theme tokens
-
-**DONE 14 Nov 2026 (Sonnet).** See `docs/completed-tasks.md`.
-
-- **What:** Add theme id `clean` built from `clean-spec.ts`; make it the default; always light. The other six looks (A–F) **stay visible and selectable** in Settings (owner, 14 Nov 2026). They use the same Clean+ layout and shared pieces, with their own colours and fonts only; no per-look screen layouts. Each look keeps its own light/dark as designed (B Night is dark); none follows the phone's dark mode.
-- **Files:** `src/constants/themes/clean.ts` (new), `types.ts` (add id, `DEFAULT_THEME_ID = 'clean'`), `index.ts`, `build.ts`, `choice.ts` (unknown saved id → `clean`; a saved A–F choice is kept), `apply.ts` and `src/app/_layout.tsx` (ignore the phone's colour scheme), `src/components/appearance-note.tsx`, `src/app/settings.tsx` (look picker lists Clean+ first, then A–F), `src/constants/__tests__/themes.test.ts`.
-- **Tests:** every token in the `clean` theme equals the value in `clean-spec.ts`; the theme is the same with the phone in dark mode; an unknown saved id loads `clean`; a saved `d` still loads `d`; all seven looks build without missing tokens.
-- **Risk:** A–F only change colours and fonts on the new layout, so they will not look like their old mockups; that is accepted. Every look must still pass text contrast ≥ 4.5:1 (existing theme tests). People who never chose a look get Clean+.
-- **Also (from T1):** remove the `ThemeLayout` fields that no code reads any more — `logFood`, `gap`, `gutter.today`, `todayKicker`, `todayTitle`, `todayAction`, `todayPair`, `todayRows`, `heroPercent`, `heroStats`, `heroWeek` (and the `TodayArea` type) — from `types.ts`, `build.ts` (`PARK_LAYOUT`), `a.ts`–`f.ts` and their tests. Check first with `grep -rn` that nothing outside the theme files and tests reads them.
-- **Also:** `src/components/appearance-note.tsx`: fix the unindented `<View style={style}>` block, and change the text to say there are eight looks with Clean+ the default.
-- **Done when:** tests pass.
-- **Model:** **Sonnet.**
-
-## T5. Shared UI pieces to spec
-
-**DONE 14 Nov 2026 (Sonnet).** See `docs/completed-tasks.md`. T6 notes: use `NavigationBar` with a `fab` item and `specIcon`s and wire `(tabs)/_layout.tsx`; the Water tile needs a TalkBack action for "add a glass"; pips and the empty week track use `midTone(theme)` from `hero-colors.ts`.
-
-- **From the T4 check (Opus):** Clean+ radius roles follow tokens.ts (md 24 = cards/tiles/hero, lg 28 = FAB, sm 12); set the spec's chip 20 and snackbar 16 per component from `CLEAN_SPEC.radius`. Bar tracks paint `lane` (= hair); water pips and the empty week track paint accentMid (`secondaryContainer`). Cards are white with `CLEAN_SPEC.shadow.card`, not the grey `surfaceContainer` plate.
-
-- **What:** Make the shared pieces match the spec exactly, and add the new ones the mockup uses.
-  - Change: `src/components/ui/screen.tsx` (top padding = status bar inset + spec gap; fixes header under status bar), `navigation-bar.tsx`, `section-header.tsx`, `surface.tsx`, `stat-tile.tsx`, `chip.tsx`, `button.tsx`, `fab.tsx`, `list-row.tsx`, `progress-hero.tsx`.
-  - New in `src/components/ui/`: `greeting.tsx` (avatar + name + date), `week-strip.tsx` (7 days, today marked), `hour-bars.tsx` (bar chart, 24 bars, used by hero and detail), `ring.tsx`, `donut.tsx` (macros), `nutrient-bar.tsx`, `icon-circle.tsx` (tinted 40 dp circle), `pill.tsx`. Export from `index.ts`.
-- **Tests:** in `src/components/ui/__tests__/`: each component's style values equal the spec (render with react-test-renderer and read the style); tap targets ≥ 48 dp; charts have an accessibility label summing the data.
-- **Risk:** Other screens use these pieces; check Journal, Activity, You, Settings still render (tsc + existing tests). SVG charts: use `react-native-svg` (already installed? check `package.json`; if not, ask before adding).
-- **Done when:** tests pass; no hard-coded colour or size outside the theme in these files (`grep -n "#[0-9A-Fa-f]\{6\}"` finds none).
-- **Model:** **Sonnet.**
-
-## T6. Today screen
-
-- **What:** Build Today exactly as the mockup: greeting, week strip, steps hero with hour bars, 2-column cards (Food, Water, Sleep, …) with icon circles and rings, walk card with a tinted walk icon circle and time pill. Every card is tappable and opens T9's detail (`router.push('/detail/<kind>')`).
-- **Food kcal bug:** Today and the Food tab must read the same number. Use one hook (`src/state/use-calories.ts` → `useTodayKcal(date)`) in both places. Add a test: given food entries totalling 185 kcal, both readers return 185.
-- **Files:** `src/app/(tabs)/index.tsx`, `src/components/today/today-clean.tsx` (new), `src/components/today/model.ts`, `use-today-extras.ts`, `view.ts`, `src/state/use-calories.ts`, `src/app/(tabs)/food.tsx` (use the same hook), tests in `src/components/today/__tests__/`.
-- **Risk:** Empty day (no data yet) must still look like the mockup's layout with zeros, not collapse.
-- **Also (from T1):** replace the T1 placeholder in `src/components/today/today-clean.tsx`. **Every look, Park included, uses this one Today:** delete `ParkToday` and its now-unused helpers from `src/app/(tabs)/index.tsx` and make `TodayScreen` always render the Clean+ Today. The frame (`look.background`, `look.gutter`) comes from the theme tokens, not hard-coded values. Fix the stale comment at the top of `src/components/today/view.ts` (it still names today-a … today-f). Reuse `src/components/today/kit.tsx` pieces only where they match the spec; otherwise use the T5 components.
-- **Done when:** tests pass; the T11 screenshot matches the mockup.
-- **Model:** **Sonnet.**
-
-## T7. Food result screen
-
-- **From the T4 check (Opus):** the donut and macro dots use `CLEAN_SPEC.colors` warm (protein), carbs (carbs), accent (fat) as spec 5.12, not `food`/`food2`/`food3` (those only feed the old split bar, which goes).
-
-- **What:** Result hero with macro donut, ingredient rows with icons and cooking method ("Dried anchovy · fried · 40 g"), nutrient bars.
-- **Files:** `src/components/food/food-result.tsx`, `food-result-look.ts`, `food-result-format.ts`, `food-result-host.tsx`, `src/components/journal/food-log.tsx`, tests in `src/components/food/__tests__/`.
-- **Risk:** Long Indian dish names and Telugu names: wrap to 2 lines, never clip. Test with a 40-character name.
-- **Also (from T1):** one layout for every look: remove the per-look branches (`FoodResultThemed`, reads of `layout.foodHero`, `layout.macros`, `layout.ingredients`, `layout.nutrients`, `layout.rows`, `gutter.food`, `block`) from `food-result.tsx`, `food-result-look.ts` and `food-log.tsx`, then remove those fields from `ThemeLayout`/`ThemeDef` and `a.ts`–`f.ts` if nothing else reads them.
-- **Done when:** tests pass; screenshot matches.
-- **Model:** **Sonnet.**
-
-## T8. Walk screen and map
-
-- **What:** Light map style matching the mockup, stat cards, route line in the accent colour.
-- **Files:** `src/app/walk/[id].tsx`, `src/components/walk/walk-detail-look.tsx`, `src/components/map-style.ts`, `src/components/route-map.tsx`, `route-map.web.tsx`, `src/components/__tests__/map-style.test.ts`.
-- **Risk:** Map style must not follow phone dark mode (that was the dark map bug).
-- **Also (from T1):** one layout for every look: remove `HAS_WALK_LOOK` and the Park branch in `src/app/walk/[id].tsx`, and the per-look branches (`layout.walkStats`, `gutter.walk`, `block`) in `walk-detail-look.tsx`; then remove `ThemeLayout` entirely if nothing reads it. Keep per-look `map` colours (each look's map still uses its own colours).
-- **Done when:** test asserts the style is the light one in both phone modes; screenshot matches.
-- **Model:** **Sonnet.**
-
-## T9. Tap a tile → hourly detail
-
-- **What:** New screen `/detail/[kind]`, kind = `steps | active | food | water | sleep`. Shows the day's series:
-  - steps: per hour; tap an hour → 15-minute bars (from the minute data the step counter already stores);
-  - active minutes: per hour;
-  - food and water: each entry at its time, plus per-hour totals;
-  - sleep: stages/hours where Health Connect gives them; otherwise "No sleep data for this day".
-  - Swipe left/right or arrows for previous/next day; no future days.
-- **Files:**
-  - `src/app/detail/[kind].tsx` (new) — the screen.
-  - `src/state/series.ts` (new) — pure bucketing: `bucketByHour(points, dayStart, tz)`, `bucketBy15Min(...)`. No React here.
-  - `src/state/use-series.ts` (new) — reads data: steps/active from `src/health/select-source*.ts` / `health-connect-source.ts` and the minute rows in `src/data/`; food from `src/data/food-rows.ts`/`entries.ts`; water from `src/state/use-water.ts`; sleep from `src/health/vitals*.ts`.
-  - `src/components/detail/series-chart.tsx` (new) — uses `hour-bars.tsx` from T5.
-  - `src/state/__tests__/series.test.ts` (new).
-- **Tests:** hour buckets sum to the day total; an entry at 23:59 lands in hour 23, at 00:00 next day not in this day; India (+5:30) and a whole-hour zone; empty day gives 24 zeros; 15-minute buckets sum to their hour.
-- **Risk:** Health Connect may not have minute data for older days — show hourly only and say so. No new permissions.
-- **Done when:** tests pass; each Today tile opens its detail on the emulator.
-- **Model:** **Sonnet** (screen and data). The bucketing tests alone could be **Haiku** once `series.ts` exists.
-
-## T10. Log food button covering the chart
-
-- **What:** The Food tab list gets bottom padding = FAB height + FAB margin + 16 dp, so the last chart is never under the button.
-- **Files:** `src/app/(tabs)/food.tsx`, `src/components/ui/fab.tsx` (export its height constant).
-- **Done when:** on the emulator screenshot, the "By hour" chart is fully visible when scrolled to the end.
-- **Model:** **Haiku.**
-
-## T11. Screenshot check before the build
-
-- **From the T4 check (Opus):** `.github/scripts/launch-and-capture.sh` loops over `park a b c d e f` only: add `clean` (first) and take the dark-phone check on `clean`, not D. Add `clean` to the theme list in `src/design-preview/params.ts` and the notice in `src/app/design-preview.tsx`.
-
-- **What:** The CI emulator photographs Today, Food result, Walk, and one detail screen in the `clean` look, light and dark phone mode, using the design-preview deep link. A script puts each next to the mockup at the same width (`smoke/compare-<screen>.png`) for review.
-- **Files:** `.github/scripts/launch-and-capture.sh` (themes = `clean` only; add `detail`), `src/app/design-preview.tsx` and `src/design-preview/*` (add `detail` screen), `.github/scripts/side-by-side.py` (new; Pillow; mockup crop on the left, app on the right), `.github/workflows/android.yml` (upload `smoke/` as an artifact).
-- **Risk:** Screenshots are evidence only — they do not fail the job. A person (Opus) must look.
-- **Done when:** a CI run produces the compare images.
-- **Model:** **Sonnet.**
-
-## T12. Review against the mockup (gate)
-
-- **What:** Opus compares each compare image element by element against `docs/design/spec.md`: font, weight, size, colour, spacing, radius, alignment, clipping, Telugu. Every difference becomes a fix item (file + value) for Sonnet/Haiku; repeat T11–T12 until none. Then the owner gets the screenshots.
-- **Files:** `docs/design/review-<n>.md` (findings).
-- **Done when:** no differences left and the owner has seen the screenshots and said OK.
-- **Model:** **Opus.**
-
-## T13. Commit and build 22
-
-- **What:** Only after the owner's OK: commit on `combined`, push, CI builds `android-22`.
-- **Files:** none new.
-- **Done when:** release android-22 exists and smoke test passes.
-- **Model:** **Haiku.**
-
-## T14. Cooking-model server deploy (separate; needs the owner's OK)
-
-- **What:** In `stepsinfra`: run both test suites; `cdk deploy StepsData`; run `scripts/import-ingredients.py --write` (8,193 records); then `cdk deploy StepsApi`. Check one dish request ("1 cup rice + dal + aloo fry") returns cooked values.
-- **Risk:** Deploy order matters (data before API). Live AWS change.
-- **Done when:** both stacks deployed, ingredient count 8,193, the test dish works.
-- **Model:** **Sonnet.** Not before the owner says yes.
-
----
-
-## T15. The person corrects a dish's ingredients and amounts, and the app remembers it (owner, 14 Nov 2026)
-
-**What the owner asked:** the app guesses a dish's ingredients. The person must be able to fix them: change an amount, remove one that isn't there, add one that is. The next time they have the same dish, the app uses their confirmed list. The same goes for the quantity: start from a normal amount, let them change it, and remember it.
-
-**What exists today** (mapped 14 Nov 2026):
-- The food result's Edit panel already changes the unit, the quantity and what one unit weighs (`food-result.tsx` `Details` :494–643). The unit weight is kept in kv `portionOverrides`.
-- Ingredients are display only (`Ingredients` :359–413). Nothing stores a corrected list.
-- Typing the same dish again calls the server again (`food-log.tsx` `lookUp` :418–442). `pickLooked` then overwrites the saved copy with the fresh answer (`use-food-book.ts` :60–66).
-- The background refresh (`nutrition/pending.ts` :108–153, `refreshedFood`) also overwrites `ingredients`.
-- Nutrients come from the dish's `per100g`, not from its ingredients, so a changed list must be worked out again.
-
-### Decisions (Opus)
-
-1. **The person's version is its own food.**
-   - Confirming makes a new `FoodItem` with id `mine:<n>` (the next free number) and `source: 'mine'`.
-   - It keeps the original's name, aliases, category and units, and holds the edited `ingredients`.
-   - A new field `basedOn` holds the original id. `recipe` holds what was sent (below).
-   - It is kept in `saved_food`. The server's food is left as it is.
-   - So **past entries do not change**; only entries logged from now on use the person's version.
-2. **Working out the numbers:** send the edited list through the existing recipe look-up (`recipeFood`, POST `/v1/food/recipe`). No server change or deploy is needed.
-   - **What is sent:** name = the dish name. "What went in" = one line per ingredient, `"<name> <grams> g"`, in the shown order. "How you cooked it" = the dish name plus " (home)" or " (restaurant)" from `style`. Servings 1, unit = the food's default unit key.
-   - **What is kept from the answer:** `per100g`, `missing`, `pending` and `notes`. Keep the person's ingredient list exactly as they typed it, never the server's.
-   - **Pending answer:** the existing pending repeat (`pending.ts`) asks again with the same `recipe`. `refreshedFood` must **never** replace the `ingredients` of a `mine:` food, only its numbers.
-   - **Offline or an error:** keep the edit on screen, show the snackbar "Couldn't work it out. Check the connection and try again.", and save nothing.
-3. **Unit weight:** ingredient grams are for one unit ("in 1 bowl"). If the edited grams add up to a different total than the original list, one unit of the person's version weighs `original unit grams × new total ÷ old total`. Round it to the nearest 5 g, with a minimum of 5. The Edit panel's "what 1 unit weighs" stays changeable as today.
-4. **Same dish next time.** Kept in kv `myDishes`, on the phone only: `{ byFood: { [originalId]: mineId }, byText: { [normalised typed text]: mineId } }`.
-   - **Normalising:** the same way `searchFoods` does: lowercase, NFKD, anything other than letters and digits becomes a space, spaces collapsed.
-   - **On confirm:** set both. The typed text is the search text that led to the result, when there was one.
-   - **Typing:** when the normalised text is in `byText`, the person's version is the first row of the local results, labelled " · your version". This happens before any "Look up" call.
-   - **Look-up:** when a returned food's id is in `byFood`, that row shows the person's version instead, labelled " · your version". `pickLooked` must not overwrite it.
-   - **Local search:** lists a `mine:` food once, and hides its `basedOn` food.
-   - **Editing the person's version again** updates the same `mine:` food in place (it is theirs), so entries already logged with it change too. Say so under the button: "Changes every time you logged this dish".
-   - **"Use our guess again":** a text button in the Edit panel, shown only on a `mine:` food. It removes both mappings and switches this result back to the `basedOn` food. The `mine:` food stays for old entries.
-5. **Quantity next time:** a dish logged before opens at its last logged unit and quantity, not 1 of the default unit. Take them from `recentFoods`, matched by food id; for a `mine:` food, also by its `basedOn` id. A dish never logged starts at the server's suggested amount, as now.
-6. **Limits:**
-   - At least 1 ingredient and at most 30.
-   - Names are trimmed and 1–60 characters long.
-   - Grams are whole numbers from 1 to 2,000.
-   - "Use these ingredients" is disabled while anything is invalid, and the field says why under it (`s13 warn`).
-7. **Privacy:** the list goes to the food API as recipe text, as the recipe form already does. It carries no user id; the server caches recipes by text. `myDishes` and `mine:` foods stay on the phone, and nothing else is uploaded.
-
-### UI (no mockup; Clean+ tokens from `docs/design/spec.md`)
-
-- **Entry point:** on the food result, after the last ingredient row, a 48-high row **"Change ingredients"** in `s15 med` accent. It lines up with the ingredient names (x 76), like "Show all nutrients" (10.5). The Edit panel also opens it.
-- **Ingredient rows while editing:**
-  - Rows stay 48 high with the same circle and hairline.
-  - The name is `s15` ink and not editable; to rename, remove the row and add a new one.
-  - On the right, a grams field: 72 × 40, radius 12, soft fill, `s15` ink right-aligned, with "g" in `s13 muted` inside after the number, numeric keyboard.
-  - Then a remove button: the 20 close icon in muted, touch area 48 × 48, label "Remove <name>".
-  - The amount column moves left to make room. The method (" · fried") stays.
-- **Adding:** after the rows, an **"Add ingredient"** row, 48 high: a 20 plus icon in accent inside a 40 accentTint circle, then the text in `s15 med` accent.
-  - Tapping it adds a row with a name field (flex, height 40, radius 12, soft fill, `s15`, placeholder "Ingredient", focused) and an empty grams field.
-  - The new row's icon is the bowl until it is named; then the 10.5 icon rules apply.
-- **Caption:** the caption on the right of "Ingredients" becomes "Amounts in 1 <unit>" (`s13 muted`) while editing.
-- **Bottom strip while editing:** the same white strip with the 5.8 buttons: **"Cancel"** (styled like the Edit button) and **"Use these ingredients"** (filled).
-  - **While it works:** the filled button reads "Working it out…" and is disabled, and the rows can't be edited.
-  - **When done:** the screen shows the new numbers and the strip goes back to Edit / Save to <meal>. A pill **"Your version"** (the 5.6 pill: accentTint fill, accent text) sits after "You typed" in the top bar, gap 8.
-- **Cancel:** drops the edits without asking.
-- **Numbers:** nutrients and kcal change only from the answer. Nothing is guessed on the phone.
-- **Accessibility:** all text uses `maxFontSizeMultiplier` as elsewhere (10.4). Every control has an accessibility label and a 48 × 48 touch area.
-- **Design preview:** add `screen=food&edit=1` to `design-preview.tsx`: the sample result opened for editing, with the sample's five rows. Capture it in `launch-and-capture.sh` as `clean-food-edit.png` so the review can see it.
-
-### Tasks
-
-- **T15a — data and logic (Sonnet).**
-  - **First (keep changes cheap, T17):** move the food flows out of the screens into new `src/nutrition/log-food.ts`, plain functions with injected `repo`, `source` and API calls:
-    - `logFood(deps, input)`: write the local row first, then the Health copy; if the Health copy fails, keep the row and return a notice. This replaces the inline saves in `components/journal/food-log.tsx` (`save`, about lines 196–231) and `components/food/scan-screen.tsx` (about 127–141). It fixes the Health sample left behind when the local insert fails.
-    - `lookUpFood(deps, text)`: `checkDescription`, `estimateFood` and the error mapping now in `food-log.tsx` `lookUp` (about 418–442). Keep the stale-answer guard in the component.
-    - The restaurant version step (`versionFor`, about 251–280) as `restaurantVersionFor(deps, …)`.
-    - The components call these; behaviour and texts stay the same. Tests in `src/nutrition/__tests__/log-food.test.ts` with `memoryRepository` and a fake source.
-    - The T15 mappings below then go into these functions, not into the component.
-  - `src/nutrition/types.ts`: add `basedOn?: string` and the `source` value `'mine'`.
-  - New `src/nutrition/my-dishes.ts`, pure functions:
-    - `recipeTextFor(food, ingredients)`
-    - `scaledUnits(food, oldIngredients, newIngredients)`
-    - `normaliseDishText`
-    - `myDishesAfterConfirm` and `myDishesAfterReset`
-    - `mineFor(myDishes, {foodId?, text?})`
-    - `validIngredients(list)`, with the limit messages
-  - `src/state/use-food-book.ts`: load and save `myDishes`. `confirmIngredients(food, list, typedText)` calls `recipeFood`, then builds and saves the `mine:` food and the mappings. Add `useOurGuess(mineId)`.
-  - `src/nutrition/pending.ts`: `refreshedFood` keeps a `mine:` food's ingredients.
-  - `src/nutrition/catalog.ts` `searchFoods`: the person's version comes first and its `basedOn` food is hidden.
-  - `src/components/journal/food-log.tsx`: `lookUp` and `pickLooked` use the mappings, and the start quantity comes from `recentFoods`.
-  - **Tests:** in `src/nutrition/__tests__/my-dishes.test.ts` and the existing `saved-foods`, `pending` and `food-read` tests. Cover:
-    - the recipe text;
-    - unit scaling and rounding;
-    - the limits;
-    - normalised text matching;
-    - a look-up result swapped for the person's version, and `pickLooked` not overwriting it;
-    - the refresh not touching its ingredients;
-    - past entries keeping the original food;
-    - "use our guess again";
-    - the last quantity reused.
-  - **Done when:** tsc, eslint and jest pass.
-- **T15b — the screen (Sonnet).**
-  - `src/components/food/food-result.tsx`: the editing state, rows, adding, Cancel / Use these ingredients, the pill, and "Use our guess again".
-  - `food-result-layout.ts`: row widths with the field and the remove button (pure, tested).
-  - `src/app/design-preview.tsx` and `.github/scripts/launch-and-capture.sh`: the edit preview.
-  - **Done when:** the checks pass; then commit, push and run CI (standing OK).
-- **T15 check (Opus):** "Review the CI screenshots" also checks `clean-food-edit.png` against the UI section above.
-
-**Risk:** the recipe look-up for an edited list can give different numbers from the original dish even when nothing really changed, because it is a new estimate. If the person confirms an unchanged list, do nothing (no new food).
-
----
-
-## T15c. Cooking method in "Edit recipe", and the phone does the maths (owner, 15 Nov 2026)
-
-**What the owner asked:** "Edit recipe" must know how each thing was cooked (boiled, oil fry, deep fry, salad…), because the nutrients depend on it. The AI only gives each ingredient's nutrient profile, plus the ingredient list and cooking methods when the person doesn't give them. **The calculation is done on the phone** (owner confirmed, 15 Nov 2026).
-
-**What exists today** (mapped 15 Nov 2026):
-- The cooking model is built on the server but **not deployed** (T14): `stepsinfra/lambda_src/python/steps/food/cooking.py`, the factor files in `stepsinfra/data/cooking/`, the design in `stepsinfra/docs/cooking-model.md`. It works per ingredient: record → yield → USDA retention → meat fat drip → frying oil uptake → totals (sections 2–7 there).
-- The app only shows the method inside a name ("Egg (boiled)" → "Egg · boiled"). In the Edit panel an existing row's name, so its method, can't be changed.
-- T15 sends an edited list to the recipe look-up and takes back finished numbers. Nothing is worked out on the phone.
-
-### Decisions (Opus)
-
-1. **Who does what.**
-   - **Server:** per ingredient, gives the *profile*: the raw nutrients per 100 g from our USDA table (the AI's numbers only for an ingredient no table has, marked `pending` as today), and the food's own cooking facts (below). When the person typed only a dish name, the AI also gives the ingredient list, grams and methods, as today.
-   - **Phone:** all the maths. The same steps as `cooking.py` sections 7.1–7.8, ported to TypeScript. The numbers shown, saved and logged are the phone's.
-   - The server keeps working out its own totals for older app builds and its dish cache. The new app ignores them.
-2. **The profile** (new field `profile` on each `FoodIngredient` line, kept in `saved_food` with the food, so editing works offline later):
-   - `per100g`: raw nutrients (same keys as `FoodItem.per100g`); `missing` keys stay unknown, never 0.
-   - `cookClass`, `id` (record id), `basis` and `rawGrams` as the server read them.
-   - `yields`: this food's own yields per method (only its entries from `yields.json` `foods`).
-   - `cooked`: per method, the approved USDA cooked record's per 100 g, when one exists (`cooked-records.json`).
-   - `calc`: the cooking data version (`c1`). A profile with a version the app doesn't know is treated as having no profile.
-3. **Factor tables on the phone, never in the public repo (owner, 15 Nov 2026: how we work it out is ours).** The app repo is public, so the tables are **not** committed and **not** bundled in the APK.
-   - The app downloads them after sign-in from a new `GET /v1/food/cooking` (same sign-in and premium check), keeps them in the app's private storage (kv), and asks again only when the server's `calc` version changes.
-   - Without tables (first start offline), editing uses the T15 recipe look-up path.
-   - Made by a new stepsinfra script from `data/cooking/` (methods, retention-map, only the retention codes the map uses, class yields and limits, oil uptake, fat drip, default oils); target under 120 KB.
-4. **One answer, two codes.** `cooking.py` writes a golden file (the worked examples 8.1 and 8.2, plus one case per method, raw and cooked basis, deep fry with and without oil listed, an unknown method). Both the Python tests and jest run it: within 0.5 kcal and 1% per nutrient. In the app repo, jest uses a **small made-up table set** (`src/nutrition/cooking/__tests__/fake-tables.ts`, invented numbers) and golden cases made from it; the real tables and real golden file stay in stepsinfra, whose tests run the app's `cook.ts` against them through a script (`scripts/check_app_cooking.sh <app repo path>`).
-5. **Grams in "Edit recipe" are before cooking** ("as it went into the pan"); a cook knows those. The row shows `rawGrams`; the caption says "Amounts in 1 <unit>, before cooking". Dry dal, rice and dried fish are dry weight. Salt, spices, water and in-dish oil are as added.
-6. **Methods the person can pick** (the server words of `cooking-model.md` section 2, with plain labels):
-
-   | label | method |
-   | --- | --- |
-   | Raw / salad | `raw` |
-   | Boiled | `boiled` |
-   | Boiled, water drained | `boiled-drained` |
-   | Pressure cooked | `pressure-cooked` |
-   | Steamed | `steamed` |
-   | In a curry / gravy | `simmered` |
-   | Tadka / stir-fried | `stir-fried` |
-   | Shallow fried (pan / tawa) | `shallow-fried` |
-   | Deep fried | `deep-fried` |
-   | Roasted / baked | `roasted` |
-   | Grilled / tandoor | `grilled` |
-
-   `soaked`, `sprouted` and `unknown` are shown if the server gave them, but are not offered. Salt, spices, water and oils have no method.
-7. **Oil.** As `cooking-model.md` 5.2: an oil row the person keeps is eaten in full ("in-dish"). For deep fried, the oil soaked up is worked out (`U` × raw grams ÷ 100, table 5.3) and shown as its own line, "Oil soaked up in frying · 9 g", which can't be edited. A shallow-fried or tadka item with no oil row gets `U` added the same way. Which oil: the dish's oil, else the country default (5.4).
-8. **Live numbers.** While editing, kcal, the macro ring and the nutrients update on every change, with no network. This replaces T15's "numbers change only from the answer". "Use these ingredients" saves; Cancel drops it.
-9. **Adding an ingredient** needs its profile: one call to a new endpoint `POST /v1/food/ingredients` `{ names: string[], country }` → `{ items: [{ name, profile } | { name, unknown: true }] }`. Same sign-in and premium check as `/v1/food/estimate`. Until it returns, the new row shows "Looking up…" and the numbers leave it out. Offline: the row says "Couldn't look this up. Check the connection." and "Use these ingredients" stays off.
-10. **Foods with no profiles** (saved before T15c, catalog dishes): opening "Edit recipe" first calls `/v1/food/ingredients` once for all rows. If that fails, editing falls back to the T15 recipe look-up path, unchanged.
-11. **The dish's weight** is the sum of cooked grams (section 7.7), so the unit weight comes from the maths. T15's `scaledUnits` is used only on the fallback path.
-12. **Privacy:** only ingredient names and the country go to the server, as the recipe text does today. No user id in the request body.
-13. **Owner's open values** (`cooking-model.md` 14): dough/batter oil uptake 15, tadka 3, vegetable shallow fry 6.0, the gravy water shares and the default oil per country are still "[default, to confirm]". T15c uses them as they are unless the owner changes them.
-
-### UI (no mockup; Clean+ tokens from `docs/design/spec.md`)
-
-- **"How was it cooked?"** at the top of the editing rows: `s13 muted` label, then one row of the 5.6 chips that scrolls sideways: Raw / salad · Boiled · In a curry · Tadka · Shallow fried · Deep fried · Roasted / baked · More…
-  - Picking one sets every cookable row to it (not salt, spices, water or oil). "More…" opens the full list of decision 6 as a sheet.
-  - The chip is selected when all cookable rows share that method; otherwise none is.
-- **Per row:** the method shows after the name as a small tappable text, `s13` accent ("boiled ▾"). Tapping opens the same sheet for that one row. A row with no method yet shows "how cooked? ▾".
-- **Oil soaked up** line: like an ingredient row, with the oil icon, name "Oil soaked up in frying", grams in `s15 muted`, no grams field, no remove button.
-- **Caption:** "Amounts in 1 <unit>, before cooking".
-- **Result screen (not editing):** each row reads "Potato · shallow fried", amounts as eaten as today. **Never show how a number was worked out** (no yields, raw → cooked grams, oil soaked up in the result, retention or sources): the "How we worked this out" section was removed on 15 Nov 2026 and only "Values are estimates." is shown. In "Edit recipe" the oil line of decision 7 shows only its grams.
-- **Accessibility:** chips and method buttons have labels ("Cooking method for Potato: shallow fried. Change"), 48 × 48 touch areas, `maxFontSizeMultiplier` as elsewhere.
-- **Design preview:** `screen=food&edit=1` shows the chips and one deep-fried row with its oil line; captured as `clean-food-edit.png` as now.
-
-### Tasks
-
-- **T15c-0 — owner (gate).** ~~Confirm "locally" means on the phone~~ (confirmed 15 Nov 2026). Still open: accept or change the values in decision 13 (T15c-2 to -4 may start without it).
-- **T15c-1 — server (Sonnet). Deploy needs the owner's OK; goes out with T14.**
-  - `steps/food`: add `profile` to each ingredient line of estimate and recipe answers; add `POST /v1/food/ingredients` (batch up to 30 names, cached by name and country like the recipe cache).
-  - `GET /v1/food/cooking` returns the tables for the phone (decision 3); `scripts/check_app_cooking.sh` runs the app's `cook.ts` on the real golden file. Nothing from `data/cooking/` is written into the app repo.
-  - Tests: profile shape, unknown names, premium refused, the golden file matches `cooking.py`.
-  - **Done when:** both test suites pass. Do not deploy.
-- **T15c-2 — the phone's cooking maths (Sonnet).**
-  - New `src/nutrition/cooking/`: `cook.ts` (`cookIngredient(line, tables, country)` and `cookDish(lines, tables, country)` → per-line results and the dish `per100g`, weight and notes), `tables.ts` (loads and checks `cooking-c1.json`), `methods.ts` (labels of decision 6).
-  - `types.ts`: `FoodIngredient` gains `method?`, `rawGrams?`, `oilGrams?`, `profile?`; `food-read.ts` keeps them when valid and drops anything else.
-  - Tests: the golden file (every case), unknown stays unknown, oil never counted twice, raw vs cooked basis give the same dish within 1%.
-  - **Done when:** tsc, eslint and jest pass.
-- **T15c-3 — the flow (Sonnet).** In `log-food.ts`, `use-food-book.ts` and `food-result-edit.ts`: rows carry method and profile; numbers come from `cookDish` on every change; `confirmIngredients` saves the `mine:` food from the phone's result (no recipe call) when every row has a profile, else the T15 path; `fetchProfiles` for decision 9–10. Tests in the existing files.
-- **T15c-4 — the screen (Sonnet).** The chips, the row method button and sheet, the oil line, the caption, live numbers, and the design preview. Then commit, push and run CI (standing OK).
-- **T15c check (Opus):** the CI screenshots against the UI section above, and one hand check: aloo fry (150 g potato, shallow fried, 10 g oil) gives about 204 kcal for the dish, as `cooking-model.md` 8.2.
-
-**Risks:**
-- The phone and server maths can drift; the golden file in both test suites is the guard. Any factor change means a new `calc` version and a new export.
-- Nothing works end to end until T14 and T15c-1 are deployed. Until then T15c-2 to T15c-4 can be built and tested with the golden file and fake profiles, and the app falls back to the T15 path.
-- The app grows by the tables (under 120 KB).
-
----
-
-## T16. Walk buddies: find walkers, chat, and share walk totals (owner, 14 Nov 2026; after T15)
-
-**What the owner asked:** chat with walkers nearby, or with any walker found by their ID, "like Facebook". The only things posted are walk and cycle totals (distance and the like).
-
-### Owner decisions (14 Nov 2026)
-
-1. **Nearby = area only.** A person appears to others only after turning on "Show me to walkers nearby". They are matched by area, about 5 km. Never an exact spot, a live position, or a distance like "1.2 km away".
-2. **Chat after accepting.** You send a "walk buddy" request, and chat opens only once the other person accepts. Nobody can message a stranger.
-3. **Posts = totals, buddies only.** A post holds distance, time, steps, walk or cycle, and the day. There is no map, no route and no start place. Only accepted buddies see it.
-4. **18+ for this feature.** Opening Walk buddies the first time asks the person to confirm they are 18 or older. The rest of the app is unchanged.
-5. **Plan a walk (owner, 15 Nov 2026).** A person picks a day, a time and a place name they type (free text, no map pin), and invites accepted buddies. Each invited buddy answers Going or Not going. The organiser can change or cancel it, and invitees are told. Only invited buddies see it. No live location. T16-0 designs it with the rest.
-6. **Walker clubs (owner, 15 Nov 2026; defaults by Opus, owner to confirm).** A named group anyone 18+ can start.
-   - **Admins approve every member (owner, 15 Nov 2026).** Anyone can find a club by name or area and tap **Ask to join**; the owner and admins see the request and tap Accept or Decline. An admin can also invite a buddy directly (the invite counts as approved; the person still accepts it). A club can be hidden from search (found only by invite). The area is a typed name ("Banjara Hills"), never a map spot.
-   - Join requests: a person can have at most 5 waiting; a request with no answer expires after 14 days; a declined person can ask again after 30 days.
-   - Up to 200 members. The founder is the owner and can make admins; admins remove members and delete messages.
-   - Club chat (text only, the same limits as chat), club walks (Plan a walk for the club), and a weekly steps board that each member chooses to join.
-   - Report and block as everywhere; reports reach the owner's queue as well as the club admins.
-7. **Walker family (owner, 15 Nov 2026; defaults by Opus, owner to confirm).** A small private group, up to 8, joined only by an invite code.
-   - Members see each other's daily steps and walk totals (each member can turn sharing off), cheer each other, and have a family chat.
-   - Optional gentle alert for older family members: "No steps from Amma by 12:00", only if that member turns it on.
-   - **18+ only (owner, 15 Nov 2026),** like all of Walk buddies, clubs included. No children's accounts or child members.
-8. **Answers to the T16-0 questions (owner, 15 Nov 2026).**
-   - Every Walk buddies feature is premium.
-   - A ban covers Walk buddies only; the person keeps counting steps.
-   - India only (phone region, area check on the server, and an "I live in India" switch; `docs/walk-buddies.md` 11.1 question 7).
-   - Grievance Officer: the director or the owner; the name is still to be chosen (`docs/walk-buddies.md` 5.6).
-
-### Opus rules (safety and store rules)
-
-- **Report and block** (needed by Google Play's user-content rules and Apple 1.2):
-  - every person, chat and post has "Report" and "Block";
-  - blocking hides both people from each other everywhere and ends the chat;
-  - reports go to a server queue that the owner reviews, and the owner can ban an account.
-  - Publish the terms and a short "what's not allowed" page on `neutcrafts.in`, and link them from the 18+ screen.
-- **Location:**
-  - the phone works out the area itself (geohash precision 5, about 4.9 × 4.9 km) and sends only that code;
-  - raw coordinates never leave the phone;
-  - the area is refreshed at most once a day, and only while "Show me" is on;
-  - turning "Show me" off deletes it from the server at once.
-- **Walker ID:** a handle the person picks (3–20 characters, letters, digits and `_`, unique, case-insensitive). It can be changed once every 30 days. The display name is the profile name (T15-era `Profile.name`), or the handle when that is empty.
-- **Chat:**
-  - text only (no photos or links, so less to moderate), up to 500 characters;
-  - the server limits each person to 30 messages a minute and 20 new buddy requests a day;
-  - a person can have at most 3 open requests to people who haven't answered.
-- **Posts:** only after a walk is saved, and only when the person taps **Share with buddies** on that walk. Never automatic. A post can be deleted later.
-- **Account deletion** (already required) also deletes the handle, the area, requests, buddies, chats and posts.
-- **No phone contacts, no photos, no age stored.** The 18+ answer is kept only as "confirmed on <date>".
-- **Notifications:** a new message or request notifies the person (Expo push). Each can be turned off in Settings.
-
-### Tasks (detail is written in T16-0 before any code)
-
-- **T16-0 — design (Opus).** Read `stepsinfra` (the API, auth, tables and the planned WebSocket chat phase) and write `docs/walk-buddies.md`. It covers:
-  - the data model (DynamoDB keys);
-  - the API (REST for the handle, area, requests, buddies, posts and reports; WebSocket or polling for chat);
-  - push;
-  - the moderation flow and owner tools;
-  - the screens: a "Buddies" entry (where in the 5 tabs), Find (by ID, nearby), Requests, Chat list, Chat, Buddy's walks, Settings switches;
-  - the Clean+ sizes for each;
-  - tests and the CI preview shots.
-  - It also splits the build into Sonnet tasks.
-  - Follow "Keep changes cheap" in the rules: every Buddies screen is a view fed by a hook (`useBuddies`, `useChat` …); the API calls live in the feature folder, never in a `.tsx` view.
-- **T16a — server (Sonnet), needs the owner's OK to deploy.** The `stepsinfra` stacks and Lambdas from T16-0, with tests. This is a live AWS change, like T14.
-- **T16b — app: handle, 18+, find, requests, block and report (Sonnet).**
-- **T16c — app: chat and push (Sonnet).**
-- **T16d — app: share a walk and buddies' walks (Sonnet).**
-- **T16e — app: Plan a walk, invites, Going / Not going, reminders (Sonnet).**
-- **T16f — app: Walker clubs (Sonnet).**
-- **T16g — app: Walker family (Sonnet).**
-- **T16 check (Opus):** the screenshots (sample data in the design preview) and a safety review: report, block, area only, and deletion.
-
-**Not in scope:** public feeds, comments, photos, live location, and walking together in real time. (Groups are now in scope as clubs and families, decisions 6–7.) These can come later as separate requests.
-
-**Open before T16a:** the owner's OK to deploy the new stacks, and the Grievance Officer name.
-
----
-
-## T17. Fast, low-token design loop (owner, 14 Nov 2026; planned after T12/T15 are seen)
-
-**Why:** the owner wants design changes in minutes with the fewest tokens. Today one round is a 24-minute CI run (18.7 of it the APK build) plus a full Opus review and a Sonnet or Haiku fix, and the Clean+ change took four rounds. CI on this public repo is free; the cost is the AI work around each round.
-
-**Goal:** a recolour or value change in 2–5 minutes, solid colour cards in 5–10 minutes, rearranging one main screen in 10–20 minutes, by one cheap model in one session. CI runs only as a background check after the owner's OK.
-
-### Setup (once)
-
-1. **Live preview.** Add `.claude/launch.json` with a `web` entry (`npx expo start --web`, its port) so `preview_start` opens the design preview in the browser pane: `/design-preview?screen=today|food|walk|detail&theme=<id>`. Check that Today, Food result, Walk and Detail render as on Android with the sample day (`data/db.web.ts`). The walk map does not run on the web: show a static picture of the sample route in the map card when `Platform.OS === 'web'` (preview only).
-2. **Design map** `docs/design/map.md`: one line per thing a person may want to change → the file and the value or component that controls it. At least:
-   - every Clean+ colour role and where it shows;
-   - fonts and the type scale;
-   - each Today card, the hero, the week strip, the food kcal card, the ingredient and nutrient rows, the walk stat cards, the map card, Parts and the nav: which view file and which `clean-spec.ts` values;
-   - the order of the cards on each screen (the line in the view file);
-   - how to add a new look (copy a theme file, register it in `themes/index.ts`).
-   Keep it under about 150 lines, so reading it costs little. A model making a design change reads only this file, then the files it names.
-3. **Per-card colour tokens** (for colour blocks): a small set in the theme (`card.food`, `card.water`, `card.sleep`, `card.walk`, `card.hero`, `card.kcal`, `card.stat`, each a fill and an ink), read by those components. Clean+ keeps today's values, so no look changes.
-4. **Data out of the views still mixed** (audit, 14 Nov): the Food result's state and effects, `food-log.tsx`, `walk/record.tsx`, the journal logs, `activity.tsx`, `patterns.tsx`. Today and Walk already have this split. Done step by step; T15a does `food-log.tsx` first (see T15).
-
-### Each design change after setup
-
-1. The owner says the change in one line.
-2. One model: Haiku for value changes, Sonnet for rearranging. No Opus hand-off, no subagents, no workflows (ultracode off).
-3. Read `docs/design/map.md`, edit only the files it names.
-4. Check with one half-scale screenshot of the changed screen in the preview (`computer` screenshot, `scale: 0.5`), and send it to the owner.
-5. On the owner's OK: commit and push with a one-line message, start CI, and do not wait for it. No review file and no task-doc update for a design tweak.
-6. Opus is used only for a new look or a new layout.
-
-**Trade-off the owner accepted:** the web preview is close to Android but not identical (fonts, shadows, map); small differences found by the background CI are fixed afterwards.
-
-**Tasks:** T17a setup 1–2 (Sonnet), T17b setup 3 (Sonnet), T17 check (Opus: one half-scale shot per screen against the CI shots).
-
----
-
-## Open questions for the owner
-
-1. ~~Which design~~ — Clean+ blue (done).
-2. ~~Hide the other looks?~~ — No, keep them visible (done).
-3. OK to deploy the cooking server (T14) now or later?
+- App repo: this repo, branch `combined`. `npx tsc --noEmit` and `npx jest` must pass after each task.
+- Keep each file's line endings as they are. Don't run prettier on whole files.
+- Read `docs/design.md` and `docs/architecture.md` first. Never edit `docs/design.md` (Opus only). If a value is missing or unclear there, stop and report it; never guess.
+- 1 mockup px = 1 dp. Text sizes go through `scaled()` and `maxFontSizeMultiplier={MaxTextScale}` as `today-calm.tsx` does now.
+- New colours and sizes go in a constants file (T18a's `day-part.ts`, or the bar's style file), never inline in a component.
+- No new native packages. Gradients use `react-native-svg` (already installed: `Svg`, `Defs`, `LinearGradient`, `Rect`, `Circle`). Motion uses `react-native-reanimated` (installed), always with `ReduceMotion.System`.
+- Never remove or move a feature that is not listed in this task. If something does not fit, stop and report.
+- Commit and push after each task (standing OK); run the Android workflow only in T18d.
+- After each task, append a short entry to `docs/completed-tasks.md` (date, task id, what changed, test counts, anything left open).
+
+## T18a. Day parts and palettes (Sonnet)
+
+Files: new `src/constants/day-part.ts`, new `src/hooks/use-day-part.ts`, new `src/constants/__tests__/day-part.test.ts`.
+
+1. `day-part.ts`:
+   - `export type DayPart = 'dawn' | 'noon' | 'dusk'`.
+   - `export function dayPartOf(d: Date): DayPart`: minutes of the local day; 300–659 dawn, 660–989 noon, everything else dusk (design.md "Day parts").
+   - `export interface DayPalette` with the roles in design.md "Palettes": `bg, wash, edge, newsBg, plate, muted, main, onMain, card, text, heroTop, heroBottom, heroEdge, ringA, ringB, track, food, foodLane, sleep, sleepLane, water, waterLane`.
+   - `export const DAY_PALETTES: Record<DayPart, DayPalette>` with exactly the hex values in the table (card `#FFFFFF`, text `#1F1B16`, onMain `#FFFFFF` for all three).
+2. `use-day-part.ts`: `useDayPart(): { part: DayPart; palette: DayPalette }`. Works out the part on mount, on `AppState` change to `active`, and on a 60 s interval (cleared on unmount). Accept an optional `forced?: DayPart` argument that wins (the design preview uses it in T18d).
+3. Tests:
+   - Boundaries: 04:59 dusk, 05:00 dawn, 10:59 dawn, 11:00 noon, 16:29 noon, 16:30 dusk, 23:59 dusk, 00:00 dusk.
+   - Every palette has every role as `#RRGGBB`.
+   - Contrast (write a small `contrast(a, b)` helper in the test): text and muted on bg, card and heroBottom ≥ 4.5:1; onMain on main ≥ 4.5:1; main on plate and on newsBg ≥ 4.5:1; ringB on heroBottom ≥ 3:1 (19 bold is large text); food, sleep and water on card ≥ 3:1. If one fails, stop and report it to Opus; don't change a colour.
+
+Acceptance: tsc and jest pass; nothing else in the app changes yet.
+
+## T18b. The bottom bar: labels, house icon, no lifted button (Sonnet)
+
+Files: `src/components/ui/navigation-bar.tsx`, `src/components/ui/nav-style.ts`, `src/components/ui/icon-paths.ts`, `src/components/tab-routes.ts`, `src/components/app-tabs.tsx` (only if it passes colours), `src/components/__tests__/tab-routes.test.ts`, and any nav-style test that checks the old sizes.
+
+1. Add a `home` icon to `icon-paths.ts`: a simple 1.6-stroke outline house on the same 24 grid as the others (roof as an inverted V from (3,11) to (12,3.5) to (21,11), body (5.5,9.5) down to (5.5,20.5) across to (18.5,20.5) up to (18.5,9.5), door (10,20.5)–(10,14.5)–(14,14.5)–(14,20.5)). Draw your own; don't copy one from an icon set.
+2. `BAR_TABS` becomes:
+   `{ key: 'index', label: 'Today', specIcon: 'home', spoken: 'Today' }`, `{ key: 'plus', label: 'Chats', specIcon: 'chats', spoken: 'Chats and groups' }`, `{ key: 'you', label: 'Profile', specIcon: 'person', spoken: 'Your profile' }`. Add the optional `spoken?: string` to `NavigationItem` (TalkBack uses `spoken ?? label`). No `fab`. Keys and `OFF_BAR_SCREENS` stay exactly as they are; never give a screen `href: null` (see the comment at the top of `tab-routes.ts`).
+3. `NavigationBar` draws each item as icon 22 over a label 11/14 (gap 3), slot width 80, items spread evenly (`justifyContent: 'space-around'`), bar height 60 plus `bottomInset`, fill and 1 dp top hairline as design.md "Bottom bar". Active: label semibold. No dot. Touch area stays at least 48 x 48. Keep `onReselect` and everything else the bar does now. The `fab` code path may stay in the file for now but no item uses it.
+4. Colours: the bar takes an optional `colors?: { fill: string; hairline: string; active: string; idle: string }` prop. Without it, it uses the Calm theme roles in design.md. `app-tabs.tsx` passes the day palette's `card / edge / main / muted` **only when the focused tab is `index`** (use `useDayPart()` from T18a; if T18a is not merged yet, leave this one line as a TODO and tell Opus).
+5. Labels: `maxFontSizeMultiplier={MaxTextScale}`, one line, never cut ("Profile" and "Chats" must show in full at 360 dp and font scale 1.3).
+6. Tests: update `tab-routes.test.ts` for the new labels and icons, the three keys unchanged, no item with `fab`, every off-bar screen still declared. Update any nav-style size test to the new numbers.
+
+Acceptance: tsc and jest pass; on every tab screen the bar shows Today / Chats / Profile with labels; Chats still opens chats and groups; Profile still opens the You screen.
+
+## T18c. The Today screen (Sonnet)
+
+Files: `src/components/today/today-calm.tsx` (rewrite the `TodayCalm` body; keep the export name and props), new `src/components/today/time-of-day-parts.tsx` (the ring, hour bars, glasses, meter and the two gradients), `src/components/today/calm-motion.tsx` (keep only `useCountUp`; delete the moving pictures if nothing else uses them; `grep -rn calm-motion src` first), `src/app/(tabs)/index.tsx` (only the sync line's colour and the screen background, see 7).
+
+1. Colours: `const { palette: p } = useDayPart(forcedPart)` where `forcedPart` comes from a new optional `TodayView` field `dayPart?: DayPart` (add it to `view.ts` with a one-line comment: "only the design preview sets it"). Every colour on Today comes from `p`; nothing on Today uses `useTheme()` any more except what the slots draw themselves.
+2. Layout, sizes and texts: exactly design.md "Layout", top to bottom. Measure against the mockup at 360 dp.
+   - Header: date row as now but the weather moves into the 13/18 sub line before the quote, joined by " · " (the owner approved this move in the mockup). The avatar keeps `v.on.profile`.
+   - `NewsTicker`: pass the new colours only (`background: p.newsBg, label: p.card, labelInk: p.main, ink: p.text, quiet: p.muted`). If its height or text size is not 32 / 11 / 12, add size props with today's values as defaults so other screens don't change.
+   - Steps card: the whole card stays one `Pressable` with `v.stepsSpoken` and `v.on.steps`. Ring: `Svg` 92, track `Circle` r 40 stroke 7 in `p.track`, arc `Circle` with `pathLength`-style dash using `strokeDasharray` = 2πr and an animated `strokeDashoffset`, stroke `url(#ring)` from a `LinearGradient` ringA→ringB (x1 0 y1 0 x2 1 y2 1), rotated -90°. Percentage = `v.pct` (count-up), 19 bold `p.ringB`. Hour bars from `v.hourly` and `v.nowHour` as design.md. Facts line uses `distanceText(v)` and `v.activeMin` as now.
+   - Card gradient: an absolutely placed `Svg` behind the card's contents, `Rect` filling it with a 150° `LinearGradient` heroTop→heroBottom (x1 0 y1 0 x2 1 y2 1 is close enough), `borderRadius: 20` and `overflow: 'hidden'` on the card.
+   - `v.slots.walking` stays between the steps card and the pair.
+   - Food / Sleep / Water / Walk keep `tapFor(v, kind)`, the spoken labels from the tile models, the locked state (lock icon, no meter, no glasses, no + button; taps go to `v.on.premium`) and every text the current code shows (`m.food.value`, `of {v.food.target} kcal`, sleep value and unit, "Last night", water "x of y glasses" / "x glasses", the walk title, `walkSub`, the walk distance).
+   - Meters use `m.food.share` and `m.sleep.share`.
+   - Glasses: one per glass of `v.water.of` (8 without a target), at most 10; filled = `v.water.glasses` (capped). The + button keeps `v.on.addGlass` and "Add a glass of water"; visual 34 round, touch area 48 (`hitSlop`).
+   - `Tail` (`slots.below` / `slots.locked`) stays above Log food. Log food keeps `v.on.logFood`, 48 high pill, `marginTop: 'auto'`.
+3. Screen wash: an absolutely placed `Svg` at the top of the Today column, full width, 260 high, vertical gradient wash→bg, behind everything; the column's background is `p.bg`.
+4. Motion: design.md "Motion". Use `FadeInDown`-style entering with the listed delays and 700 ms (translate 10), the ring/meter/bars with `withTiming` and the listed durations, all `ReduceMotion.System`. Colour change between parts: a 500 ms fade is nice to have; if it costs more than ~30 lines, skip it and say so in completed-tasks.
+5. Keep the short-screen rule: at a window height under 860 dp, use gap 8 instead of 10 and block padding 10 instead of 12, so Today fits at 360 x 800 with the sync line above the bar.
+6. Remove the walker, bowl, glass and moon pictures from Today (they are not in the design). Keep `useCountUp`.
+7. `src/app/(tabs)/index.tsx`: the sync line below Today (line ~206) uses `p.muted`, 11 size, centred; the area behind Today uses `p.bg` so no Calm colour shows at the edges. Change nothing else there.
+8. Tests: a jest render test (or extend the existing Today test) that checks, with a sample view, that every tap target is still there with its label: steps card, avatar, news, food, sleep, water, add a glass, walk, Log food; and in the locked state that food, sleep, water and walk call `on.premium`.
+
+Acceptance: tsc and jest pass; the screen matches the mockup values; nothing Today could do before is missing.
+
+## T18d. Preview, CI screenshots, commit (Sonnet)
+
+Files: `src/design-preview/params.ts` (+ its test), `src/app/design-preview.tsx`, `.github/scripts/launch-and-capture.sh`.
+
+1. The preview link takes `&part=dawn|noon|dusk` (unknown or missing = the real time). It sets `TodayView.dayPart` for Today and passes the same part to the bar.
+2. `launch-and-capture.sh`: add `capture e today smoke/calm-today-dawn.png '&part=dawn'`, the same for `noon` and `dusk`; make the existing large-font (1.3) and 360 dp Today shots use `&part=noon`. Keep every other shot.
+3. Commit, push, run the Android workflow (standing OK). When it finishes, download the `smoke-test` artifact and tell the owner and Opus where the PNGs are. Don't commit `smoke-ci*` or the PNGs.
+
+Acceptance: CI green; `calm-today-dawn.png`, `-noon.png`, `-dusk.png`, `calm-today-360dp.png` and `calm-today-large-font.png` exist.
+
+## T18 check (Opus)
+
+Compare the five Today shots and one other tab's shot (bar in Calm colours) with the mockup element by element: sizes, colours, spacing, the bar, no scrolling at 360 dp, nothing cut at font 1.3. Send the shots to the owner with SendUserFile. Differences become T18e.
+
+## Risks
+
+- **Bar on other screens:** the bar now has labels and no lifted button on every tab screen. That is approved (the mockup's bar), but check Chats and Profile shots too.
+- **Height at 360 dp:** the hour bars add about 54 dp to the steps card. The design fits at 800 dp because every other size is smaller than build 74; if the CI shot scrolls, cut gaps first (10 → 8), never a feature.
+- **Large text:** labels and values must not be cut; `fit` (shrink to 70 %) is allowed on values, as now.
+- **Gradients in SVG** need explicit sizes: measure the card with `onLayout` before drawing the `Rect`, or use `width="100%" height="100%"` on the `Svg` with `preserveAspectRatio="none"`.
+- **The interval in `useDayPart`** must be cleared on unmount, or jest warns about open handles.

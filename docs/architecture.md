@@ -42,3 +42,10 @@ Important decisions for the Steps app and its server. Add new ones at the end of
 
 - One screen layout for all looks: Clean+ (the default, `docs/design/clean-plus.png`). Looks A–F stay selectable but only change colours and fonts on that layout; there are no per-look screens. Each look keeps its own light/dark; none follows the phone's dark mode.
 - (14 Nov 2026, Opus) Park is included: every look, Park too, uses the one Clean+ Today, Food result and Walk screen (T6–T8 remove ParkToday, HAS_WALK_LOOK and the per-look layout flags). Looks differ only in colours, fonts and map colours.
+
+## Today "Time of day" and the labelled bar (17 Nov 2026, Opus)
+
+- Today and the bottom bar take their colours from the day part (Dawn 05:00, Noon 11:00, Dusk 16:30, phone's local time): `src/constants/day-part.ts` and `useDayPart()`. Every other screen keeps the Calm theme (`e`). Reason: theme colours are built once at import and used through `useTheme()` in about 80 files, so changing them by the hour app-wide would be a large, risky change.
+- The bar has three labelled buttons, Today / Chats / Profile, and no lifted round button. Screen keys stay `index`, `plus`, `you`; nothing gets `href: null`.
+- The design preview takes `&part=dawn|noon|dusk` so CI can photograph each part.
+- The old task file (build 22, T13 to T17) moved to `docs/tasks-archive/build-22-and-open-tasks.md`.

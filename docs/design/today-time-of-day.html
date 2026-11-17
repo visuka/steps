@@ -1,0 +1,275 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Today colour moods</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* The owner's picture, drawn in the app's own Calm colours, with every feature Today has now.
+     The page is one light look on purpose: it shows the app's light colours. */
+  :root { color-scheme: light; --page: #E9E5DE; --ink: #1F1B16; --quiet: #5E5649;
+    --bg: #F5F1EA; --card: #FFFFFF; --edge: #ECE5D9; --fg: #1F1B16; --muted: #6A6155; --green: #1E4D3A; --greenSoft: #D6E6DC; --plate: #E3EDE7;
+    --lane: #E6DFD3; --food: #9A4A2B; --foodLane: #F6EDE7; --sleep: #4A4038; --sleepLane: #EAE3D7; --water: #1F5FA8; --waterLane: #E4EDF7; --newsBg: #EAE3D7; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--ink); font-family: Figtree, 'Noto Sans', sans-serif; }
+  main { max-width: 420px; margin: 0 auto; padding-block: 16px 56px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  h1 { font-size: 22px; line-height: 28px; margin: 8px 0 4px; }
+  .lead { font-size: 15px; line-height: 22px; color: var(--quiet); margin: 0 0 10px; }
+  .again { display: block; width: 100%; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); border-radius: 22px; min-height: 46px; font: 600 15px/20px Figtree, sans-serif; cursor: pointer; margin: 4px 0 14px; }
+  button:focus-visible { outline: 3px solid #4C7DFF; outline-offset: 2px; }
+  .sticky { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: var(--page); padding-top: 8px; }
+  .chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 8px; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: none; display: flex; align-items: center; gap: 8px; border: 1.5px solid transparent; background: #FFFFFF; color: var(--ink); border-radius: 20px; padding: 5px 12px 5px 5px; min-height: 40px; font: 600 14px/18px Figtree, sans-serif; cursor: pointer; }
+  .chip[aria-pressed="true"] { border-color: var(--ink); }
+  .chip .sw { display: flex; gap: 2px; }
+  .chip .sw i { width: 7px; height: 26px; border-radius: 4px; }
+  .chip .sw i:first-child { width: 16px; }
+  .chip.idea { background: #1F1B16; color: #FFF; }
+  .chip.idea[aria-pressed="true"] { border-color: #C9A227; }
+  .about { font-size: 15px; line-height: 22px; color: var(--quiet); margin: 0 0 12px; min-height: 44px; }
+  .screen, .screen * { transition-property: background-color, color, border-color, stroke, fill; transition-duration: .5s; }
+  .notes { margin: 18px 0 0; padding: 0 0 0 18px; font-size: 15px; line-height: 22px; color: var(--quiet); }
+  .notes li { margin-bottom: 6px; } .notes b { color: var(--ink); font-weight: 600; }
+
+  .fit { width: 100%; }
+  .phone { width: 380px; margin: 0 auto; border-radius: 34px; padding: 10px; background: #111; box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+  .screen { width: 360px; height: 800px; border-radius: 26px; overflow: clip; background: linear-gradient(180deg, var(--wash) 0px, var(--bg) 260px); color: var(--fg); font-variant-numeric: tabular-nums; display: flex; flex-direction: column; }
+  .status { height: 26px; flex: none; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; font-size: 12px; font-weight: 600; opacity: .75; }
+  .content { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; padding: 8px 18px 10px; }
+
+  .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .date { font-size: 22px; line-height: 28px; font-weight: 700; letter-spacing: -.3px; }
+  .sub1 { font-size: 13px; line-height: 18px; color: var(--muted); display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; }
+  .sub1 .q { overflow: hidden; text-overflow: ellipsis; }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--plate); color: var(--green); font-weight: 700; font-size: 15px; flex: none; }
+  .news { display: flex; align-items: center; gap: 10px; height: 32px; border-radius: 16px; padding: 0 12px 0 4px; background: var(--newsBg); overflow: hidden; flex: none; }
+  .news b { flex: none; font-size: 11px; font-weight: 600; padding: 5px 10px; border-radius: 12px; background: var(--card); color: var(--green); }
+  .news .roll { flex: 1; overflow: clip; white-space: nowrap; font-size: 12px; }
+  .news .roll span { display: inline-block; padding-left: 100%; animation: roll 18s linear infinite; }
+  @keyframes roll { to { transform: translateX(-100%); } }
+
+  .card { background: var(--card); border: 1px solid var(--edge); border-radius: 20px; padding: 12px 16px; box-shadow: 0 1px 2px rgba(31,27,22,.03); }
+  .head { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; }
+  .head .chev { width: 14px; height: 14px; color: var(--muted); }
+  .ico { width: 18px; height: 18px; flex: none; }
+
+  .card.steps { background: var(--heroBg); border-color: var(--heroEdge); }
+  .steps .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .big { font-size: 40px; line-height: 44px; font-weight: 700; letter-spacing: -1.2px; margin-top: 4px; }
+  .goal { font-size: 13px; color: var(--muted); }
+  .facts { font-size: 13px; color: var(--fg); margin-top: 6px; display: flex; gap: 10px; }
+  .facts span { color: var(--muted); }
+  .ring { position: relative; width: 92px; height: 92px; flex: none; }
+  .ring svg { width: 92px; height: 92px; transform: rotate(-90deg); }
+  .ring .trk { fill: none; stroke: var(--greenSoft); stroke-width: 7; }
+  .ring .arc { fill: none; stroke: url(#rg); stroke-width: 7; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 100; transition: stroke-dashoffset 1.5s cubic-bezier(.3,.7,.2,1) .2s; }
+  .ring b { position: absolute; inset: 0; display: grid; place-items: center; font-size: 19px; font-weight: 700; color: var(--ringB); }
+  .hours { display: flex; align-items: flex-end; justify-content: space-between; height: 40px; margin-top: 10px; }
+  .hours i { width: 5px; border-radius: 3px; background: var(--greenSoft); height: 5px; transition: height .9s cubic-bezier(.3,.7,.2,1); }
+  .hours i.hi { background: linear-gradient(180deg, var(--ringA), var(--ringB)); }
+  .axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 4px; padding-right: 30px; }
+
+  .pair { display: flex; gap: 10px; }
+  .pair .card { flex: 1; min-width: 0; }
+  .val { font-size: 21px; line-height: 26px; font-weight: 700; margin-top: 6px; white-space: nowrap; letter-spacing: -.3px; }
+  .val small { font-size: 13px; font-weight: 600; }
+  .sub { font-size: 12px; color: var(--muted); }
+  .meter { height: 5px; border-radius: 99px; margin-top: 10px; overflow: hidden; }
+  .meter i { display: block; height: 100%; width: 0; border-radius: 99px; transition: width 1.3s cubic-bezier(.3,.7,.2,1) .35s; }
+
+  .water { display: flex; align-items: center; gap: 10px; }
+  .glasses { margin-left: auto; display: flex; gap: 4px; }
+  .glasses i { width: 12px; height: 18px; border: 1.5px solid var(--water); border-top-width: 0; border-radius: 0 0 4px 4px; position: relative; overflow: hidden; opacity: .9; }
+  .glasses i.full::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 80%; background: var(--water); opacity: .8; }
+  .plus { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--water); background: var(--waterLane); color: var(--water); display: grid; place-items: center; font-size: 20px; font-weight: 500; line-height: 1; }
+
+  .walk { display: flex; align-items: center; gap: 12px; }
+  .dot { width: 38px; height: 38px; border-radius: 50%; background: var(--plate); color: var(--green); display: grid; place-items: center; flex: none; }
+  .walk .t { font-size: 14px; font-weight: 600; } .walk .s { font-size: 12px; color: var(--muted); }
+  .walk .km { margin-left: auto; font-size: 16px; font-weight: 600; white-space: nowrap; display: flex; align-items: center; gap: 4px; }
+
+  .log { height: 48px; flex: none; border-radius: 99px; background: var(--green); color: #FFF; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 15px; font-weight: 600; margin-top: auto; }
+  .updated { font-size: 11px; color: var(--muted); text-align: center; margin-top: -4px; }
+  .bar { height: 60px; flex: none; display: flex; justify-content: space-around; align-items: center; background: var(--card); border-top: 1px solid var(--edge); }
+  .bar div { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; color: var(--muted); width: 80px; }
+  .bar div.on { color: var(--green); font-weight: 600; }
+  .bar svg { width: 22px; height: 22px; }
+  .home { height: 20px; flex: none; display: grid; place-items: center; background: var(--card); } .home i { width: 110px; height: 4px; border-radius: 2px; background: #1F1B16; opacity: .7; }
+
+  .rise { animation: rise .7s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+
+<main>
+  <h1>Colour moods for Today</h1>
+  <p class="lead">My own ideas, not a copy of the picture. Each mood has a story, a soft wash at the top, a tinted steps card and a two-tone ring. Everything Today does stays the same.</p>
+  <div class="sticky"><div class="chips" id="chips" role="group" aria-label="Colour set"></div>
+  <button class="again" type="button" id="again">Replay</button></div>
+  <p class="about" id="about"></p>
+
+  <div class="fit" id="fit"><div class="phone" id="phone"><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● 82%</span></div>
+    <div class="content">
+      <div class="top rise" style="animation-delay:0s">
+        <div style="min-width:0">
+          <div class="date">Today, 17 Nov</div>
+          <div class="sub1"><span>☀ 24°C clear</span><span>·</span><span class="q">Your pace, your path.</span></div>
+        </div>
+        <div class="avatar" aria-label="Your profile">R</div>
+      </div>
+      <div class="news rise" style="animation-delay:.05s"><b>Good news</b><div class="roll"><span>Village volunteers plant 10,000 trees · A walk after lunch helps keep blood sugar steady · Short walks through the day add up</span></div></div>
+
+      <div class="card steps rise" style="animation-delay:.1s">
+        <div class="row">
+          <div>
+            <div class="head"><svg class="ico" viewBox="0 0 20 20" style="color:var(--green)"><circle cx="11" cy="3.5" r="1.8" fill="currentColor"/><path d="M10 7l-2 5 3 2v4M8 12l-2 6M10 7l3 3 3 1M10 7l-3 2-2 3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Steps<svg class="chev" viewBox="0 0 16 16"><path d="M6 3.5L10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+            <div class="big" id="num">0</div>
+            <div class="goal">of 8,000 goal</div>
+            <div class="facts"><b id="km">0.0 km</b><span>·</span><b>52 min</b><span>active</span></div>
+          </div>
+          <div class="ring"><svg viewBox="0 0 92 92"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--ringA)"/><stop offset="1" style="stop-color:var(--ringB)"/></linearGradient></defs><circle class="trk" cx="46" cy="46" r="40"/><circle class="arc" id="arc" cx="46" cy="46" r="40" pathLength="100"/></svg><b id="pct">0%</b></div>
+        </div>
+        <div class="hours" id="hours"></div>
+        <div class="axis"><span>12 am</span><span>6 am</span><span>12 pm</span><span>6 pm</span></div>
+      </div>
+
+      <div class="pair rise" style="animation-delay:.18s">
+        <div class="card"><div class="head"><svg class="ico" viewBox="0 0 20 20" style="color:var(--food)"><path d="M3 9h14a7 7 0 0 1-14 0zM7 3c0 1.5 1 1.5 1 3M11 3c0 1.5 1 1.5 1 3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>Food<svg class="chev" viewBox="0 0 16 16"><path d="M6 3.5L10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+          <div class="val">1,280 <small>kcal</small></div><div class="sub">of 1,900 kcal</div>
+          <div class="meter" style="background:var(--foodLane)"><i style="background:var(--food)" data-to="67"></i></div></div>
+        <div class="card"><div class="head"><svg class="ico" viewBox="0 0 20 20" style="color:var(--sleep)"><path d="M15 13.5A6.5 6.5 0 0 1 8.5 3.5a6.5 6.5 0 1 0 6.5 10z" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>Sleep<svg class="chev" viewBox="0 0 16 16"><path d="M6 3.5L10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+          <div class="val">6 h 50 <small>min</small></div><div class="sub">Last night</div>
+          <div class="meter" style="background:var(--sleepLane)"><i style="background:var(--sleep)" data-to="85"></i></div></div>
+      </div>
+
+      <div class="card water rise" style="animation-delay:.24s">
+        <div><div class="head"><svg class="ico" viewBox="0 0 20 20" style="color:var(--water)"><path d="M10 2.5s5 5.5 5 9a5 5 0 0 1-10 0c0-3.5 5-9 5-9z" fill="currentColor" opacity=".85"/></svg>Water<svg class="chev" viewBox="0 0 16 16"><path d="M6 3.5L10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+          <div class="val" style="font-size:17px;line-height:22px;margin-top:4px;font-weight:600">5 of 8 glasses</div></div>
+        <div class="glasses" aria-hidden="true"><i class="full"></i><i class="full"></i><i class="full"></i><i class="full"></i><i class="full"></i><i></i><i></i><i></i></div>
+        <span class="plus" aria-label="Add 1 glass">+</span>
+      </div>
+
+      <div class="card walk rise" style="animation-delay:.3s">
+        <div class="dot"><svg class="ico" viewBox="0 0 20 20"><circle cx="11" cy="3.5" r="1.8" fill="currentColor"/><path d="M10 7l-2 5 3 2v4M8 12l-2 6M10 7l3 3 3 1M10 7l-3 2-2 3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div style="min-width:0"><div class="t">Morning walk</div><div class="s">7:10 am · 32 min</div></div>
+        <span class="km">2.3 km <svg class="chev" viewBox="0 0 16 16" style="width:14px;height:14px;color:var(--muted)"><path d="M6 3.5L10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+      </div>
+
+      <div class="log rise" style="animation-delay:.36s"><span style="font-size:20px;font-weight:400">+</span> Log food</div>
+      <div class="updated">Updated 2 min ago</div>
+    </div>
+    <div class="bar">
+      <div class="on"><svg viewBox="0 0 24 24"><path d="M4 10.5L12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z" fill="currentColor"/></svg>Today</div>
+      <div><svg viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h8A2.5 2.5 0 0 1 17 6.5v5a2.5 2.5 0 0 1-2.5 2.5H10l-3.5 3v-3A2.5 2.5 0 0 1 4 11.5zM17 9h.5A2.5 2.5 0 0 1 20 11.5v4a2.5 2.5 0 0 1-2.5 2.5v2.5L14.5 18H12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Chats</div>
+      <div><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5 20c1.2-4 3.8-5.5 7-5.5s5.8 1.5 7 5.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Profile</div>
+    </div>
+    <div class="home"><i></i></div>
+  </div></div></div>
+
+  <ul class="notes">
+    <li><b>Same as your picture:</b> big step number with the ring beside it, steps by hour, food and sleep side by side, water glasses, walk, Log food, a three-button bar with a house for Today.</li>
+    <li><b>Time of day</b> is my favourite: Today greets you in dawn colours in the morning, clear sky at noon and soft dusk in the evening, so the app feels alive without anything moving. Tap it to watch the day pass.</li>
+    <li><b>The moods</b> come from things around us: rain on leaves, block-print cloth, a cup of chai, ink on paper. Text always stays dark on light, easy to read.</li>
+    <li><b>Nothing Today does now is lost:</b> weather and daily quote, good news, distance and active minutes, + 1 glass, walk, Log food, chats and profile. Each card opens the same screen it opens now.</li>
+    <li><b>Bar:</b> Today, Chats, Profile: the same three places as now, with labels. The R circle also opens Profile.</li>
+    <li><b>Gentle motion:</b> cards fade up once, the number counts up, the ring and bars fill.</li>
+  </ul>
+</main>
+
+<script>
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const STEPS = 6240, GOAL = 8000;
+  // Steps per hour, 24 values, for the small hour bars.
+  const HOURS = [0,0,0,0,0,0,80,220,640,310,260,420,700,980,620,380,240,520,300,120,60,0,0,0];
+  const hoursEl = document.getElementById('hours');
+  const peak = Math.max(...HOURS);
+  HOURS.forEach((h) => { const i = document.createElement('i'); i.dataset.h = h ? Math.max(8, h / peak * 100) : 12; if (h > peak * .6) i.className = 'hi'; hoursEl.appendChild(i); });
+  let raf = 0;
+  function play() {
+    cancelAnimationFrame(raf);
+    document.querySelectorAll('.rise').forEach((e) => { e.style.animation = 'none'; void e.offsetWidth; e.style.animation = ''; });
+    const arc = document.getElementById('arc'), meters = document.querySelectorAll('[data-to]'), bars = hoursEl.querySelectorAll('i');
+    arc.style.strokeDashoffset = 100; meters.forEach((m) => m.style.width = '0'); bars.forEach((b) => b.style.height = '5px');
+    void document.body.offsetWidth;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      arc.style.strokeDashoffset = 100 - STEPS / GOAL * 100;
+      meters.forEach((m) => m.style.width = m.dataset.to + '%');
+      bars.forEach((b, k) => { b.style.transitionDelay = (0.3 + k * 0.02) + 's'; b.style.height = b.dataset.h + '%'; });
+    }));
+    const t0 = performance.now(), ms = 1500;
+    const tick = (now) => {
+      const p = reduce ? 1 : Math.min(1, (now - t0) / ms), v = STEPS * (1 - Math.pow(1 - p, 3));
+      document.getElementById('num').textContent = Math.round(v).toLocaleString('en-US');
+      document.getElementById('pct').textContent = Math.round(v / GOAL * 100) + '%';
+      document.getElementById('km').textContent = (v * 0.000737).toFixed(1) + ' km';
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+  }
+  document.getElementById('again').onclick = play;
+
+  // Colour sets: page, cards, main colour, and food / sleep / water with their light lanes.
+  const base = { card:'#FFFFFF', fg:'#1F1B16' };
+  const SETS = {
+    'Dawn': ['Morning. Peach light over a cream page, a coral-to-rose ring, deep aubergine buttons.',
+      { bg:'#F8F4EF', wash:'#FBE6DA', edge:'#F0E6DD', newsBg:'#F6E8DF', plate:'#F7E3DA', muted:'#6E6260', green:'#3A2D45',
+        heroBg:'linear-gradient(150deg,#FFF6F0 0%,#FBE4D8 100%)', heroEdge:'#F5DDD0', ringA:'#F09A6B', ringB:'#C2577A', greenSoft:'#F6DCD3',
+        food:'#C4652F', foodLane:'#FAE6DA', sleep:'#6A5BA8', sleepLane:'#ECE8F6', water:'#3A7FBF', waterLane:'#E3EEF8' }],
+    'Noon': ['Midday. Clear sky blue, a bright blue ring, deep navy buttons.',
+      { bg:'#F3F6F9', wash:'#DDEBF6', edge:'#E2E9F0', newsBg:'#E3ECF4', plate:'#DCE9F4', muted:'#5B6875', green:'#1D3A5F',
+        heroBg:'linear-gradient(150deg,#F7FBFE 0%,#DDEBF7 100%)', heroEdge:'#D6E5F2', ringA:'#5BB0E6', ringB:'#1F5FA8', greenSoft:'#D5E5F2',
+        food:'#D06A3E', foodLane:'#FAE7DE', sleep:'#5B57A6', sleepLane:'#E9E8F6', water:'#238C9A', waterLane:'#DCF0F2' }],
+    'Dusk': ['Evening. Soft lilac sky, a lavender-to-violet ring, deep plum buttons.',
+      { bg:'#F5F3F9', wash:'#E6DFF3', edge:'#E8E3F1', newsBg:'#EAE5F4', plate:'#E6E0F5', muted:'#655F78', green:'#3B2F66',
+        heroBg:'linear-gradient(150deg,#F8F6FD 0%,#E4DDF3 100%)', heroEdge:'#DDD5EF', ringA:'#A895E8', ringB:'#5340A6', greenSoft:'#E2DCF2',
+        food:'#CF7550', foodLane:'#FAE8DF', sleep:'#2F7A85', sleepLane:'#DDEFF1', water:'#3A78C0', waterLane:'#E1ECF8' }],
+    'Monsoon': ['Rain on leaves. Misty green-grey, a moss-to-teal ring, deep teal buttons, turmeric food.',
+      { bg:'#EFF3F0', wash:'#DCE9E3', edge:'#E0E8E3', newsBg:'#E1EAE5', plate:'#D9E9E2', muted:'#5A6A63', green:'#1F5D57',
+        heroBg:'linear-gradient(150deg,#F6FAF8 0%,#DAEAE3 100%)', heroEdge:'#D2E3DB', ringA:'#7FB069', ringB:'#1F6B63', greenSoft:'#D3E5DC',
+        food:'#C47F16', foodLane:'#F7ECD6', sleep:'#4F5E8C', sleepLane:'#E5E8F2', water:'#2F7FA6', waterLane:'#DDEDF5' }],
+    'Block print': ['Indigo and haldi, like hand-printed cloth. Off-white page, a haldi ring, indigo buttons, madder red food.',
+      { bg:'#F7F3EA', wash:'#F2E7CF', edge:'#ECE3D0', newsBg:'#EFE5CF', plate:'#E3E6F2', muted:'#655E50', green:'#25397A',
+        heroBg:'#FFFFFF', heroEdge:'#ECE3D0', ringA:'#F0B52A', ringB:'#C97A12', greenSoft:'#F3E7C8',
+        food:'#A8432F', foodLane:'#F5E3DE', sleep:'#3D4E9A', sleepLane:'#E4E7F4', water:'#2F7A8C', waterLane:'#DEEEF1' }],
+    'Chai': ['A cup of masala chai. Milky beige, a cinnamon ring, dark tea buttons, cardamom green touches.',
+      { bg:'#F5EEE4', wash:'#EEDFCB', edge:'#EADFD0', newsBg:'#EDE2D3', plate:'#E3E9D9', muted:'#6B5E52', green:'#4A3324',
+        heroBg:'linear-gradient(150deg,#FFFAF3 0%,#F1E3D0 100%)', heroEdge:'#E8D8C4', ringA:'#C99460', ringB:'#7A4A2B', greenSoft:'#EEDFCC',
+        food:'#B5562F', foodLane:'#F6E5DC', sleep:'#5E6E45', sleepLane:'#E6ECDD', water:'#3F7699', waterLane:'#E0EBF2' }],
+    'Ink': ['Ink on washi paper. Warm off-white, a charcoal ring, black buttons, one vermilion touch for food.',
+      { bg:'#F4F2EC', wash:'#EAE7DE', edge:'#E6E3DA', newsBg:'#EAE7DF', plate:'#E8E6DF', muted:'#62605A', green:'#22221F',
+        heroBg:'#FFFFFF', heroEdge:'#E6E3DA', ringA:'#6B6A64', ringB:'#22221F', greenSoft:'#E7E4DC',
+        food:'#C2452D', foodLane:'#F5E4DF', sleep:'#55657A', sleepLane:'#E5E9EE', water:'#3D6E8A', waterLane:'#E0EBF1' }],
+  };
+  const scr = document.querySelector('.screen'), chips = document.getElementById('chips');
+  let timer = 0;
+  function paintSet(name, label) {
+    const [about, c] = SETS[name], all = Object.assign({}, base, c);
+    for (const k in all) scr.style.setProperty('--' + k, all[k]);
+    document.getElementById('about').textContent = (label || name) + '. ' + about;
+  }
+  function choose(name) {
+    clearInterval(timer);
+    chips.querySelectorAll('.chip').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.name === name)));
+    if (name === 'Time of day') {
+      const day = ['Dawn', 'Noon', 'Dusk']; let k = 0;
+      const step = () => { paintSet(day[k % 3], 'Time of day, ' + day[k % 3].toLowerCase()); k++; };
+      step(); timer = setInterval(step, 3500);
+    } else paintSet(name);
+  }
+  const names = ['Time of day', 'Monsoon', 'Block print', 'Chai', 'Ink', 'Dawn', 'Noon', 'Dusk'];
+  names.forEach((name) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip' + (name === 'Time of day' ? ' idea' : ''); b.dataset.name = name;
+    const sw = name === 'Time of day'
+      ? '<span class="sw"><i style="background:linear-gradient(#FBE6DA,#F09A6B)"></i><i style="background:#5BB0E6"></i><i style="background:#A895E8"></i></span>'
+      : (() => { const c = SETS[name][1]; return '<span class="sw"><i style="background:linear-gradient(135deg,' + c.ringA + ',' + c.ringB + ')"></i><i style="background:' + c.food + '"></i><i style="background:' + c.sleep + '"></i><i style="background:' + c.water + '"></i></span>'; })();
+    b.innerHTML = sw + name;
+    b.onclick = () => choose(name);
+    chips.appendChild(b);
+  });
+  choose('Time of day');
+  const fit = () => { document.getElementById('phone').style.zoom = Math.min(1, document.getElementById('fit').clientWidth / 380); };
+  addEventListener('resize', fit); fit();
+  play();
+</script>
