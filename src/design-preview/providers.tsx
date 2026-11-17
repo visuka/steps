@@ -4,6 +4,7 @@ import { PreviewAuthProvider } from '@/auth/auth-state';
 import { memoryRepository } from '@/data/db.web';
 import { mergeProfile, type ProfilePatch } from '@/data/profile';
 import type { StepSource } from '@/health/types';
+import { PreviewLockProvider } from '@/state/app-lock';
 import { type AppContextValue, PreviewAppProvider } from '@/state/app-state';
 import { PreviewPremiumProvider } from '@/state/use-premium';
 
@@ -23,7 +24,7 @@ const SAMPLE_SOURCE: StepSource = {
 
 /**
  * The providers the screens read, over the sample day only: useApp() gets a
- * memory repository seeded with design-preview/sample.ts, useAuth() nobody,
+ * memory repository seeded with design-preview/sample.ts, useAuth() nobody, useLock() no lock,
  * usePremium() every feature open. Nothing touches the phone's database,
  * session, health data or notifications; changes made on screen (a glass of
  * water, a removed part) live in memory until the app closes.
@@ -59,7 +60,9 @@ export function SampleDataProvider({ children }: { children: ReactNode }) {
   return (
     <PreviewAuthProvider>
       <PreviewAppProvider value={value}>
-        <PreviewPremiumProvider>{children}</PreviewPremiumProvider>
+        <PreviewLockProvider>
+          <PreviewPremiumProvider>{children}</PreviewPremiumProvider>
+        </PreviewLockProvider>
       </PreviewAppProvider>
     </PreviewAuthProvider>
   );

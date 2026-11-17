@@ -464,7 +464,7 @@ export function DayDone({ mark, judged, onMark }: { mark: DayMark | null; judged
   if (!mark) {
     return (
       <View style={styles.dayDone}>
-        <Button label="That’s all for today" icon="checkmark-done" variant="outlined" onPress={() => onMark('complete')} />
+        <Button label="That's all for today" icon="checkmark-done" variant="outlined" onPress={() => onMark('complete')} />
         <Button label="Fasting today" variant="text" compact onPress={() => onMark('fasting')} style={styles.center} />
       </View>
     );

@@ -36,17 +36,14 @@ export default function Requests() {
             <SectionTitle>Asked you</SectionTitle>
             <Surface level={1} style={styles.list}>
               {incoming.map((r, i) => (
-                <PersonRow
-                  key={r.walker.pid}
-                  walker={r.walker}
-                  last={i === incoming.length - 1}
-                  trailing={
-                    <View style={styles.actions}>
-                      <Button label="Decline" variant="text" compact onPress={() => act(() => api.decline(r.walker.pid))} />
-                      <Button label="Accept" variant="text" compact onPress={() => act(() => api.accept(r.walker.pid), `You and @${r.walker.handle} are now buddies.`)} />
-                    </View>
-                  }
-                />
+                // The buttons sit under the name, so a long walker ID stays on one line.
+                <View key={r.walker.pid}>
+                  <PersonRow walker={r.walker} last={i === incoming.length - 1} />
+                  <View style={styles.actions}>
+                    <Button label="Decline" variant="text" compact onPress={() => act(() => api.decline(r.walker.pid))} />
+                    <Button label="Accept" variant="text" compact onPress={() => act(() => api.accept(r.walker.pid), `You and @${r.walker.handle} are now buddies.`)} />
+                  </View>
+                </View>
               ))}
             </Surface>
           </>
@@ -76,6 +73,6 @@ export default function Requests() {
 
 const styles = StyleSheet.create({
   list: { overflow: 'hidden' },
-  actions: { flexDirection: 'row', gap: Spacing.one },
+  actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: Spacing.one, paddingHorizontal: Spacing.two, paddingBottom: Spacing.two, marginTop: -Spacing.two },
   note: { marginTop: Spacing.two },
 });

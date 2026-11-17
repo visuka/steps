@@ -78,6 +78,11 @@ capture() {
     [ "$same" -ge 2 ] && break
     prev="$cur"
   done
+  # A screen that closed the app: keep its log (logcat is cleared before each photo).
+  if [ -z "$(adb shell pidof "$pkg" | tr -d '\r')" ]; then
+    echo "::warning::$out: the app closed"
+    adb logcat -d > "${out%.png}-crash.txt"
+  fi
   mv "$out.tmp" "$out"
   if adb shell dumpsys window | grep -q "Application Not Responding"; then
     echo "::warning::$out: a system dialog was on screen"

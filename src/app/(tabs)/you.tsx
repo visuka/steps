@@ -89,8 +89,8 @@ export default function YouScreen() {
 
       {history ? (
         <View style={styles.row}>
-          <StatTile icon="flame-outline" label="Streak" value={String(streaks.current)} unit="days" style={styles.half} />
-          <StatTile icon="trophy-outline" label="Best streak" value={String(streaks.best)} unit="days" style={styles.half} />
+          <StatTile icon="flame-outline" label="Streak" value={String(streaks.current)} unit={streaks.current === 1 ? 'day' : 'days'} style={styles.half} />
+          <StatTile icon="trophy-outline" label="Best streak" value={String(streaks.best)} unit={streaks.best === 1 ? 'day' : 'days'} style={styles.half} />
         </View>
       ) : null}
 

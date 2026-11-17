@@ -122,6 +122,23 @@ export function LockProvider({ children }: { children: ReactNode }) {
   return <LockContext value={value}>{children}</LockContext>;
 }
 
+/** The design preview's lock: none, never asks (the preview has no sign-in or lock; Settings and sign-in still read it). */
+const PREVIEW_LOCK: LockContextValue = {
+  loaded: true,
+  support: 'unsupported',
+  enabled: false,
+  asked: true,
+  locked: false,
+  setEnabled: async () => 'no-lock',
+  markAsked: async () => undefined,
+  unlock: async () => 'ok',
+  release: () => undefined,
+};
+
+export function PreviewLockProvider({ children }: { children: ReactNode }) {
+  return <LockContext value={PREVIEW_LOCK}>{children}</LockContext>;
+}
+
 export function useLock(): LockContextValue {
   const ctx = use(LockContext);
   if (!ctx) throw new Error('useLock must be used inside LockProvider');
