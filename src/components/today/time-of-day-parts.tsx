@@ -365,7 +365,7 @@ export function GoalBar({ steps, goal, p }: { steps: number; goal: number; p: Da
 /** Sleep's bar: black pills with a red dot at their end. */
 export function SleepBar({ share, p }: { share: number; p: DayPalette }) {
   const f = clamp01(share);
-  return <PillRun pills={pillRun(f, null, false)} filled={f} p={p} dot />;
+  return <PillRun pills={pillRun(f, null, false, 2.5)} filled={f} p={p} dot />;
 }
 
 /* ───────────── Pill bars, scales and the now line ───────────── */

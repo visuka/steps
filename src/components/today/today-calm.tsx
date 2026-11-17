@@ -270,10 +270,10 @@ function Stat({
   return (
     <Press onPress={onPress} label={spoken} ripple={`${p.text}14`} style={[card, styles.half]}>
       <Head icon={icon} text={label} color={p.muted} more={p.text} />
-      <View style={{ marginTop: tight ? 2 : 6 }}>
+      <View style={{ marginTop: tight ? 2 : 4 }}>
         <Amount value={value} unit={unit} size={tight ? 20 : 22} p={p} />
       </View>
-      <View style={{ marginTop: tight ? 4 : 8 }}>
+      <View style={{ marginTop: tight ? 4 : 6 }}>
         <PillBar share={s} color={color} p={p} marks={lean ? undefined : marks} />
       </View>
     </Press>
@@ -373,8 +373,8 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
   const { fontScale } = useWindowDimensions();
   const tight = height < 820;
   const lean = tight || fontScale > 1.1;
-  const gap = tight ? 8 : 10;
-  const padV = tight ? 9 : 12;
+  const gap = tight ? 7 : 8;
+  const padV = tight ? 8 : 10;
   // No outline: soft white cards on the grey ground (owner's reference).
   const card = { backgroundColor: p.card, borderRadius: 20, paddingHorizontal: 16, paddingVertical: padV, ...LIFT };
   const steps = useCountUp(Math.max(0, v.steps));
@@ -423,17 +423,17 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
             {range ? <Label text={range} color={p.muted} /> : null}
           </View>
           <View style={[styles.spread, { alignItems: 'flex-end', marginTop: tight ? 2 : 6 }]}>
-            <Figure value={formatSteps(steps)} unit="Steps" size={tight ? 34 : 42} p={p} />
+            <Figure value={formatSteps(steps)} unit="Steps" size={tight ? 34 : 38} p={p} />
             {past > 0 ? null : <Label text={`${formatSteps(toGo)} to go`} color={p.muted} style={{ marginBottom: scaled(8) }} />}
           </View>
-          <View style={{ height: 1, backgroundColor: p.edge, marginTop: tight ? 6 : 10 }} />
-          <View style={{ marginTop: tight ? 4 : 6 }}>
+          <View style={{ height: 1, backgroundColor: p.edge, marginTop: tight ? 4 : 8 }} />
+          <View style={{ marginTop: tight ? 3 : 5 }}>
             <NowLine time={time} p={p} />
           </View>
           <View style={{ marginTop: tight ? 4 : 6 }}>
             <HourDots hourly={v.hourly} nowHour={v.nowHour} p={p} gap={tight ? 1 : 1.5} />
           </View>
-          <View style={{ marginTop: tight ? 6 : 10 }}>
+          <View style={{ marginTop: tight ? 5 : 8 }}>
             <GoalBar steps={v.steps} goal={v.goal} p={p} />
           </View>
           {past > 0 ? (
@@ -490,7 +490,7 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
       <Rise delay={180} duration={700} distance={10} style={[styles.pair, { gap }]}>
         <Press onPress={tapFor(v, 'food')} label={m.food.spoken} ripple={ripple} style={[card, styles.half]}>
           <Head icon={L ? 'lock' : 'bowl'} text="Food" color={p.muted} more={L ? undefined : p.text} />
-          <View style={{ marginTop: tight ? 2 : 6 }}>
+          <View style={{ marginTop: tight ? 2 : 4 }}>
             <Amount value={m.food.value} unit={L ? undefined : 'kcal'} size={tight ? 20 : 22} p={p} />
           </View>
           {L ? null : (
@@ -506,7 +506,7 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
         </Press>
         <Press onPress={tapFor(v, 'sleep')} label={m.sleep.spoken} ripple={ripple} style={[card, styles.half]}>
           <Head icon={L ? 'lock' : 'moon'} text="Sleep" color={p.muted} more={L ? undefined : p.text} />
-          <View style={{ marginTop: tight ? 2 : 6 }}>
+          <View style={{ marginTop: tight ? 2 : 4 }}>
             <Amount value={m.sleep.value} unit={L ? undefined : m.sleep.unit} size={tight ? 20 : 22} p={p} />
           </View>
           {L ? null : (
@@ -606,5 +606,5 @@ const styles = StyleSheet.create({
   plus: { width: 34, height: 34, borderRadius: 17, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
   dot: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
   dotTight: { width: 34, height: 34, borderRadius: 17 },
-  logFood: { height: 48, borderRadius: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  logFood: { height: 44, borderRadius: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
 });

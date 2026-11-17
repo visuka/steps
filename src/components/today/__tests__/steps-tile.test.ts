@@ -55,6 +55,10 @@ describe('pillRun', () => {
     expect(p[p.length - 1].red).toBe(true);
     expect(p.slice(0, -1).every((x) => !x.red)).toBe(true);
   });
+  it('makes fewer, longer pills when stretched', () => {
+    expect(pillRun(0.8, null, false, 2.5).length).toBeLessThan(pillRun(0.8, null, false).length);
+    expect(sum(pillRun(0.8, null, false, 2.5))).toBeCloseTo(0.8, 6);
+  });
   it('can stay all black', () => {
     expect(pillRun(0.5, null, false).every((x) => !x.red)).toBe(true);
   });

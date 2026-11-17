@@ -39,13 +39,14 @@ export const PILL_PATTERN = [0.075, 0.035, 0.12, 0.05, 0.095, 0.04, 0.13, 0.06] 
  * A filled stretch (0..1 of the bar) cut into pills of mixed length. With
  * `goalAt`, the pills after it are red (steps past the goal); otherwise the
  * last pill is red when `leadRed` (where you are now). No slivers at the end.
+ * `stretch` lengthens every pill, for short bars (Sleep, in a half card).
  */
-export function pillRun(filled: number, goalAt: number | null = null, leadRed = true): Pill[] {
+export function pillRun(filled: number, goalAt: number | null = null, leadRed = true, stretch = 1): Pill[] {
   const f = Number.isFinite(filled) ? Math.min(1, Math.max(0, filled)) : 0;
   const out: Pill[] = [];
   let a = 0;
   for (let i = 0; a < f - 1e-6 && i < 200; i++) {
-    let b = Math.min(f, a + PILL_PATTERN[i % PILL_PATTERN.length]);
+    let b = Math.min(f, a + PILL_PATTERN[i % PILL_PATTERN.length] * stretch);
     if (f - b < 0.02) b = f;
     if (goalAt !== null && a < goalAt - 1e-6 && b > goalAt + 1e-6) b = goalAt;
     out.push({ w: b - a, red: goalAt !== null && a >= goalAt - 1e-6 });

@@ -48,8 +48,8 @@ Dawn, Noon and Dusk still exist in code (`day-part.ts`, the preview's `&part=`) 
 The owner sent the reference next to build 80 and asked for every difference to be made ("complete this each and every thing").
 
 - **Top row:** the avatar (opens You) on the left; in the middle a NUTRITION / ACTIVITY switch (grey track #E4E4E4, the selected half a #FBFBFB pill; Nutrition opens Food, Activity is this screen); on the right a round calendar button (opens the steps by day). 40 high, 36 on short screens. Under it one line: the date (15 bold), the weather and the quote.
-- **Cards:** no outline, radius 20, #FBFBFB on #F1F1F1, padding 12/16 (9 on short screens), 10 apart (8 on short screens).
-- **Steps card:** a clock icon and TODAY, the hours on your feet on the right. The count in Figtree Light 42 (34 on short screens) with STEPS beside it and "x TO GO" on the right; no percentage. A red line with a red dot and the time now, then the hour dots: 8 small dots (3 dp, 2 apart) per hour, the hour now red and blinking. The goal bar: 16 rounded pills (8 high, 3 apart), black up to the steps with the leading pill red, hatched for what is left, red past the goal. Under it a scale of the goal (0 · 2,500 · 5,000 · 7,500 · 10,000), or past the goal "GOAL x" and a red square with "+x PAST GOAL".
+- **Cards:** no outline, radius 20, #FBFBFB on #F1F1F1, padding 10/16 (8 on short screens), 8 apart (7 on short screens). Log food 44 high.
+- **Steps card:** a clock icon and TODAY, the hours on your feet on the right. The count in Figtree Light 38 (34 on short screens) with STEPS beside it and "x TO GO" on the right; no percentage. A red line with a red dot and the time now, then the hour dots: 8 small dots (3 dp, 2 apart) per hour, the hour now red and blinking. The goal bar: 16 rounded pills (8 high, 3 apart), black up to the steps with the leading pill red, hatched for what is left, red past the goal. Under it a scale of the goal (0 · 2,500 · 5,000 · 7,500 · 10,000), or past the goal "GOAL x" and a red square with "+x PAST GOAL".
 - **Distance and Active:** their own cards side by side: icon, name and a small ↗ arrow; the figure in Figtree Light; a rounded bar (8 high) with its scale (hidden on short screens and with large text). Distance grey, Active red (full at 30 min). Both open the steps detail.
 - **FOOD & SLEEP:** a title in mono capitals (14, tracking 1.5) above the pair, hidden on short screens and with large text. Food's bar black with a small red dot at its end; Sleep's bar red. Both heads have the ↗ arrow.
 - Water, the walk and Log food as before, without outlines.
@@ -59,7 +59,7 @@ The owner sent the reference next to build 80 and asked for every difference to 
 ### Second pass on the reference (owner, 17 Nov 2026: "Yes, make all 10")
 
 - Hour dots: only the steps are drawn, as a small peak of three columns per hour (the middle tallest); an hour with none keeps one faint dot on the base line. Lit dots #5E5E5E; the hour now red and blinking.
-- Goal bar and Sleep: pills of mixed length (`PILL_PATTERN`), 8 high, 3 apart. Goal: black with the leading pill red; past the goal black to the goal, red after. Sleep: black pills with a red dot at their end. Food keeps its black bar with a red tip; Active red; Distance grey.
+- Goal bar and Sleep: pills of mixed length (`PILL_PATTERN`), 8 high, 3 apart. Goal: black with the leading pill red; past the goal black to the goal, red after. Sleep: black pills (2.5 times longer, it is a short bar) with a red dot at their end. Food keeps its black bar with a red tip; Active red; Distance grey.
 - A faint line (#E4E4E4) under the steps count. "x TO GO" stays (it replaced the percentage).
 - Distance, Active, Food and Sleep figures: one style, medium 22 (20 on short screens) with the unit small right after it ("4.6 km").
 - FOOD & SLEEP title: bold mono 15.
