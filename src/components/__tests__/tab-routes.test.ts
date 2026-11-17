@@ -52,6 +52,9 @@ describe('tab screens', () => {
 
   it('keeps Food and Activity as screens, without bar buttons', () => {
     expect(BAR_TABS.map((t) => t.key)).toEqual(['index', 'plus', 'you']);
+    expect(BAR_TABS.map((t) => t.label)).toEqual(['Today', 'Chats', 'Profile']);
+    expect(BAR_TABS.map((t) => t.specIcon)).toEqual(['home', 'chats', 'person']);
+    expect(BAR_TABS.map((t) => t.spoken)).toEqual(['Today', 'Chats and groups', 'Your profile']);
     expect(OFF_BAR_SCREENS.map((s) => s.name)).toEqual(expect.arrayContaining(['food', 'activity']));
   });
 });

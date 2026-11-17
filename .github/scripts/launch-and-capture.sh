@@ -97,17 +97,22 @@ capture e detail smoke/calm-sleep.png '&kind=sleep'
 # The Food result opened on its ingredient editor (T15), and as the person's own version.
 capture e food smoke/calm-food-edit.png "&edit=1" edit
 capture e food smoke/calm-food-mine.png "&mine=1" mine
+# Today in each part of the day's colours (T18: Dawn, Noon, Dusk).
+for part in dawn noon dusk; do
+  capture e today "smoke/calm-today-$part.png" "&part=$part" "$part"
+done
 
 # The largest common font size: every tile must still fit (fit any phone).
 adb shell settings put system font_scale 1.3
-capture e today smoke/calm-today-large-font.png
+capture e today smoke/calm-today-large-font.png '&part=noon' noon
 capture e activity smoke/calm-activity-large-font.png
 adb shell settings put system font_scale 1.0
 
 # The owner's phone: 360 dp wide (1080 px at 480 dpi) with a larger text size.
 adb shell wm density 480
 adb shell settings put system font_scale 1.2
-for screen in today food activity; do
+capture e today smoke/calm-today-360dp.png '&part=noon' noon
+for screen in food activity; do
   capture e "$screen" "smoke/calm-$screen-360dp.png"
 done
 adb shell settings put system font_scale 1.0

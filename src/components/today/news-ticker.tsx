@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { cancelAnimation, Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withTiming } from 'react-native-reanimated';
 
-import { SpecIcon } from '@/components/ui';
 import { useReducedMotion } from '@/components/ui/motion';
 import { ActiveTheme, MaxTextScale } from '@/constants/theme';
 import type { NewsItem } from '@/state/use-good-news';
@@ -11,7 +10,8 @@ import type { NewsItem } from '@/state/use-good-news';
 const SPEED = 36;
 const F = ActiveTheme.fonts;
 const START_DELAY_MS = 1200;
-export const TICKER_HEIGHT = 36;
+/** docs/design.md "Good news ticker": 32 high, label 11 semibold, headlines 12. */
+export const TICKER_HEIGHT = 32;
 
 export interface TickerColors {
   background: string;
@@ -75,7 +75,6 @@ export function NewsTicker({ items, colors, onPress }: { items: NewsItem[]; colo
       android_ripple={{ color: colors.ripple, foreground: true }}
       style={[styles.ticker, { backgroundColor: colors.background }]}>
       <View style={[styles.label, { backgroundColor: colors.label }]}>
-        <SpecIcon name="sun" color={colors.labelInk} size={14} />
         <Text style={[styles.labelText, { color: colors.labelInk }]} maxFontSizeMultiplier={1.2} numberOfLines={1}>
           Good news
         </Text>
@@ -117,12 +116,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
-  labelText: { fontFamily: F.bold.family, fontSize: 13, lineHeight: 16, includeFontPadding: false },
+  labelText: { fontFamily: F.semibold.family, fontSize: 11, lineHeight: 14, includeFontPadding: false },
   window: { flex: 1, marginLeft: 8 },
   windowContent: { alignItems: 'center' },
   row: { flexDirection: 'row', alignItems: 'center' },
-  title: { fontFamily: F.semibold.family, fontSize: 14, lineHeight: 18, includeFontPadding: false },
-  source: { fontFamily: F.medium.family, fontSize: 12, lineHeight: 18, includeFontPadding: false },
-  dot: { fontFamily: F.medium.family, fontSize: 14, lineHeight: 18, includeFontPadding: false },
+  title: { fontFamily: F.regular.family, fontSize: 12, lineHeight: 16, includeFontPadding: false },
+  source: { fontFamily: F.regular.family, fontSize: 11, lineHeight: 16, includeFontPadding: false },
+  dot: { fontFamily: F.regular.family, fontSize: 12, lineHeight: 16, includeFontPadding: false },
   still: { flex: 1, marginLeft: 8, marginRight: 14 },
 });

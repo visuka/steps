@@ -2,8 +2,8 @@
  * The screens of the tabs navigator (app/(tabs)) and the bar's buttons, as
  * plain data so jest can check them (components/__tests__/tab-routes.test.ts).
  *
- * The bar, in order: Today, the chats button in the middle (chats and
- * groups), You. Food and Activity left the bar (owner, 16 Nov 2026): Today's
+ * The bar, in order: Today, Chats (chats and groups), Profile, each with a
+ * label (owner, 17 Nov 2026; docs/design.md "Bottom bar"). Food and Activity left the bar (owner, 16 Nov 2026): Today's
  * Food tile and Log food open Food, its Walk tile opens Activity. Journal only
  * sends old links (notifications) on to Food or Activity.
  *
@@ -15,9 +15,9 @@
 import type { NavigationItem } from '@/components/ui/navigation-bar';
 
 export const BAR_TABS: NavigationItem[] = [
-  { key: 'index', label: 'Today', specIcon: 'today' },
-  { key: 'plus', label: 'Chats and groups', specIcon: 'chats', fab: true },
-  { key: 'you', label: 'You', specIcon: 'person' },
+  { key: 'index', label: 'Today', specIcon: 'home', spoken: 'Today' },
+  { key: 'plus', label: 'Chats', specIcon: 'chats', spoken: 'Chats and groups' },
+  { key: 'you', label: 'Profile', specIcon: 'person', spoken: 'Your profile' },
 ];
 
 /** Screens of the tabs navigator with no button in the bar. */

@@ -137,3 +137,17 @@ describe('the food screen as the person\'s own version (T15)', () => {
     expect(parsePreviewUrl(url)).toEqual({ theme: 'e', screen: 'food', mine: true });
   });
 });
+
+describe('the part of the day (T18)', () => {
+  it('takes part=dawn|noon|dusk on any screen, and round-trips', () => {
+    expect(parsePreviewParams({ theme: 'e', screen: 'today', part: 'dawn' })).toEqual({ theme: 'e', screen: 'today', part: 'dawn' });
+    expect(parsePreviewParams({ theme: 'e', screen: 'detail', part: 'dusk' })).toEqual({ theme: 'e', screen: 'detail', kind: 'steps', part: 'dusk' });
+    const url = previewUrl('neutcraftssteps', { theme: 'e', screen: 'today', part: 'noon' });
+    expect(url).toBe('neutcraftssteps://design-preview?theme=e&screen=today&part=noon');
+    expect(parsePreviewUrl(url)).toEqual({ theme: 'e', screen: 'today', part: 'noon' });
+  });
+
+  it('ignores an unknown part', () => {
+    expect(parsePreviewParams({ theme: 'e', screen: 'today', part: 'night' })).toEqual({ theme: 'e', screen: 'today' });
+  });
+});

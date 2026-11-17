@@ -8,6 +8,7 @@ import { useReducedMotion } from '@/components/ui/motion';
 import { BAR_TABS, TAB_SCREENS } from '@/components/tab-routes';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { barColorsOf, useDayPart } from '@/hooks/use-day-part';
 
 /** The bar's buttons; the screens without one are in tab-routes.ts. */
 export const TABS = BAR_TABS;
@@ -30,6 +31,7 @@ function useKeyboardUp(): boolean {
 function TabBar({ state, emitter, navigateToTab, insets }: BottomTabBarProps) {
   const keyboardUp = useKeyboardUp();
   const resultUp = useFoodResultCovering();
+  const { palette } = useDayPart();
   const focused = state.routes[state.index];
   // A food result has no bottom bar (spec 7), and the keyboard takes the room of one.
   if (keyboardUp || resultUp) return null;
@@ -49,12 +51,14 @@ function TabBar({ state, emitter, navigateToTab, insets }: BottomTabBarProps) {
       onSelect={press}
       onReselect={press}
       bottomInset={insets.bottom}
+      // On Today the bar wears the time-of-day colours; elsewhere the Calm theme.
+      colors={focused.name === 'index' ? barColorsOf(palette) : undefined}
     />
   );
 }
 
 /**
- * The Clean+ navigation bar: Today, Chats and groups and You, icons only.
+ * The navigation bar: Today, Chats and Profile, each with a label.
  * Food, Activity and Journal are screens without a button (never href null: see tab-routes.ts).
  * Tabs move with a short shift (Material's shared axis), or cut with reduce motion.
  * System Back from any tab returns to Today, then leaves the app.

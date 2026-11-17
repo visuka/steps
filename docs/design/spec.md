@@ -215,6 +215,7 @@ All are 24-unit viewBox shapes, drawn with `fill="none"`, stroke 1.5, round caps
 | today (clock ring, nav) | `circle cx12 cy12 r8` · `path M12 4a8 8 0 0 1 8 8` · `path M12 8.5v3.5l2.5 1.5` |
 | pulse (Activity) | `path M3 12h4l2.5-6 5 12 2.5-6h4` |
 | person (You) | `circle cx12 cy8.5 r3.5` · `path M5 20c1-3.6 3.8-5.5 7-5.5s6 1.9 7 5.5` |
+| home (Today in the bar; added 17 Nov 2026) | `path M3 11L12 3.5 21 11` · `path M5.5 9.5v11h13v-11` · `path M10 20.5v-6h4v6` |
 | fish (dried anchovy) | `path M5 12c2.4-3.3 5.6-5 9-5 2.8 0 5 2 6 5-1 3-3.2 5-6 5-3.4 0-6.6-1.7-9-5z` · `path M5 12L2.5 9M5 12l-2.5 3` · `path M16.5 11v.1` |
 | egg | `path M12 3.5c3.2 0 6 5 6 9.5a6 6 0 0 1-12 0c0-4.5 2.8-9.5 6-9.5z` |
 | onion | `path M12 3.5c0 3-6.5 5-6.5 10a6.5 6.5 0 0 0 13 0c0-5-6.5-7-6.5-10z` · `path M12 10.5c-1.5 2-2 4-2 6M12 10.5c1.5 2 2 4 2 6` |

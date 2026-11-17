@@ -59,7 +59,7 @@ export const WEATHER_GLYPH: Record<Exclude<WeatherCondition, 'clear'>, readonly 
 };
 
 /** The weather icon, 20 dp: the sun is the spec's own icon; the other conditions reuse its stroke. */
-export function WeatherIcon({ condition, color }: { condition: WeatherCondition; color: string }) {
-  if (condition === 'clear') return <SpecIcon name="sun" color={color} />;
-  return <Glyph parts={WEATHER_GLYPH[condition]} size={CLEAN_SPEC.icon.size} color={color} stroke={CLEAN_SPEC.icon.strokeWidth} />;
+export function WeatherIcon({ condition, color, size = CLEAN_SPEC.icon.size }: { condition: WeatherCondition; color: string; size?: number }) {
+  if (condition === 'clear') return <SpecIcon name="sun" color={color} size={size} />;
+  return <Glyph parts={WEATHER_GLYPH[condition]} size={size} color={color} stroke={CLEAN_SPEC.icon.strokeWidth} />;
 }

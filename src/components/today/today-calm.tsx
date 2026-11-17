@@ -1,28 +1,29 @@
 /**
- * Today, in the one look the app keeps: Calm and large (owner, 17 Nov 2026;
- * the other seven looks are archived on the archive/all-looks branch).
- * Big, clear and unhurried. Each card carries a small moving picture of the
- * day (calm-motion.tsx): a walker riding the steps bar, a bowl that fills,
- * a glass of water with a moving surface, a rocking moon, a walker in the
- * Walk row. Every tap, figure and slot is as before; with the phone's
- * "Remove animations" on, the pictures stand still at their final state.
+ * Today in "Time of day" colours (owner, 17 Nov 2026; docs/design.md
+ * "Current: Today Time of day", mockup docs/design/today-time-of-day.html):
+ * Dawn, Noon or Dusk colours by the phone's clock, a steps ring with the
+ * day's hour bars, Food and Sleep side by side, water glasses, the walk and
+ * Log food. Every tap, figure and slot is as before; only the look changed.
+ * The drawn pieces and the gentle motion are in time-of-day-parts.tsx.
  */
 
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, type TextStyle, useWindowDimensions, View } from 'react-native';
-import Animated, { FadeInDown, ReduceMotion } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { SpecIcon } from '@/components/ui';
 import type { SpecIconName } from '@/components/ui/icon-paths';
+import { WeatherIcon } from '@/components/walk/walk-icons';
+import type { DayPalette } from '@/constants/day-part';
 import { ActiveTheme, MaxContentWidth, MaxTextScale } from '@/constants/theme';
 import { scaled } from '@/constants/ui-scale';
 import type { ThemeFont } from '@/constants/themes/types';
-import { useTheme } from '@/hooks/use-theme';
+import { useDayPart } from '@/hooks/use-day-part';
 import { formatSteps } from '@/lib/format';
 
-import { FoodBowl, GrowBar, SleepMoon, StepsTrack, useCountUp, Walker, WaterGlass } from './calm-motion';
 import { dailyQuote } from './model';
 import { NewsTicker } from './news-ticker';
+import { Glasses, HeroGradient, HourBars, Meter, rise, StepsRing, useCountUp } from './time-of-day-parts';
 import {
   foodTile,
   lockedTileModel,
@@ -34,7 +35,6 @@ import {
   waterTile,
 } from './today-layout';
 import type { TodayFrameLook, TodayView } from './view';
-import { WeatherBesideDate } from './weather-beside-date';
 
 type Weight = 400 | 500 | 600 | 700 | 800;
 
@@ -46,13 +46,11 @@ function face(weight: Weight, numeral = false): string {
   return files.reduce((best, x) => (Math.abs(w(x) - weight) < Math.abs(w(best) - weight) ? x : best)).family;
 }
 
-/** Text at the mockup's size, line height and weight; `caps` is the small tracked label. */
+/** Text at the mockup's size, line height and weight. */
 function T({
   size,
   line,
   weight = 400,
-  num,
-  caps,
   color,
   style,
   lines,
@@ -62,8 +60,6 @@ function T({
   size: number;
   line: number;
   weight?: Weight;
-  num?: boolean;
-  caps?: boolean;
   color: string;
   style?: TextStyle;
   lines?: number;
@@ -79,15 +75,14 @@ function T({
       maxFontSizeMultiplier={MaxTextScale}
       style={[
         {
-          fontFamily: face(weight, num),
-          // Sizes follow the screen width, as everywhere in the app (ui-scale.ts): smaller on a 360 dp phone.
+          fontFamily: face(weight),
+          // Sizes follow the screen width, as everywhere in the app (ui-scale.ts).
           fontSize: scaled(size),
           lineHeight: scaled(line),
           color,
           fontVariant: ['tabular-nums'],
           includeFontPadding: false,
         },
-        caps && { letterSpacing: size * 0.08, textTransform: 'uppercase' },
         style,
       ]}>
       {children}
@@ -115,17 +110,6 @@ function tapFor(v: TodayView, kind: TileKind): () => void {
   return { food: v.on.food, water: v.on.water, sleep: v.on.sleep, walk: v.on.walk }[kind];
 }
 
-/** How full the glass is: of today's target, or of 8 glasses without one. */
-function waterShare(v: TodayView): number {
-  const of = v.water.of && v.water.of > 0 ? v.water.of : 8;
-  return Math.min(1, Math.max(0, v.water.glasses / of));
-}
-
-/** The cards rise into place one after another when Today first draws (a cut with less motion). */
-function enter(i: number) {
-  return FadeInDown.delay(i * 70).duration(380).reduceMotion(ReduceMotion.System);
-}
-
 function share(v: TodayView): number {
   return v.goal > 0 ? Math.min(1, Math.max(0, v.steps / v.goal)) : 0;
 }
@@ -142,17 +126,25 @@ function walkSub(model: TileModel, v: TodayView): string {
   return [v.walk.time, model.note].filter(Boolean).join(' · ');
 }
 
+function waterText(v: TodayView, m: TileModel, locked: boolean): string {
+  if (locked) return m.value;
+  if (v.water.of) return `${v.water.glasses} of ${v.water.of} glasses`;
+  return `${v.water.glasses} ${v.water.glasses === 1 ? 'glass' : 'glasses'}`;
+}
+
 function Press({
   onPress,
   label,
   style,
   ripple,
+  hitSlop,
   children,
 }: {
   onPress: () => void;
   label: string;
   style?: object;
   ripple: string;
+  hitSlop?: number;
   children: ReactNode;
 }) {
   return (
@@ -161,261 +153,279 @@ function Press({
       accessibilityRole="button"
       accessibilityLabel={label}
       android_ripple={{ color: ripple, foreground: true }}
+      hitSlop={hitSlop}
       style={[{ overflow: 'hidden' }, style]}>
       {children}
     </Pressable>
   );
 }
 
-function Avatar({ v, size, fill, ink, weight }: { v: TodayView; size: number; fill: string; ink: string; weight: Weight }) {
+/** A card's head: an 18 icon in the part's colour and the name, 14 semibold. */
+function Head({ icon, text, iconColor, color, chevron }: { icon: SpecIconName; text: string; iconColor: string; color: string; chevron?: string }) {
   return (
-    <Press onPress={v.on.profile} label="Your profile" ripple={`${ink}22`} style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: fill, alignItems: 'center', justifyContent: 'center' }}>
-      {v.initial ? (
-        <T size={16} line={20} weight={weight} color={ink}>
-          {v.initial}
-        </T>
-      ) : (
-        <SpecIcon name="person" color={ink} />
-      )}
-    </Press>
-  );
-}
-
-function Beside({ v }: { v: TodayView }) {
-  return v.weather ? <WeatherBesideDate weather={v.weather} /> : (v.slots.dateExtra ?? null);
-}
-
-function LogFood({ v, fill, ink, radius, size, weight, height }: { v: TodayView; fill: string; ink: string; radius: number; size: number; weight: Weight; height: number }) {
-  return (
-    <Press onPress={v.on.logFood} label="Log food" ripple={`${ink}33`} style={[styles.logFood, { height, backgroundColor: fill, borderRadius: radius }]}>
-      <SpecIcon name="plus" color={ink} size={20} />
-      <T size={size} line={24} weight={weight} color={ink}>
-        Log food
+    <View style={styles.head}>
+      <SpecIcon name={icon} color={iconColor} size={18} />
+      <T size={14} line={18} weight={600} color={color}>
+        {text}
       </T>
-    </Press>
-  );
-}
-
-/** What follows the tiles: the cards below, or the premium card for the free app. */
-function Tail({ v, gutter = 16 }: { v: TodayView; gutter?: number }) {
-  return (
-    <View style={{ paddingHorizontal: gutter, gap: 16 }}>
-      {v.details ? v.slots.below : v.slots.locked}
+      {chevron ? <SpecIcon name="chevron-right" color={chevron} size={14} /> : null}
     </View>
   );
 }
 
-/* ───────────────────────── E · Calm and large ───────────────────────── */
+/** The date's second line: the weather (or the weather offer), then the day's quote. */
+function SubLine({ v, p }: { v: TodayView; p: DayPalette }) {
+  const extra = v.weather ? null : (v.slots.dateExtra ?? null);
+  return (
+    <View style={styles.subLine}>
+      {v.weather ? (
+        <View accessible accessibilityLabel={v.weather.spoken} style={styles.weather}>
+          <WeatherIcon condition={v.weather.condition} color={p.muted} size={14} />
+          <T size={13} line={18} color={p.muted}>
+            {v.weather.text}
+          </T>
+        </View>
+      ) : (
+        extra
+      )}
+      {v.weather || extra ? (
+        <T size={13} line={18} color={p.muted}>
+          ·
+        </T>
+      ) : null}
+      <T size={13} line={18} color={p.muted} lines={1} style={{ flexShrink: 1 }}>
+        {dailyQuote(v.dayKey)}
+      </T>
+    </View>
+  );
+}
 
-export function TodayCalm({ v, look }: { v: TodayView; look: TodayFrameLook }) {
-  const theme = useTheme();
+/** Tail: what follows the tiles, or the premium card for the free app. */
+function Tail({ v }: { v: TodayView }) {
+  const node = v.details ? v.slots.below : v.slots.locked;
+  return node ? <View style={{ gap: 10 }}>{node}</View> : null;
+}
+
+export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
+  const { palette: p } = useDayPart();
   const m = modelsOf(v);
   const d = distanceText(v);
   const L = m.locked;
-  const card = { backgroundColor: theme.surfaceContainerLowest, borderColor: theme.outlineVariant, borderWidth: 1, borderRadius: 20 };
-  const quiet = theme.onSurfaceVariant;
-  const ink = theme.onSurface;
-  // The steps and their share count up when Today opens.
+  // A very short screen: tighter, so Today still fits without scrolling.
+  const { height } = useWindowDimensions();
+  const tight = height < 740;
+  const gap = tight ? 8 : 10;
+  const padV = tight ? 10 : 12;
+  const card = { backgroundColor: p.card, borderColor: p.edge, borderWidth: 1, borderRadius: 20, paddingHorizontal: 16, paddingVertical: padV };
   const steps = useCountUp(Math.max(0, v.steps));
   const pct = useCountUp(Math.max(0, v.pct));
-  // A short screen (the owner's 360 x 800 dp phone): tighter, so Today still fits without scrolling.
-  const { height } = useWindowDimensions();
-  const tight = height < 860;
-  const art = tight ? 28 : 32;
+  const ripple = `${p.text}14`;
 
   return (
-    <View style={[styles.column, { backgroundColor: look.background, paddingHorizontal: 24, gap: tight ? 8 : 12, paddingTop: tight ? 8 : 16 }]}>
-      <View style={styles.spread}>
-        <View style={{ flex: 1 }}>
-          <View style={styles.dateRow}>
-            <T size={24} line={32} weight={700} color={ink}>
-              {v.dateLabel}
-            </T>
-            <Beside v={v} />
-          </View>
-          <T size={18} line={24} color={quiet} lines={1}>
-            {dailyQuote(v.dayKey)}
+    <View style={[styles.column, { gap }]}>
+      <Animated.View entering={rise(0)} style={styles.top}>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <T size={22} line={28} weight={700} color={p.text} style={{ letterSpacing: -0.3 }} lines={1}>
+            {v.dateLabel}
           </T>
+          <SubLine v={v} p={p} />
         </View>
-        <Avatar v={v} size={48} fill={theme.primaryContainer} ink={theme.onPrimaryContainer} weight={700} />
-      </View>
+        <Press onPress={v.on.profile} label="Your profile" ripple={`${p.main}22`} style={[styles.avatar, { backgroundColor: p.plate }]}>
+          {v.initial ? (
+            <T size={15} line={20} weight={700} color={p.main}>
+              {v.initial}
+            </T>
+          ) : (
+            <SpecIcon name="person" color={p.main} />
+          )}
+        </Press>
+      </Animated.View>
 
-      {/* Where Monday to Sunday was: good news moving by (owner, 16 Nov 2026). */}
+      {/* Good news moving by (owner, 16 Nov 2026). */}
       {v.news.length ? (
-        <NewsTicker
-          items={v.news}
-          onPress={v.on.news}
-          colors={{
-            background: theme.surfaceContainerHigh,
-            label: theme.primaryContainer,
-            labelInk: theme.onPrimaryContainer,
-            ink: ink,
-            quiet: quiet,
-            ripple: `${ink}1A`,
-          }}
-        />
+        <Animated.View entering={rise(50)}>
+          <NewsTicker
+            items={v.news}
+            onPress={v.on.news}
+            colors={{ background: p.newsBg, label: p.card, labelInk: p.main, ink: p.text, quiet: p.muted, ripple: `${p.text}1A` }}
+          />
+        </Animated.View>
       ) : null}
 
-      <Animated.View entering={enter(0)}>
-      <Pressable
-        onPress={v.on.steps}
-        accessibilityRole="button"
-        accessibilityLabel={v.stepsSpoken}
-        android_ripple={{ color: `${ink}14`, foreground: true }}
-        style={[card, { paddingHorizontal: 24, paddingVertical: tight ? 8 : 16, overflow: 'hidden' }]}>
-        <View style={[styles.spread, { minHeight: 24 }]}>
-          <T size={18} line={24} weight={600} color={quiet}>
-            Steps today
-          </T>
-          <T size={18} line={24} weight={700} color={theme.primary}>
-            {pct}%
-          </T>
-        </View>
-        <View style={[styles.baseline, { marginTop: 4 }]}>
-          <T size={tight ? 44 : 56} line={tight ? 46 : 56} weight={700} color={ink} style={{ letterSpacing: -1 }} lines={1}>
-            {formatSteps(steps)}
-          </T>
-          <T size={18} line={24} color={quiet} lines={1}>
-            of {formatSteps(v.goal)} goal
-          </T>
-        </View>
-        {/* The walker rides the bar's leading edge and cheers at the goal. */}
-        <StepsTrack share={share(v)} color={theme.steps} track={theme.lane} walker={theme.primary} height={12} figure={22} />
-        <View style={{ flexDirection: 'row', gap: 16, marginTop: 8 }}>
-          <View style={{ flex: 1 }}>
-            <T size={24} line={28} weight={700} color={ink}>
-              {d.value} {d.unit}
-            </T>
-            <T size={16} line={20} color={quiet}>
-              Distance
-            </T>
+      <Animated.View entering={rise(100)}>
+        <Pressable
+          onPress={v.on.steps}
+          accessibilityRole="button"
+          accessibilityLabel={v.stepsSpoken}
+          android_ripple={{ color: ripple, foreground: true }}
+          style={[card, { backgroundColor: p.heroBottom, borderColor: p.heroEdge, overflow: 'hidden' }]}>
+          <HeroGradient p={p} />
+          <View style={styles.spread}>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Head icon="walker" text="Steps" iconColor={p.main} color={p.text} chevron={p.muted} />
+              <T size={40} line={44} weight={700} color={p.text} style={{ letterSpacing: -1.2, marginTop: 4 }} fit>
+                {formatSteps(steps)}
+              </T>
+              <T size={13} line={18} color={p.muted} lines={1}>
+                of {formatSteps(v.goal)} goal
+              </T>
+              <View style={styles.facts}>
+                <T size={13} line={18} weight={600} color={p.text}>
+                  {d.value} {d.unit}
+                </T>
+                <T size={13} line={18} color={p.muted}>
+                  ·
+                </T>
+                <T size={13} line={18} weight={600} color={p.text}>
+                  {Math.max(0, Math.round(v.activeMin ?? 0))} min
+                </T>
+                <T size={13} line={18} color={p.muted}>
+                  active
+                </T>
+              </View>
+            </View>
+            <StepsRing share={share(v)} p={p}>
+              <T size={19} line={24} weight={700} color={p.ringB}>
+                {pct}%
+              </T>
+            </StepsRing>
           </View>
-          <View style={{ flex: 1 }}>
-            <T size={24} line={28} weight={700} color={ink}>
-              {Math.max(0, Math.round(v.activeMin ?? 0))} min
-            </T>
-            <T size={16} line={20} color={quiet}>
-              Active
-            </T>
+          <View style={{ marginTop: 10 }}>
+            <HourBars hourly={v.hourly} nowHour={v.nowHour} p={p} />
           </View>
-        </View>
-      </Pressable>
+          <View style={styles.axis}>
+            {['12 am', '6 am', '12 pm', '6 pm'].map((t) => (
+              <T key={t} size={11} line={14} color={p.muted}>
+                {t}
+              </T>
+            ))}
+          </View>
+        </Pressable>
       </Animated.View>
 
       {v.slots.walking}
 
-      <Animated.View entering={enter(1)} style={{ flexDirection: 'row', gap: 12 }}>
-        <Press onPress={tapFor(v, 'food')} label={m.food.spoken} ripple={`${ink}14`} style={[card, styles.eHalf, tight && styles.tightPad]}>
-          <View style={styles.artRow}>
-            <ELabel icon={L ? 'lock' : 'bowl'} text="Food" color={L ? ink : theme.food} />
-            {L ? null : <FoodBowl share={m.food.share ?? 0} color={theme.food} container={theme.foodContainer} size={art} />}
-          </View>
-          <T size={24} line={28} weight={700} color={ink} fit>
-            {m.food.value}
-          </T>
+      <Animated.View entering={rise(180)} style={styles.pair}>
+        <Press onPress={tapFor(v, 'food')} label={m.food.spoken} ripple={ripple} style={[card, styles.half]}>
+          <Head icon={L ? 'lock' : 'bowl'} text="Food" iconColor={L ? p.text : p.food} color={p.text} />
+          <Value value={m.food.value} unit={L ? undefined : 'kcal'} p={p} />
           {L ? null : (
             <>
-              <T size={16} line={24} color={quiet} fit>
+              <T size={12} line={16} color={p.muted} fit>
                 of {v.food.target} kcal
               </T>
-              <GrowBar share={m.food.share ?? 0} height={8} color={theme.food} track={theme.foodContainer} delay={150} style={{ marginTop: 8 }} />
+              <Meter share={m.food.share ?? 0} color={p.food} track={p.foodLane} style={{ marginTop: 10 }} />
             </>
           )}
         </Press>
-        <Press onPress={tapFor(v, 'sleep')} label={m.sleep.spoken} ripple={`${ink}14`} style={[card, styles.eHalf, tight && styles.tightPad]}>
-          <View style={styles.artRow}>
-            <ELabel icon={L ? 'lock' : 'moon'} text="Sleep" color={L ? ink : theme.sleep} />
-            {L ? null : <SleepMoon color={theme.sleep} ground={theme.surfaceContainerLowest} size={art} />}
-          </View>
-          <T size={24} line={28} weight={700} color={ink} fit>
-            {m.sleep.unit ? `${m.sleep.value} ${m.sleep.unit}` : m.sleep.value}
-          </T>
+        <Press onPress={tapFor(v, 'sleep')} label={m.sleep.spoken} ripple={ripple} style={[card, styles.half]}>
+          <Head icon={L ? 'lock' : 'moon'} text="Sleep" iconColor={L ? p.text : p.sleep} color={p.text} />
+          <Value value={m.sleep.value} unit={L ? undefined : m.sleep.unit} p={p} />
           {L ? null : (
-            <T size={16} line={24} color={quiet}>
-              Last night
-            </T>
+            <>
+              <T size={12} line={16} color={p.muted}>
+                Last night
+              </T>
+              <Meter share={m.sleep.share ?? 0} color={p.sleep} track={p.sleepLane} style={{ marginTop: 10 }} />
+            </>
           )}
         </Press>
       </Animated.View>
 
-      <Animated.View entering={enter(2)}>
-      <Press onPress={tapFor(v, 'water')} label={m.water.spoken} ripple={`${ink}14`} style={[card, styles.eWater, tight && styles.tightPad]}>
-        {L ? null : <WaterGlass share={waterShare(v)} color={theme.water} container={theme.waterContainer} width={tight ? 24 : 30} height={tight ? 34 : 42} />}
-        <View style={{ flex: 1 }}>
-          <ELabel icon={L ? 'lock' : 'drop'} text="Water" color={L ? ink : theme.water} />
-          <T size={24} line={28} weight={700} color={ink} fit>
-            {L ? m.water.value : v.water.of ? `${v.water.glasses} of ${v.water.of} glasses` : `${v.water.glasses} ${v.water.glasses === 1 ? 'glass' : 'glasses'}`}
-          </T>
-        </View>
-        {L ? null : (
-          <Press
-            onPress={v.on.addGlass}
-            label="Add a glass of water"
-            ripple={`${theme.water}22`}
-            style={[styles.eGlass, { borderColor: theme.water, backgroundColor: theme.waterContainer }]}>
-            <SpecIcon name="plus" color={theme.water} size={20} />
-            <T size={18} line={24} weight={700} color={theme.water}>
-              1 glass
+      <Animated.View entering={rise(240)}>
+        <Press onPress={tapFor(v, 'water')} label={m.water.spoken} ripple={ripple} style={[card, styles.row]}>
+          <View style={{ flexShrink: 1, minWidth: 0 }}>
+            <Head icon={L ? 'lock' : 'drop'} text="Water" iconColor={L ? p.text : p.water} color={p.text} />
+            <T size={17} line={22} weight={600} color={p.text} style={{ marginTop: 4 }} fit>
+              {waterText(v, m.water, L)}
             </T>
-          </Press>
-        )}
-      </Press>
+          </View>
+          {L ? null : (
+            <>
+              <View style={{ marginLeft: 'auto' }}>
+                <Glasses glasses={v.water.glasses} of={v.water.of} color={p.water} />
+              </View>
+              <Press
+                onPress={v.on.addGlass}
+                label="Add a glass of water"
+                ripple={`${p.water}22`}
+                hitSlop={7}
+                style={[styles.plus, { borderColor: p.water, backgroundColor: p.waterLane }]}>
+                <SpecIcon name="plus" color={p.water} size={18} />
+              </Press>
+            </>
+          )}
+        </Press>
       </Animated.View>
 
-      <Animated.View entering={enter(3)}>
-      <Press onPress={tapFor(v, 'walk')} label={m.walk.spoken} ripple={`${ink}14`} style={[card, styles.eWalk]}>
-        <View style={[styles.circle40, { backgroundColor: L ? theme.surfaceContainerHigh : theme.primaryContainer }]}>
-          {L ? <SpecIcon name="lock" color={ink} size={20} /> : <Walker size={24} color={theme.onPrimaryContainer} walking={Boolean(v.walk)} />}
-        </View>
-        <View style={{ flex: 1 }}>
-          <T size={18} line={24} weight={600} color={ink} lines={1}>
-            {v.walk && !L ? v.walk.title : 'Walk'}
-          </T>
-          {walkSub(m.walk, v) ? (
-            <T size={14} line={20} color={quiet} lines={1}>
-              {walkSub(m.walk, v)}
+      <Animated.View entering={rise(300)}>
+        <Press onPress={tapFor(v, 'walk')} label={m.walk.spoken} ripple={ripple} style={[card, styles.row, { gap: 12 }]}>
+          <View style={[styles.dot, { backgroundColor: p.plate }]}>
+            <SpecIcon name={L ? 'lock' : 'walker'} color={p.main} size={20} />
+          </View>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <T size={14} line={18} weight={600} color={p.text} lines={1}>
+              {v.walk && !L ? v.walk.title : 'Walk'}
+            </T>
+            {walkSub(m.walk, v) ? (
+              <T size={12} line={16} color={p.muted} lines={1}>
+                {walkSub(m.walk, v)}
+              </T>
+            ) : null}
+          </View>
+          {v.walk && !L ? (
+            <T size={16} line={20} weight={600} color={p.text}>
+              {v.walk.distance.value} {v.walk.distance.unit}
             </T>
           ) : null}
-        </View>
-        {v.walk && !L ? (
-          <T size={18} line={24} weight={700} color={ink}>
-            {v.walk.distance.value} {v.walk.distance.unit}
-          </T>
-        ) : null}
-        <SpecIcon name="chevron-right" color={quiet} size={20} />
-      </Press>
+          <SpecIcon name="chevron-right" color={p.muted} size={14} />
+        </Press>
       </Animated.View>
 
-      <Tail v={v} gutter={0} />
-      <LogFood v={v} fill={theme.primary} ink={theme.onPrimary} radius={20} size={18} weight={700} height={tight ? 48 : 56} />
+      <Tail v={v} />
+
+      <Animated.View entering={rise(360)} style={{ marginTop: 'auto' }}>
+        <Press onPress={v.on.logFood} label="Log food" ripple={`${p.onMain}33`} style={[styles.logFood, { backgroundColor: p.main }]}>
+          <SpecIcon name="plus" color={p.onMain} size={20} />
+          <T size={15} line={20} weight={600} color={p.onMain}>
+            Log food
+          </T>
+        </Press>
+      </Animated.View>
     </View>
   );
 }
 
-function ELabel({ icon, text, color }: { icon: SpecIconName; text: string; color: string }) {
+/** A card's figure, 21 bold, with its unit in 13 semibold ("1,280 kcal", "6 h 50 min"). */
+function Value({ value, unit, p }: { value: string; unit?: string; p: DayPalette }) {
   return (
-    <View style={[styles.iconLabel, { height: 24 }]}>
-      <SpecIcon name={icon} color={color} size={20} />
-      <T size={16} line={24} weight={600} color={color}>
-        {text}
-      </T>
-    </View>
+    <Text
+      numberOfLines={1}
+      adjustsFontSizeToFit
+      minimumFontScale={0.7}
+      maxFontSizeMultiplier={MaxTextScale}
+      style={[styles.value, { fontFamily: face(700), fontSize: scaled(21), lineHeight: scaled(26), color: p.text }]}>
+      {value}
+      {unit ? <Text style={{ fontFamily: face(600), fontSize: scaled(13), letterSpacing: 0 }}> {unit}</Text> : null}
+    </Text>
   );
 }
 
 const styles = StyleSheet.create({
-  column: { width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center', paddingTop: 16, gap: 16 },
-  dateRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', columnGap: 8 },
-  baseline: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', columnGap: 8 },
+  column: { width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center', flexGrow: 1, paddingHorizontal: 18, paddingTop: 8, paddingBottom: 10 },
+  top: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
+  subLine: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 18 },
+  weather: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  avatar: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   spread: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  logFood: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 8 },
-  iconLabel: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  circle40: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  eHalf: { flex: 1, paddingHorizontal: 16, paddingVertical: 12 },
-  // A short screen: 8 dp above and below a card's contents instead of 12.
-  tightPad: { paddingVertical: 8 },
-  artRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 4 },
-  eWater: { paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  eGlass: { height: 48, minWidth: 48, paddingHorizontal: 16, borderRadius: 16, borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  eWalk: { minHeight: 56, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 16 },
+  head: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  facts: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 4, marginTop: 6 },
+  axis: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4, paddingRight: 30 },
+  pair: { flexDirection: 'row', gap: 10 },
+  half: { flex: 1, minWidth: 0 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  plus: { width: 34, height: 34, borderRadius: 17, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+  dot: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
+  logFood: { height: 48, borderRadius: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  value: { marginTop: 6, letterSpacing: -0.3, includeFontPadding: false, fontVariant: ['tabular-nums'] },
 });

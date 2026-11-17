@@ -14,9 +14,12 @@
  * It also takes edit=1: the result opened for editing its ingredients (T15).
  *
  *   neutcraftssteps://design-preview?theme=e&screen=food&edit=1
+ * Every screen also takes part=dawn|noon|dusk: Today and the bar in that part's colours
+ * instead of the clock's (T18).
  * Plain string work only: React Native's URLSearchParams has no get().
  */
 
+import { type DayPart, isDayPart } from '@/constants/day-part';
 import { THEME_IDS, type ThemeId } from '@/constants/themes/types';
 import { parseKind, type SeriesKind } from '@/state/series';
 
@@ -36,6 +39,8 @@ export interface PreviewParams {
   edit?: boolean;
   /** The food screen showing the person's own version; only set when screen is 'food'. */
   mine?: boolean;
+  /** Today and the bar in this part of the day's colours; the clock's when missing. */
+  part?: DayPart;
 }
 
 /** Route params as expo-router hands them over (useLocalSearchParams). */
@@ -51,17 +56,20 @@ export function parsePreviewParams(raw: RawParams): PreviewParams | null {
   const screen = first(raw.screen);
   if (!(THEME_IDS as readonly (string | undefined)[]).includes(theme)) return null;
   if (!(PREVIEW_SCREENS as readonly (string | undefined)[]).includes(screen)) return null;
-  if (screen === 'detail') return { theme: theme as ThemeId, screen, kind: parseKind(raw.kind) ?? 'steps' };
-  if (screen === 'food' && first(raw.mine) === '1') return { theme: theme as ThemeId, screen, mine: true };
-  if (screen === 'food' && first(raw.edit) === '1') return { theme: theme as ThemeId, screen, edit: true };
-  return { theme: theme as ThemeId, screen: screen as PreviewScreen };
+  const rawPart = first(raw.part);
+  const part = isDayPart(rawPart) ? { part: rawPart } : {};
+  if (screen === 'detail') return { theme: theme as ThemeId, screen, kind: parseKind(raw.kind) ?? 'steps', ...part };
+  if (screen === 'food' && first(raw.mine) === '1') return { theme: theme as ThemeId, screen, mine: true, ...part };
+  if (screen === 'food' && first(raw.edit) === '1') return { theme: theme as ThemeId, screen, edit: true, ...part };
+  return { theme: theme as ThemeId, screen: screen as PreviewScreen, ...part };
 }
 
 /** The link that opens the preview, e.g. neutcraftssteps://design-preview?theme=e&screen=today. */
 export function previewUrl(scheme: string, p: PreviewParams): string {
   const kind = p.screen === 'detail' && p.kind ? `&kind=${p.kind}` : '';
   const edit = p.screen === 'food' ? (p.mine ? '&mine=1' : p.edit ? '&edit=1' : '') : '';
-  return `${scheme}://${PREVIEW_ROUTE}?theme=${p.theme}&screen=${p.screen}${kind}${edit}`;
+  const part = p.part ? `&part=${p.part}` : '';
+  return `${scheme}://${PREVIEW_ROUTE}?theme=${p.theme}&screen=${p.screen}${kind}${edit}${part}`;
 }
 
 function decode(text: string): string {

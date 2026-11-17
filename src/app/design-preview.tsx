@@ -22,6 +22,7 @@ import { parsePreviewParams, type PreviewScreen } from '@/design-preview/params'
 import { SampleDataProvider } from '@/design-preview/providers';
 import { SAMPLE_COOKING_FOOD, SAMPLE_COOKING_TABLES } from '@/design-preview/cooking-sample';
 import { SAMPLE_FOOD_RESULT, SAMPLE_WALK_ID } from '@/design-preview/sample';
+import { barColorsOf, DayPartOverride, useDayPart } from '@/hooks/use-day-part';
 import { useTheme } from '@/hooks/use-theme';
 import type { SeriesKind } from '@/state/series';
 
@@ -42,9 +43,19 @@ const TAB_OF: Record<Exclude<PreviewScreen, 'detail' | 'food' | 'news'>, string>
  * phone's, however the route was reached.
  */
 export default function DesignPreviewRoute() {
+  // &part=dawn|noon|dusk: Today and the bar in that part's colours, not the clock's (T18).
+  const part = parsePreviewParams(useLocalSearchParams())?.part ?? null;
+  return (
+    <DayPartOverride.Provider value={part}>
+      <DesignPreviewScreens />
+    </DayPartOverride.Provider>
+  );
+}
+
+function DesignPreviewScreens() {
   const raw = useLocalSearchParams();
   const params = parsePreviewParams(raw);
-  const shown = params && params.theme === ActiveTheme.id ? `${params.theme} ${params.screen}${params.edit ? ' edit' : ''}${params.mine ? ' mine' : ''}` : 'refused';
+  const shown = params && params.theme === ActiveTheme.id ? `${params.theme} ${params.screen}${params.edit ? ' edit' : ''}${params.mine ? ' mine' : ''}${params.part ? ` ${params.part}` : ''}` : 'refused';
 
   // CI waits for this line in logcat before photographing (.github/scripts/launch-and-capture.sh).
   useEffect(() => {
@@ -158,6 +169,7 @@ function PreviewScreenBody({ screen, edit, mine }: { screen: PreviewScreen; edit
  */
 function WithNavigationBar({ activeKey, children }: { activeKey: string; children: ReactNode }) {
   const insets = useSafeAreaInsets();
+  const { palette } = useDayPart();
   const [barHeight, setBarHeight] = useState(80);
   return (
     <View style={styles.fill}>
@@ -165,7 +177,13 @@ function WithNavigationBar({ activeKey, children }: { activeKey: string; childre
         <View style={styles.fill}>{children}</View>
       </BottomTabBarHeightContext.Provider>
       <View onLayout={(e) => setBarHeight(Math.round(e.nativeEvent.layout.height))}>
-        <NavigationBar items={TABS} activeKey={activeKey} onSelect={() => undefined} bottomInset={insets.bottom} />
+        <NavigationBar
+          items={TABS}
+          activeKey={activeKey}
+          onSelect={() => undefined}
+          bottomInset={insets.bottom}
+          colors={activeKey === 'index' ? barColorsOf(palette) : undefined}
+        />
       </View>
     </View>
   );
