@@ -5,7 +5,7 @@
  */
 
 /** Rows of dots per hour, and segments in the goal bar. */
-export const STEPS_TILE = { dotRows: 5, goalSegments: 28 } as const;
+export const STEPS_TILE = { dotRows: 8, goalSegments: 16 } as const;
 
 /**
  * How many dots each hour lights (0..dotRows): steps against the day's busiest

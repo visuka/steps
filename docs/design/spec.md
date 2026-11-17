@@ -229,6 +229,8 @@ All are 24-unit viewBox shapes, drawn with `fill="none"`, stroke 1.5, round caps
 | stairs (Floors) | `path M4 19h4v-4h4v-4h4V7h4` |
 | speed | `path M5 17a8 8 0 1 1 14 0` · `path M12 13l4-4` · `path M12 13h.01` |
 | close (Remove an ingredient) | `path M6 6l12 12M18 6L6 18` |
+| calendar (Today, top right) | `path M5 6.5h14v12.5H5z` · `path M5 10.5h14` · `path M9 4v4` · `path M15 4v4` |
+| arrow-up-right (a Today card opens more) | `path M8 16L16 8` · `path M9.5 8H16v6.5` |
 
 Icons used for ingredients other than the five drawn (rice, dal, milk …) are not in the mockup: see "Not drawn".
 

@@ -43,21 +43,22 @@ Size rule: the mockup phone screen is **360 px wide; 1 mockup px = 1 dp**. Text 
 
 Dawn, Noon and Dusk still exist in code (`day-part.ts`, the preview's `&part=`) but share these colours. The old Clean+ spec (`clean-spec.ts`) is unchanged; its blue mixes apply only when `primary` is its blue, so with black every screen mixes its greys from black.
 
-### Steps tile (Today)
+### Today, after the owner's reference picture (17 Nov 2026)
 
-- Card: radius 16, padding 12/16 (10 on short screens), #FBFBFB, 1 dp #E4E4E4 edge. Opens the steps detail, as before.
-- Top line: "TODAY" small label (monospace capitals, 11, tracking 1, muted); right: the hours on your feet ("06:00 – 14:00", or "06:00 – NOW" while this hour has steps) and a 14 chevron.
-- Count: 34/40 semibold, tracking -0.8, counts up; "STEPS" small label beside it; the percentage as a small black label on the right.
-- Hour dots: one column of 5 dots (5 dp, 3 apart) per hour; lit dots by steps against the busiest hour so far (at least one for any hour with steps), grey #8C8C8C; unlit #E4E4E4. **The hour now is red and blinks gently, 1 to 0.3 and back over 1.6 s, for as long as Today is open** (the owner: simple, continuous movement). Axis 00 06 12 18 in small labels.
-- Goal bar: 28 segments, 10 high, 2 apart. Black up to the steps; hatched grey (three fine upright strokes) for what is left; past the goal the bar stands for all the steps, black up to the goal and red after it. Under it: "GOAL 7,000" left; right "4,236 TO GO" (muted) or a red square and "+4,236 PAST GOAL" (black).
-- Two small tiles (gap 8, #F1F1F1, radius 12, padding 8/10): DISTANCE ("8.1 km", bar = share of the steps goal) and ACTIVE ("7 min", bar full at 30 min). Each has a 12-segment bar, 4 high.
-- No ring, no gradient, no hour bars any more on this tile.
+The owner sent the reference next to build 80 and asked for every difference to be made ("complete this each and every thing").
 
-### The rest of Today
-
-- Food, Sleep, Water heads: a 14 icon and the name as a small label, both muted. Food and Sleep bars are the 12-segment bar. Glasses, the + button, the walk circle and Log food are black and grey. Every tap, figure and slot is as before.
-- Motion: blocks rise once as before; bars are revealed left to right once; the steps count counts up; the hour now keeps blinking; the news keeps moving. With "Remove animations" on, nothing moves.
+- **Top row:** the avatar (opens You) on the left; in the middle a NUTRITION / ACTIVITY switch (grey track #E4E4E4, the selected half a #FBFBFB pill; Nutrition opens Food, Activity is this screen); on the right a round calendar button (opens the steps by day). The date (20/24 bold), weather and quote sit under it, as before.
+- **Cards:** no outline, radius 20, #FBFBFB on #F1F1F1, padding 14/16 (10 on short screens), 12 apart (8 on short screens).
+- **Steps card:** a clock icon and TODAY, the hours on your feet on the right. The count in Figtree Light 46 (38 on short screens) with STEPS beside it and "x TO GO" on the right; no percentage. A red line with a red dot and the time now, then the hour dots: 8 small dots (3 dp, 2 apart) per hour, the hour now red and blinking. The goal bar: 16 rounded pills (8 high, 3 apart), black up to the steps with the leading pill red, hatched for what is left, red past the goal. Under it a quarter scale of the goal (2,500 · 5,000 · 7,500 · 10,000), or past the goal "GOAL x" and a red square with "+x PAST GOAL".
+- **Distance and Active:** their own cards side by side: icon, name and a small ↗ arrow; the figure in Figtree Light; a rounded bar (8 high) with its scale (hidden on short screens). Distance grey, Active red (full at 30 min). Both open the steps detail.
+- **FOOD & SLEEP:** a title in mono capitals (15, tracking 1.5) above the pair, hidden on short screens. Food's bar black with a small red dot at its end; Sleep's bar red. Both heads have the ↗ arrow.
+- Water, the walk and Log food as before, without outlines.
+- Motion as before: blocks rise once, bars grow once, the count counts up, the hour now keeps blinking, the news keeps moving. With "Remove animations" on, nothing moves.
 - Today must not scroll at 360 x 800 with normal text.
+
+### Bottom bar (every screen)
+
+A row of 48 dp round buttons, 16 apart, centred, on the screen's own ground, no hairline; 64 dp plus the system inset. The selected one is a #FBFBFB circle with a black icon, the others #E4E4E4 circles with grey icons. Labels are not drawn; TalkBack still says each name (`nav-style.ts`, `navigation-bar.tsx`).
 
 ## History
 

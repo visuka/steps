@@ -9,7 +9,7 @@
  */
 
 import { type ReactNode, useEffect, useRef, useState } from 'react';
-import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
+import { type StyleProp, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import Animated, {
   Easing,
   ReduceMotion,
@@ -26,6 +26,8 @@ import Svg, { Circle, Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
 
 import { useReducedMotion } from '@/components/ui/motion';
 import type { DayPalette } from '@/constants/day-part';
+import { MaxTextScale } from '@/constants/theme';
+import { scaled } from '@/constants/ui-scale';
 
 import { goalSegments, hourDots, STEPS_TILE } from './steps-tile-model';
 
@@ -49,12 +51,14 @@ export const TOD = {
   meter: 5,
   /** The hour dots: rows per hour, the dot and the gap between rows. */
   dotRows: STEPS_TILE.dotRows,
-  dot: 5,
-  dotGap: 3,
+  dot: 3,
+  dotGap: 2,
   /** The goal bar: segments, height and gap. */
   goalSegments: STEPS_TILE.goalSegments,
-  goalHeight: 10,
-  segmentGap: 2,
+  goalHeight: 8,
+  segmentGap: 3,
+  /** The rounded bars of Distance, Active, Food and Sleep. */
+  pill: 8,
   /** The small bars under Distance and Active. */
   miniSegments: 12,
   miniHeight: 4,
@@ -294,7 +298,7 @@ export function HourDots({ hourly, nowHour, p, gap }: { hourly: number[]; nowHou
   const dotGap = gap ?? TOD.dotGap;
   const column = (n: number, color: string) =>
     Array.from({ length: rows }, (_, r) => (
-      <View key={r} style={{ width: dot, height: dot, borderRadius: dot / 2, backgroundColor: rows - r <= n ? color : p.edge }} />
+      <View key={r} style={{ width: dot, height: dot, borderRadius: dot / 2, backgroundColor: rows - r <= n ? color : p.wash === p.bg ? '#E6E6E6' : p.edge }} />
     ));
   return (
     <View {...hidden} style={[styles.dots, { height: rows * dot + (rows - 1) * dotGap }]}>
@@ -357,7 +361,7 @@ export function GoalBar({ steps, goal, p }: { steps: number; goal: number; p: Da
       height={TOD.goalHeight}
       p={p}
       delay={250}
-      colorOf={(i) => (i < done ? p.ringB : i < done + extra ? p.accent : null)}
+      colorOf={(i) => (i < done ? (extra === 0 && i === done - 1 && done < TOD.goalSegments ? p.accent : p.ringB) : i < done + extra ? p.accent : null)}
     />
   );
 }
@@ -366,6 +370,67 @@ export function GoalBar({ steps, goal, p }: { steps: number; goal: number; p: Da
 export function MiniBar({ share, p }: { share: number; p: DayPalette }) {
   const lit = Math.round(clamp01(share) * TOD.miniSegments);
   return <Segments n={TOD.miniSegments} height={TOD.miniHeight} p={p} delay={400} colorOf={(i) => (i < lit ? p.ringB : null)} />;
+}
+
+/* ───────────── Pill bars, scales and the now line ───────────── */
+
+/** A small number or time in monospace under a bar ("2,000", "15m") or at the end of the now line. */
+export function Tick({ text, color }: { text: string; color: string }) {
+  return (
+    <Text
+      numberOfLines={1}
+      maxFontSizeMultiplier={MaxTextScale}
+      style={{ fontFamily: 'monospace', fontSize: scaled(10), lineHeight: scaled(12), letterSpacing: 0.5, color, includeFontPadding: false }}>
+      {text}
+    </Text>
+  );
+}
+
+/** Marks under a bar, spread from left to right. */
+export function Scale({ marks, p }: { marks: string[]; p: DayPalette }) {
+  return (
+    <View {...hidden} style={styles.scale}>
+      {marks.map((t, i) => (
+        <Tick key={`${i}-${t}`} text={t} color={p.muted} />
+      ))}
+    </View>
+  );
+}
+
+/**
+ * A rounded bar: `share` filled in `color` (growing in once), the rest as fine
+ * grey upright strokes, optionally with marks under it.
+ */
+export function PillBar({ share, color, p, marks, tip }: { share: number; color: string; p: DayPalette; marks?: string[]; tip?: string }) {
+  const g = useGrow(share, 1300, 350);
+  const fill = useAnimatedStyle(() => ({ width: `${g.value * 100}%` }));
+  const h = TOD.pill;
+  return (
+    <View {...hidden}>
+      <View style={[styles.pillTrack, { height: h, borderRadius: h / 2 }]}>
+        <Animated.View style={[styles.pillFill, { height: h, borderRadius: h / 2, backgroundColor: color }, fill]}>
+          {tip && share >= 0.15 ? <View style={[styles.tip, { backgroundColor: tip }]} /> : null}
+        </Animated.View>
+        <View style={[styles.pillRest, { height: h, borderRadius: h / 2 }]}>
+          {Array.from({ length: 80 }, (_, i) => (
+            <View key={i} style={{ width: 1, height: h, backgroundColor: p.track }} />
+          ))}
+        </View>
+      </View>
+      {marks ? <Scale marks={marks} p={p} /> : null}
+    </View>
+  );
+}
+
+/** The red line over the hour dots: a dot, a hairline and the time now ("11:10"). */
+export function NowLine({ time, p }: { time: string; p: DayPalette }) {
+  return (
+    <View {...hidden} style={styles.nowRow}>
+      <View style={[styles.nowDot, { backgroundColor: p.accent }]} />
+      <View style={[styles.nowLine, { backgroundColor: p.accent, opacity: 0.6 }]} />
+      <Tick text={time} color={p.muted} />
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -385,7 +450,15 @@ const styles = StyleSheet.create({
   dots: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
   dotColumn: { flexDirection: 'column' },
   segments: { flexDirection: 'row', alignItems: 'stretch' },
-  segment: { flex: 1, borderRadius: 1.5, overflow: 'hidden' },
+  segment: { flex: 1, borderRadius: 4, overflow: 'hidden' },
+  pillTrack: { flexDirection: 'row', overflow: 'hidden' },
+  pillFill: { alignItems: 'flex-end', justifyContent: 'center', paddingRight: 2 },
+  tip: { width: 4, height: 4, borderRadius: 2 },
+  pillRest: { flex: 1, marginLeft: 3, flexDirection: 'row', gap: 2, overflow: 'hidden' },
+  scale: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
+  nowRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  nowDot: { width: 5, height: 5, borderRadius: 2.5 },
+  nowLine: { flex: 1, height: 1 },
   hatch: { flexDirection: 'row', justifyContent: 'space-evenly' },
   cover: { position: 'absolute', top: 0, bottom: 0, right: 0 },
 });

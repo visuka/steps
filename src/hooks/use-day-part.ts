@@ -10,9 +10,9 @@ import { timeNow } from '@/lib/when';
  */
 export const DayPartOverride = createContext<DayPart | null>(null);
 
-/** The bottom bar's colours on Today. */
-export function barColorsOf(p: DayPalette): { fill: string; hairline: string; active: string; idle: string } {
-  return { fill: p.card, hairline: p.edge, active: p.main, idle: p.muted };
+/** The bottom bar's colours on Today: round buttons on the screen's ground. */
+export function barColorsOf(p: DayPalette): { fill: string; hairline: string; active: string; activeFill: string; idle: string; idleFill: string } {
+  return { fill: p.bg, hairline: p.bg, active: p.text, activeFill: p.card, idle: p.muted, idleFill: p.edge };
 }
 
 function partNow(): DayPart {

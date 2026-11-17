@@ -1,12 +1,13 @@
 /**
- * Today in grey, black and one red (owner, 17 Nov 2026; docs/design.md
- * "Current: Today"): the Steps tile shows TODAY with the hours you were on
- * your feet, the count, one column of dots per hour (the hour now red and
- * gently blinking), a segmented goal bar (black to the goal, hatched for
- * what is left, red past it) and small Distance and Active tiles. Then Food
- * and Sleep side by side, water glasses, the walk and Log food. Every tap,
- * figure and slot is as before; only the look changed. The drawn pieces and
- * the motion are in time-of-day-parts.tsx.
+ * Today in grey, black and one red, after the owner's reference picture
+ * (17 Nov 2026; docs/design.md "Current: grey, black and one red"). Top: the
+ * avatar, a Nutrition / Activity switch (Nutrition opens Food) and a
+ * calendar button; the date, weather and quote under it. The Steps card: a
+ * light count, a red line with the time now over dense hour dots (the hour
+ * now red and blinking) and a rounded goal bar with its scale. Distance and
+ * Active as their own cards, then Food and Sleep under a mono title, water
+ * glasses, the walk and Log food. Cards have no outline. Every tap, figure
+ * and slot is as before. The drawn pieces are in time-of-day-parts.tsx.
  */
 
 import type { ReactNode } from 'react';
@@ -26,7 +27,7 @@ import { formatSteps } from '@/lib/format';
 import { dailyQuote } from './model';
 import { NewsTicker } from './news-ticker';
 import { activeRange } from './steps-tile-model';
-import { Glasses, GoalBar, HourDots, MiniBar, useCountUp } from './time-of-day-parts';
+import { Glasses, GoalBar, HourDots, NowLine, PillBar, Scale, useCountUp } from './time-of-day-parts';
 import {
   foodTile,
   lockedTileModel,
@@ -175,12 +176,37 @@ function Label({ text, color, style }: { text: string; color: string; style?: Te
   );
 }
 
-/** A card's head: a 14 icon in grey and its name as a small label. */
-function Head({ icon, text, color }: { icon: SpecIconName; text: string; color: string }) {
+/** A card's head: a 14 icon in grey and its name as a small label; with `more`, a small arrow at the right. */
+function Head({ icon, text, color, more }: { icon: SpecIconName; text: string; color: string; more?: string }) {
   return (
     <View style={styles.head}>
       <SpecIcon name={icon} color={color} size={14} />
       <Label text={text} color={color} />
+      {more ? (
+        <View style={{ marginLeft: 'auto' }}>
+          <SpecIcon name="arrow-up-right" color={more} size={14} />
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+/** Light numerals (Figtree Light) for the big figures. */
+const LIGHT = 'Figtree_300Light';
+
+/** A big light figure with its unit as a small label: "8.1 KM", "7 MIN". */
+function Figure({ value, unit, size, p }: { value: string; unit?: string; size: number; p: DayPalette }) {
+  return (
+    <View style={styles.count}>
+      <Text
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.7}
+        maxFontSizeMultiplier={MaxTextScale}
+        style={{ fontFamily: LIGHT, fontSize: scaled(size), lineHeight: scaled(size + 4), letterSpacing: -0.5, color: p.text, includeFontPadding: false, flexShrink: 1, fontVariant: ['tabular-nums'] }}>
+        {value}
+      </Text>
+      {unit ? <Label text={unit} color={p.muted} style={{ marginBottom: scaled(size / 6) }} /> : null}
     </View>
   );
 }
@@ -188,18 +214,90 @@ function Head({ icon, text, color }: { icon: SpecIconName; text: string; color: 
 /** The small Active bar is full at 30 active minutes. */
 const ACTIVE_BAR_MIN = 30;
 
-/** One of the two small tiles under the goal bar: a label, the figure and a thin bar. */
-function Mini({ label, value, share: s, p, tight }: { label: string; value: string; share: number; p: DayPalette; tight: boolean }) {
+/** "4.05": one decimal under 10, none above. */
+function short(n: number): string {
+  return n < 10 ? String(Math.round(n * 10) / 10) : String(Math.round(n));
+}
+
+/** Distance or Active: its own card with a head and arrow, a light figure and a rounded bar with its scale. */
+function Stat({
+  icon,
+  label,
+  value,
+  unit,
+  share: s,
+  color,
+  marks,
+  spoken,
+  onPress,
+  p,
+  card,
+  tight,
+}: {
+  icon: SpecIconName;
+  label: string;
+  value: string;
+  unit: string;
+  share: number;
+  color: string;
+  marks: string[] | undefined;
+  spoken: string;
+  onPress: () => void;
+  p: DayPalette;
+  card: object;
+  tight: boolean;
+}) {
   return (
-    <View style={[styles.mini, { backgroundColor: p.bg }, tight ? { paddingVertical: 6 } : null]}>
-      <Label text={label} color={p.muted} />
-      <T size={16} line={20} weight={600} color={p.text} style={{ marginTop: tight ? 0 : 2 }} fit>
-        {value}
-      </T>
-      <View style={{ marginTop: tight ? 4 : 6 }}>
-        <MiniBar share={s} p={p} />
+    <Press onPress={onPress} label={spoken} ripple={`${p.text}14`} style={[card, styles.half]}>
+      <Head icon={icon} text={label} color={p.muted} more={p.text} />
+      <View style={{ marginTop: tight ? 2 : 6 }}>
+        <Figure value={value} unit={unit} size={tight ? 22 : 26} p={p} />
       </View>
+      <View style={{ marginTop: tight ? 6 : 10 }}>
+        <PillBar share={s} color={color} p={p} marks={tight ? undefined : marks} />
+      </View>
+    </Press>
+  );
+}
+
+/** Today's top row: the avatar, the Nutrition / Activity switch and the calendar. */
+function TopBar({ v, p }: { v: TodayView; p: DayPalette }) {
+  return (
+    <View style={styles.topBar}>
+      <Press onPress={v.on.profile} label="Your profile" ripple={`${p.main}22`} style={[styles.round, { backgroundColor: p.card }]}>
+        {v.initial ? (
+          <T size={15} line={20} weight={700} color={p.main}>
+            {v.initial}
+          </T>
+        ) : (
+          <SpecIcon name="person" color={p.main} />
+        )}
+      </Press>
+      <View accessibilityRole="tablist" style={[styles.switch, { backgroundColor: p.edge }]}>
+        <Press onPress={v.on.logFood} label="Nutrition, opens Food" ripple={`${p.text}14`} style={styles.switchPart}>
+          <Label text="Nutrition" color={p.muted} />
+        </Press>
+        <View accessible accessibilityRole="tab" accessibilityState={{ selected: true }} accessibilityLabel="Activity, this screen" style={[styles.switchPart, { backgroundColor: p.card }]}>
+          <Label text="Activity" color={p.text} />
+        </View>
+      </View>
+      <Press onPress={() => v.on.calendar()} label="Calendar: steps by day" ripple={`${p.main}22`} style={[styles.round, { backgroundColor: p.card }]}>
+        <SpecIcon name="calendar" color={p.main} size={18} />
+      </Press>
     </View>
+  );
+}
+
+/** A section's title in big mono capitals, outside the cards: "FOOD & SLEEP". */
+function Section({ text, p }: { text: string; p: DayPalette }) {
+  return (
+    <Text
+      accessibilityRole="header"
+      numberOfLines={1}
+      maxFontSizeMultiplier={MaxTextScale}
+      style={{ fontFamily: 'monospace', fontSize: scaled(15), lineHeight: scaled(20), letterSpacing: 1.5, color: p.text, includeFontPadding: false, marginTop: 4 }}>
+      {text.toUpperCase()}
+    </Text>
   );
 }
 
@@ -244,34 +342,33 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
   // A short screen (360 x 800 and below): tighter, so Today still fits without scrolling (CI run 44063597324).
   const { height } = useWindowDimensions();
   const tight = height < 820;
-  const gap = tight ? 8 : 10;
-  const padV = tight ? 10 : 12;
-  const card = { backgroundColor: p.card, borderColor: p.edge, borderWidth: 1, borderRadius: 16, paddingHorizontal: 16, paddingVertical: padV };
+  const gap = tight ? 8 : 12;
+  const padV = tight ? 10 : 14;
+  // No outline: soft white cards on the grey ground (owner's reference).
+  const card = { backgroundColor: p.card, borderRadius: 20, paddingHorizontal: 16, paddingVertical: padV };
   const steps = useCountUp(Math.max(0, v.steps));
-  const pct = useCountUp(Math.max(0, v.pct));
   const range = activeRange(v.hourly, v.nowHour);
+  const now = new Date();
+  const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  const toGo = Math.max(0, v.goal - v.steps);
+  const goalMarks = v.goal > 0 ? [1, 2, 3, 4].map((q) => formatSteps(Math.round((v.goal * q) / 4))) : null;
+  const dist = Number(d.value) || 0;
+  const s = share(v);
+  const distMarks = s > 0 && dist > 0 ? ['0', short(dist / s / 2), `${short(dist / s)} ${d.unit}`] : undefined;
   const past = Math.max(0, v.steps - v.goal);
   const active = Math.max(0, Math.round(v.activeMin ?? 0));
   const ripple = `${p.text}14`;
 
   return (
     <View style={[styles.column, { gap }]}>
-      <Rise delay={0} duration={700} distance={10} style={styles.top}>
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <T size={22} line={28} weight={700} color={p.text} style={{ letterSpacing: -0.3 }} lines={1}>
+      <Rise delay={0} duration={700} distance={10} style={{ gap: tight ? 6 : 10 }}>
+        <TopBar v={v} p={p} />
+        <View style={{ minWidth: 0 }}>
+          <T size={20} line={24} weight={700} color={p.text} style={{ letterSpacing: -0.3 }} lines={1}>
             {v.dateLabel}
           </T>
           <SubLine v={v} p={p} />
         </View>
-        <Press onPress={v.on.profile} label="Your profile" ripple={`${p.main}22`} style={[styles.avatar, { backgroundColor: p.plate }]}>
-          {v.initial ? (
-            <T size={15} line={20} weight={700} color={p.main}>
-              {v.initial}
-            </T>
-          ) : (
-            <SpecIcon name="person" color={p.main} />
-          )}
-        </Press>
       </Rise>
 
       {/* Good news moving by (owner, 16 Nov 2026). */}
@@ -293,53 +390,77 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
           android_ripple={{ color: ripple, foreground: true }}
           style={[card, { overflow: 'hidden' }]}>
           <View style={styles.spread}>
-            <Label text="Today" color={p.muted} />
             <View style={styles.head}>
-              {range ? <Label text={range} color={p.muted} /> : null}
-              <SpecIcon name="chevron-right" color={p.muted} size={14} />
+              <SpecIcon name="clock" color={p.muted} size={12} />
+              <Label text="Today" color={p.muted} />
             </View>
+            {range ? <Label text={range} color={p.muted} /> : null}
           </View>
-          <View style={styles.count}>
-            <T size={34} line={tight ? 36 : 40} weight={600} color={p.text} style={{ letterSpacing: -0.8, flexShrink: 1 }} fit>
-              {formatSteps(steps)}
-            </T>
-            <Label text="Steps" color={p.muted} style={{ marginBottom: scaled(6) }} />
-            <Label text={`${pct}%`} color={p.text} style={{ marginLeft: 'auto', marginBottom: scaled(6) }} />
+          <View style={[styles.spread, { alignItems: 'flex-end', marginTop: tight ? 2 : 6 }]}>
+            <Figure value={formatSteps(steps)} unit="Steps" size={tight ? 38 : 46} p={p} />
+            {past > 0 ? null : <Label text={`${formatSteps(toGo)} to go`} color={p.muted} style={{ marginBottom: scaled(8) }} />}
           </View>
-          <View style={{ marginTop: tight ? 6 : 10 }}>
-            <HourDots hourly={v.hourly} nowHour={v.nowHour} p={p} gap={tight ? 2 : undefined} />
+          <View style={{ marginTop: tight ? 4 : 8 }}>
+            <NowLine time={time} p={p} />
           </View>
-          <View style={styles.axis}>
-            {['00', '06', '12', '18'].map((t, i) => (
-              <Label key={t} text={t} color={p.muted} style={i < 3 ? { width: `${600 / 23}%` } : { flex: 1 }} />
-            ))}
+          <View style={{ marginTop: tight ? 4 : 6 }}>
+            <HourDots hourly={v.hourly} nowHour={v.nowHour} p={p} />
           </View>
-          <View style={{ marginTop: tight ? 8 : 12 }}>
+          <View style={{ marginTop: tight ? 8 : 14 }}>
             <GoalBar steps={v.steps} goal={v.goal} p={p} />
           </View>
-          <View style={[styles.spread, { marginTop: tight ? 4 : 6 }]}>
-            <Label text={`Goal ${formatSteps(v.goal)}`} color={p.muted} />
-            {past > 0 ? (
+          {past > 0 ? (
+            <View style={[styles.spread, { marginTop: tight ? 4 : 6 }]}>
+              <Label text={`Goal ${formatSteps(v.goal)}`} color={p.muted} />
               <View style={styles.head}>
                 <View style={[styles.square, { backgroundColor: p.accent }]} />
                 <Label text={`+${formatSteps(past)} past goal`} color={p.text} />
               </View>
-            ) : (
-              <Label text={`${formatSteps(Math.max(0, v.goal - v.steps))} to go`} color={p.muted} />
-            )}
-          </View>
-          <View style={[styles.pair, { marginTop: tight ? 6 : 10, gap: 8 }]}>
-            <Mini label="Distance" value={`${d.value} ${d.unit}`} share={share(v)} p={p} tight={tight} />
-            <Mini label="Active" value={`${active} min`} share={active / ACTIVE_BAR_MIN} p={p} tight={tight} />
-          </View>
+            </View>
+          ) : goalMarks ? (
+            <Scale marks={goalMarks} p={p} />
+          ) : null}
         </Pressable>
+      </Rise>
+
+      <Rise delay={140} duration={700} distance={10} style={[styles.pair, { gap }]}>
+        <Stat
+          icon="feet"
+          label="Distance"
+          value={d.value}
+          unit={d.unit}
+          share={s}
+          color={p.ringA}
+          marks={distMarks}
+          spoken={`Distance ${d.value} ${d.unit}`}
+          onPress={v.on.steps}
+          p={p}
+          card={card}
+          tight={tight}
+        />
+        <Stat
+          icon="clock"
+          label="Active"
+          value={String(active)}
+          unit="min"
+          share={active / ACTIVE_BAR_MIN}
+          color={p.accent}
+          marks={['0', '15m', `${ACTIVE_BAR_MIN}m`]}
+          spoken={`Active ${active} minutes`}
+          onPress={v.on.steps}
+          p={p}
+          card={card}
+          tight={tight}
+        />
       </Rise>
 
       {v.slots.walking}
 
-      <Rise delay={180} duration={700} distance={10} style={styles.pair}>
+      {tight ? null : <Section text="Food & sleep" p={p} />}
+
+      <Rise delay={180} duration={700} distance={10} style={[styles.pair, { gap }]}>
         <Press onPress={tapFor(v, 'food')} label={m.food.spoken} ripple={ripple} style={[card, styles.half]}>
-          <Head icon={L ? 'lock' : 'bowl'} text="Food" color={p.muted} />
+          <Head icon={L ? 'lock' : 'bowl'} text="Food" color={p.muted} more={L ? undefined : p.text} />
           <Value value={m.food.value} unit={L ? undefined : 'kcal'} p={p} />
           {L ? null : (
             <>
@@ -347,13 +468,13 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
                 of {v.food.target} kcal
               </T>
               <View style={{ marginTop: tight ? 6 : 10 }}>
-                <MiniBar share={m.food.share ?? 0} p={p} />
+                <PillBar share={m.food.share ?? 0} color={p.main} tip={p.accent} p={p} />
               </View>
             </>
           )}
         </Press>
         <Press onPress={tapFor(v, 'sleep')} label={m.sleep.spoken} ripple={ripple} style={[card, styles.half]}>
-          <Head icon={L ? 'lock' : 'moon'} text="Sleep" color={p.muted} />
+          <Head icon={L ? 'lock' : 'moon'} text="Sleep" color={p.muted} more={L ? undefined : p.text} />
           <Value value={m.sleep.value} unit={L ? undefined : m.sleep.unit} p={p} />
           {L ? null : (
             <>
@@ -361,7 +482,7 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
                 Last night
               </T>
               <View style={{ marginTop: tight ? 6 : 10 }}>
-                <MiniBar share={m.sleep.share ?? 0} p={p} />
+                <PillBar share={m.sleep.share ?? 0} color={p.accent} p={p} />
               </View>
             </>
           )}
@@ -449,15 +570,15 @@ function Value({ value, unit, p }: { value: string; unit?: string; p: DayPalette
 
 const styles = StyleSheet.create({
   column: { width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center', flexGrow: 1, paddingHorizontal: 18, paddingTop: 8, paddingBottom: 10 },
-  top: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
+  topBar: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  round: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  switch: { flex: 1, maxWidth: 260, marginHorizontal: 'auto', height: 40, borderRadius: 20, padding: 3, flexDirection: 'row' },
+  switchPart: { flex: 1, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   subLine: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 18 },
   weather: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  avatar: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   spread: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   head: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   count: { flexDirection: 'row', alignItems: 'flex-end', gap: 6, marginTop: 4 },
-  axis: { flexDirection: 'row', marginTop: 4 },
-  mini: { flex: 1, minWidth: 0, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 8 },
   square: { width: 6, height: 6, borderRadius: 1 },
   pair: { flexDirection: 'row', gap: 10 },
   half: { flex: 1, minWidth: 0 },

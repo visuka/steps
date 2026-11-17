@@ -262,3 +262,8 @@ Not committed. No server or AWS change. Nothing is removed from any count.
 - Today (`day-part.ts`): one palette for Dawn, Noon and Dusk, with a new `accent` #FD393A.
 - Steps tile: TODAY and the hours on your feet, the count, hour dots with the hour now red and blinking, a segmented goal bar (red past the goal), DISTANCE and ACTIVE tiles. Pure figures in `steps-tile-model.ts`, tested in `steps-tile.test.ts`.
 - Food and Sleep use the segmented bar; card heads are small labels.
+
+## Today after the owner's reference picture; round-button bottom bar (17 Nov 2026, Opus)
+
+- Today: top row with avatar, NUTRITION / ACTIVITY switch and calendar button; light step count (Figtree Light); red now line with the time over dense hour dots; rounded goal pills with a scale; no percentage; Distance and Active as own cards with ↗ and scaled bars; FOOD & SLEEP title; red Sleep and Active bars; no card outlines. New `PillBar`, `NowLine`, `Scale`, `Tick` in `time-of-day-parts.tsx`; icons `calendar` and `arrow-up-right` (spec section 8).
+- Bottom bar: round 48 dp buttons without drawn labels (TalkBack names kept), on the screen's ground.

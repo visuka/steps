@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
-import { ActiveTheme, type DataTone, MaxTextScale } from '@/constants/theme';
+import type { DataTone } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import type { IconName } from './button';
@@ -28,8 +28,12 @@ export interface NavigationItem {
 export interface NavigationBarColors {
   fill: string;
   hairline: string;
+  /** The selected icon and its circle. */
   active: string;
+  activeFill?: string;
+  /** The other icons and their circles. */
   idle: string;
+  idleFill?: string;
 }
 
 export interface NavigationBarProps {
@@ -44,18 +48,20 @@ export interface NavigationBarProps {
 }
 
 /**
- * The bottom bar (docs/design.md "Bottom bar", 17 Nov 2026): 60 dp plus the
- * system inset, a hairline above, three buttons with an icon over a label.
- * The selected one is in the active colour with a semibold label. Each slot
- * is 80 wide and has a touch area of at least 48 x 48.
+ * The bottom bar (docs/design.md "Bottom bar", owner 17 Nov 2026): 64 dp plus
+ * the system inset, on the screen's ground, a row of 48 dp round buttons 16
+ * apart. The selected one is a near-white circle with a black icon, the
+ * others grey circles with grey icons. Labels are not drawn; TalkBack says them.
  */
 export function NavigationBar({ items, activeKey, onSelect, onReselect, bottomInset, colors }: NavigationBarProps) {
   const theme = useTheme();
   const c: NavigationBarColors = colors ?? {
-    fill: theme.surfaceContainerLowest,
-    hairline: theme.outlineVariant,
-    active: theme.primary,
+    fill: theme.background,
+    hairline: theme.background,
+    active: theme.onSurface,
+    activeFill: theme.surfaceContainerLowest,
     idle: theme.onSurfaceVariant,
+    idleFill: theme.surfaceContainerHigh,
   };
   return (
     <View
@@ -75,6 +81,7 @@ export function NavigationBar({ items, activeKey, onSelect, onReselect, bottomIn
           item={item}
           active={item.key === activeKey}
           color={item.key === activeKey ? c.active : c.idle}
+          fill={(item.key === activeKey ? c.activeFill : c.idleFill) ?? theme.surfaceContainerHigh}
           onPress={() => (item.key === activeKey ? onReselect?.(item.key) : onSelect(item.key))}
         />
       ))}
@@ -82,7 +89,7 @@ export function NavigationBar({ items, activeKey, onSelect, onReselect, bottomIn
   );
 }
 
-function Destination({ item, active, color, onPress }: { item: NavigationItem; active: boolean; color: string; onPress: () => void }) {
+function Destination({ item, active, color, fill, onPress }: { item: NavigationItem; active: boolean; color: string; fill: string; onPress: () => void }) {
   const ionicon = active ? (item.activeIcon ?? item.icon) : item.icon;
   return (
     <Pressable
@@ -93,18 +100,12 @@ function Destination({ item, active, color, onPress }: { item: NavigationItem; a
       aria-selected={active}
       android_ripple={{ color: `${color}1F`, borderless: true, radius: NAV.slotWidth / 2 }}
       style={styles.touch}>
-      <View style={styles.visual}>
+      <View style={[styles.visual, { backgroundColor: fill }]}>
         {item.specIcon ? (
           <SpecIcon name={item.specIcon} color={color} size={NAV.iconSize} />
         ) : ionicon ? (
           <Ionicons name={ionicon} size={NAV.iconSize} color={color} />
         ) : null}
-        <Text
-          numberOfLines={1}
-          maxFontSizeMultiplier={MaxTextScale}
-          style={[styles.label, { color, fontFamily: active ? ActiveTheme.fonts.semibold.family : ActiveTheme.fonts.regular.family }]}>
-          {item.label}
-        </Text>
       </View>
     </Pressable>
   );
@@ -116,12 +117,12 @@ const styles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
+    gap: NAV.slotGap,
     paddingHorizontal: NAV.sidePadding,
     borderTopWidth: NAV.hairline,
   },
   // The touch area is at least 48 x 48; the drawn slot sits in its middle.
   touch: { width: touch.width, minHeight: touch.height, alignItems: 'center', justifyContent: 'center' },
-  visual: { width: NAV.slotWidth, minHeight: SLOT_VISUAL_HEIGHT, alignItems: 'center', gap: NAV.iconLabelGap },
-  label: { fontSize: NAV.labelSize, lineHeight: NAV.labelLine, includeFontPadding: false, textAlign: 'center' },
+  visual: { width: NAV.slotWidth, height: SLOT_VISUAL_HEIGHT, borderRadius: NAV.slotWidth / 2, alignItems: 'center', justifyContent: 'center' },
 });
