@@ -43,7 +43,7 @@ describe('dayPartOf', () => {
 describe('DAY_PALETTES', () => {
   const roles: (keyof DayPalette)[] = [
     'bg', 'wash', 'edge', 'newsBg', 'plate', 'muted', 'main', 'onMain', 'card', 'text', 'heroTop', 'heroBottom', 'heroEdge',
-    'ringA', 'ringB', 'track', 'food', 'foodLane', 'sleep', 'sleepLane', 'water', 'waterLane',
+    'ringA', 'ringB', 'track', 'accent', 'food', 'foodLane', 'sleep', 'sleepLane', 'water', 'waterLane',
   ];
 
   it.each([...DAY_PARTS])('%s has every role as #RRGGBB', (part) => {
@@ -52,10 +52,12 @@ describe('DAY_PALETTES', () => {
     for (const r of roles) expect(p[r]).toMatch(/^#[0-9A-F]{6}$/);
   });
 
-  it('matches docs/design.md for one value per part', () => {
-    expect(DAY_PALETTES.dawn.ringB).toBe('#C2577A');
-    expect(DAY_PALETTES.noon.main).toBe('#1D3A5F');
-    expect(DAY_PALETTES.dusk.sleep).toBe('#2F7A85');
+  it('is one grey, black and red look for every part (owner, 17 Nov 2026)', () => {
+    expect(DAY_PALETTES.dawn).toEqual(DAY_PALETTES.noon);
+    expect(DAY_PALETTES.noon).toEqual(DAY_PALETTES.dusk);
+    expect(DAY_PALETTES.noon.bg).toBe('#F1F1F1');
+    expect(DAY_PALETTES.noon.main).toBe('#000000');
+    expect(DAY_PALETTES.noon.accent).toBe('#FD393A');
   });
 
   it.each([...DAY_PARTS])('%s text is easy to read', (part) => {
@@ -74,6 +76,6 @@ describe('DAY_PALETTES', () => {
 
   it.each([...DAY_PARTS])('%s marks stand out on a card', (part) => {
     const p = DAY_PALETTES[part];
-    for (const mark of [p.food, p.sleep, p.water]) expect(contrast(mark, p.card)).toBeGreaterThanOrEqual(3);
+    for (const mark of [p.food, p.sleep, p.water, p.ringA, p.accent]) expect(contrast(mark, p.card)).toBeGreaterThanOrEqual(3);
   });
 });

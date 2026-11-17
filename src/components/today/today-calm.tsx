@@ -1,10 +1,12 @@
 /**
- * Today in "Time of day" colours (owner, 17 Nov 2026; docs/design.md
- * "Current: Today Time of day", mockup docs/design/today-time-of-day.html):
- * Dawn, Noon or Dusk colours by the phone's clock, a steps ring with the
- * day's hour bars, Food and Sleep side by side, water glasses, the walk and
- * Log food. Every tap, figure and slot is as before; only the look changed.
- * The drawn pieces and the gentle motion are in time-of-day-parts.tsx.
+ * Today in grey, black and one red (owner, 17 Nov 2026; docs/design.md
+ * "Current: Today"): the Steps tile shows TODAY with the hours you were on
+ * your feet, the count, one column of dots per hour (the hour now red and
+ * gently blinking), a segmented goal bar (black to the goal, hatched for
+ * what is left, red past it) and small Distance and Active tiles. Then Food
+ * and Sleep side by side, water glasses, the walk and Log food. Every tap,
+ * figure and slot is as before; only the look changed. The drawn pieces and
+ * the motion are in time-of-day-parts.tsx.
  */
 
 import type { ReactNode } from 'react';
@@ -23,7 +25,8 @@ import { formatSteps } from '@/lib/format';
 
 import { dailyQuote } from './model';
 import { NewsTicker } from './news-ticker';
-import { Glasses, HeroGradient, HourBars, Meter, StepsRing, useCountUp } from './time-of-day-parts';
+import { activeRange } from './steps-tile-model';
+import { Glasses, GoalBar, HourDots, MiniBar, useCountUp } from './time-of-day-parts';
 import {
   foodTile,
   lockedTileModel,
@@ -160,15 +163,42 @@ function Press({
   );
 }
 
-/** A card's head: an 18 icon in the part's colour and the name, 14 semibold. */
-function Head({ icon, text, iconColor, color, chevron }: { icon: SpecIconName; text: string; iconColor: string; color: string; chevron?: string }) {
+/** A small label in tracked monospace capitals: "TODAY", "DISTANCE", "GOAL 7,000". */
+function Label({ text, color, style }: { text: string; color: string; style?: TextStyle }) {
+  return (
+    <Text
+      numberOfLines={1}
+      maxFontSizeMultiplier={MaxTextScale}
+      style={[{ fontFamily: 'monospace', fontSize: scaled(11), lineHeight: scaled(14), letterSpacing: 1, color, includeFontPadding: false }, style]}>
+      {text.toUpperCase()}
+    </Text>
+  );
+}
+
+/** A card's head: a 14 icon in grey and its name as a small label. */
+function Head({ icon, text, color }: { icon: SpecIconName; text: string; color: string }) {
   return (
     <View style={styles.head}>
-      <SpecIcon name={icon} color={iconColor} size={18} />
-      <T size={14} line={18} weight={600} color={color}>
-        {text}
+      <SpecIcon name={icon} color={color} size={14} />
+      <Label text={text} color={color} />
+    </View>
+  );
+}
+
+/** The small Active bar is full at 30 active minutes. */
+const ACTIVE_BAR_MIN = 30;
+
+/** One of the two small tiles under the goal bar: a label, the figure and a thin bar. */
+function Mini({ label, value, share: s, p }: { label: string; value: string; share: number; p: DayPalette }) {
+  return (
+    <View style={[styles.mini, { backgroundColor: p.bg }]}>
+      <Label text={label} color={p.muted} />
+      <T size={16} line={20} weight={600} color={p.text} style={{ marginTop: 2 }} fit>
+        {value}
       </T>
-      {chevron ? <SpecIcon name="chevron-right" color={chevron} size={14} /> : null}
+      <View style={{ marginTop: 6 }}>
+        <MiniBar share={s} p={p} />
+      </View>
     </View>
   );
 }
@@ -216,9 +246,12 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
   const tight = height < 740;
   const gap = tight ? 8 : 10;
   const padV = tight ? 10 : 12;
-  const card = { backgroundColor: p.card, borderColor: p.edge, borderWidth: 1, borderRadius: 20, paddingHorizontal: 16, paddingVertical: padV };
+  const card = { backgroundColor: p.card, borderColor: p.edge, borderWidth: 1, borderRadius: 16, paddingHorizontal: 16, paddingVertical: padV };
   const steps = useCountUp(Math.max(0, v.steps));
   const pct = useCountUp(Math.max(0, v.pct));
+  const range = activeRange(v.hourly, v.nowHour);
+  const past = Math.max(0, v.steps - v.goal);
+  const active = Math.max(0, Math.round(v.activeMin ?? 0));
   const ripple = `${p.text}14`;
 
   return (
@@ -258,47 +291,46 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
           accessibilityRole="button"
           accessibilityLabel={v.stepsSpoken}
           android_ripple={{ color: ripple, foreground: true }}
-          style={[card, { backgroundColor: p.heroBottom, borderColor: p.heroEdge, overflow: 'hidden' }]}>
-          <HeroGradient p={p} />
+          style={[card, { overflow: 'hidden' }]}>
           <View style={styles.spread}>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Head icon="walker" text="Steps" iconColor={p.main} color={p.text} chevron={p.muted} />
-              <T size={40} line={44} weight={700} color={p.text} style={{ letterSpacing: -1.2, marginTop: 4 }} fit>
-                {formatSteps(steps)}
-              </T>
-              <T size={13} line={18} color={p.muted} lines={1}>
-                of {formatSteps(v.goal)} goal
-              </T>
-              <View style={styles.facts}>
-                <T size={13} line={18} weight={600} color={p.text}>
-                  {d.value} {d.unit}
-                </T>
-                <T size={13} line={18} color={p.muted}>
-                  ·
-                </T>
-                <T size={13} line={18} weight={600} color={p.text}>
-                  {Math.max(0, Math.round(v.activeMin ?? 0))} min
-                </T>
-                <T size={13} line={18} color={p.muted}>
-                  active
-                </T>
-              </View>
+            <Label text="Today" color={p.muted} />
+            <View style={styles.head}>
+              {range ? <Label text={range} color={p.muted} /> : null}
+              <SpecIcon name="chevron-right" color={p.muted} size={14} />
             </View>
-            <StepsRing share={share(v)} p={p}>
-              <T size={19} line={24} weight={700} color={p.ringB}>
-                {pct}%
-              </T>
-            </StepsRing>
           </View>
-          <View style={{ marginTop: 10 }}>
-            <HourBars hourly={v.hourly} nowHour={v.nowHour} p={p} />
+          <View style={styles.count}>
+            <T size={34} line={40} weight={600} color={p.text} style={{ letterSpacing: -0.8, flexShrink: 1 }} fit>
+              {formatSteps(steps)}
+            </T>
+            <Label text="Steps" color={p.muted} style={{ marginBottom: scaled(6) }} />
+            <Label text={`${pct}%`} color={p.text} style={{ marginLeft: 'auto', marginBottom: scaled(6) }} />
+          </View>
+          <View style={{ marginTop: tight ? 6 : 10 }}>
+            <HourDots hourly={v.hourly} nowHour={v.nowHour} p={p} />
           </View>
           <View style={styles.axis}>
-            {['12 am', '6 am', '12 pm', '6 pm'].map((t) => (
-              <T key={t} size={11} line={14} color={p.muted}>
-                {t}
-              </T>
+            {['00', '06', '12', '18'].map((t, i) => (
+              <Label key={t} text={t} color={p.muted} style={i < 3 ? { width: `${600 / 23}%` } : { flex: 1 }} />
             ))}
+          </View>
+          <View style={{ marginTop: tight ? 8 : 12 }}>
+            <GoalBar steps={v.steps} goal={v.goal} p={p} />
+          </View>
+          <View style={[styles.spread, { marginTop: 6 }]}>
+            <Label text={`Goal ${formatSteps(v.goal)}`} color={p.muted} />
+            {past > 0 ? (
+              <View style={styles.head}>
+                <View style={[styles.square, { backgroundColor: p.accent }]} />
+                <Label text={`+${formatSteps(past)} past goal`} color={p.text} />
+              </View>
+            ) : (
+              <Label text={`${formatSteps(Math.max(0, v.goal - v.steps))} to go`} color={p.muted} />
+            )}
+          </View>
+          <View style={[styles.pair, { marginTop: tight ? 8 : 10, gap: 8 }]}>
+            <Mini label="Distance" value={`${d.value} ${d.unit}`} share={share(v)} p={p} />
+            <Mini label="Active" value={`${active} min`} share={active / ACTIVE_BAR_MIN} p={p} />
           </View>
         </Pressable>
       </Rise>
@@ -307,26 +339,30 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
 
       <Rise delay={180} duration={700} distance={10} style={styles.pair}>
         <Press onPress={tapFor(v, 'food')} label={m.food.spoken} ripple={ripple} style={[card, styles.half]}>
-          <Head icon={L ? 'lock' : 'bowl'} text="Food" iconColor={L ? p.text : p.food} color={p.text} />
+          <Head icon={L ? 'lock' : 'bowl'} text="Food" color={p.muted} />
           <Value value={m.food.value} unit={L ? undefined : 'kcal'} p={p} />
           {L ? null : (
             <>
               <T size={12} line={16} color={p.muted} fit>
                 of {v.food.target} kcal
               </T>
-              <Meter share={m.food.share ?? 0} color={p.food} track={p.foodLane} style={{ marginTop: 10 }} />
+              <View style={{ marginTop: 10 }}>
+                <MiniBar share={m.food.share ?? 0} p={p} />
+              </View>
             </>
           )}
         </Press>
         <Press onPress={tapFor(v, 'sleep')} label={m.sleep.spoken} ripple={ripple} style={[card, styles.half]}>
-          <Head icon={L ? 'lock' : 'moon'} text="Sleep" iconColor={L ? p.text : p.sleep} color={p.text} />
+          <Head icon={L ? 'lock' : 'moon'} text="Sleep" color={p.muted} />
           <Value value={m.sleep.value} unit={L ? undefined : m.sleep.unit} p={p} />
           {L ? null : (
             <>
               <T size={12} line={16} color={p.muted}>
                 Last night
               </T>
-              <Meter share={m.sleep.share ?? 0} color={p.sleep} track={p.sleepLane} style={{ marginTop: 10 }} />
+              <View style={{ marginTop: 10 }}>
+                <MiniBar share={m.sleep.share ?? 0} p={p} />
+              </View>
             </>
           )}
         </Press>
@@ -335,7 +371,7 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
       <Rise delay={240} duration={700} distance={10}>
         <Press onPress={tapFor(v, 'water')} label={m.water.spoken} ripple={ripple} style={[card, styles.row]}>
           <View style={{ flexShrink: 1, minWidth: 0 }}>
-            <Head icon={L ? 'lock' : 'drop'} text="Water" iconColor={L ? p.text : p.water} color={p.text} />
+            <Head icon={L ? 'lock' : 'drop'} text="Water" color={p.muted} />
             <T size={17} line={22} weight={600} color={p.text} style={{ marginTop: 4 }} fit>
               {waterText(v, m.water, L)}
             </T>
@@ -419,8 +455,10 @@ const styles = StyleSheet.create({
   avatar: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   spread: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   head: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  facts: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 4, marginTop: 6 },
-  axis: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4, paddingRight: 30 },
+  count: { flexDirection: 'row', alignItems: 'flex-end', gap: 6, marginTop: 4 },
+  axis: { flexDirection: 'row', marginTop: 4 },
+  mini: { flex: 1, minWidth: 0, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 8 },
+  square: { width: 6, height: 6, borderRadius: 1 },
   pair: { flexDirection: 'row', gap: 10 },
   half: { flex: 1, minWidth: 0 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10 },

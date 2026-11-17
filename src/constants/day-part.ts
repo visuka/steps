@@ -1,8 +1,8 @@
 /**
- * Today's colours follow the time of day (owner, 17 Nov 2026; docs/design.md
- * "Current: Today Time of day"): Dawn from 05:00, Noon from 11:00, Dusk from
- * 16:30 until the next morning, by the phone's local time. Only Today and the
- * bottom bar use these; every other screen keeps the Calm theme.
+ * Today's parts of the day: Dawn from 05:00, Noon from 11:00, Dusk from 16:30
+ * until the next morning, by the phone's local time. Since 17 Nov 2026 all
+ * three share one grey, black and red palette (MONO below), as does every
+ * other screen through the Calm theme (themes/e.ts).
  */
 
 export type DayPart = 'dawn' | 'noon' | 'dusk';
@@ -46,11 +46,13 @@ export interface DayPalette {
   heroTop: string;
   heroBottom: string;
   heroEdge: string;
-  /** The ring and the hour bars with steps: ringA to ringB. */
+  /** The hour dots with steps (ringA) and the goal bar up to the goal (ringB). */
   ringA: string;
   ringB: string;
   /** The ring's track and hours with no steps. */
   track: string;
+  /** The one colour: the hour now, steps past the goal. */
+  accent: string;
   food: string;
   foodLane: string;
   sleep: string;
@@ -59,76 +61,40 @@ export interface DayPalette {
   waterLane: string;
 }
 
-const SHARED = { card: '#FFFFFF', text: '#1F1B16', onMain: '#FFFFFF' } as const;
-
-export const DAY_PALETTES: Record<DayPart, DayPalette> = {
-  dawn: {
-    ...SHARED,
-    bg: '#F8F4EF',
-    wash: '#FBE6DA',
-    edge: '#F0E6DD',
-    newsBg: '#F6E8DF',
-    plate: '#F7E3DA',
-    muted: '#6E6260',
-    main: '#3A2D45',
-    heroTop: '#FFF6F0',
-    heroBottom: '#FBE4D8',
-    heroEdge: '#F5DDD0',
-    ringA: '#F09A6B',
-    ringB: '#C2577A',
-    track: '#F6DCD3',
-    food: '#C4652F',
-    foodLane: '#FAE6DA',
-    sleep: '#6A5BA8',
-    sleepLane: '#ECE8F6',
-    water: '#3A7FBF',
-    waterLane: '#E3EEF8',
-  },
-  noon: {
-    ...SHARED,
-    bg: '#F3F6F9',
-    wash: '#DDEBF6',
-    edge: '#E2E9F0',
-    newsBg: '#E3ECF4',
-    plate: '#DCE9F4',
-    muted: '#5B6875',
-    main: '#1D3A5F',
-    heroTop: '#F7FBFE',
-    heroBottom: '#DDEBF7',
-    heroEdge: '#D6E5F2',
-    ringA: '#5BB0E6',
-    ringB: '#1F5FA8',
-    track: '#D5E5F2',
-    food: '#D06A3E',
-    foodLane: '#FAE7DE',
-    sleep: '#5B57A6',
-    sleepLane: '#E9E8F6',
-    water: '#238C9A',
-    waterLane: '#DCF0F2',
-  },
-  dusk: {
-    ...SHARED,
-    bg: '#F5F3F9',
-    wash: '#E6DFF3',
-    edge: '#E8E3F1',
-    newsBg: '#EAE5F4',
-    plate: '#E6E0F5',
-    muted: '#655F78',
-    main: '#3B2F66',
-    heroTop: '#F8F6FD',
-    heroBottom: '#E4DDF3',
-    heroEdge: '#DDD5EF',
-    ringA: '#A895E8',
-    ringB: '#5340A6',
-    track: '#E2DCF2',
-    food: '#CF7550',
-    foodLane: '#FAE8DF',
-    sleep: '#2F7A85',
-    sleepLane: '#DDEFF1',
-    water: '#3A78C0',
-    waterLane: '#E1ECF8',
-  },
+/**
+ * One look for the whole day (owner, 17 Nov 2026: "every screen to this colour
+ * combination"): a light grey ground, near-white cards, black for text, the
+ * main action and the data, greys for second text, tracks and dots, and one
+ * red for the hour now and steps past the goal. Dawn, Noon and Dusk keep
+ * their names (the preview's &part= still works) but share these colours.
+ */
+const MONO: DayPalette = {
+  bg: '#F1F1F1',
+  wash: '#F1F1F1',
+  edge: '#E4E4E4',
+  newsBg: '#E8E8E8',
+  plate: '#E8E8E8',
+  muted: '#5E5E5E',
+  main: '#000000',
+  onMain: '#FFFFFF',
+  card: '#FBFBFB',
+  text: '#000000',
+  heroTop: '#FBFBFB',
+  heroBottom: '#FBFBFB',
+  heroEdge: '#E4E4E4',
+  ringA: '#8C8C8C',
+  ringB: '#000000',
+  track: '#DCDCDC',
+  accent: '#FD393A',
+  food: '#000000',
+  foodLane: '#DCDCDC',
+  sleep: '#000000',
+  sleepLane: '#DCDCDC',
+  water: '#000000',
+  waterLane: '#E8E8E8',
 };
+
+export const DAY_PALETTES: Record<DayPart, DayPalette> = { dawn: MONO, noon: MONO, dusk: MONO };
 
 /** How far down the screen the wash fades into bg, in dp. */
 export const WASH_HEIGHT = 260;

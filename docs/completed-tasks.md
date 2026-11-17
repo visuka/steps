@@ -255,3 +255,10 @@ Not committed. No server or AWS change. Nothing is removed from any count.
 ### Every screen photographed (17 Nov 2026, commits edd67cc and the fixes after it; CI run 44042305951 green)
 - The design preview now draws every screen: you, foodtab, buddies, settings, insights, stepcheck, places, record, scan, find, requests, chat (&key=&title=), walker (&pid=&name=&handle=), signin, welcome; activity takes &section=workouts|bp|weight. CI saves smoke/all-<screen>.png and scrolls each to its end (-2, -3…), and keeps a -crash.txt log for any screen that closes the app.
 - Found and fixed: the preview had no lock provider, so Settings and sign-in closed (preview only); "1 days" on Profile; request buttons squeezed the walker ID; the curly apostrophe in "That’s all for today" made the button label wrap (straight one now).
+
+## Grey, black and one red on every screen; new Steps tile (17 Nov 2026, Opus)
+
+- Calm theme (`themes/e.ts`) colours: ground #F1F1F1, cards #FBFBFB, black text, main action and data, greys, red #C8201F for warnings. Splash ground in `app.json` to match. Map colours grey with a black route.
+- Today (`day-part.ts`): one palette for Dawn, Noon and Dusk, with a new `accent` #FD393A.
+- Steps tile: TODAY and the hours on your feet, the count, hour dots with the hour now red and blinking, a segmented goal bar (red past the goal), DISTANCE and ACTIVE tiles. Pure figures in `steps-tile-model.ts`, tested in `steps-tile.test.ts`.
+- Food and Sleep use the segmented bar; card heads are small labels.

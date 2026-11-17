@@ -1,14 +1,14 @@
 /**
  * E, Calm and large (app-look/project/E-Calm.dc.html). Light only, as mocked.
  *
- * Big, clear and unhurried; made first for parents 55+. A warm parchment
- * ground with white cards edged in a 1 dp sand line, one deep green for the
- * main action and for steps, rust for food, blue for water, warm umber for
- * sleep. Figtree throughout: body 18, labels 16 at the least, titles 24,
+ * Big, clear and unhurried. Colours (owner, 17 Nov 2026, every screen): a
+ * light grey ground (#F1F1F1), near-white cards (#FBFBFB) edged in a 1 dp
+ * grey line, black for text, the main action and the data, greys for second
+ * text and tracks, and one red (#C8201F, warnings and over the limit).
+ * Figtree throughout: body 18, labels 16 at the least, titles 24,
  * the steps hero 72, all numbers in tabular figures.
  *
- * Changes from the mockup, for the contrast rules: the lane is the frame
- * sand #D6CDBE (the mockup's #E9E3D8 is too faint on the parchment ground).
+ * The lane is #CCCCCC so tracks still show on the grey ground (1.25:1).
  */
 
 import { Figtree_400Regular } from '@expo-google-fonts/figtree/400Regular';
@@ -20,82 +20,81 @@ import type { ThemeDef } from './types';
 
 const light: SchemeRoles = {
   // Deep green: "Log food", "Save to lunch", the selected tab's ink.
-  primary: '#1E4D3A',
+  primary: '#000000',
   onPrimary: '#FFFFFF',
   // The round icon plates beside a walk.
-  primaryContainer: '#E3EDE7',
-  onPrimaryContainer: '#1E4D3A',
-  secondary: '#4F6358',
+  primaryContainer: '#E6E6E6',
+  onPrimaryContainer: '#000000',
+  secondary: '#3C3C3C',
   onSecondary: '#FFFFFF',
   // The navigation pill.
-  secondaryContainer: '#D6E6DC',
-  onSecondaryContainer: '#1E4D3A',
-  tertiary: '#1F5FA8',
+  secondaryContainer: '#E2E2E2',
+  onSecondaryContainer: '#000000',
+  tertiary: '#3C3C3C',
   onTertiary: '#FFFFFF',
-  tertiaryContainer: '#E4EDF7',
-  onTertiaryContainer: '#174A85',
+  tertiaryContainer: '#E8E8E8',
+  onTertiaryContainer: '#000000',
   // The "High" sodium badge.
-  error: '#A3261E',
+  error: '#C8201F',
   onError: '#FFFFFF',
-  errorContainer: '#F8E3E1',
-  onErrorContainer: '#A3261E',
-  background: '#F5F1EA',
-  onBackground: '#1F1B16',
-  surface: '#F5F1EA',
-  onSurface: '#1F1B16',
-  surfaceVariant: '#E3DBCD',
-  onSurfaceVariant: '#5E5649',
-  surfaceDim: '#E3DBCD',
-  surfaceBright: '#FBF9F5',
+  errorContainer: '#FDE4E4',
+  onErrorContainer: '#A51A19',
+  background: '#F1F1F1',
+  onBackground: '#000000',
+  surface: '#F1F1F1',
+  onSurface: '#000000',
+  surfaceVariant: '#DCDCDC',
+  onSurfaceVariant: '#5E5E5E',
+  surfaceDim: '#DCDCDC',
+  surfaceBright: '#FBFBFB',
   // Cards are white (tile: 'outlined').
-  surfaceContainerLowest: '#FFFFFF',
-  surfaceContainerLow: '#F9F6F1',
+  surfaceContainerLowest: '#FBFBFB',
+  surfaceContainerLow: '#F7F7F7',
   // Neutral icon plates, list dividers.
-  surfaceContainer: '#EDE7DC',
+  surfaceContainer: '#E8E8E8',
   // The segmented control's well.
-  surfaceContainerHigh: '#EAE3D7',
-  surfaceContainerHighest: '#E3DBCD',
-  inverseSurface: '#34302A',
-  inverseOnSurface: '#F5F1EA',
-  inversePrimary: '#A8D3BC',
+  surfaceContainerHigh: '#E4E4E4',
+  surfaceContainerHighest: '#DCDCDC',
+  inverseSurface: '#1A1A1A',
+  inverseOnSurface: '#F1F1F1',
+  inversePrimary: '#CFCFCF',
   // The card edge is the mockup's #E3DBCD (outlineVariant); outline is darker so a field's edge shows 3:1.
-  outline: '#857B6D',
-  outlineVariant: '#E3DBCD',
-  surfaceTint: '#1E4D3A',
+  outline: '#7C7C7C',
+  outlineVariant: '#DCDCDC',
+  surfaceTint: '#000000',
   shadow: '#000000',
   scrim: '#000000',
 
-  steps: '#1E4D3A',
+  steps: '#000000',
   onSteps: '#FFFFFF',
-  stepsContainer: '#D6E6DC',
-  onStepsContainer: '#1E4D3A',
-  food: '#9A4A2B',
+  stepsContainer: '#E2E2E2',
+  onStepsContainer: '#000000',
+  food: '#000000',
   onFood: '#FFFFFF',
   // The macro plates on a food result.
-  foodContainer: '#F6EDE7',
-  onFoodContainer: '#7A3519',
-  food2: '#6E5212',
-  food3: '#4E2A1A',
-  water: '#1F5FA8',
+  foodContainer: '#ECECEC',
+  onFoodContainer: '#000000',
+  food2: '#5E5E5E',
+  food3: '#3C3C3C',
+  water: '#000000',
   onWater: '#FFFFFF',
   // The "+ 1 glass" button.
-  waterContainer: '#E4EDF7',
-  onWaterContainer: '#174A85',
-  sleep: '#4A4038',
+  waterContainer: '#E8E8E8',
+  onWaterContainer: '#000000',
+  sleep: '#3C3C3C',
   onSleep: '#FFFFFF',
-  sleepContainer: '#EAE3D7',
-  onSleepContainer: '#4A4038',
-  near: '#8A5A00',
+  sleepContainer: '#E4E4E4',
+  onSleepContainer: '#000000',
+  near: '#5E5E5E',
   onNear: '#FFFFFF',
-  nearContainer: '#FBE7C2',
-  onNearContainer: '#4A3000',
-  over: '#A3261E',
+  nearContainer: '#E4E4E4',
+  onNearContainer: '#000000',
+  over: '#C8201F',
   onOver: '#FFFFFF',
 
-  // The mockup's lane (#E9E3D8) is too faint on the parchment ground; this is its frame sand.
-  lane: '#D6CDBE',
+  lane: '#CCCCCC',
   tick: '#FFFFFF',
-  laneTick: '#6A6155',
+  laneTick: '#5E5E5E',
 };
 
 /**
@@ -184,7 +183,7 @@ const theme: ThemeDef = {
     actionHeight: 56,
     compactLabel: { size: 18, line: 24, weight: 'bold' },
     filledRole: 'primary',
-    outlined: { border: 'primary', fill: '#FFFFFF', ink: 'primary' },
+    outlined: { border: 'primary', fill: '#FBFBFB', ink: 'primary' },
     // Card titles: "Ingredients", "Nutrients, at least": 18/24 at 700.
     overline: { size: 18, line: 24, weight: 'bold', tracking: 0, case: 'none', color: 'onSurface' },
     segment: {
@@ -193,18 +192,18 @@ const theme: ThemeDef = {
       wellBorder: null,
       radius: 20,
       pad: 4,
-      selected: '#FFFFFF',
+      selected: '#FBFBFB',
       onSelected: 'primary',
       selectedBorder: 'primary',
       selectedRadius: 16,
-      idle: '#4A4038',
+      idle: '#3C3C3C',
       divider: null,
       check: false,
       label: { size: 18, weight: 'semibold', selectedWeight: 'bold' },
     },
     nav: {
       height: 72,
-      background: '#FFFFFF',
+      background: '#FBFBFB',
       border: 'outlineVariant',
       pill: 'secondaryContainer',
       onPill: 'primary',
@@ -217,23 +216,23 @@ const theme: ThemeDef = {
   // The mockup's map: parchment land, white streets, thin sand lanes, the deep green route.
   map: {
     base: 'light',
-    land: '#ECE6DA',
-    road: '#FFFFFF',
-    minorRoad: '#DDD5C7',
-    park: '#DCE3D2',
-    water: '#D5E1EA',
-    building: '#E4DDD0',
-    label: '#5E5649',
-    border: '#E3DBCD',
+    land: '#F1F1F1',
+    road: '#FBFBFB',
+    minorRoad: '#DCDCDC',
+    park: '#E4E4E4',
+    water: '#DCDCDC',
+    building: '#E8E8E8',
+    label: '#5E5E5E',
+    border: '#DCDCDC',
     radius: 20,
     height: 160,
-    route: '#1E4D3A',
+    route: '#000000',
     routeWidth: 6,
     casing: null,
-    start: '#FFFFFF',
-    startRing: '#1E4D3A',
-    end: '#1E4D3A',
-    endRing: '#FFFFFF',
+    start: '#FBFBFB',
+    startRing: '#000000',
+    end: '#000000',
+    endRing: '#FBFBFB',
   },
 };
 

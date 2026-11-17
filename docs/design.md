@@ -22,83 +22,46 @@
 
 Size rule: the mockup phone screen is **360 px wide; 1 mockup px = 1 dp**. Text keeps `scaled()` (ui-scale.ts) and `MaxTextScale`. On wider phones the extra width goes to the cards, not to bigger text.
 
-## Current: Today "Time of day" (approved 17 Nov 2026)
+## Current: grey, black and one red, every screen (owner, 17 Nov 2026)
 
-**Source of truth:** `docs/design/today-time-of-day.html` (open it in a browser; the "Time of day" chip is the chosen one; the other chips, Monsoon, Block print, Chai and Ink, were not chosen). The owner's words: "Yup let us go for time of day".
+**Source:** the owner's reference picture (a health app shot in grey, black and one red), then "can you deliver this theme?", "1" (the whole Today screen) and "every screen to this color combination". It replaces the Dawn/Noon/Dusk colours on Today and the parchment and green of the Calm theme everywhere else.
 
-Scope: the **Today screen and the bottom bar**. Every other screen keeps the Calm theme (`e`) as it is.
+### Colours
 
-### Day parts
+| Use | Hex |
+| --- | --- |
+| Screen ground (`background`, `surface`, Today `bg`) | #F1F1F1 |
+| Cards (`surfaceContainerLowest`, Today `card`), the bottom bar | #FBFBFB |
+| Text, the main button, the data (steps, food, water), filled segments | #000000 |
+| Soft black (secondary, sleep, food3) | #3C3C3C |
+| Second text (`onSurfaceVariant`, Today `muted`) | #5E5E5E (#8C8C8C fails 4.5:1 on the ground, so it is used only for the hour dots) |
+| Hour dots with steps (Today `ringA`) | #8C8C8C |
+| Lines, empty segments, hatching, dots with no steps (`outlineVariant`, Today `edge`/`track`) | #DCDCDC / #E4E4E4 |
+| Lanes (track behind a bar) | #CCCCCC |
+| The one red on Today (`accent`): the hour now, steps past the goal | #FD393A |
+| Red for warning text (`error`, `over`; 4.5:1 on the ground) | #C8201F |
 
-| Part | Hours (phone's local time) | Feel |
-| --- | --- | --- |
-| Dawn | 05:00 to 10:59 | peach light on cream, coral-to-rose ring, aubergine buttons |
-| Noon | 11:00 to 16:29 | clear sky blue, bright blue ring, navy buttons |
-| Dusk | 16:30 to 04:59 | soft lilac, lavender-to-violet ring, plum buttons |
+Dawn, Noon and Dusk still exist in code (`day-part.ts`, the preview's `&part=`) but share these colours. The old Clean+ spec (`clean-spec.ts`) is unchanged; its blue mixes apply only when `primary` is its blue, so with black every screen mixes its greys from black.
 
-The part is checked when Today opens, when the app comes back to the front, and once a minute. A change cross-fades the colours over 500 ms (a cut with "Remove animations" on).
+### Steps tile (Today)
 
-### Palettes
+- Card: radius 16, padding 12/16 (10 on short screens), #FBFBFB, 1 dp #E4E4E4 edge. Opens the steps detail, as before.
+- Top line: "TODAY" small label (monospace capitals, 11, tracking 1, muted); right: the hours on your feet ("06:00 – 14:00", or "06:00 – NOW" while this hour has steps) and a 14 chevron.
+- Count: 34/40 semibold, tracking -0.8, counts up; "STEPS" small label beside it; the percentage as a small black label on the right.
+- Hour dots: one column of 5 dots (5 dp, 3 apart) per hour; lit dots by steps against the busiest hour so far (at least one for any hour with steps), grey #8C8C8C; unlit #E4E4E4. **The hour now is red and blinks gently, 1 to 0.3 and back over 1.6 s, for as long as Today is open** (the owner: simple, continuous movement). Axis 00 06 12 18 in small labels.
+- Goal bar: 28 segments, 10 high, 2 apart. Black up to the steps; hatched grey (three fine upright strokes) for what is left; past the goal the bar stands for all the steps, black up to the goal and red after it. Under it: "GOAL 7,000" left; right "4,236 TO GO" (muted) or a red square and "+4,236 PAST GOAL" (black).
+- Two small tiles (gap 8, #F1F1F1, radius 12, padding 8/10): DISTANCE ("8.1 km", bar = share of the steps goal) and ACTIVE ("7 min", bar full at 30 min). Each has a 12-segment bar, 4 high.
+- No ring, no gradient, no hour bars any more on this tile.
 
-Shared: card `#FFFFFF`, main text `#1F1B16`, text on the main button `#FFFFFF`.
+### The rest of Today
 
-| Role | Dawn | Noon | Dusk |
-| --- | --- | --- | --- |
-| bg (screen) | #F8F4EF | #F3F6F9 | #F5F3F9 |
-| wash (top of screen, fades to bg by 260 dp) | #FBE6DA | #DDEBF6 | #E6DFF3 |
-| edge (card border, bar hairline) | #F0E6DD | #E2E9F0 | #E8E3F1 |
-| newsBg | #F6E8DF | #E3ECF4 | #EAE5F4 |
-| plate (avatar, walk circle) | #F7E3DA | #DCE9F4 | #E6E0F5 |
-| muted (second text) | #6E6260 | #5B6875 | #655F78 |
-| main (Log food, active tab, avatar letter, news label text) | #3A2D45 | #1D3A5F | #3B2F66 |
-| heroTop → heroBottom (steps card, 150° diagonal) | #FFF6F0 → #FBE4D8 | #F7FBFE → #DDEBF7 | #F8F6FD → #E4DDF3 |
-| heroEdge | #F5DDD0 | #D6E5F2 | #DDD5EF |
-| ringA → ringB (ring, top-left to bottom-right) | #F09A6B → #C2577A | #5BB0E6 → #1F5FA8 | #A895E8 → #5340A6 |
-| track (ring track, low hour bars) | #F6DCD3 | #D5E5F2 | #E2DCF2 |
-| food / foodLane | #C4652F / #FAE6DA | #D06A3E / #FAE7DE | #CF7550 / #FAE8DF |
-| sleep / sleepLane | #6A5BA8 / #ECE8F6 | #5B57A6 / #E9E8F6 | #2F7A85 / #DDEFF1 |
-| water / waterLane | #3A7FBF / #E3EEF8 | #238C9A / #DCF0F2 | #3A78C0 / #E1ECF8 |
-
-The ring percentage text uses ringB. Hour bars of hours that have steps use a ringA (top) → ringB (bottom) gradient.
-
-### Layout (360 x 800 dp screen, top to bottom)
-
-- Screen: side padding 18, gap between blocks 10, top padding 8, bottom padding 10. Background: the wash gradient (wash at 0 → bg at 260 dp, then bg).
-- **Header row:** date 22/28 bold, letter spacing -0.3. Under it one line 13/18 muted: weather (the existing `WeatherBesideDate`, or `slots.dateExtra`) · the daily quote, ellipsised. Right: avatar 40 round, plate fill, initial 15 bold in main; it opens Profile (as now).
-- **Good news ticker:** height 32, radius 16, newsBg; label pill "Good news" 11 semibold, card fill, main text; items 12 (existing `NewsTicker`, new colours only).
-- **Steps card** (opens the steps detail, as now): radius 20, padding 12/16, heroTop→heroBottom gradient, heroEdge border 1.
-  - Left: head "Steps" 14 semibold with an 18 walker icon; number 40/44 bold, letter spacing -1.2, count-up; "of 8,000 goal" 13 muted; facts 13: "**4.6 km** · **52 min** active" (values in main text, the dots and "active" muted).
-  - Right: ring 92 x 92, radius 40, stroke 7, round caps, track colour behind; percentage 19 bold ringB in the middle.
-  - Hour bars: 24 bars, 5 wide, radius 3, row height 40, 10 below the top part; bar height = steps that hour / the day's highest hour (min 5). Hours with steps use the gradient, others track. Hours after `nowHour` are drawn at 5 in track. Axis 11 muted: 12 am, 6 am, 12 pm, 6 pm (right padding 30).
-- `slots.walking` (walk in progress) stays here, as now.
-- **Food and Sleep pair:** two cards, gap 10, radius 20, padding 12/16, card fill, edge border.
-  - Head 14 semibold with an 18 icon (bowl in food colour / moon in sleep colour; lock when locked).
-  - Value 21/26 bold, letter spacing -0.3, unit in 13 semibold ("1,280 kcal", "6 h 50 min").
-  - Sub 12 muted ("of 1,900 kcal", "Last night").
-  - Meter 5 high, round, 10 below: lane colour behind, part colour fill (the fills are the tile models' `share`, already 0..1 in `today-layout.ts`).
-- **Water card:** one row, gap 10. Head "Water" (drop icon) and value 17/22 semibold "5 of 8 glasses" (or "5 glasses" with no target). Right: glasses (one per glass of the target, 8 without one, at most 10 shown), each 12 x 18, outline 1.5 water, open top, bottom radius 4, filled ones 80 % water at 0.8 opacity, gap 4. Then the add button: 34 round, border 1.5 water, waterLane fill, "+" in water. Touch area at least 48 x 48. Tap the card → Water; tap + → add a glass (as now).
-- **Walk card:** row, gap 12. Circle 38 plate with the walker in main; title 14 semibold ("Morning walk" / "Walk"); sub 12 muted ("7:10 am · 32 min", or "No walk yet today"); right: distance 16 semibold and a 14 chevron muted. Opens Activity (as now).
-- `slots.below` / `slots.locked` (the premium card for the free app) stay here, as now.
-- **Log food:** height 48, pill (radius 24), main fill, "+" 20 regular and "Log food" 15 semibold in white, gap 8. It sits at the bottom of the column (`marginTop: 'auto'`).
-- The existing sync line ("Updated 2 min ago · Health Connect", drawn in `app/(tabs)/index.tsx`) stays below Log food, 11 muted, centred.
-- **Today does not scroll** at 360 x 800 with normal text. With large text it may scroll; nothing may be cut off or overlap.
-
-### Bottom bar (all tab screens)
-
-- Three buttons, each with an icon 22 and a label 11 under it (gap 3), slot width 80, bar height 60 plus the system inset, card fill, top hairline 1 in edge.
-- Order: **Today** (house icon), **Chats** (chats icon; the screen key stays `plus`), **Profile** (person icon; the screen key stays `you`).
-- Active: main colour and label semibold. Others: muted. No dot, no lifted round button.
-- On Today the colours come from the day part. On other screens the bar uses the Calm theme: active `primary`, others `onSurfaceVariant`, fill `surfaceContainerLowest`, hairline `outlineVariant`.
-- TalkBack labels: "Today", "Chats and groups", "Your profile".
-
-### Motion (gentle, once, when Today opens)
-
-- Blocks rise 10 dp and fade in, 700 ms, 50 ms apart (header 0, news 50, steps 100, pair 180, water 240, walk 300, Log food 360).
-- Steps number counts up; the ring fills over 1.5 s from 200 ms; meters fill over 1.3 s from 350 ms; hour bars grow over 0.9 s.
-- The news ticker keeps moving as now. Nothing else moves. With "Remove animations" on, everything is drawn at its final state at once.
-- The build 71 to 74 moving pictures (calm-motion: walker on the steps bar, filling bowl, water glass, rocking moon) are **not** in this design.
+- Food, Sleep, Water heads: a 14 icon and the name as a small label, both muted. Food and Sleep bars are the 12-segment bar. Glasses, the + button, the walk circle and Log food are black and grey. Every tap, figure and slot is as before.
+- Motion: blocks rise once as before; bars are revealed left to right once; the steps count counts up; the hour now keeps blinking; the news keeps moving. With "Remove animations" on, nothing moves.
+- Today must not scroll at 360 x 800 with normal text.
 
 ## History
+
+- **Today "Time of day" (17 Nov 2026), replaced the same day:** Dawn/Noon/Dusk colours, a steps ring and hour bars (`docs/design/today-time-of-day.html`). Its full spec is in git history (commit b4274a0, this file).
 
 - 14 Nov 2026: Clean+ blue chosen (`docs/design/clean-plus.html`), later replaced.
 - 16–17 Nov 2026: Calm and large (theme `e`) was the one look; builds 70 to 74. Its Today is replaced by the Time-of-day Today above. The Calm theme stays for every other screen.

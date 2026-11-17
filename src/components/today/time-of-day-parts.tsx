@@ -18,12 +18,16 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withDelay,
+  withRepeat,
+  withSequence,
   withTiming,
 } from 'react-native-reanimated';
 import Svg, { Circle, Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
 import { useReducedMotion } from '@/components/ui/motion';
 import type { DayPalette } from '@/constants/day-part';
+
+import { goalSegments, hourDots, STEPS_TILE } from './steps-tile-model';
 
 const clamp01 = (x: number) => (Number.isFinite(x) ? Math.min(1, Math.max(0, x)) : 0);
 
@@ -43,6 +47,17 @@ export const TOD = {
   /** At most this many glasses are drawn. */
   glassesMax: 10,
   meter: 5,
+  /** The hour dots: rows per hour, the dot and the gap between rows. */
+  dotRows: STEPS_TILE.dotRows,
+  dot: 5,
+  dotGap: 3,
+  /** The goal bar: segments, height and gap. */
+  goalSegments: STEPS_TILE.goalSegments,
+  goalHeight: 10,
+  segmentGap: 2,
+  /** The small bars under Distance and Active. */
+  miniSegments: 12,
+  miniHeight: 4,
 } as const;
 
 /* ───────────── Motion ───────────── */
@@ -249,6 +264,109 @@ export function Meter({ share, color, track, style }: { share: number; color: st
   );
 }
 
+/* ───────────── Hour dots ───────────── */
+
+/** A pulse that never stops: 1 to 0.3 and back over 1.6 s (still at 1 with "Remove animations" on). */
+function useBlink(): SharedValue<number> {
+  const reduced = useReducedMotion();
+  const o = useSharedValue(1);
+  useEffect(() => {
+    if (reduced) {
+      o.value = 1;
+      return;
+    }
+    const half = { duration: 800, easing: Easing.inOut(Easing.quad) };
+    o.value = withRepeat(withSequence(withTiming(0.3, half), withTiming(1, half)), -1, false);
+  }, [reduced, o]);
+  return o;
+}
+
+/**
+ * One column of dots per hour, filled from the bottom: grey for steps, faint
+ * for none, the hour now in red and gently blinking (the screen's one
+ * continuous movement).
+ */
+export function HourDots({ hourly, nowHour, p }: { hourly: number[]; nowHour: number; p: DayPalette }) {
+  const counts = hourDots(hourly, nowHour);
+  const blink = useBlink();
+  const pulse = useAnimatedStyle(() => ({ opacity: blink.value }));
+  const { dotRows: rows, dot, dotGap } = TOD;
+  const column = (n: number, color: string) =>
+    Array.from({ length: rows }, (_, r) => (
+      <View key={r} style={{ width: dot, height: dot, borderRadius: dot / 2, backgroundColor: rows - r <= n ? color : p.edge }} />
+    ));
+  return (
+    <View {...hidden} style={[styles.dots, { height: rows * dot + (rows - 1) * dotGap }]}>
+      {counts.map((n, i) =>
+        i === nowHour ? (
+          <Animated.View key={i} style={[styles.dotColumn, { gap: dotGap }, pulse]}>
+            {column(Math.max(1, n), p.accent)}
+          </Animated.View>
+        ) : (
+          <View key={i} style={[styles.dotColumn, { gap: dotGap }]}>
+            {column(n, p.ringA)}
+          </View>
+        ),
+      )}
+    </View>
+  );
+}
+
+/* ───────────── Segmented bars ───────────── */
+
+/** Fine upright grey strokes inside a segment still to walk. */
+function Hatch({ color, height }: { color: string; height: number }) {
+  return (
+    <View style={[styles.hatch, { height }]}>
+      {Array.from({ length: 3 }, (_, i) => (
+        <View key={i} style={{ width: 1, height, backgroundColor: color }} />
+      ))}
+    </View>
+  );
+}
+
+/**
+ * A segmented bar: each segment black, red or hatched grey, from `colorOf`.
+ * It is shown left to right once (a card-coloured cover slides off), then stays.
+ */
+function Segments({ n, height, colorOf, p, delay }: { n: number; height: number; colorOf: (i: number) => string | null; p: DayPalette; delay: number }) {
+  const g = useGrow(1, 1100, delay);
+  const cover = useAnimatedStyle(() => ({ left: `${g.value * 100}%` }));
+  return (
+    <View {...hidden} style={[styles.segments, { height, gap: TOD.segmentGap }]}>
+      {Array.from({ length: n }, (_, i) => {
+        const c = colorOf(i);
+        return (
+          <View key={i} style={[styles.segment, { height, backgroundColor: c ?? undefined }]}>
+            {c ? null : <Hatch color={p.track} height={height} />}
+          </View>
+        );
+      })}
+      <Animated.View style={[styles.cover, { backgroundColor: p.card }, cover]} />
+    </View>
+  );
+}
+
+/** The goal bar: black segments to the goal, hatched grey for what is left, red past it. */
+export function GoalBar({ steps, goal, p }: { steps: number; goal: number; p: DayPalette }) {
+  const { done, extra } = goalSegments(steps, goal);
+  return (
+    <Segments
+      n={TOD.goalSegments}
+      height={TOD.goalHeight}
+      p={p}
+      delay={250}
+      colorOf={(i) => (i < done ? p.ringB : i < done + extra ? p.accent : null)}
+    />
+  );
+}
+
+/** A thin bar under Distance and Active: `share` of its segments black, the rest hatched. */
+export function MiniBar({ share, p }: { share: number; p: DayPalette }) {
+  const lit = Math.round(clamp01(share) * TOD.miniSegments);
+  return <Segments n={TOD.miniSegments} height={TOD.miniHeight} p={p} delay={400} colorOf={(i) => (i < lit ? p.ringB : null)} />;
+}
+
 const styles = StyleSheet.create({
   centre: { alignItems: 'center', justifyContent: 'center' },
   glasses: { flexDirection: 'row', gap: TOD.glassGap },
@@ -263,4 +381,10 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   water: { position: 'absolute', left: 0, right: 0, bottom: 0, height: '80%', opacity: 0.8 },
+  dots: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
+  dotColumn: { flexDirection: 'column' },
+  segments: { flexDirection: 'row', alignItems: 'stretch' },
+  segment: { flex: 1, borderRadius: 1.5, overflow: 'hidden' },
+  hatch: { flexDirection: 'row', justifyContent: 'space-evenly' },
+  cover: { position: 'absolute', top: 0, bottom: 0, right: 0 },
 });
