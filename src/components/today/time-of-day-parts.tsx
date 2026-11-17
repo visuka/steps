@@ -287,16 +287,16 @@ const FAINT = '#B0B0B0';
 const BASE = '#E8E8E8';
 
 /**
- * The day as an even grid of round dots, two columns an hour: wide peaks for
- * the busy spells, the latest dark and the older light, a faint base line for
- * the quiet. Across it near the top, the now line: a red pointer that gently
+ * The day as an even grid of round dots, two columns an hour, each hour a
+ * small ramp: the latest dark, the older light, a faint base line for the
+ * quiet. Across it near the top, the now line: a red pointer that gently
  * blinks (the screen's one continuous movement), a red hairline and the time.
  */
 export function HourDots({ hourly, nowHour, p, time, tight }: { hourly: number[]; nowHour: number; p: DayPalette; time: string; tight?: boolean }) {
-  const { n, recent } = dotGrid(hourly, nowHour);
+  const rows = TOD.dotRows;
+  const { n, recent } = dotGrid(hourly, nowHour, rows);
   const blink = useBlink();
   const pulse = useAnimatedStyle(() => ({ opacity: blink.value }));
-  const rows = TOD.dotRows;
   const dot = tight ? 3 : TOD.dot;
   const gap = tight ? 2.6 : TOD.dotGap;
   const height = rows * dot + (rows - 1) * gap;
@@ -360,40 +360,41 @@ export function coloured(parts: Part[], p: DayPalette, black: string = p.ringB):
 }
 
 /**
- * A rounded bar 10 high: pills and dots over a light base up to `filled`
+ * A rounded bar 10 high (its red dots 12): pills and dots over a light base up to `filled`
  * (shown left to right once), faint slanted strokes for the rest; optionally
  * a tiny triangle over it and faint marks under it.
  */
 export function Track({ parts, filled, p, marks, marker }: { parts: TrackPart[]; filled: number; p: DayPalette; marks?: string[]; marker?: number }) {
   const [w, setW] = useState(0);
   const h = TOD.pill;
+  // Red dots a little bigger than the bar; pieces stand apart on the light base (owner's reference).
+  const D = h + 2;
   const g = useGrow(1, 1300, 300);
   const f = clamp01(filled);
-  // Each dot sits whole inside the bar; pills keep a small gap, more beside a dot.
-  const dotX = (x: number) => Math.max(h / 2, Math.min(w - h / 2, x * w));
+  const dotX = (x: number) => Math.max(D / 2, Math.min(w - D / 2, x * w));
   const dots = parts.filter((x) => x.dot).map((x) => dotX(x.from));
   const edge = (x: number, side: 1 | -1) => {
     const px = x * w;
-    const near = dots.find((d) => Math.abs(d - px) < h);
-    if (near !== undefined) return near + side * (h / 2 + 2);
-    return px <= 0.5 || px >= w - 0.5 ? px : px + side * 1.5;
+    const near = dots.find((d) => Math.abs(d - px) < D);
+    if (near !== undefined) return near + side * (D / 2 + 6);
+    return px <= 0.5 || px >= w - 0.5 ? px : px + side * 4;
   };
-  const end = Math.max(f * w, ...dots.map((d) => d + h / 2));
+  const end = Math.max(f * w, ...dots.map((d) => d + D / 2));
   const reveal = useAnimatedStyle(() => ({ width: g.value * end }));
   return (
     <View {...hidden}>
       {marker !== undefined && w > 0 ? <Marker at={clamp01(marker)} w={w} /> : null}
-      <View style={{ height: h }} onLayout={(e) => setW(e.nativeEvent.layout.width)}>
+      <View style={{ height: D }} onLayout={(e) => setW(e.nativeEvent.layout.width)}>
         {w > 0 ? (
           <>
-            <View style={[styles.track, { left: Math.min(w, end + (end > 0 ? 3 : 0)), right: 0 }]}>
+            <View style={[styles.track, { left: Math.min(w, end + (end > 0 ? 4 : 0)), right: 0 }]}>
               <Hatch p={p} h={h} />
             </View>
-            <Animated.View style={[styles.reveal, { height: h }, reveal]}>
+            <Animated.View style={[styles.reveal, { height: D }, reveal]}>
               {f > 0 ? <View style={[styles.base, { width: f * w, height: h, borderRadius: h / 2 }]} /> : null}
               {parts.map((x, i) => {
                 if (x.dot) {
-                  return <View key={i} style={[styles.piece, { left: dotX(x.from) - h / 2, width: h, height: h, borderRadius: h / 2, backgroundColor: x.color }]} />;
+                  return <View key={i} style={[styles.dotPiece, { left: dotX(x.from) - D / 2, width: D, height: D, borderRadius: D / 2, backgroundColor: x.color }]} />;
                 }
                 const a = edge(x.from, 1);
                 const b = edge(x.to, -1);
@@ -414,10 +415,10 @@ export function GoalBar({ steps, goal, p }: { steps: number; goal: number; p: Da
   return <Track parts={coloured(parts, p)} filled={filled} p={p} />;
 }
 
-/** Sleep's bar: two black pills and a red dot at their end, the triangle over it. */
+/** Sleep's bar: two black pills and a red dot at their end, the faint triangle over its start. */
 export function SleepBar({ share, p, marks }: { share: number; p: DayPalette; marks?: string[] }) {
   const f = clamp01(share);
-  return <Track parts={coloured(sleepTrack(f), p)} filled={f} p={p} marks={marks} marker={f} />;
+  return <Track parts={coloured(sleepTrack(f), p)} filled={f} p={p} marks={marks} marker={0} />;
 }
 
 /* ───────────── Scales ───────────── */
@@ -471,11 +472,12 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   nowLine: { flex: 1, height: 1, opacity: 0.55 },
-  track: { position: 'absolute', top: 0, bottom: 0 },
+  track: { position: 'absolute', top: 1, bottom: 1 },
   hatch: { flex: 1, flexDirection: 'row', gap: 3, overflow: 'hidden' },
   reveal: { position: 'absolute', left: 0, top: 0, overflow: 'hidden' },
-  base: { position: 'absolute', left: 0, top: 0, backgroundColor: BASE },
-  piece: { position: 'absolute', top: 0 },
+  base: { position: 'absolute', left: 0, top: 1, backgroundColor: BASE },
+  piece: { position: 'absolute', top: 1 },
+  dotPiece: { position: 'absolute', top: 0 },
   markerRow: { height: 4, marginBottom: 3 },
   marker: {
     position: 'absolute',
@@ -489,5 +491,5 @@ const styles = StyleSheet.create({
     borderRightColor: 'transparent',
     borderBottomColor: FAINT,
   },
-  scale: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
+  scale: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 3 },
 });

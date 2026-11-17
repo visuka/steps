@@ -26,11 +26,14 @@ export function activeRange(hourly: number[], nowHour: number): string | null {
   return `${hh(lit[0])} – ${last === nowHour ? 'NOW' : hh(last + 1)}`;
 }
 
+/** Each hour's columns, as shares of its height: a steep rise, then a step down (owner's reference). */
+const RAMP = [1, 0.7] as const;
+
 /**
- * The day as an even grid of dots (owner's reference): `perHour` columns per
- * hour, each lit from the bottom by its steps, smoothed so the busy spells
- * read as wide peaks. None after now. `recent` marks the latest peak (drawn
- * dark; the older ones light).
+ * The day as an even grid of dots: `perHour` columns per hour, each lit from
+ * the bottom by its steps, every hour a small ramp so the day reads as peaks.
+ * None after now. `recent` marks the latest hour with steps (drawn dark; the
+ * older ones light).
  */
 export function dotGrid(
   hourly: number[],
@@ -38,24 +41,13 @@ export function dotGrid(
   rows: number = STEPS_TILE.dotRows,
   perHour: number = STEPS_TILE.perHour,
 ): { n: number[]; recent: boolean[] } {
-  const cols = 24 * perHour;
-  const end = (Math.min(23, Math.max(-1, Math.floor(nowHour))) + 1) * perHour;
-  const raw = Array.from({ length: cols }, (_, c) => (c < end ? Math.max(0, Number(hourly[Math.floor(c / perHour)]) || 0) : 0));
-  const K = [1, 2, 3, 2, 1];
-  const smooth = raw.map((_, c) => (c < end ? K.reduce((t, k, j) => t + k * (raw[c + j - 2] ?? 0), 0) / 9 : 0));
-  const peak = Math.max(0, ...smooth);
-  const n = smooth.map((x) => (peak <= 0 || x <= peak * 0.04 ? 0 : Math.max(1, Math.round((x / peak) * rows))));
-  const recent = n.map(() => false);
-  let c = n.length - 1;
-  while (c >= 0 && n[c] === 0) c--;
-  // Back from the last lit column: up its slope to the top, then down the far side, stopping where it rises again.
-  let falling = false;
-  for (; c >= 0 && n[c] > 0; c--) {
-    recent[c] = true;
-    const prev = c > 0 ? n[c - 1] : 0;
-    if (prev < n[c]) falling = true;
-    else if (falling && prev > n[c]) break;
-  }
+  const last = Math.min(23, Math.max(-1, Math.floor(nowHour)));
+  const hours = Array.from({ length: 24 }, (_, i) => (i <= last ? Math.max(0, Number(hourly[i]) || 0) : 0));
+  const value = Array.from({ length: 24 * perHour }, (_, c) => hours[Math.floor(c / perHour)] * (RAMP[c % perHour] ?? RAMP[RAMP.length - 1]));
+  const peak = Math.max(0, ...value);
+  const n = value.map((x) => (peak <= 0 || x <= 0 ? 0 : Math.max(1, Math.round((x / peak) * rows))));
+  const latest = hours.reduce((k, x, i) => (x > 0 ? i : k), -1);
+  const recent = n.map((k, c) => k > 0 && Math.floor(c / perHour) === latest);
   return { n, recent };
 }
 
@@ -72,16 +64,16 @@ const CUTS = [0.35, 0.6, 0.45] as const;
 
 function pills(out: Part[], from: number, to: number, i: number, red = false) {
   if (to - from <= 1e-6) return;
-  if (to - from > 0.12) {
+  if (to - from > 0.3) {
     const c = from + (to - from) * CUTS[i % CUTS.length];
     out.push({ from, to: c, red, dot: false }, { from: c, to, red, dot: false });
   } else out.push({ from, to, red, dot: false });
 }
 
 /**
- * The goal bar: a few long black pills up to the steps, with a red dot at each
- * quarter of the goal already passed. Past the goal the bar stands for all the
- * steps: black up to the goal, one red pill after it.
+ * The goal bar: a red dot at the start, a few long black pills up to the
+ * steps, another red dot at half the goal once passed. Past the goal the bar
+ * stands for all the steps: black up to the goal, one red pill after it.
  */
 export function goalTrack(steps: number, goal: number): { filled: number; parts: Part[] } {
   const s = Math.max(0, Number(steps) || 0);
@@ -90,7 +82,7 @@ export function goalTrack(steps: number, goal: number): { filled: number; parts:
   const filled = s <= g ? s / g : 1;
   const goalAt = s <= g ? 1 : g / s;
   const black = Math.min(filled, goalAt);
-  const marks = [0.25, 0.5, 0.75].map((q) => q * goalAt).filter((m) => m < black - 0.03);
+  const marks = [0, 0.5 * goalAt].filter((m) => m === 0 || m < black - 0.03);
   const out: Part[] = [];
   let a = 0;
   [...marks, black].forEach((stop, i) => {

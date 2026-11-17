@@ -49,7 +49,7 @@ Dawn, Noon and Dusk still exist in code (`day-part.ts`, the preview's `&part=`) 
 The owner sent the reference next to build 80 and asked for every difference to be made ("complete this each and every thing").
 
 - **Top row:** the avatar (opens You) on the left; in the middle a NUTRITION / ACTIVITY switch (grey track #E4E4E4, the selected half a #FBFBFB pill; Nutrition opens Food, Activity is this screen); on the right a round calendar button (opens the steps by day). 40 high, 36 on short screens. Under it one line: the date (15 bold), the weather and the quote.
-- **Cards:** no outline, radius 20, #FBFBFB on #F1F1F1, padding 10/16 (8 on short screens), 8 apart (7 on short screens). Log food 44 high.
+- **Cards:** no outline, radius 20, #FBFBFB on #F1F1F1, padding 9/16 (8 on short screens), 7 apart. Log food 42 high.
 - **Steps card:** a clock icon and TODAY, the hours on your feet on the right. The count in Figtree Light 38 (34 on short screens) with STEPS beside it and "x TO GO" on the right; no percentage. A red line with a red dot and the time now, then the hour dots: 8 small dots (3 dp, 2 apart) per hour, the hour now red and blinking. The goal bar: 16 rounded pills (8 high, 3 apart), black up to the steps with the leading pill red, hatched for what is left, red past the goal. Under it a scale of the goal (0 · 2,500 · 5,000 · 7,500 · 10,000), or past the goal "GOAL x" and a red square with "+x PAST GOAL".
 - **Distance and Active:** their own cards side by side: icon, name and a small ↗ arrow; the figure in Figtree Light; a rounded bar (8 high) with its scale (hidden on short screens and with large text). Distance grey, Active red (full at 30 min). Both open the steps detail.
 - **FOOD & SLEEP:** a title in mono capitals (14, tracking 1.5) above the pair, hidden on short screens and with large text. Food's bar black with a small red dot at its end; Sleep's bar red. Both heads have the ↗ arrow.
@@ -71,11 +71,12 @@ The owner sent the reference next to build 80 and asked for every difference to 
 This replaces what the two passes above say about the figures, the hour dots, the now line and the bars.
 
 - **Figures:** the phone's condensed face (`sans-serif-condensed`): the step count light 38 (34 on short screens); the card figures regular 20 (18), the unit joined at the same size: "4.6km", "52m" or "2h 24m", "1,280 kcal", "6h 50m". Figtree Light is no longer loaded.
-- **Hour dots:** an even grid of round dots, 3.5 dp with 3.5 dp gaps (3 and 2.6 on short screens), 7 rows, two columns an hour, smoothed into wide peaks (`dotGrid`). The latest peak #3A3A3A, older peaks #CFCFCF, quiet columns one faint base dot (#E4E4E4).
+- **Hour dots:** an even grid of round dots, 3.5 dp with 3.5 dp gaps (3 and 2.6 on short screens), 7 rows, two columns an hour, each hour a small ramp: a steep rise, then a step down (`dotGrid`). The latest hour #3A3A3A, older hours #CFCFCF, quiet columns one faint base dot (#E4E4E4).
 - **Now line:** across the grid on its second row: a red triangle (blinking, the one continuous movement), a red hairline (55%) and the time on the right.
 - **Divider** under the count: the full card width.
-- **Bars:** all 10 high. Filled part on a light base (#E8E8E8), the rest faint slanted strokes (#DCDCDC). Goal: a few long black pills with a red dot at each quarter of the goal passed; past the goal one red pill after it. Distance pale grey #C8C8C8, Active red, Food black with a red dot at its end, Sleep two black pills and a red dot.
-- **Food and Sleep:** a tiny faint triangle (#B0B0B0) over the bar where the figure stands; scales 0 · half · target (Food) and 0h · 4h · 8h (Sleep), hidden on short screens and with large text.
+- **Hours on your feet:** from the first hour with steps to the time now ("06:00 – 15:45").
+- **Bars:** all 10 high. Filled part on a light base (#E8E8E8), the rest faint slanted strokes (#DCDCDC). Red dots 12 across, pieces 8 dp apart on the base (12 beside a dot). Goal: a red dot at the start, long black pills, a red dot at half the goal once passed; past the goal one red pill after it. Distance pale grey #C8C8C8, Active red, Food black with a red dot at its end, Sleep two black pills and a red dot.
+- **Food and Sleep:** a tiny faint triangle (#B0B0B0) over the start of the bar; scales 0 · half · target (Food) and 0h · 4h · 8h (Sleep), hidden on short screens and with large text.
 - **Scales:** mono 9 in #B0B0B0 (decorative; the cards say their figures to TalkBack).
 - **FOOD & SLEEP** title: 6 dp more room above it.
 - **Water in pale blue:** glasses outlined #2B70AE and filled #A9D4F5; the plus button #2B70AE on a 12% tint. Theme `water` #2B70AE (5.2:1 on white, 3.2:1 on the #CCCCCC lane), `waterContainer` #DCEEFB, map water #D4E7F5.

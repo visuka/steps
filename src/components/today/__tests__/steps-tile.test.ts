@@ -56,19 +56,22 @@ describe('dotGrid', () => {
     [14, 1200],
     [20, 5000],
   ]);
-  it('lights two columns an hour as smooth peaks, none after now', () => {
+  it('lights two columns an hour as ramps, none after now', () => {
     const { n } = dotGrid(h, 15, 7, 2);
     expect(n).toHaveLength(48);
     expect(Math.max(...n)).toBe(7);
+    // Each hour a steep rise, then a step down.
+    expect(n[13]).toBe(0);
+    expect(n[14]).toBeGreaterThan(n[15]);
+    expect(n[16]).toBeGreaterThan(n[17]);
+    expect(n[18]).toBe(0);
     expect(n[15]).toBeGreaterThan(0);
     expect(n.slice(32).every((x) => x === 0)).toBe(true);
     expect(n[0]).toBe(0);
   });
-  it('marks only the latest peak as recent', () => {
-    const { n, recent } = dotGrid(h, 15, 7, 2);
-    expect(recent.some(Boolean)).toBe(true);
-    expect(recent.slice(0, 20).some(Boolean)).toBe(false);
-    recent.forEach((r, c) => r && expect(n[c]).toBeGreaterThan(0));
+  it('marks only the latest hour with steps as recent', () => {
+    const { recent } = dotGrid(h, 15, 7, 2);
+    expect(recent.map((r, c) => (r ? c : -1)).filter((c) => c >= 0)).toEqual([28, 29]);
   });
   it('is empty with no steps and copes with bad numbers', () => {
     expect(dotGrid(day, 12).n.every((x) => x === 0)).toBe(true);
@@ -77,12 +80,13 @@ describe('dotGrid', () => {
 });
 
 describe('goalTrack', () => {
-  it('fills up to the steps with long pills and red dots at the quarters passed', () => {
+  it('fills up to the steps with long pills, a red dot at the start and at half the goal', () => {
     const g = goalTrack(6000, 10000);
     expect(g.filled).toBeCloseTo(0.6);
     expect(len(g.parts)).toBeCloseTo(0.6, 6);
-    expect(g.parts.filter((x) => x.dot).map((x) => x.from)).toEqual([0.25, 0.5]);
+    expect(g.parts.filter((x) => x.dot).map((x) => x.from)).toEqual([0, 0.5]);
     expect(g.parts.filter((x) => !x.dot).every((x) => !x.red)).toBe(true);
+    expect(g.parts.filter((x) => !x.dot)).toHaveLength(3);
   });
   it('is empty at nothing or without a goal', () => {
     expect(goalTrack(0, 7000)).toEqual({ filled: 0, parts: [] });
@@ -93,7 +97,7 @@ describe('goalTrack', () => {
     expect(g.filled).toBe(1);
     const red = g.parts.filter((x) => x.red && !x.dot);
     expect(red).toEqual([{ from: 0.5, to: 1, red: true, dot: false }]);
-    expect(g.parts.filter((x) => x.dot).map((x) => x.from)).toEqual([0.125, 0.25, 0.375]);
+    expect(g.parts.filter((x) => x.dot).map((x) => x.from)).toEqual([0, 0.25]);
   });
 });
 
