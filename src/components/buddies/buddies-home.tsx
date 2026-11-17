@@ -1,49 +1,60 @@
 /**
- * The Plus tab: Walk buddies. Not joined yet → the sign-up form (walker ID,
- * the name buddies see, 18+ and the rules). Joined → Chats and Buddies, with
- * requests and Find walkers on top. Clubs, family, walk plans and QR come in
- * the next builds and are listed as such.
+ * Meet: Walk buddies in the plain sage-and-sand look (owner, 17 Nov 2026; the
+ * mock is plain.html?s=m&k=1&ic=1&icx=1). Not joined yet → the sign-up form
+ * (walker ID, the name buddies see, 18+ and the rules). Joined → Chats in the
+ * sage tile, Requests (sand) and Find walkers, Buddies, your walker ID with
+ * Share, and what comes next. Every chat, buddy and request opens as before.
  */
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Linking, StyleSheet, View } from 'react-native';
+import { Linking, Pressable, Share, StyleSheet, View } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
-import { Segmented, TextField } from '@/components/controls';
-import { Button, EmptyState, ListRow, Pill, Screen, Snackbar, Surface, ToggleRow } from '@/components/ui';
+import { TextField } from '@/components/controls';
+import { Btn, Caps, Label, Mid, Note, Num, Pair, plainStyles as ps, Sub, SyncLine, Tile, Words } from '@/components/plain/plain-kit';
+import { PlainPage } from '@/components/plain/plain-page';
+import { PLAIN } from '@/components/plain/plain-theme';
+import { Button, Snackbar, ToggleRow } from '@/components/ui';
 import { cleanHandle, handleProblem } from '@/buddies/chat-logic';
 import { displayName } from '@/buddies/read';
-import type { ChatRow, SocialMe } from '@/buddies/types';
+import type { BuddyRow, ChatRow, SocialMe } from '@/buddies/types';
 import { attempt, useLoad, useSocialApi, useSocialMe } from '@/buddies/use-buddies';
-import { Spacing } from '@/constants/theme';
+import { scaled } from '@/constants/ui-scale';
+import { minutesAgo } from '@/lib/format';
 import { useApp } from '@/state/app-state';
 
-import { Avatar, PersonRow, SectionTitle, useSnack } from './parts';
+import { useSnack } from './parts';
 
-/** Still to come on this tab; shown so nothing promised disappears. */
-const COMING = [
-  { key: 'groups', title: 'Groups and clubs', supporting: 'Walk and cycle together', icon: 'people-outline' },
-  { key: 'plans', title: 'Walk plans', supporting: 'Pick a time and place to meet', icon: 'calendar-outline' },
-  { key: 'qr', title: 'Add by QR code', supporting: 'Scan to add a buddy or join a club', icon: 'qr-code-outline' },
-] as const;
+const S = scaled;
+
+/** Still to come here; shown so nothing promised disappears. */
+const COMING = 'Clubs · Walk plans · QR invite';
 
 export type Segment = 'chats' | 'buddies';
 
-export function BuddiesHome({ initialSegment = 'chats' }: { initialSegment?: Segment } = {}) {
+export function BuddiesHome(_: { initialSegment?: Segment } = {}) {
   const { me, setMe, error, loading, refresh } = useSocialMe();
   if (!me) {
     return (
-      <Screen title="Chats and buddies">
-        {loading ? (
-          <ThemedText themeColor="onSurfaceVariant">—</ThemedText>
-        ) : (
-          <EmptyState icon="cloud-offline-outline" title="Can't reach Walk buddies" hint={error?.message} action={{ label: 'Try again', onPress: refresh }} />
-        )}
-      </Screen>
+      <PlainPage part="meet" onRefresh={refresh}>
+        <Sub lead="Walk buddies" />
+        <Tile>
+          {loading ? (
+            <Note>—</Note>
+          ) : (
+            <>
+              <Label icon="chat" text="Can't reach Walk buddies" />
+              {error?.message ? <Note>{error.message}</Note> : null}
+              <View style={[ps.row, { marginTop: S(12) }]}>
+                <Btn text="Try again" kind="main" onPress={refresh} />
+              </View>
+            </>
+          )}
+        </Tile>
+      </PlainPage>
     );
   }
   if (!me.joined) return <JoinForm onJoined={setMe} />;
-  return <Joined me={me} refreshMe={refresh} initialSegment={initialSegment} />;
+  return <Joined me={me} refreshMe={refresh} />;
 }
 
 function JoinForm({ onJoined }: { onJoined: (me: SocialMe) => void }) {
@@ -67,134 +78,214 @@ function JoinForm({ onJoined }: { onJoined: (me: SocialMe) => void }) {
   };
 
   return (
-    <Screen title="Walk buddies" overlay={<Snackbar message={snack} onDismiss={dismiss} />}>
-      <ThemedText themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
-        Find walkers by their ID, become walk buddies and chat. Only accepted buddies can message you.
-      </ThemedText>
-      <SectionTitle>Your walker ID</SectionTitle>
-      <TextField label="Walker ID" value={handle} onChangeText={setHandle} placeholder="@your_id" maxLength={21} plain />
-      <ThemedText type="bodySmall" themeColor={problem ? 'error' : 'onSurfaceVariant'} maxFontSizeMultiplier={1.3}>
-        {problem ?? '3–20 letters, numbers or _. You can change it once a month.'}
-      </ThemedText>
-      <SectionTitle>Name buddies see</SectionTitle>
-      <TextField label="Name buddies see" value={name} onChangeText={setName} placeholder="Your name" maxLength={40} />
-      <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
-        Leave empty to show your ID.
-      </ThemedText>
-      <Surface level={1} style={styles.list}>
+    <PlainPage part="meet" overlay={<Snackbar message={snack} onDismiss={dismiss} />}>
+      <Sub lead="Walk buddies" />
+      <Tile kind="hero">
+        <Label icon="people" text="Join Walk buddies" />
+        <Note style={{ marginTop: S(8) }}>Find walkers by their ID, become walk buddies and chat. Only accepted buddies can message you.</Note>
+      </Tile>
+      <Tile>
+        <Label icon="card" text="Your walker ID" />
+        <View style={{ marginTop: S(10) }}>
+          <TextField label="Walker ID" value={handle} onChangeText={setHandle} placeholder="@your_id" maxLength={21} plain />
+        </View>
+        <Note color={problem ? '#B3261E' : PLAIN.muted}>{problem ?? '3–20 letters, numbers or _. You can change it once a month.'}</Note>
+        <View style={{ marginTop: S(12) }}>
+          <TextField label="Name buddies see" value={name} onChangeText={setName} placeholder="Your name" maxLength={40} />
+        </View>
+        <Note>Leave empty to show your ID.</Note>
+      </Tile>
+      <Tile>
         <ToggleRow title="I'm 18 or older" value={adult} onValueChange={setAdult} />
         <ToggleRow title="I agree to the Walk buddies rules" value={rules} onValueChange={setRules} />
-      </Surface>
-      <View style={styles.links}>
-        <Button label="Rules" variant="text" compact onPress={() => Linking.openURL('https://neutcrafts.in/walk-buddies-rules')} />
-        <Button label="Terms" variant="text" compact onPress={() => Linking.openURL('https://neutcrafts.in/terms')} />
-        <Button label="Privacy" variant="text" compact onPress={() => Linking.openURL('https://neutcrafts.in/privacy')} />
-      </View>
+        <View style={styles.links}>
+          <Button label="Rules" variant="text" compact onPress={() => Linking.openURL('https://neutcrafts.in/walk-buddies-rules')} />
+          <Button label="Terms" variant="text" compact onPress={() => Linking.openURL('https://neutcrafts.in/terms')} />
+          <Button label="Privacy" variant="text" compact onPress={() => Linking.openURL('https://neutcrafts.in/privacy')} />
+        </View>
+      </Tile>
       <Button label="Continue" onPress={join} disabled={!ready} loading={busy} />
-    </Screen>
+    </PlainPage>
   );
 }
 
-function Joined({
-  me,
-  refreshMe,
-  initialSegment,
-}: {
-  me: Extract<SocialMe, { joined: true }>;
-  refreshMe: () => Promise<void>;
-  initialSegment: Segment;
-}) {
+function Joined({ me, refreshMe }: { me: Extract<SocialMe, { joined: true }>; refreshMe: () => Promise<void> }) {
   const router = useRouter();
   const api = useSocialApi();
-  const [segment, setSegment] = useState<Segment>(initialSegment);
   const chats = useLoad(api.chats);
   const buddies = useLoad(api.buddies);
-  const requests = me.counts.requestsIn;
+  const requests = useLoad(api.requests);
+  const { snack, show, dismiss } = useSnack();
+  const [later, setLater] = useState(false);
+  // When the chats last came in, for "Updated 2 min ago" (set as they arrive, not in an effect).
+  const [loadedAt, setLoadedAt] = useState<number | null>(null);
+  const [seenChats, setSeenChats] = useState(chats.data);
+  if (chats.data !== seenChats) {
+    setSeenChats(chats.data);
+    if (chats.data) setLoadedAt(new Date().getTime());
+  }
 
   const refresh = async () => {
-    await Promise.all([refreshMe(), chats.refresh(), buddies.refresh()]);
+    await Promise.all([refreshMe(), chats.refresh(), buddies.refresh(), requests.refresh()]);
   };
 
+  const incoming = requests.data?.incoming ?? [];
+  const first = incoming[0];
+  const buddyCount = buddies.data?.length ?? 0;
+  const reqCount = incoming.length || me.counts.requestsIn;
+  const unread = me.counts.unread;
+  const openChat = (c: ChatRow) => router.push({ pathname: '/buddies/chat/[key]', params: { key: c.key, title: c.title } });
+  const openWalker = (b: BuddyRow) =>
+    router.push({ pathname: '/buddies/walker/[pid]', params: { pid: b.walker.pid, name: b.walker.name ?? '', handle: b.walker.handle } });
+  const find = () => router.push('/buddies/find');
+  const accept = async (pid: string, handle: string) => {
+    show((await attempt(() => api.accept(pid))) ?? `You and @${handle} are now buddies.`);
+    await refresh();
+  };
+
+  const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+  const subRest = [count(buddyCount, 'buddy', 'buddies'), reqCount ? count(reqCount, 'request', 'requests') : null].filter(Boolean).join(' · ');
+
   return (
-    <Screen title="Chats and buddies" subtitle={`You are @${me.handle}`} refreshing={false} onRefresh={refresh}>
-      <Segmented<Segment>
-        options={[
-          { value: 'chats', label: me.counts.unread ? `Chats (${me.counts.unread})` : 'Chats' },
-          { value: 'buddies', label: 'Buddies' },
-        ]}
-        value={segment}
-        onChange={setSegment}
-      />
-      <Surface level={1} style={styles.list}>
-        <ListRow
-          title="Requests"
-          supporting={requests ? `${requests} waiting for you` : 'Asked you, and who you asked'}
-          icon="notifications-outline"
-          trailing={requests ? <Pill label={String(requests)} /> : undefined}
-          chevron
-          onPress={() => router.push('/buddies/requests')}
-        />
-        <ListRow title="Find walkers" supporting="By their walker ID" icon="search-outline" chevron onPress={() => router.push('/buddies/find')} />
-      </Surface>
+    <PlainPage part="meet" onRefresh={refresh} overlay={<Snackbar message={snack} onDismiss={dismiss} />}>
+      <Sub lead="Walk buddies" rest={subRest} />
 
-      {segment === 'chats' ? (
-        <ChatList rows={chats.data} error={chats.error} onOpen={(c) => router.push({ pathname: '/buddies/chat/[key]', params: { key: c.key, title: c.title } })} onFind={() => router.push('/buddies/find')} />
-      ) : buddies.data && buddies.data.length === 0 ? (
-        <EmptyState icon="people-outline" title="No buddies yet" hint="Find a walker by their ID." action={{ label: 'Find walkers', onPress: () => router.push('/buddies/find') }} />
-      ) : (
-        <Surface level={1} style={styles.list}>
-          {(buddies.data ?? []).map((b, i, all) => (
-            <PersonRow
-              key={b.walker.pid}
-              walker={b.walker}
-              last={i === all.length - 1}
-              onPress={() => router.push({ pathname: '/buddies/walker/[pid]', params: { pid: b.walker.pid, name: b.walker.name ?? '', handle: b.walker.handle } })}
-            />
+      <Tile kind="hero" style={{ paddingBottom: S(8) }}>
+        <View style={ps.spread}>
+          <Label icon="chat" text="Chats" />
+          {unread ? <Caps text={`${unread} unread`} /> : null}
+        </View>
+        {chats.data && chats.data.length === 0 ? (
+          <View style={{ paddingVertical: S(8) }}>
+            <Note>No chats yet. Chats open once someone accepts your buddy request.</Note>
+          </View>
+        ) : (
+          (chats.data ?? []).map((c) => <ChatLine key={c.key} c={c} onPress={() => openChat(c)} />)
+        )}
+        {chats.error ? <Note style={{ paddingVertical: S(8) }}>{chats.error}</Note> : null}
+      </Tile>
+
+      <Pair>
+        <Tile kind="second" style={ps.half} onPress={() => router.push('/buddies/requests')} label={`Requests, ${reqCount} new`}>
+          <Label icon="useradd" text="Requests" />
+          <Num value={String(reqCount)} unit="new" />
+          <Note lines={2}>{first ? `${displayName(first.walker)} wants to walk` : 'Asked you, and who you asked'}</Note>
+          {first && !later ? (
+            <View style={[ps.row, { gap: S(6), marginTop: S(12) }]}>
+              <Btn text="Accept" kind="main" onPress={() => accept(first.walker.pid, first.walker.handle)} label={`Accept ${displayName(first.walker)}`} />
+              <Btn text="Later" kind="onSecond" onPress={() => setLater(true)} />
+            </View>
+          ) : null}
+        </Tile>
+        <Tile style={ps.half} onPress={find} label="Find walkers by their walker ID">
+          <Label icon="search" text="Find walkers" />
+          <Mid value="By walker ID" style={{ marginTop: S(8) }} fit />
+          <Note lines={2}>Ask a friend for theirs</Note>
+          <View style={[ps.row, { marginTop: S(12) }]}>
+            <Btn text="Find" kind="main" onPress={find} label="Find walkers" />
+          </View>
+        </Tile>
+      </Pair>
+
+      <Tile>
+        <Label icon="people" text="Buddies" />
+        <View style={[styles.people, { marginTop: S(12) }]}>
+          {(buddies.data ?? []).map((b) => (
+            <Person key={b.walker.pid} name={displayName(b.walker)} onPress={() => openWalker(b)} />
           ))}
-          {buddies.error ? <ListRow title={buddies.error} icon="alert-circle-outline" onPress={buddies.refresh} /> : null}
-        </Surface>
-      )}
+          <Pressable onPress={find} accessibilityRole="button" accessibilityLabel="Add a buddy" style={styles.person}>
+            <View style={[styles.av, styles.add]}>
+              <Words size={22} color={PLAIN.muted} line={26}>
+                +
+              </Words>
+            </View>
+            <Note style={{ marginTop: 0 }}>Add</Note>
+          </Pressable>
+        </View>
+        {buddies.error ? <Note>{buddies.error}</Note> : null}
+      </Tile>
 
-      <SectionTitle>Coming next</SectionTitle>
-      <Surface level={1} style={styles.list}>
-        {COMING.map((r) => (
-          <ListRow key={r.key} icon={r.icon} title={r.title} supporting={r.supporting} disabled />
-        ))}
-      </Surface>
-    </Screen>
+      <Tile style={ps.row}>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Label icon="card" text="Your walker ID" />
+          <Mid value={`@${me.handle}`} style={{ marginTop: S(6) }} fit />
+          <Note lines={1}>Share it so friends can add you</Note>
+        </View>
+        <Btn text="Share" kind="main" onPress={() => Share.share({ message: `Walk with me on Steps. My walker ID is @${me.handle}` })} label="Share your walker ID" />
+      </Tile>
+
+      <Tile style={[ps.spread, { paddingTop: S(12), paddingBottom: S(12) }]}>
+        <Label icon="spark" text="Coming next" />
+        <Note style={{ marginTop: 0 }} lines={1}>
+          {COMING}
+        </Note>
+      </Tile>
+
+      <SyncLine text={loadedAt ? `Updated ${minutesAgo(loadedAt)}` : 'Updating…'} />
+    </PlainPage>
   );
 }
 
-function ChatList({
-  rows,
-  error,
-  onOpen,
-  onFind,
-}: {
-  rows: ChatRow[] | null;
-  error: string | null;
-  onOpen: (c: ChatRow) => void;
-  onFind: () => void;
-}) {
-  if (rows && rows.length === 0) {
-    return <EmptyState icon="chatbubbles-outline" title="No chats yet" hint="Chats open once someone accepts your buddy request." action={{ label: 'Find walkers', onPress: onFind }} />;
-  }
+/** One chat: the initial, the name over the last line, the time and unread count. */
+function ChatLine({ c, onPress }: { c: ChatRow; onPress: () => void }) {
+  const title = c.title || 'Chat';
+  const line = c.lastText ? `${c.lastMine ? 'You: ' : ''}${c.lastText}` : c.unread ? 'New messages' : '';
   return (
-    <Surface level={1} style={styles.list}>
-      {(rows ?? []).map((c) => (
-        <ListRow
-          key={c.key}
-          title={c.title || 'Chat'}
-          supporting={c.lastText ? `${c.lastMine ? 'You: ' : ''}${c.lastText}` : c.unread ? 'New messages' : undefined}
-          leading={<Avatar label={c.title || '?'} />}
-          trailing={c.unread ? <Pill label={String(c.unread)} /> : <ThemedText type="bodySmall" themeColor="onSurfaceVariant">{shortTime(c.lastAt)}</ThemedText>}
-          onPress={() => onOpen(c)}
-          accessibilityLabel={`${c.title}${c.unread ? `, ${c.unread} new` : ''}`}
-        />
-      ))}
-      {error ? <ListRow title={error} icon="alert-circle-outline" /> : null}
-    </Surface>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${title}${c.unread ? `, ${c.unread} new` : ''}`}
+      android_ripple={{ color: PLAIN.ripple }}
+      style={[ps.row, { paddingVertical: S(8) }]}>
+      <View style={[styles.av, { width: S(40), height: S(40), borderRadius: S(20) }]}>
+        <Words size={15} weight={600} line={18}>
+          {letter(title)}
+        </Words>
+      </View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Words size={15} weight={600} line={19} lines={1}>
+          {title}
+        </Words>
+        {line ? (
+          <Note lines={1} color={c.unread ? PLAIN.text : PLAIN.muted}>
+            {line}
+          </Note>
+        ) : null}
+      </View>
+      <View style={{ alignItems: 'flex-end' }}>
+        <Note style={{ marginTop: 0 }}>{shortTime(c.lastAt)}</Note>
+        {c.unread ? (
+          <View style={styles.badge}>
+            <Words size={11} weight={600} color={PLAIN.onMain} line={20}>
+              {String(c.unread)}
+            </Words>
+          </View>
+        ) : (
+          <View style={{ height: S(24) }} />
+        )}
+      </View>
+    </Pressable>
   );
+}
+
+/** A buddy: a 48 initial circle over the name. */
+function Person({ name, onPress }: { name: string; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={name} style={styles.person}>
+      <View style={styles.av}>
+        <Words size={18} weight={600} line={22}>
+          {letter(name)}
+        </Words>
+      </View>
+      <Note style={{ marginTop: 0 }} color={PLAIN.text} lines={1}>
+        {name.split(' ')[0]}
+      </Note>
+    </Pressable>
+  );
+}
+
+function letter(label: string): string {
+  return label.replace(/^@/, '').trim().charAt(0).toUpperCase() || '?';
 }
 
 /** "7:10 am" today, else "14 Nov". */
@@ -211,6 +302,11 @@ export function shortTime(at: number, now = Date.now()): string {
 export { displayName };
 
 const styles = StyleSheet.create({
-  list: { overflow: 'hidden', marginTop: Spacing.three },
-  links: { flexDirection: 'row', gap: Spacing.three, marginVertical: Spacing.two },
+  links: { flexDirection: 'row', gap: S(12), marginTop: S(8) },
+  // Five across fill the tile as on the mock (56 wide, 13.75 apart); more wrap to a new row.
+  people: { flexDirection: 'row', flexWrap: 'wrap', columnGap: S(13.75), rowGap: S(12) },
+  person: { alignItems: 'center', gap: S(6), width: S(56) },
+  av: { width: S(48), height: S(48), borderRadius: S(24), backgroundColor: PLAIN.chip, alignItems: 'center', justifyContent: 'center' },
+  add: { backgroundColor: PLAIN.field, borderWidth: 1, borderColor: PLAIN.hairline },
+  badge: { minWidth: S(20), height: S(20), borderRadius: S(10), backgroundColor: PLAIN.sand, paddingHorizontal: S(6), alignItems: 'center', marginTop: S(4) },
 });

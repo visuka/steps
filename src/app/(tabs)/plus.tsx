@@ -1,12 +1,20 @@
 import { BuddiesHome } from '@/components/buddies/buddies-home';
-import { PremiumGate } from '@/components/premium-gate';
+import { Sub } from '@/components/plain/plain-kit';
+import { PlainPage } from '@/components/plain/plain-page';
+import { PremiumCard } from '@/components/premium-gate';
 import { SCREEN_FEATURES } from '@/premium/premium';
+import { usePremium } from '@/state/use-premium';
 
-/** The bar's plus: Walk buddies (chats, buddies, requests); clubs, plans and QR come next. */
+/** Meet: Walk buddies (chats, buddies, requests); clubs, plans and QR come next. Locked: the premium card, under the top row. */
 export default function PlusTab() {
-  return (
-    <PremiumGate feature={SCREEN_FEATURES.buddies} title="Chats and buddies">
-      <BuddiesHome />
-    </PremiumGate>
-  );
+  const premium = usePremium();
+  if (premium.isLocked(SCREEN_FEATURES.buddies)) {
+    return (
+      <PlainPage part="meet">
+        <Sub lead="Walk buddies" />
+        <PremiumCard />
+      </PlainPage>
+    );
+  }
+  return <BuddiesHome />;
 }

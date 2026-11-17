@@ -1,24 +1,26 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { type EstimateItem, type EstimateResult, estimateFood, restaurantVersion, searchDishes, type SearchItem } from '@/api/food-api';
 import { unknownDishMessage } from '@/api/food-read';
-import { Card } from '@/components/card';
 import { confirmDelete } from '@/components/confirm';
-import { Button, Chip, NumberField, TextField } from '@/components/controls';
+import { Button, NumberField, TextField } from '@/components/controls';
 import { OwnFoodForm } from '@/components/food/own-food-form';
 import { type PlaceInput, PlacePicker } from '@/components/food/place-picker';
 import { FoodResult, FoodResultScreen } from '@/components/food/food-result';
 import { mealWord } from '@/components/food/food-result-format';
 import { useFoodResultLayer, useHasFoodResultHost } from '@/components/food/food-result-host';
 import { PortionPicker } from '@/components/food/portion-picker';
+import { Btn, Caps, Field, Label, Mid, Note, plainStyles as ps, Tile, Words } from '@/components/plain/plain-kit';
+import { PLAIN, PLAIN_SIZE } from '@/components/plain/plain-theme';
 import { RecipeForm } from '@/components/food/recipe-form';
 import { ThemedText } from '@/components/themed-text';
-import { IconButton, Button as UiButton, Why } from '@/components/ui';
+import { Button as UiButton, Why } from '@/components/ui';
 import { WhenField } from '@/components/when-field';
 import { APP_NAME } from '@/constants/app';
 import { Spacing, TouchTarget } from '@/constants/theme';
+import { scaled } from '@/constants/ui-scale';
 import { changeFood, deleteFood, type HealthCopy } from '@/data/entries';
 import type { FoodEntry, RecentFood } from '@/data/types';
 import { copyStore } from '@/health/select-source';
@@ -574,172 +576,140 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
 
   return (
     <>
-      <Card title="I ate">
-        {mode.kind === 'search' ? (
-          <>
-            <View style={styles.searchRow}>
-              <View style={styles.entryName}>
-                <TextField
-                  key={focusKey}
-                  autoFocus={focusKey !== undefined}
-                  label="Search foods"
-                  value={query}
-                  onChangeText={changeQuery}
-                  placeholder="Search a food or dish"
+      <Tile>
+        <Label icon="plus" text="I ate" />
+        <View style={styles.tileBody}>
+          {mode.kind === 'search' ? (
+            <>
+              <Field
+                key={focusKey}
+                autoFocus={focusKey !== undefined}
+                label="Search foods"
+                value={query}
+                onChangeText={changeQuery}
+                placeholder="Search foods"
+              />
+              {/* Scan barcode (phones only; the web has no scanner), Own recipe, then "Tea again": the same amount, one tap. */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                style={styles.chipStrip}
+                contentContainerStyle={styles.chipRow}>
+                {Platform.OS === 'web' ? null : <Btn text="Scan barcode" label="Scan a barcode or QR code" onPress={() => router.push('/food-scan')} />}
+                <Btn text="Own recipe" label="Enter your own recipe" onPress={() => go({ kind: 'recipe', name: lookup.status === 'idle' ? q : '' })} />
+                {q
+                  ? null
+                  : recent.slice(0, 8).map((r) => {
+                      // Logging again keeps the place, so say it when it isn't home.
+                      const out = placeLabel({ place: r.place, restaurant: null });
+                      return (
+                        <Btn
+                          key={r.foodId ?? r.name}
+                          text={`${r.name} again`}
+                          label={`Had ${r.name} again${out ? ` at ${out}` : ''}: add the same amount`}
+                          onPress={() => logAgain(r)}
+                        />
+                      );
+                    })}
+              </ScrollView>
+              {results.map((food) => (
+                <SearchResult key={food.id} food={food} onPress={() => pickFood(food)} />
+              ))}
+              {sharedItems.length ? (
+                <>
+                  <Note>Dishes on {APP_NAME}: tap yours</Note>
+                  {sharedItems.map((item) => (
+                    <SearchResult
+                      key={`shared-${item.food.id}`}
+                      food={item.food}
+                      also={item.matchedName}
+                      onPress={() => pickShared(item)}
+                    />
+                  ))}
+                </>
+              ) : null}
+
+              {q ? (
+                <LookupPanel
+                  query={q}
+                  lookup={lookup}
+                  added={added}
+                  overrides={book.overrides}
+                  place={placeIn}
+                  onPlace={choosePlace}
+                  restaurants={restaurants}
+                  onLookUp={lookUp}
+                  onPick={pickLooked}
+                  onRecipe={(name) => go({ kind: 'recipe', name, lookup: unknownKey(name) })}
                 />
-              </View>
-              {/* Scan a pack's barcode (app/food-scan.tsx); phones only, the web has no scanner. */}
-              {Platform.OS === 'web' ? null : (
-                <IconButton icon="barcode-outline" variant="tonal" onPress={() => router.push('/food-scan')} accessibilityLabel="Scan a barcode or QR code" />
-              )}
-            </View>
-            {Platform.OS === 'web' || query ? null : (
-              <UiButton label="Scan barcode or QR code" icon="barcode-outline" variant="tonal" onPress={() => router.push('/food-scan')} />
-            )}
-            {results.map((food) => (
-              <SearchResult key={food.id} food={food} onPress={() => pickFood(food)} />
-            ))}
-            {sharedItems.length ? (
-              <>
-                <ThemedText type="small" themeColor="textSecondary">
-                  Dishes on {APP_NAME}: tap yours
-                </ThemedText>
-                {sharedItems.map((item) => (
-                  <SearchResult
-                    key={`shared-${item.food.id}`}
-                    food={item.food}
-                    also={item.matchedName}
-                    onPress={() => pickShared(item)}
-                  />
-                ))}
-              </>
-            ) : null}
+              ) : null}
 
-            {q ? (
-              <LookupPanel
-                query={q}
-                lookup={lookup}
-                added={added}
-                overrides={book.overrides}
-                place={placeIn}
-                onPlace={choosePlace}
-                restaurants={restaurants}
-                onLookUp={lookUp}
-                onPick={pickLooked}
-                onRecipe={(name) => go({ kind: 'recipe', name, lookup: unknownKey(name) })}
-              />
-            ) : null}
+              {q ? (
+                <UiButton
+                  variant="text"
+                  compact
+                  icon="add"
+                  label={`${results.length ? 'Not here? ' : 'No match. '}Add “${q}” as your own food`}
+                  onPress={() => go({ kind: 'own', name: q })}
+                />
+              ) : null}
+            </>
+          ) : null}
 
-            {q ? (
-              <UiButton
-                variant="text"
-                compact
-                icon="add"
-                label={`${results.length ? 'Not here? ' : 'No match. '}Add “${q}” as your own food`}
-                onPress={() => go({ kind: 'own', name: q })}
-              />
-            ) : recent.length ? (
-              <>
-                <ThemedText type="small" themeColor="textSecondary">
-                  Had it again? Tap to add the same amount
-                </ThemedText>
-                <View style={styles.chips}>
-                  {recent.slice(0, 8).map((r) => {
-                    // Logging again keeps the place, so say it when it isn't home.
-                    const out = placeLabel({ place: r.place, restaurant: null });
-                    return (
-                      <Chip key={r.foodId ?? r.name} label={out ? `${r.name} · ${out}` : r.name} onPress={() => logAgain(r)} />
-                    );
-                  })}
-                </View>
-              </>
-            ) : null}
-            <UiButton
-              variant="text"
-              compact
-              icon="create-outline"
-              label="Enter your own recipe"
-              onPress={() => go({ kind: 'recipe', name: lookup.status === 'idle' ? q : '' })}
+          {covers ? null : pickResult}
+
+          {mode.kind === 'own' ? (
+            <OwnFoodForm
+              initialName={mode.name}
+              // Sent only when picked, as with Look up, so the server can read a place from the name.
+              where={placeIn.chosen ? here : null}
+              overrides={book.overrides}
+              onCancel={reset}
+              onRecipe={(name) => go({ kind: 'recipe', name })}
+              onSave={(own) =>
+                once(async () => {
+                  await book.saveOwn(own);
+                  await save(OWN_PREFIX + own.id, own.name, 'serving', 1, own.nutrients, here);
+                  reset();
+                })
+              }>
+              <WhenField value={eatenAt ?? now} onChange={setEatenAt} />
+              <PlacePicker value={placeIn} onChange={choosePlace} restaurants={restaurants} />
+            </OwnFoodForm>
+          ) : null}
+
+          {mode.kind === 'recipe' ? (
+            <RecipeForm
+              initialName={mode.name}
+              onCancel={() => (mode.lookup ? setMode({ kind: 'search' }) : reset())}
+              onDone={async (result) => {
+                const food = await book.saveFood(result.food);
+                setMode({
+                  kind: 'pick',
+                  food,
+                  unit: food.defaultUnit,
+                  quantity: 1,
+                  working: true,
+                  lookup: mode.lookup,
+                });
+              }}
             />
-          </>
-        ) : null}
+          ) : null}
 
-        {covers ? null : pickResult}
+          {busy && !editing ? <Busy /> : null}
+          {notice ? <Note>{notice}</Note> : null}
+          {error ? <Note color={theme.danger}>{error}</Note> : null}
+        </View>
+      </Tile>
 
-        {mode.kind === 'own' ? (
-          <OwnFoodForm
-            initialName={mode.name}
-            // Sent only when picked, as with Look up, so the server can read a place from the name.
-            where={placeIn.chosen ? here : null}
-            overrides={book.overrides}
-            onCancel={reset}
-            onRecipe={(name) => go({ kind: 'recipe', name })}
-            onSave={(own) =>
-              once(async () => {
-                await book.saveOwn(own);
-                await save(OWN_PREFIX + own.id, own.name, 'serving', 1, own.nutrients, here);
-                reset();
-              })
-            }>
-            <WhenField value={eatenAt ?? now} onChange={setEatenAt} />
-            <PlacePicker value={placeIn} onChange={choosePlace} restaurants={restaurants} />
-          </OwnFoodForm>
-        ) : null}
-
-        {mode.kind === 'recipe' ? (
-          <RecipeForm
-            initialName={mode.name}
-            onCancel={() => (mode.lookup ? setMode({ kind: 'search' }) : reset())}
-            onDone={async (result) => {
-              const food = await book.saveFood(result.food);
-              setMode({
-                kind: 'pick',
-                food,
-                unit: food.defaultUnit,
-                quantity: 1,
-                working: true,
-                lookup: mode.lookup,
-              });
-            }}
-          />
-        ) : null}
-
-        {busy && !editing ? <Busy /> : null}
-        {notice ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            {notice}
-          </ThemedText>
-        ) : null}
-        {error ? (
-          <ThemedText type="small" style={{ color: theme.danger }}>
-            {error}
-          </ThemedText>
-        ) : null}
-      </Card>
-
-      <Card title={listTitle}>
-        <View style={styles.days}>
-          <View style={styles.dayButton}>
-            <Button
-              kind="secondary"
-              label="Previous"
-              onPress={() => showDay(addDaysToKey(shownDay, -1))}
-              disabled={shownDay <= firstDay}
-            />
-          </View>
-          <View style={styles.dayButton}>
-            <Button
-              kind="secondary"
-              label="Next"
-              onPress={() => showDay(addDaysToKey(shownDay, 1))}
-              disabled={listDay === null}
-            />
-          </View>
+      <Tile style={styles.listTile}>
+        <View style={ps.spread}>
+          <Label icon="list" text={listTitle} />
+          {foods.length ? <Caps text={foods.length === 1 ? '1 meal' : `${foods.length} meals`} /> : null}
         </View>
         {foods.length === 0 ? (
-          <ThemedText themeColor="textSecondary">
-            {listDay === null ? 'Nothing logged today.' : 'Nothing logged that day.'}
-          </ThemedText>
+          <Note style={styles.empty}>{listDay === null ? 'Nothing logged today.' : 'Nothing logged that day.'}</Note>
         ) : (
           foods.map((f) => {
             if (editing?.entry.id === f.id) return editForm(editing);
@@ -755,51 +725,41 @@ export function FoodLog({ focusKey }: { focusKey?: string } = {}) {
             const note = [valuesNote(f, food), partial ? PARTIAL_NOTE : null].filter(Boolean).join(' · ') || null;
             const least = food?.missing?.includes('kcal') ? AT_LEAST : '';
             const time = formatClock(f.loggedAt, clock);
+            const meal = mealWord(f.loggedAt);
+            const when = `${meal.charAt(0).toUpperCase()}${meal.slice(1)} · ${time}`;
             return (
-              <View key={f.id} style={styles.entry}>
-                <Pressable
-                  onPress={() => startEdit(f, food)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${time}, ${f.name}${detail ? `, ${detail}` : ''}, ${least ? 'at least ' : ''}${kcal} kcal.${note ? ` ${note}.` : ''} Tap to change or delete it.`}
-                  style={({ pressed }) => [styles.entryMain, pressed && { opacity: 0.7 }]}>
-                  <ThemedText type="small" themeColor="textSecondary" style={styles.time}>
-                    {time}
-                  </ThemedText>
-                  <View style={styles.entryName}>
-                    <ThemedText>{f.name}</ThemedText>
-                    {detail ? (
-                      <ThemedText type="small" themeColor="textSecondary">
-                        {detail}
-                      </ThemedText>
-                    ) : null}
-                    {note ? (
-                      <ThemedText type="small" themeColor="textSecondary">
-                        {note}
-                      </ThemedText>
-                    ) : null}
-                  </View>
-                  <ThemedText style={styles.entryKcal}>
-                    {least}
-                    {formatSteps(kcal)} kcal
-                  </ThemedText>
-                </Pressable>
-                <IconButton icon="trash-outline" onPress={() => askRemove(f)} accessibilityLabel={`Delete ${f.name}`} />
-              </View>
+              <Pressable
+                key={f.id}
+                onPress={() => startEdit(f, food)}
+                onLongPress={() => askRemove(f)}
+                accessibilityRole="button"
+                accessibilityLabel={`${f.name}, ${meal} at ${time}${detail ? `, ${detail}` : ''}, ${least ? 'at least ' : ''}${kcal} kcal.${note ? ` ${note}.` : ''} Tap to change or delete it.`}
+                accessibilityActions={[{ name: 'longpress', label: `Delete ${f.name}` }]}
+                onAccessibilityAction={(e) => {
+                  if (e.nativeEvent.actionName === 'longpress') askRemove(f);
+                }}
+                style={({ pressed }) => [styles.entry, pressed && { opacity: 0.7 }]}>
+                <View style={ps.col}>
+                  <Words size={15} weight={500} line={19} lines={2}>
+                    {f.name}
+                  </Words>
+                  <Note lines={1} style={styles.entryNote}>
+                    {detail ? `${when} · ${detail}` : when}
+                  </Note>
+                  {note ? <Note style={styles.entryNote}>{note}</Note> : null}
+                </View>
+                <Mid value={`${least}${formatSteps(kcal)}`} unit="kcal" />
+              </Pressable>
             );
           })
         )}
-        {foods.length && !editing ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            Tap an entry to change or delete it
-          </ThemedText>
-        ) : null}
-        {listNote ? (
-          <ThemedText type="small" style={listNote.problem ? { color: theme.danger } : undefined} themeColor="textSecondary">
-            {listNote.text}
-          </ThemedText>
-        ) : null}
-      </Card>
-
+        {listNote ? <Note color={listNote.problem ? theme.danger : PLAIN.muted}>{listNote.text}</Note> : null}
+        {/* An earlier day's entries open, change and delete like today's. */}
+        <View style={styles.days}>
+          {shownDay > firstDay ? <Btn text="Previous day" label="Show the day before" onPress={() => showDay(addDaysToKey(shownDay, -1))} /> : null}
+          {listDay !== null ? <Btn text="Next day" label="Show the day after" onPress={() => showDay(addDaysToKey(shownDay, 1))} /> : null}
+        </View>
+      </Tile>
     </>
   );
 }
@@ -1015,16 +975,19 @@ const styles = StyleSheet.create({
     minHeight: TouchTarget,
     paddingVertical: Spacing.two,
   },
-  entry: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one },
-  entryMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.three, minHeight: TouchTarget },
   hintRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-  searchRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one },
-  time: { width: 64, fontVariant: ['tabular-nums'] },
   entryName: { flex: 1 },
-  entryKcal: { fontVariant: ['tabular-nums'] },
   editing: { gap: Spacing.three, borderTopWidth: 1, borderBottomWidth: 1, paddingVertical: Spacing.three },
-  days: { flexDirection: 'row', gap: Spacing.two },
-  dayButton: { flex: 1 },
+  // The plain look (mockup plain.html, Nutrition): 10 under the label, chips 6 apart, rows 8 above and below.
+  tileBody: { gap: scaled(10), marginTop: scaled(10) },
+  chipStrip: { marginHorizontal: -scaled(PLAIN_SIZE.pad.h) },
+  chipRow: { gap: scaled(6), paddingHorizontal: scaled(PLAIN_SIZE.pad.h) },
+  listTile: { paddingBottom: scaled(8) },
+  entry: { flexDirection: 'row', alignItems: 'center', gap: scaled(12), paddingVertical: scaled(8), minHeight: TouchTarget },
+  entryNote: { marginTop: scaled(1) },
+  entryKcal: { fontVariant: ['tabular-nums'] },
+  empty: { marginTop: scaled(8), marginBottom: scaled(6) },
+  days: { flexDirection: 'row', gap: scaled(6), marginTop: scaled(2), marginBottom: scaled(6) },
 });
 
 /** The food's name in its own script (an alias in a non-Latin script), for the result's second line. */

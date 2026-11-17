@@ -274,3 +274,10 @@ Not committed. No server or AWS change. Nothing is removed from any count.
 - Condensed figures ("8.2km", "52m", "6h 50m"); full-width divider; even round dot grid with wide peaks, latest dark (`dotGrid`); now line with a red triangle across the grid; 10 dp bars on a light base with slanted hatching (`Track`, `goalTrack`, `sleepTrack`); goal bar of long black pills and red quarter dots; pale grey Distance; faint triangles and scales on Food and Sleep; fainter, smaller scales.
 - Water pale blue: #2B70AE outlines and plus, #A9D4F5 fill, theme water blue.
 - Bottom bar: 52 dp circles 6 apart, idle icons black.
+
+## 17 Nov 2026 — Plain sage-and-sand look built
+
+- Owner: "Let us finalise on sage plus sand", "I need the app exactly as in the mock.. pixel to pixel", "Build it".
+- New `src/components/plain/` (theme, icons, kit, page). Today rebuilt as Activity, Food as Nutrition, Walk buddies as Meet; three-part switch in the top row; bottom bar removed (screens all still routed). Figtree bundled.
+- Kept, though not on the mockup: food Previous/Next day, edit and delete (long-press too), every nutrient behind the sand tile, week view, setup and gap notes, all Meet features.
+- Checks: tsc, eslint on changed files, jest 1,580 passing. Mockup and pictures in `docs/design/plain-sage-sand/`.

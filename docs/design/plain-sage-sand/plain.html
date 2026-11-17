@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Steps plain tiles</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Roboto+Condensed:wght@300;400&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* White and grey only. Tiles are frosted white glass on a soft grey ground; no bars, dots or lines. */
+  :root { --text: #2C2C2E; --muted: #8E8E93; --faint: #B9B9BE; --chip: #EDEDF0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #888; }
+  body { font-family: Figtree, sans-serif; display: flex; gap: 40px; padding: 40px; flex-wrap: wrap; color: var(--text); }
+  .phone { width: 411px; height: 914px; position: relative; overflow: hidden; }
+  .ground { position: absolute; inset: 0; background: linear-gradient(170deg, #F5F5F6 0%, #ECECEE 55%, #F3F3F4 100%); }
+  .blob { position: absolute; border-radius: 50%; filter: blur(60px); }
+  .screen { position: relative; height: 100%; padding: 30px 18px 0; display: flex; flex-direction: column; gap: 9px; }
+  .status { position: absolute; top: 6px; left: 24px; right: 24px; display: flex; justify-content: space-between; font: 500 13px Figtree; color: var(--text); }
+
+  .tile { border-radius: 24px; padding: 14px 18px; position: relative;
+          background: rgba(255,255,255,.62); backdrop-filter: blur(24px) saturate(140%); -webkit-backdrop-filter: blur(24px) saturate(140%);
+          border: 1px solid rgba(255,255,255,.9); box-shadow: inset 0 1px 0 #fff, 0 8px 24px rgba(40,40,50,.06); }
+  .top { display: flex; align-items: center; justify-content: space-between; }
+  .round { width: 40px; height: 40px; border-radius: 20px; display: grid; place-items: center; font: 600 16px Figtree; }
+  .switch { height: 40px; border-radius: 20px; padding: 3px; display: flex; background: rgba(255,255,255,.62); border: 1px solid rgba(255,255,255,.9); box-shadow: 0 8px 24px rgba(40,40,50,.06); font: 500 11.5px 'Roboto Mono'; letter-spacing: 1.2px; }
+  .switch span { padding: 0 11px; border-radius: 17px; display: grid; place-items: center; color: var(--muted); }
+  .switch .on { color: var(--text); background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+  .sub { font-size: 15px; color: var(--muted); white-space: nowrap; overflow: hidden; }
+  .sub b { color: var(--text); font-weight: 600; }
+
+  .label { font: 400 11px 'Roboto Mono'; letter-spacing: 1.6px; text-transform: uppercase; color: var(--muted); }
+  .spread { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .big { font: 300 76px/78px 'Roboto Condensed'; letter-spacing: -1px; }
+  .num { font: 300 34px/38px 'Roboto Condensed'; margin-top: 4px; }
+  .num small, .mid small { font: 400 14px Figtree; color: var(--muted); margin-left: 4px; letter-spacing: 0; }
+  .mid { font: 400 22px/26px 'Roboto Condensed'; }
+  .note { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .pair { display: flex; gap: 10px; }
+  .pair > * { flex: 1; min-width: 0; }
+  .cols { display: flex; }
+  .cols > * { flex: 1; min-width: 0; }
+  .row { display: flex; align-items: center; gap: 12px; }
+  .btn { padding: 8px 16px; border-radius: 18px; font: 600 13px Figtree; background: var(--chip); color: var(--text); white-space: nowrap; }
+  .btn.white { background: #fff; border: 1px solid #E4E4E7; }
+  .field { height: 42px; border-radius: 21px; background: #fff; border: 1px solid #E8E8EB; display: flex; align-items: center; padding: 0 16px; font-size: 14px; color: var(--muted); }
+  .badge { min-width: 20px; height: 20px; border-radius: 10px; background: var(--chip); font: 600 11px/20px Figtree; text-align: center; padding: 0 6px; }
+  .av { border-radius: 50%; background: var(--chip); display: grid; place-items: center; font-weight: 600; color: var(--text); flex: none; }
+  .sync { text-align: center; font-size: 12px; color: var(--muted); margin-top: auto; margin-bottom: 24px; }
+  .roomy .screen { gap: 12px; }
+  .roomy .tile { padding: 18px 20px; }
+  .roomy .big { font-size: 104px; line-height: 104px; }
+  .roomy .num { font-size: 44px; line-height: 48px; }
+  /* Colour: one main (c1) and one soft second (c2), only on surfaces. Text and numbers keep no colour. */
+  .k1 { --c1: #5E7E6F; --c2: #C9A47C; --c2t: #F2E9DE; }   /* sage + sand */
+  .k2 { --c1: #3E6888; --c2: #D88C6C; --c2t: #F7E6DD; }   /* deep blue + coral */
+  .k3 { --c1: #A4614B; --c2: #7E8C7B; --c2t: #E6EAE3; }   /* clay + olive */
+  .k .switch .on { background: var(--c1); color: #fff; box-shadow: none; }
+  .k .hero { background: color-mix(in srgb, var(--c1) 20%, rgba(255,255,255,.7)); border-color: color-mix(in srgb, var(--c1) 22%, #fff); }
+  .k .second { background: color-mix(in srgb, var(--c2) 22%, rgba(255,255,255,.7)); border-color: color-mix(in srgb, var(--c2) 24%, #fff); }
+  .k .btn { background: var(--c2t); }
+  .k .btn.white { background: var(--c1); color: #fff; border-color: var(--c1); }
+  .k .second .btn:not(.white) { background: rgba(255,255,255,.8); }
+  .k .badge { background: var(--c2); color: #fff; }
+  .k .av { background: var(--c2t); }
+  .k .plusb { background: var(--c1) !important; color: #fff; }
+  /* One colour only: the second colour goes back to white and grey. */
+  .one .second { background: rgba(255,255,255,.62); border-color: rgba(255,255,255,.9); }
+  .one .btn, .one .second .btn:not(.white) { background: var(--chip); }
+  .one .badge { background: var(--c1); }
+  .one .av { background: var(--chip); }
+  /* Colour on the background only: tiles stay white glass, text stays grey and black */
+  .bg1 { --g: #5E7E6F; } .bg2 { --g: #3E6888; } .bg3 { --g: #A4614B; }
+  .bg4 { --g: #8B80AE; } .bg5 { --g: #3F8580; } .bg6 { --g: #B89B72; } .bg7 { --g: #A67683; } .bg8 { --g: #7D8455; } .bg9 { --g: #5B6878; }
+  .bgc .ground { background: linear-gradient(170deg, color-mix(in srgb, var(--g) 50%, #fff) 0%, color-mix(in srgb, var(--g) 68%, #fff) 55%, color-mix(in srgb, var(--g) 46%, #fff) 100%); }
+  .bgc .blob.lt { background: color-mix(in srgb, var(--g) 30%, #fff) !important; opacity: .8; }
+  .bgc .blob.dk { background: var(--g) !important; opacity: .55; }
+  /* Words on the coloured ground: darker grey so they stay readable (still no colour) */
+  .bgc .sub, .bgc .sync, .bgc .screen > .row .note { color: #4A4A4F !important; }
+  .bgc .cap { color: rgba(40,40,45,.45); }
+  /* Chips and round buttons inside tiles: white with a hairline so they stand off the glass */
+  .bgc .tile .btn:not(.white), .bgc .plusb, .bgc .av, .bgc .badge { background: #fff !important; border: 1px solid rgba(0,0,0,.07); }
+  /* Transparent tiles: clear glass, the colour shows through; words get darker greys to stay readable */
+  .tr { --muted: #46464B; --faint: #5A5A60; }
+  .tr .tile { background: rgba(255,255,255,.16) !important; border-color: rgba(255,255,255,.55) !important; box-shadow: 0 8px 24px rgba(20,30,30,.08), inset 0 1px 0 rgba(255,255,255,.6) !important; backdrop-filter: blur(10px) saturate(120%); -webkit-backdrop-filter: blur(10px) saturate(120%); }
+  .tr .switch { background: rgba(255,255,255,.18) !important; border-color: rgba(255,255,255,.55) !important; }
+  .tr .round:not(.plusb) { background: rgba(255,255,255,.22) !important; border: 1px solid rgba(255,255,255,.55); }
+  .tr .label { color: #3E3E43; }
+  /* White and grey only: grey ground, clear tiles, every word and number in grey (no black) */
+  .wg { --text: #5C5C61; --muted: #96969B; --faint: #B4B4B9; }
+  .wg, .wg .round { color: var(--text); }
+  .wg svg { stroke: #5C5C61; }
+  .wg:not(.bgc) .ground { background: linear-gradient(170deg, #F4F4F5 0%, #CFCFD3 55%, #E9E9EB 100%); }
+  .wg:not(.bgc) .blob.lt { background: #FFFFFF !important; opacity: .85; }
+  .wg:not(.bgc) .blob.dk { background: #A9A9AE !important; opacity: .6; }
+  .wg .label { color: #96969B; }
+  /* Grey words on a coloured ground: slightly deeper greys so they stay readable */
+  .wg.bgc { --muted: #68686D; }
+  .wg.bgc .label { color: #68686D; }
+  .wg.bgc .sub, .wg.bgc .sync, .wg.bgc .screen > .row .note { color: #55555A !important; }
+  .wg.bgc .sub b { color: #4E4E53; }
+  .wg .tile .btn, .wg .btn.white, .wg .plusb, .wg .av, .wg .badge, .wg .switch .on { background: #fff !important; color: #5C5C61 !important; border: 1px solid rgba(0,0,0,.05); box-shadow: none; }
+  .wg:not(.bgc) .sub, .wg:not(.bgc) .sync, .wg:not(.bgc) .screen > .row .note { color: #7A7A80 !important; }
+  .wg .sub b { color: #5C5C61; }
+  /* White words and numbers on a deeper colour; buttons stay white with grey writing */
+  .wt { --text: #FFFFFF; --muted: rgba(255,255,255,.80); --faint: rgba(255,255,255,.62); color: #fff; }
+  .wt.bg4 { --g: #776A9C; } .wt.bg6 { --g: #977A52; } .wt.bg7 { --g: #93626D; }
+  .wt.bgc .ground { background: linear-gradient(170deg, color-mix(in srgb, var(--g) 90%, #fff) 0%, var(--g) 55%, color-mix(in srgb, var(--g) 82%, #000) 100%); }
+  .wt.bgc .blob.lt { background: color-mix(in srgb, var(--g) 65%, #fff) !important; opacity: .55; }
+  .wt.bgc .blob.dk { background: color-mix(in srgb, var(--g) 70%, #000) !important; opacity: .45; }
+  .wt .tile { background: rgba(255,255,255,.12) !important; border-color: rgba(255,255,255,.38) !important; box-shadow: 0 8px 24px rgba(0,0,0,.10), inset 0 1px 0 rgba(255,255,255,.35) !important; }
+  .wt .switch, .wt .round:not(.plusb) { background: rgba(255,255,255,.14) !important; border-color: rgba(255,255,255,.38) !important; color: #fff; }
+  .wt .label { color: rgba(255,255,255,.78); }
+  .wt .sub, .wt .sync, .wt .screen > .row .note { color: rgba(255,255,255,.88) !important; }
+  .wt .sub b { color: #fff; }
+  .wt .cap { color: rgba(255,255,255,.6); }
+  .wt svg { stroke: #fff; }
+  .wt .btn, .wt .plusb, .wt .av, .wt .badge, .wt .switch .on, .wt .field { background: #fff !important; color: #4A4A4F !important; border: 1px solid rgba(255,255,255,.9) !important; box-shadow: none !important; }
+  .wt .field { color: #8E8E93 !important; }
+  /* Light colours with white words: pale ground, tiles shaded a touch so white stays readable */
+  .lt.wt.bgc { --g2: var(--g); }
+  .lt.wt.bg4 { --g2: #8B80AE; } .lt.wt.bg6 { --g2: #B89B72; } .lt.wt.bg7 { --g2: #A67683; }
+  .lt.wt.bgc .ground { background: linear-gradient(170deg, color-mix(in srgb, var(--g2) 55%, #fff) 0%, color-mix(in srgb, var(--g2) 72%, #fff) 55%, color-mix(in srgb, var(--g2) 60%, #fff) 100%); }
+  .lt.wt.bgc .blob.lt { background: color-mix(in srgb, var(--g2) 35%, #fff) !important; opacity: .7; }
+  .lt.wt.bgc .blob.dk { background: color-mix(in srgb, var(--g2) 90%, #fff) !important; opacity: .5; }
+  .lt.wt .tile { background: color-mix(in srgb, var(--g2) 30%, transparent) !important; border-color: rgba(255,255,255,.6) !important; }
+  .lt.wt.bg4 .tile, .lt.wt.bg7 .tile { background: color-mix(in srgb, var(--g2) 40%, transparent) !important; }
+  .lt.wt.bg6 .tile { background: color-mix(in srgb, #8F7148 45%, transparent) !important; }
+  .lt.wt { text-shadow: 0 1px 3px color-mix(in srgb, var(--g2) 55%, #000 15%); }
+  .lt.wt .btn, .lt.wt .plusb, .lt.wt .av, .lt.wt .badge, .lt.wt .switch .on, .lt.wt .field { text-shadow: none; }
+  .lt.wt .switch, .lt.wt .round:not(.plusb) { background: color-mix(in srgb, var(--g2) 30%, transparent) !important; border-color: rgba(255,255,255,.6) !important; }
+  /* Pale white ground; ONE grey for every word, number and icon */
+  .pw { --ink: #66666B; --text: var(--ink); --muted: var(--ink); --faint: var(--ink); color: var(--ink); }
+  .pw .ground { background: linear-gradient(170deg, #FDFDFD 0%, #F4F4F6 55%, #FAFAFB 100%) !important; }
+  .pw .blob.lt { background: #FFFFFF !important; opacity: .9; }
+  .pw .blob.dk { background: #E6E6EA !important; opacity: .7; }
+  .pw .tile { background: rgba(255,255,255,.55) !important; border: 1px solid rgba(102,102,107,.12) !important; box-shadow: 0 6px 20px rgba(60,60,70,.06) !important; }
+  .pw .switch, .pw .round:not(.plusb) { background: rgba(255,255,255,.7) !important; border: 1px solid rgba(102,102,107,.12) !important; color: var(--ink); }
+  .pw .label, .pw .sub, .pw .sub b, .pw .sync, .pw .cap, .pw .note, .pw .screen > .row .note { color: var(--ink) !important; }
+  .pw svg { stroke: var(--ink); }
+  .pw .btn, .pw .plusb, .pw .av, .pw .badge, .pw .switch .on, .pw .field { background: #fff !important; color: var(--ink) !important; border: 1px solid rgba(102,102,107,.22) !important; box-shadow: none !important; }
+  /* Green icons only; every word and number stays grey */
+  .icg .label .ic, .icg .round:not(.plusb) svg { stroke: #2F9A68 !important; }
+  .icg .cap { display: none; }
+  .icg .label .ic { width: 17px; height: 17px; stroke-width: 1.9; vertical-align: -2.5px; margin: -4px 8px -4px 0; }
+  .label .ic { width: 14px; height: 14px; vertical-align: -2.5px; margin-right: 7px; }
+  /* White and black: frosted white glass on light grey, black words and numbers, grey labels */
+  .bw { --text: #111113; --muted: #7C7C82; --faint: #A5A5AA; color: #111113; }
+  .bw .ground { background: linear-gradient(170deg, #F7F7F8 0%, #E3E3E6 55%, #F1F1F3 100%) !important; }
+  .bw .blob.lt { background: #FFFFFF !important; opacity: .9; }
+  .bw .blob.dk { background: #CFCFD4 !important; opacity: .7; }
+  .bw .tile { background: rgba(255,255,255,.70) !important; border: 1px solid rgba(255,255,255,.95) !important; box-shadow: 0 10px 30px rgba(30,30,40,.08) !important; }
+  .bw .switch { background: rgba(255,255,255,.7) !important; border: 1px solid rgba(255,255,255,.95) !important; }
+  .bw .round:not(.plusb) { background: rgba(255,255,255,.75) !important; color: #111113; box-shadow: 0 6px 18px rgba(30,30,40,.07); }
+  .bw .sub b { color: #111113; }
+  .bw svg { stroke: #111113; }
+  .bw .btn, .bw .av, .bw .badge, .bw .field, .bw .switch .on { background: #fff !important; color: #111113 !important; border: 1px solid rgba(17,17,19,.14) !important; box-shadow: 0 1px 3px rgba(0,0,0,.05) !important; }
+  .bw .field { color: #7C7C82 !important; }
+  .bw .plusb { background: #fff !important; color: #111113 !important; border: 1.5px solid #111113 !important; }
+  .bw .cap { display: none; }
+  /* Each icon its own suitable colour */
+  .icx .ic-steps { stroke: #2F9A68 !important; }
+  .icx .ic-pin { stroke: #D0614E !important; }
+  .icx .ic-bolt { stroke: #D9962B !important; }
+  .icx .ic-bowl { stroke: #E07B39 !important; }
+  .icx .ic-moon { stroke: #5B5FC7 !important; }
+  .icx .ic-drop { stroke: #2F86C9 !important; }
+  .icx .ic-walk { stroke: #2F9A68 !important; }
+  .icx .ic-flame { stroke: #E0663A !important; }
+  .icx .ic-plus { stroke: #2F9A68 !important; }
+  .icx .ic-list { stroke: #5B6878 !important; }
+  .icx .ic-leaf { stroke: #4C9A52 !important; }
+  .icx .ic-chat { stroke: #3E7CC4 !important; }
+  .icx .ic-useradd { stroke: #2E918A !important; }
+  .icx .ic-search { stroke: #3E6888 !important; }
+  .icx .ic-people { stroke: #7C6CC4 !important; }
+  .icx .ic-card { stroke: #B08550 !important; }
+  .icx .ic-spark { stroke: #C9A23C !important; }
+  .icx .label .ic { width: 17px; height: 17px; stroke-width: 1.9; vertical-align: -2.5px; margin: -4px 8px -4px 0; }
+  .icx .cap { display: none; }
+  .bgc .tile, .bgc .switch { background: rgba(255,255,255,.80); border-color: rgba(255,255,255,.95); box-shadow: 0 10px 30px rgba(20,30,30,.10); }
+  .cap { position: absolute; bottom: 4px; left: 0; right: 0; text-align: center; font: 600 11px 'Roboto Mono'; letter-spacing: 1px; color: var(--faint); }
+</style>
+</head>
+<body>
+<script>
+const K = new URLSearchParams(location.search).get('k');
+const ONE = new URLSearchParams(location.search).get('one') === '1';
+const BG = new URLSearchParams(location.search).get('bg');
+const TR = new URLSearchParams(location.search).get('t') === '1';
+const WG = new URLSearchParams(location.search).get('wg') === '1';
+const WT = new URLSearchParams(location.search).get('wt') === '1';
+const LT = new URLSearchParams(location.search).get('lt') === '1';
+const PW = new URLSearchParams(location.search).get('pw') === '1';
+const CAL = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2C2C2E" stroke-width="1.6" stroke-linecap="round"><path d="M5 6.5h14v12.5H5z"/><path d="M5 10.5h14"/><path d="M9 4v4"/><path d="M15 4v4"/></svg>';
+const BLOBS = `<div class="blob lt" style="width:280px;height:280px;background:#fff;top:-60px;right:-80px"></div>
+  <div class="blob dk" style="width:260px;height:260px;background:#DADADE;top:380px;left:-120px"></div>
+  <div class="blob lt" style="width:240px;height:240px;background:#fff;top:640px;right:-90px"></div>`;
+
+const ICS = {steps:'<path d="M8 3.5c1.6 0 2.4 1.8 2.4 4S9.6 11.5 8 11.5 5.6 9.7 5.6 7.5 6.4 3.5 8 3.5z"/><path d="M6 14.5h4v1.8a2 2 0 0 1-4 0z"/><path d="M16 7.5c1.6 0 2.4 1.8 2.4 4s-.8 4-2.4 4-2.4-1.8-2.4-4 .8-4 2.4-4z"/><path d="M14 18.5h4v.5a2 2 0 0 1-4 0z"/>',pin:'<path d="M12 21s6-5.5 6-11a6 6 0 0 0-12 0c0 5.5 6 11 6 11z"/><circle cx="12" cy="10" r="2"/>',bolt:'<path d="M13 3L5 13.5h6L10 21l8-10.5h-6z"/>',bowl:'<path d="M4 11h16a8 8 0 0 1-16 0z"/><path d="M9.5 7.5c0-1.2 1.2-1.2 1.2-2.5M13.5 7.5c0-1.2 1.2-1.2 1.2-2.5"/>',moon:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',drop:'<path d="M12 3.5s6 6.3 6 10.5a6 6 0 0 1-12 0c0-4.2 6-10.5 6-10.5z"/>',walk:'<circle cx="13.5" cy="4.5" r="1.7"/><path d="M10 21l2.2-6 2.8 2.8V21M12.2 15l-1-5.2 3-2 2 3.7 2.8 1M11.2 9.8L8 12v3"/>',flame:'<path d="M12 3c1 3.2 5 5 5 10a5 5 0 0 1-10 0c0-2.6 1.5-4 2.5-5 .3 2 1.4 3 2.5 3 0-3-1-5.2 0-8z"/>',plus:'<circle cx="12" cy="12" r="8"/><path d="M12 8.5v7M8.5 12h7"/>',list:'<path d="M9 7h11M9 12h11M9 17h11"/><circle cx="5" cy="7" r=".9"/><circle cx="5" cy="12" r=".9"/><circle cx="5" cy="17" r=".9"/>',leaf:'<path d="M5 19c0-8 5-13 14-14 0 9-5 14-13 14z"/><path d="M5 19l7-7"/>',chat:'<path d="M4 5h16v11H9.5L4 20z"/>',useradd:'<circle cx="10" cy="8" r="3.5"/><path d="M3.5 20a6.5 6.5 0 0 1 13 0M18.5 8v6M15.5 11h6"/>',search:'<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/>',people:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20a6 6 0 0 1 12 0"/><circle cx="17" cy="9" r="2.6"/><path d="M15.6 14.2A5 5 0 0 1 21 19"/>',card:'<rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="9" cy="11" r="2"/><path d="M6 16a3 3 0 0 1 6 0M14.5 10h4M14.5 13.5h4"/>',spark:'<path d="M12 3.5l1.8 5.2L19 10.5l-5.2 1.8L12 17.5l-1.8-5.2L5 10.5l5.2-1.8z"/>'};
+const IC = new URLSearchParams(location.search).get('ic') === '1';
+const ICG = new URLSearchParams(location.search).get('icg') === '1';
+const BW = new URLSearchParams(location.search).get('bw') === '1';
+const ICX = new URLSearchParams(location.search).get('icx') === '1';
+const ic = n => IC ? `<svg class="ic ic-${n}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${ICS[n]}</svg>` : '';
+function shell(on, body, cap) {
+  const parts = ['NUTRITION', 'ACTIVITY', 'MEET'];
+  return `<div class="phone${on === 'ACTIVITY' ? ' roomy' : ''}${K ? ` k k${K}` : ''}${ONE ? ' one' : ''}${BG ? ` bgc bg${BG}` : ''}${TR ? ' tr' : ''}${WG ? ' wg' : ''}${WT ? ' wt' : ''}${LT ? ' lt' : ''}${PW ? ' pw' : ''}${ICG ? ' icg' : ''}${BW ? ' bw' : ''}${ICX ? ' icx' : ''}"><div class="ground">${BLOBS}</div>
+  <div class="status"><span>1:55</span><span>▾ ▴ ▮</span></div>
+  <div class="screen">
+    <div class="top">
+      <div class="round tile" style="padding:0">${CAL}</div>
+      <div class="switch">${parts.map(p => `<span class="${p === on ? 'on' : ''}">${p}</span>`).join('')}</div>
+      <div class="round tile" style="padding:0">R</div>
+    </div>
+    ${body}
+  </div><div class="cap">${cap}</div></div>`;
+}
+
+/* ---------- Activity ---------- */
+const activity = shell('ACTIVITY', `
+    <div class="sub"><b>Mon, 17 Nov</b> · 24°C clear · Your pace, your path.</div>
+    <div class="tile hero" style="padding-top:16px;padding-bottom:18px">
+      <div class="spread"><span class="label">${ic('steps')}Steps today</span><span class="label">06:00 – 15:45</span></div>
+      <div class="spread" style="align-items:flex-end;margin-top:6px">
+        <div class="big">6,240</div>
+        <div style="text-align:right;padding-bottom:10px"><div class="mid">78%</div><div class="note">of 8,000</div></div>
+      </div>
+      <div class="note" style="font-size:14px;margin-top:4px">1,760 to go</div>
+    </div>
+    <div class="pair">
+      <div class="tile"><div class="label">${ic('pin')}Distance</div><div class="num">4.6<small>km</small></div><div class="note">of 5.9 km</div></div>
+      <div class="tile"><div class="label">${ic('bolt')}Active</div><div class="num">52<small>min</small></div><div class="note">goal 30 min</div></div>
+    </div>
+    <div class="pair">
+      <div class="tile"><div class="label">${ic('bowl')}Food</div><div class="num">1,280<small>kcal</small></div><div class="note">of 1,900 kcal</div></div>
+      <div class="tile"><div class="label">${ic('moon')}Sleep</div><div class="num">6h 50m</div><div class="note">last night</div></div>
+    </div>
+    <div class="tile row">
+      <div style="flex:1"><div class="label">${ic('drop')}Water</div><div class="num">5<small>of 8 glasses</small></div></div>
+      <div class="round plusb" style="background:var(--chip);font-size:22px;font-weight:400">+</div>
+    </div>
+    <div class="tile second">
+      <div class="label">${ic('walk')}Morning walk</div>
+      <div class="num">2.3<small>km</small></div>
+      <div class="note">7:10 am · 32 min · 3,120 steps</div>
+    </div>
+    <div class="sync">Updated 2 min ago</div>`, 'ACTIVITY');
+
+/* ---------- Nutrition ---------- */
+const food = (n, w, k) => `<div class="spread" style="padding:8px 0;align-items:center">
+  <div><div style="font:500 15px/19px Figtree">${n}</div><div class="note" style="margin-top:1px">${w}</div></div>
+  <div class="mid">${k}<small>kcal</small></div></div>`;
+const cell = (l, v, s) => `<div><div class="note" style="margin:0">${l}</div><div class="mid" style="margin-top:2px">${v}${s ? `<small>${s}</small>` : ''}</div></div>`;
+const nutrition = shell('NUTRITION', `
+    <div class="spread" style="align-items:center"><div class="sub"><b>Food</b> · Mon, 17 Nov</div>
+      <div class="switch" style="height:32px;font-size:10px"><span class="on" style="padding:0 10px">TODAY</span><span style="padding:0 10px">WEEK</span></div></div>
+    <div class="tile hero" style="padding-top:15px">
+      <div class="spread"><span class="label">${ic('flame')}Calories</span><span class="label">760 left</span></div>
+      <div class="spread" style="align-items:flex-end;margin-top:2px">
+        <div class="big" style="font-size:64px;line-height:66px">1,240</div>
+        <div style="text-align:right;padding-bottom:8px"><div class="mid">62%</div><div class="note">of 2,000 kcal</div></div>
+      </div>
+      <div class="cols" style="margin-top:10px">${cell('Breakfast', '320')}${cell('Lunch', '640')}${cell('Snack', '280')}</div>
+    </div>
+    <div class="tile">
+      <div class="label">${ic('plus')}I ate</div>
+      <div class="field" style="margin-top:10px">Search foods</div>
+      <div class="row" style="gap:6px;margin-top:10px"><span class="btn">Scan barcode</span><span class="btn">Own recipe</span><span class="btn">Tea again</span></div>
+    </div>
+    <div class="tile" style="padding-bottom:8px">
+      <div class="spread"><span class="label">${ic('list')}Eaten today</span><span class="label">3 meals</span></div>
+      ${food('Idli, sambar, chutney', 'Breakfast · 8:10 am', 320)}
+      ${food('Dal, rice, curd, beans', 'Lunch · 1:30 pm', 640)}
+      ${food('Masala tea, 2 biscuits', 'Snack · 4:45 pm', 280)}
+    </div>
+    <div class="tile second">
+      <div class="label">${ic('leaf')}What today adds up to</div>
+      <div class="cols" style="margin-top:10px">${cell('Protein', '42', 'of 60 g')}${cell('Carbs', '168', 'of 250 g')}${cell('Fat', '38', 'of 65 g')}</div>
+      <div class="cols" style="margin-top:12px">${cell('Vitamins', '7', 'of 13')}${cell('Minerals', '5', 'of 10')}${cell('Sugar', '28', 'g')}</div>
+      <div class="note" style="margin-top:10px">Salt 3.1 g · Glycemic load medium</div>
+    </div>
+    <div class="row" style="justify-content:center;gap:16px"><span class="btn white">That's all for today</span><span class="note" style="font-weight:600;margin:0">Fasting today</span></div>
+    <div class="sync" style="margin-bottom:26px">Values are estimates.</div>`, 'NUTRITION');
+
+/* ---------- Meet ---------- */
+const chat = (c, n, m, t, u) => `<div class="row" style="padding:8px 0">
+  <div class="av" style="width:40px;height:40px;font-size:15px">${c}</div>
+  <div style="flex:1;min-width:0"><div style="font:600 15px/19px Figtree">${n}</div><div class="note" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${u ? 'color:var(--text)' : ''}">${m}</div></div>
+  <div style="text-align:right"><div class="note" style="margin:0">${t}</div>${u ? `<div class="badge" style="margin:4px 0 0 auto">${u}</div>` : '<div style="height:24px"></div>'}</div></div>`;
+const meet = shell('MEET', `
+    <div class="sub"><b>Walk buddies</b> · 4 buddies · 1 request</div>
+    <div class="tile hero" style="padding-bottom:8px">
+      <div class="spread"><span class="label">${ic('chat')}Chats</span><span class="label">3 unread</span></div>
+      ${chat('A', 'Asha', 'Walk at 6 tomorrow? Lake road', '15:20', 2)}
+      ${chat('M', 'Mihir', 'Done 9,000 today', '13:05', 1)}
+      ${chat('K', 'Kavya', 'See you Sunday', 'Thu', 0)}
+      ${chat('P', 'Priya', 'Same time next week?', 'Tue', 0)}
+    </div>
+    <div class="pair">
+      <div class="tile second"><div class="label">${ic('useradd')}Requests</div><div class="num">1<small>new</small></div><div class="note">Rohan wants to walk</div>
+        <div class="row" style="gap:6px;margin-top:12px"><span class="btn white">Accept</span><span class="btn">Later</span></div></div>
+      <div class="tile"><div class="label">${ic('search')}Find walkers</div><div class="mid" style="margin-top:8px">By walker ID</div><div class="note">Ask a friend for theirs</div>
+        <div class="row" style="margin-top:12px"><span class="btn white">Find</span></div></div>
+    </div>
+    <div class="tile">
+      <div class="label">${ic('people')}Buddies</div>
+      <div class="spread" style="margin-top:12px">
+        ${['Asha', 'Mihir', 'Kavya', 'Priya'].map(n => `<div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div class="av" style="width:48px;height:48px;font-size:18px">${n[0]}</div><span class="note" style="color:var(--text);margin:0">${n}</span></div>`).join('')}
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div class="av" style="width:48px;height:48px;font-size:22px;font-weight:400;background:#fff;border:1px solid #E4E4E7;color:var(--muted)">+</div><span class="note" style="margin:0">Add</span></div>
+      </div>
+    </div>
+    <div class="tile row">
+      <div style="flex:1"><div class="label">${ic('card')}Your walker ID</div><div class="mid" style="margin-top:6px">@ravi.walks</div><div class="note">Share it so friends can add you</div></div>
+      <span class="btn white">Share</span>
+    </div>
+    <div class="tile spread" style="align-items:center;padding-top:12px;padding-bottom:12px"><span class="label">${ic('spark')}Coming next</span><span class="note" style="margin:0">Clubs · Walk plans · QR invite</span></div>
+    <div class="sync">Updated 2 min ago</div>`, 'MEET');
+
+const s = new URLSearchParams(location.search).get('s');
+document.body.innerHTML = s === 'n' ? nutrition : s === 'a' ? activity : s === 'm' ? meet : nutrition + activity + meet;
+if (s) { document.body.style.padding = '0'; document.body.style.background = 'none'; }
+</script>
+</body>
+</html>

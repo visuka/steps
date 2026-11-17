@@ -22,7 +22,59 @@
 
 Size rule: the mockup phone screen is **360 px wide; 1 mockup px = 1 dp**. Text keeps `scaled()` (ui-scale.ts) and `MaxTextScale`. On wider phones the extra width goes to the cards, not to bigger text.
 
-## Current: grey, black and one red, every screen (owner, 17 Nov 2026)
+## Current: plain, sage and sand (owner, 17 Nov 2026)
+
+**Source:** the owner's words "Let us finalise on sage plus sand", "I need the app exactly as in the mock.. pixel to pixel", "Build it". Mockup: `docs/design/plain-sage-sand/plain.html?s=a|n|m&k=1&ic=1&icx=1` (Activity, Nutrition, Meet); pictures `pair-1-activity.png`, `pair-1-nutrition.png`, `pair-1-meet.png` in the same folder. It replaces the grey-black-red look below on Today, Food and Meet. Code: `src/components/plain/` (`plain-theme.ts` holds every value).
+
+Size rule for this look: the mockup phone is **411 px wide; 1 mockup px = 1 dp**, through `scaled()`.
+
+### Structure
+
+- Three parts, switched by the top row: **NUTRITION · ACTIVITY · MEET**. Activity (Today) opens first. No bottom bar.
+- Top row: calendar (left, opens Steps by day), the switch, the avatar (right, opens Profile).
+- Nutrition = Food tab, Activity = Today, Meet = Walk buddies. News and Log food left Today (owner's OK, 17 Nov); News stays at `/news`.
+
+### Colours
+
+| Use | Value |
+|---|---|
+| Words, numbers | #2C2C2E |
+| Labels, notes, units | #8E8E93 |
+| Ground | 170° wash #F5F5F6 → #ECECEE → #F3F3F4, white glows top right and bottom right, #DADADE glow left middle |
+| Plain tile | #F8F8F9, 1 px white edge |
+| Sage (selected switch, primary buttons, Water +) | #5E7E6F, white text |
+| Top tile on each screen (sage tint) | #DEE4E2, edge #D3DDD8 |
+| Second tile (sand tint) | #F2EAE1, edge #EFE3D6 |
+| Chips, avatars | #F2E9DE |
+| Badge | #C9A47C, white text |
+| Search field | white, edge #E8E8EB |
+
+Colour sits on surfaces only; words stay black and grey. Each label icon has its own colour (`PLAIN_ICON_COLOR`).
+
+### Type
+
+| Element | Face | Size / line |
+|---|---|---|
+| Label (STEPS TODAY) | monospace, tracked 1.6, capitals | 11 / 15 |
+| Big figure | condensed light, tracking −1 | 104/104 Activity, 64/66 Nutrition |
+| Tile figure | condensed light | 44/48 Activity, 34/38 elsewhere; unit Figtree 14 grey |
+| Middle figure | condensed regular | 22 / 26 |
+| Note | Figtree 400 grey | 13 |
+| Button | Figtree 600 | 13, padding 8 × 16, radius 18 |
+| Switch | monospace 500, tracked 1.2 | 11.5 in 40 high; 10 in 32 high (Today / Week) |
+
+Figtree 400/500/600 are bundled; the condensed and mono faces are the phone's own (`sans-serif-condensed`, `monospace`). The mockup's Roboto Mono differs slightly from the phone's monospace.
+
+### Spacing
+
+Gutter 18; tiles 9 apart (12 on Activity); tile radius 24, padding 14 × 18 (18 × 20 on Activity), shadow 0 8 24 rgba(40,40,50,.06); round buttons 40; top row 6 under the status bar.
+
+### Kept from before, not on the mockup (never removed)
+
+- Food: Previous day / Next day under Eaten today; tap an entry to change or delete it, long-press to delete; the sand tile opens every nutrient (Macros, Vitamins, Minerals, Watch) below it; the week view; setup and gap notes.
+- Meet: every chat, request, buddy and the walker ID share.
+
+## Previous: grey, black and one red, every screen (owner, 17 Nov 2026)
 
 **Source:** the owner's reference picture (a health app shot in grey, black and one red), then "can you deliver this theme?", "1" (the whole Today screen) and "every screen to this color combination". It replaces the Dawn/Noon/Dusk colours on Today and the parchment and green of the Calm theme everywhere else.
 

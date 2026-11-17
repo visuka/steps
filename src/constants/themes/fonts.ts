@@ -5,6 +5,9 @@
  */
 
 // One file per weight (not the package root, which would bundle every weight).
+import { Figtree_400Regular } from '@expo-google-fonts/figtree/400Regular';
+import { Figtree_500Medium } from '@expo-google-fonts/figtree/500Medium';
+import { Figtree_600SemiBold } from '@expo-google-fonts/figtree/600SemiBold';
 import { NotoSansTelugu_400Regular } from '@expo-google-fonts/noto-sans-telugu/400Regular';
 import { Poppins_300Light } from '@expo-google-fonts/poppins/300Light';
 import { Poppins_400Regular } from '@expo-google-fonts/poppins/400Regular';
@@ -35,4 +38,8 @@ export const CLEAN_FONT_FILES: Record<string, number> = {
   [CLEAN_SPEC.fonts.android.regular]: Poppins_400Regular,
   [CLEAN_SPEC.fonts.android.medium]: Poppins_500Medium,
   [CLEAN_SPEC.fonts.android.telugu]: NotoSansTelugu_400Regular,
+  // The plain look's words (components/plain/plain-theme.ts PLAIN_FONT).
+  Figtree_400Regular,
+  Figtree_500Medium,
+  Figtree_600SemiBold,
 };

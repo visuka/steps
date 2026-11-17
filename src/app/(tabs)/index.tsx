@@ -8,17 +8,16 @@ import { ThemedText } from '@/components/themed-text';
 import { Button, Snackbar } from '@/components/ui';
 import { distanceOf, heroSpoken, percentOf, untimedNote } from '@/components/today/model';
 import { detailRoute, type DetailKind, walkingLine } from '@/components/today/today-actions';
-import { Wash } from '@/components/today/time-of-day-parts';
+import { PlainGround } from '@/components/plain/plain-kit';
+import { PLAIN, PLAIN_SIZE } from '@/components/plain/plain-theme';
 import { TodayCalm } from '@/components/today/today-calm';
 import { TODAY_LAYOUT } from '@/components/today/today-layout';
 import { useActiveWalk } from '@/components/today/use-active-walk';
 import { useTodayExtras } from '@/components/today/use-today-extras';
 import type { TodayFrameLook, TodayView } from '@/components/today/view';
 import { WalkingCard } from '@/components/today/walking-card';
-import { WASH_HEIGHT } from '@/constants/day-part';
-import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import type { LogEntry } from '@/data/types';
-import { useDayPart } from '@/hooks/use-day-part';
 import { useTheme } from '@/hooks/use-theme';
 import { addDaysToKey } from '@/lib/dates';
 import { formatSteps, minutesAgo } from '@/lib/format';
@@ -50,9 +49,7 @@ export default function TodayScreen() {
   const premium = usePremium();
   const insets = useSafeAreaInsets();
   // today-calm adds the 16 dp under the status bar; the safe-area inset is added here.
-  // Today wears the time-of-day colours (docs/design.md "Current: Today Time of day").
-  const { palette: day } = useDayPart();
-  const look: TodayFrameLook = { background: day.bg, gutter: TODAY_LAYOUT.sideMargin };
+  const look: TodayFrameLook = { background: PLAIN.ground.top, gutter: TODAY_LAYOUT.sideMargin };
   const details = !premium.isLocked('today-details');
   const clock = useClock();
   const todayKey = clock.today;
@@ -186,11 +183,11 @@ export default function TodayScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: look.background }]}>
-      {/* The soft wash at the top of the screen, under the status bar's strip. */}
-      <Wash p={day} height={WASH_HEIGHT} style={{ top: insets.top }} />
+      {/* The plain look's grey ground (owner, 17 Nov 2026: sage and sand). */}
+      <PlainGround />
       <ScrollView
         ref={scroll}
-        contentContainerStyle={{ paddingTop: insets.top, flexGrow: 1 }}
+        contentContainerStyle={{ paddingTop: insets.top + PLAIN_SIZE.topUnderStatus, flexGrow: 1 }}
         scrollEnabled={overflows}
         overScrollMode={overflows ? 'auto' : 'never'}
         bounces={overflows}
@@ -207,15 +204,10 @@ export default function TodayScreen() {
             progressViewOffset={insets.top}
           />
         }>
-        <TodayCalm v={view} look={look} />
-        <View style={[styles.foot, { paddingHorizontal: look.gutter }]}>
-          <ThemedText type="bodySmall" style={[styles.syncLine, { color: day.muted }]}>
-            {syncLine}
-          </ThemedText>
-        </View>
+        <TodayCalm v={view} look={look} sync={syncLine} />
       </ScrollView>
       {/* The status bar's strip: content scrolls under it, never under the clock. */}
-      <View pointerEvents="none" style={[styles.statusInset, { height: insets.top, backgroundColor: day.wash }]} />
+      <View pointerEvents="none" style={[styles.statusInset, { height: insets.top, backgroundColor: PLAIN.ground.top }]} />
       <View pointerEvents="box-none" style={[styles.snack, { left: look.gutter, right: look.gutter }]}>
         <Snackbar
           message={snack?.text ?? null}
@@ -320,8 +312,6 @@ function sumOrNull(a: number | null, b: number | null): number | null {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  foot: { width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center', paddingTop: 0, paddingBottom: Spacing.two },
-  syncLine: { fontSize: 11, lineHeight: 14, textAlign: 'center' },
   statusInset: { position: 'absolute', top: 0, left: 0, right: 0 },
   snack: { position: 'absolute', bottom: Spacing.three },
   inline: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },

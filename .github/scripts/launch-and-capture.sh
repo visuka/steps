@@ -93,7 +93,7 @@ capture() {
 # Stop the emulator's own apps from showing "isn't responding" boxes over the shots (review 3, item 23).
 adb shell settings put global hide_error_dialogs 1 || true
 adb shell cmd uimode night no
-for screen in today food walk detail plus activity news; do
+for screen in today foodtab plus food walk detail activity news; do
   capture e "$screen" "smoke/calm-$screen.png"
 done
 # The screens Today's Water and Sleep tiles open (graph, then add and remove).
@@ -111,13 +111,16 @@ done
 adb shell settings put system font_scale 1.3
 capture e today smoke/calm-today-large-font.png '&part=noon' noon
 capture e activity smoke/calm-activity-large-font.png
+# The three parts of the plain look (Nutrition, Activity, Meet) at the large size too.
+capture e foodtab smoke/calm-foodtab-large-font.png
+capture e plus smoke/calm-plus-large-font.png
 adb shell settings put system font_scale 1.0
 
 # The owner's phone: 360 dp wide (1080 px at 480 dpi) with a larger text size.
 adb shell wm density 480
 adb shell settings put system font_scale 1.2
 capture e today smoke/calm-today-360dp.png '&part=noon' noon
-for screen in food activity; do
+for screen in food foodtab plus activity; do
   capture e "$screen" "smoke/calm-$screen-360dp.png"
 done
 adb shell settings put system font_scale 1.0

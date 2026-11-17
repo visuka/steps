@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { BottomTabBarHeightContext } from 'expo-router/js-tabs';
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -28,16 +28,14 @@ import { dayKey } from '@/lib/dates';
 import { BuddiesSource } from '@/buddies/use-buddies';
 import { SAMPLE_SOCIAL_API } from '@/design-preview/buddies-sample';
 import { WalkDetail } from '@/app/walk/[id]';
-import { TABS } from '@/components/app-tabs';
 import { FoodResultScreen } from '@/components/food/food-result';
 import { ThemedText } from '@/components/themed-text';
-import { NavigationBar } from '@/components/ui/navigation-bar';
 import { ActiveTheme, Spacing } from '@/constants/theme';
 import { parsePreviewParams, type PreviewScreen } from '@/design-preview/params';
 import { SampleDataProvider } from '@/design-preview/providers';
 import { SAMPLE_COOKING_FOOD, SAMPLE_COOKING_TABLES } from '@/design-preview/cooking-sample';
 import { SAMPLE_FOOD_RESULT, SAMPLE_WALK_ID } from '@/design-preview/sample';
-import { barColorsOf, DayPartOverride, useDayPart } from '@/hooks/use-day-part';
+import { DayPartOverride } from '@/hooks/use-day-part';
 import { useTheme } from '@/hooks/use-theme';
 import type { SeriesKind } from '@/state/series';
 
@@ -249,25 +247,12 @@ function PreviewScreenBody({ screen, edit, mine }: { screen: PreviewScreen; edit
  * The screen above the real navigation bar, with the tab the mockup selects;
  * the screen is told it is inside the tabs, as on the phone. Tabs do nothing here.
  */
-function WithNavigationBar({ activeKey, children }: { activeKey: string; children: ReactNode }) {
-  const insets = useSafeAreaInsets();
-  const { palette } = useDayPart();
-  const [barHeight, setBarHeight] = useState(80);
+function WithNavigationBar({ children }: { activeKey: string; children: ReactNode }) {
+  // No bottom bar any more (owner, 17 Nov 2026): the top row's switch moves between the parts.
   return (
-    <View style={styles.fill}>
-      <BottomTabBarHeightContext.Provider value={barHeight}>
-        <View style={styles.fill}>{children}</View>
-      </BottomTabBarHeightContext.Provider>
-      <View onLayout={(e) => setBarHeight(Math.round(e.nativeEvent.layout.height))}>
-        <NavigationBar
-          items={TABS}
-          activeKey={activeKey}
-          onSelect={() => undefined}
-          bottomInset={insets.bottom}
-          colors={activeKey === 'index' ? barColorsOf(palette) : undefined}
-        />
-      </View>
-    </View>
+    <BottomTabBarHeightContext.Provider value={0}>
+      <View style={styles.fill}>{children}</View>
+    </BottomTabBarHeightContext.Provider>
   );
 }
 
