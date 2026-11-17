@@ -124,6 +124,37 @@ capture e today smoke/calm-today-dark.png
 capture e detail smoke/calm-detail-dark.png
 adb shell cmd uimode night no
 
+# --- Every screen ------------------------------------------------------------
+# The rest of the app over the sample day (17 Nov 2026), each scrolled to its
+# end: smoke/all-<screen>.png, then -2, -3… for each further screenful.
+more() {
+  local base="$1" i prev cur
+  prev="$(md5sum < "$base.png")"
+  for i in 2 3 4 5 6; do
+    adb shell input swipe 540 1700 540 700 400
+    sleep 1.5
+    adb exec-out screencap -p > "$base-$i.png"
+    cur="$(md5sum < "$base-$i.png")"
+    if [ "$cur" = "$prev" ]; then rm -f "$base-$i.png"; break; fi
+    prev="$cur"
+  done
+}
+for screen in you foodtab buddies settings insights stepcheck places record scan find requests signin welcome; do
+  capture e "$screen" "smoke/all-$screen.png" && more "smoke/all-$screen"
+done
+for section in workouts bp weight; do
+  capture e activity "smoke/all-activity-$section.png" "&section=$section" && more "smoke/all-activity-$section"
+done
+for kind in active food; do
+  capture e detail "smoke/all-detail-$kind.png" "&kind=$kind" && more "smoke/all-detail-$kind"
+done
+capture e chat smoke/all-chat.png '&key=b.p1&title=Ravi'
+capture e walker smoke/all-walker.png '&pid=p1&name=Ravi&handle=ravi_walks'
+# The long screens CI already photographs, the rest of the way down.
+for screen in food walk detail activity plus; do
+  capture e "$screen" "smoke/all-$screen.png" && more "smoke/all-$screen"
+done
+
 # --- Motion ------------------------------------------------------------------
 # Animations on (the emulator starts with them off), then 8 s of each screen
 # from the moment it opens: the cards rising in, the counting, the walker, the

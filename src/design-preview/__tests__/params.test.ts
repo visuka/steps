@@ -52,7 +52,7 @@ describe('parsePreviewParams', () => {
     expect(parsePreviewParams({ theme: 'g', screen: 'today' })).toBeNull();
     expect(parsePreviewParams({ theme: 'D', screen: 'today' })).toBeNull();
     expect(parsePreviewParams({ theme: 'e', screen: 'Today' })).toBeNull();
-    expect(parsePreviewParams({ theme: 'e', screen: 'insights' })).toBeNull();
+    expect(parsePreviewParams({ theme: 'e', screen: 'journal' })).toBeNull();
     expect(parsePreviewParams({ theme: [], screen: 'today' })).toBeNull();
   });
 });

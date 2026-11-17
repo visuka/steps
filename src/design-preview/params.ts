@@ -4,7 +4,9 @@
  *
  *   neutcraftssteps://design-preview?theme=e&screen=today
  *
- * theme: clean, park, a, b, c, d, e or f. screen: today, food, walk, detail, plus (the bar's plus: chats and groups) or activity.
+ * theme: clean, park, a, b, c, d, e or f. screen: one of PREVIEW_SCREENS (food is the food result; foodtab is the Food screen).
+ * Screens that read their own route params (activity's section, chat's key and title,
+ * walker's pid, name and handle) take them from the same link.
  * Both are required and lower case; anything else is refused (the route says so
  * on screen rather than guess). The detail screen also takes kind (steps, active,
  * food, water or sleep; steps when missing or unknown):
@@ -27,7 +29,31 @@ import { parseKind, type SeriesKind } from '@/state/series';
 export const PREVIEW_ROUTE = 'design-preview';
 
 /** The mockup screens, in the mockups' order, then the hourly detail. */
-export const PREVIEW_SCREENS = ['today', 'food', 'walk', 'detail', 'plus', 'activity', 'news'] as const;
+export const PREVIEW_SCREENS = [
+  'today',
+  'food',
+  'walk',
+  'detail',
+  'plus',
+  'activity',
+  'news',
+  // The rest of the app, so CI can photograph every screen (17 Nov 2026):
+  'you',
+  'foodtab',
+  'buddies',
+  'settings',
+  'insights',
+  'stepcheck',
+  'places',
+  'record',
+  'scan',
+  'find',
+  'requests',
+  'chat',
+  'walker',
+  'signin',
+  'welcome',
+] as const;
 export type PreviewScreen = (typeof PREVIEW_SCREENS)[number];
 
 export interface PreviewParams {

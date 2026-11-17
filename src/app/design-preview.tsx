@@ -8,6 +8,21 @@ import TodayScreen from '@/app/(tabs)/index';
 import NewsRoute from '@/app/news';
 import ActivityTab from '@/app/(tabs)/activity';
 import PlusTab from '@/app/(tabs)/plus';
+import YouScreen from '@/app/(tabs)/you';
+import FoodTab from '@/app/(tabs)/food';
+import SettingsScreen from '@/app/settings';
+import InsightsRoute from '@/app/insights';
+import StepCheckScreen from '@/app/step-check';
+import PlacesRoute from '@/app/walk/places';
+import RecordScreen from '@/app/walk/record';
+import FindWalkers from '@/app/buddies/find';
+import Requests from '@/app/buddies/requests';
+import ChatScreen from '@/app/buddies/chat/[key]';
+import WalkerScreen from '@/app/buddies/walker/[pid]';
+import { AuthScreen } from '@/components/auth/auth-screen';
+import { BuddiesHome } from '@/components/buddies/buddies-home';
+import { ScanScreen } from '@/components/food/scan-screen';
+import { Onboarding } from '@/components/onboarding';
 import { Detail } from '@/app/detail/[kind]';
 import { dayKey } from '@/lib/dates';
 import { BuddiesSource } from '@/buddies/use-buddies';
@@ -26,8 +41,16 @@ import { barColorsOf, DayPartOverride, useDayPart } from '@/hooks/use-day-part';
 import { useTheme } from '@/hooks/use-theme';
 import type { SeriesKind } from '@/state/series';
 
-/** The tab each mockup screen shows as selected in its navigation bar (the detail screen is a stack screen: no bar). */
-const TAB_OF: Record<Exclude<PreviewScreen, 'detail' | 'food' | 'news'>, string> = { today: 'index', walk: 'activity', plus: 'plus', activity: 'activity' };
+/** The tab each tab screen shows as selected in its navigation bar ('none': a tab screen without a button, e.g. Food). */
+const TAB_OF: Partial<Record<PreviewScreen, string>> = {
+  today: 'index',
+  walk: 'activity',
+  plus: 'plus',
+  buddies: 'plus',
+  activity: 'activity',
+  you: 'you',
+  foodtab: 'none',
+};
 
 /**
  * The real Today, Food result, Walk and hourly detail screens over the mockups'
@@ -63,7 +86,7 @@ function DesignPreviewScreens() {
   }, [shown]);
 
   if (!params) {
-    return <Notice text="Unknown preview. Use ?theme=e&screen=today|food|walk|detail|plus|activity|news (detail also takes &kind=steps|active|food|water|sleep)." />;
+    return <Notice text="Unknown preview. Use ?theme=e&screen=today|food|walk|detail|plus|activity|news|you|settings|… (detail also takes &kind=steps|active|food|water|sleep)." />;
   }
   if (params.theme !== ActiveTheme.id) {
     return <Notice text={`This run is in theme ${ActiveTheme.id}, not ${params.theme}. Close the app, then open the link again.`} />;
@@ -83,6 +106,18 @@ function DesignPreviewScreens() {
       </SampleDataProvider>
     );
   }
+  if (!TAB_OF[params.screen] && params.screen !== 'food') {
+    // Screens pushed over the tabs (and sign-in, first run): no navigation bar under them.
+    return (
+      <SampleDataProvider>
+        <BuddiesSource api={SAMPLE_SOCIAL_API}>
+          <View style={styles.fill}>
+            <StackScreen screen={params.screen} />
+          </View>
+        </BuddiesSource>
+      </SampleDataProvider>
+    );
+  }
   if (params.screen === 'food') {
     // The food result has no bottom bar (spec 7): its buttons sit 24 above the bottom.
     return (
@@ -95,7 +130,7 @@ function DesignPreviewScreens() {
   }
   return (
     <SampleDataProvider>
-      <WithNavigationBar activeKey={TAB_OF[params.screen]}>
+      <WithNavigationBar activeKey={TAB_OF[params.screen] ?? 'none'}>
         <PreviewScreenBody screen={params.screen} />
       </WithNavigationBar>
     </SampleDataProvider>
@@ -111,6 +146,40 @@ function DesignPreviewScreens() {
  */
 function DetailPreview({ kind }: { kind: SeriesKind }) {
   return <Detail kind={kind} firstDay={dayKey(new Date())} />;
+}
+
+/** A screen pushed over the tabs, over the sample data. Chat and walker read their key, pid and name from the link. */
+function StackScreen({ screen }: { screen: PreviewScreen }) {
+  const router = useRouter();
+  const back = () => (router.canGoBack() ? router.back() : undefined);
+  switch (screen) {
+    case 'settings':
+      return <SettingsScreen />;
+    case 'insights':
+      return <InsightsRoute />;
+    case 'stepcheck':
+      return <StepCheckScreen />;
+    case 'places':
+      return <PlacesRoute />;
+    case 'record':
+      return <RecordScreen />;
+    case 'scan':
+      return <ScanScreen onClose={back} />;
+    case 'find':
+      return <FindWalkers />;
+    case 'requests':
+      return <Requests />;
+    case 'chat':
+      return <ChatScreen />;
+    case 'walker':
+      return <WalkerScreen />;
+    case 'signin':
+      return <AuthScreen />;
+    case 'welcome':
+      return <Onboarding />;
+    default:
+      return null;
+  }
 }
 
 function PreviewScreenBody({ screen, edit, mine }: { screen: PreviewScreen; edit?: boolean; mine?: boolean }) {
@@ -153,13 +222,26 @@ function PreviewScreenBody({ screen, edit, mine }: { screen: PreviewScreen; edit
           <PlusTab />
         </BuddiesSource>
       );
+    case 'buddies':
+      // Chats and buddies on its Buddies side.
+      return (
+        <BuddiesSource api={SAMPLE_SOCIAL_API}>
+          <BuddiesHome initialSegment="buddies" />
+        </BuddiesSource>
+      );
     case 'activity':
-      // Activity on its Health side: the readings that were the Journal.
+      // Activity on its Health side (or the link's &section=workouts|bp|weight).
       return <ActivityTab />;
+    case 'you':
+      return <YouScreen />;
+    case 'foodtab':
+      return <FoodTab />;
     case 'walk':
       return <WalkDetail id={SAMPLE_WALK_ID} />;
     case 'detail':
       return null; // drawn by DetailPreview, without the navigation bar
+    default:
+      return null; // stack screens: drawn by StackScreen
   }
 }
 

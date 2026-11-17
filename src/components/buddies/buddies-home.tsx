@@ -27,9 +27,9 @@ const COMING = [
   { key: 'qr', title: 'Add by QR code', supporting: 'Scan to add a buddy or join a club', icon: 'qr-code-outline' },
 ] as const;
 
-type Segment = 'chats' | 'buddies';
+export type Segment = 'chats' | 'buddies';
 
-export function BuddiesHome() {
+export function BuddiesHome({ initialSegment = 'chats' }: { initialSegment?: Segment } = {}) {
   const { me, setMe, error, loading, refresh } = useSocialMe();
   if (!me) {
     return (
@@ -43,7 +43,7 @@ export function BuddiesHome() {
     );
   }
   if (!me.joined) return <JoinForm onJoined={setMe} />;
-  return <Joined me={me} refreshMe={refresh} />;
+  return <Joined me={me} refreshMe={refresh} initialSegment={initialSegment} />;
 }
 
 function JoinForm({ onJoined }: { onJoined: (me: SocialMe) => void }) {
@@ -95,10 +95,18 @@ function JoinForm({ onJoined }: { onJoined: (me: SocialMe) => void }) {
   );
 }
 
-function Joined({ me, refreshMe }: { me: Extract<SocialMe, { joined: true }>; refreshMe: () => Promise<void> }) {
+function Joined({
+  me,
+  refreshMe,
+  initialSegment,
+}: {
+  me: Extract<SocialMe, { joined: true }>;
+  refreshMe: () => Promise<void>;
+  initialSegment: Segment;
+}) {
   const router = useRouter();
   const api = useSocialApi();
-  const [segment, setSegment] = useState<Segment>('chats');
+  const [segment, setSegment] = useState<Segment>(initialSegment);
   const chats = useLoad(api.chats);
   const buddies = useLoad(api.buddies);
   const requests = me.counts.requestsIn;
