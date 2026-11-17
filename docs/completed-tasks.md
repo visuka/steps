@@ -247,3 +247,7 @@ Not committed. No server or AWS change. Nothing is removed from any count.
 - Changed from the plan: the preview sets the part through the `DayPartOverride` context instead of a `TodayView.dayPart` field; no render test (jest here runs `.test.ts` only).
 - T18d: preview link takes `&part=dawn|noon|dusk`; CI shots `calm-today-dawn/noon/dusk.png`; the large-font and 360 dp Today shots use noon.
 - Tests: 1,566 pass, tsc clean.
+
+### T18 fixes (17 Nov 2026, commit aad39d9, CI run 44035038255 green)
+- Steps card gradient: HeroGradient measures the card and draws in exact dp; a "100%" Svg left a lighter strip on the right and bottom.
+- New `src/components/ui/rise.tsx` (opacity and shift only) replaces Reanimated `entering` animations on `Screen` and Today. On Fabric those froze a block's first size, so the Chats list (loaded a moment later) overlapped "Coming next". Use `Rise`, not `entering`, for any block whose content can change size.
