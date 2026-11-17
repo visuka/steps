@@ -60,7 +60,7 @@ export function NavigationBar({ items, activeKey, onSelect, onReselect, bottomIn
     hairline: theme.background,
     active: theme.onSurface,
     activeFill: theme.surfaceContainerLowest,
-    idle: theme.onSurfaceVariant,
+    idle: theme.onSurface,
     idleFill: theme.surfaceContainerHigh,
   };
   return (

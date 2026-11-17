@@ -14,9 +14,9 @@ export const NAV = {
   hairline: 0,
   sidePadding: 8,
   /** Each round button (the touch area stays 48). */
-  slotWidth: 44,
+  slotWidth: 52,
   /** Space between the buttons. */
-  slotGap: 12,
+  slotGap: 6,
   iconSize: 22,
   minTouch: CLEAN_SPEC.sizes.nav.minTouch,
 } as const;

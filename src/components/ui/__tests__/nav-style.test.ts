@@ -8,9 +8,9 @@ describe('bottom bar (docs/design.md "Bottom bar")', () => {
   it('has the design sizes', () => {
     expect(NAV.height).toBe(60);
     expect(NAV.hairline).toBe(0);
-    expect(NAV.slotWidth).toBe(44);
+    expect(NAV.slotWidth).toBe(52);
     expect(NAV.iconSize).toBe(22);
-    expect(SLOT_VISUAL_HEIGHT).toBe(44);
+    expect(SLOT_VISUAL_HEIGHT).toBe(52);
   });
 
   it('adds the system inset to the height', () => {

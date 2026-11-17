@@ -12,7 +12,7 @@ export const DayPartOverride = createContext<DayPart | null>(null);
 
 /** The bottom bar's colours on Today: round buttons on the screen's ground. */
 export function barColorsOf(p: DayPalette): { fill: string; hairline: string; active: string; activeFill: string; idle: string; idleFill: string } {
-  return { fill: p.bg, hairline: p.bg, active: p.text, activeFill: p.card, idle: p.muted, idleFill: p.edge };
+  return { fill: p.bg, hairline: p.bg, active: p.text, activeFill: p.card, idle: p.text, idleFill: p.edge };
 }
 
 function partNow(): DayPart {

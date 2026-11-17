@@ -90,8 +90,8 @@ const MONO: DayPalette = {
   foodLane: '#DCDCDC',
   sleep: '#000000',
   sleepLane: '#DCDCDC',
-  water: '#000000',
-  waterLane: '#E8E8E8',
+  water: '#2B70AE',
+  waterLane: '#A9D4F5',
 };
 
 export const DAY_PALETTES: Record<DayPart, DayPalette> = { dawn: MONO, noon: MONO, dusk: MONO };

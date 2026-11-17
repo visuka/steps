@@ -29,7 +29,7 @@ import type { DayPalette } from '@/constants/day-part';
 import { MaxTextScale } from '@/constants/theme';
 import { scaled } from '@/constants/ui-scale';
 
-import { clusterDots, goalPills, hourDots, type Pill, pillRun, STEPS_TILE } from './steps-tile-model';
+import { dotGrid, goalTrack, type Part, sleepTrack, STEPS_TILE } from './steps-tile-model';
 
 const clamp01 = (x: number) => (Number.isFinite(x) ? Math.min(1, Math.max(0, x)) : 0);
 
@@ -49,14 +49,12 @@ export const TOD = {
   /** At most this many glasses are drawn. */
   glassesMax: 10,
   meter: 5,
-  /** The hour dots: rows per hour, the dot and the gap between rows. */
+  /** The dot grid: rows, the dot and the gap (the same across and up). */
   dotRows: STEPS_TILE.dotRows,
-  dot: 3,
-  dotGap: 1.5,
-  /** The goal bar and Sleep's pills: height. */
-  goalHeight: 8,
-  /** The rounded bars of Distance, Active, Food and Sleep. */
-  pill: 8,
+  dot: 3.5,
+  dotGap: 3.5,
+  /** Every bar: the goal bar, Distance, Active, Food and Sleep. */
+  pill: 10,
 } as const;
 
 /* ───────────── Motion ───────────── */
@@ -236,13 +234,14 @@ export function glassesOf(glasses: number, of: number | null): { count: number; 
   return { count, full: Math.min(count, Math.max(0, Math.round(glasses))) };
 }
 
-export function Glasses({ glasses, of, color }: { glasses: number; of: number | null; color: string }) {
+/** The glasses: `color` outlines, the full ones filled with `fill` (pale water blue on Today). */
+export function Glasses({ glasses, of, color, fill }: { glasses: number; of: number | null; color: string; fill?: string }) {
   const { count, full } = glassesOf(glasses, of);
   return (
     <View {...hidden} style={styles.glasses}>
       {Array.from({ length: count }, (_, i) => (
         <View key={i} style={[styles.glass, { borderColor: color }]}>
-          {i < full ? <View style={[styles.water, { backgroundColor: color }]} /> : null}
+          {i < full ? <View style={[styles.water, { backgroundColor: fill ?? color }]} /> : null}
         </View>
       ))}
     </View>
@@ -280,147 +279,168 @@ function useBlink(): SharedValue<number> {
   return o;
 }
 
+/** The grid's greys: the latest peak, the older ones, the scales (owner's reference). */
+const DARK = '#3A3A3A';
+const FADED = '#CFCFCF';
+const FAINT = '#B0B0B0';
+/** Under the filled part of a bar, between its pills. */
+const BASE = '#E8E8E8';
+
 /**
- * One column of dots per hour, filled from the bottom: grey for steps, faint
- * for none, the hour now in red and gently blinking (the screen's one
- * continuous movement).
+ * The day as an even grid of round dots, two columns an hour: wide peaks for
+ * the busy spells, the latest dark and the older light, a faint base line for
+ * the quiet. Across it near the top, the now line: a red pointer that gently
+ * blinks (the screen's one continuous movement), a red hairline and the time.
  */
-export function HourDots({ hourly, nowHour, p, gap }: { hourly: number[]; nowHour: number; p: DayPalette; gap?: number }) {
-  const counts = hourDots(hourly, nowHour);
+export function HourDots({ hourly, nowHour, p, time, tight }: { hourly: number[]; nowHour: number; p: DayPalette; time: string; tight?: boolean }) {
+  const { n, recent } = dotGrid(hourly, nowHour);
   const blink = useBlink();
   const pulse = useAnimatedStyle(() => ({ opacity: blink.value }));
-  const { dotRows: rows, dot } = TOD;
-  const dotGap = gap ?? TOD.dotGap;
-  // Only the steps are drawn; an hour with none keeps one faint dot on the base line.
-  const column = (n: number, color: string, k: number) => (
-    <View key={k} style={[styles.dotColumn, { gap: dotGap }]}>
-      {Array.from({ length: rows }, (_, r) => {
-        const up = rows - r;
-        const bg = up <= n ? color : up === 1 ? p.edge : 'transparent';
-        return <View key={r} style={{ width: dot, height: dot, borderRadius: dot / 2, backgroundColor: bg }} />;
-      })}
-    </View>
-  );
-  const cluster = (n: number, color: string) => clusterDots(n).map((c, k) => column(c, color, k));
+  const rows = TOD.dotRows;
+  const dot = tight ? 3 : TOD.dot;
+  const gap = tight ? 2.6 : TOD.dotGap;
+  const height = rows * dot + (rows - 1) * gap;
   return (
-    <View {...hidden} style={[styles.dots, { height: rows * dot + (rows - 1) * dotGap }]}>
-      {counts.map((n, i) =>
-        i === nowHour ? (
-          <Animated.View key={i} style={[styles.cluster, pulse]}>
-            {cluster(Math.max(1, n), p.accent)}
-          </Animated.View>
-        ) : (
-          <View key={i} style={styles.cluster}>
-            {cluster(n, p.muted)}
+    <View {...hidden} style={{ height }}>
+      <View style={[styles.dots, { height }]}>
+        {n.map((k, c) => (
+          <View key={c} style={{ gap }}>
+            {Array.from({ length: rows }, (_, r) => {
+              const up = rows - r;
+              const bg = up <= k ? (recent[c] ? DARK : FADED) : up === 1 ? p.edge : 'transparent';
+              return <View key={r} style={{ width: dot, height: dot, borderRadius: dot / 2, backgroundColor: bg }} />;
+            })}
           </View>
-        ),
-      )}
+        ))}
+      </View>
+      <View style={[styles.nowRow, { top: dot + gap + dot / 2 - 6 }]}>
+        <Animated.View style={[styles.nowTip, { borderLeftColor: p.accent }, pulse]} />
+        <View style={[styles.nowLine, { backgroundColor: p.accent }]} />
+        <View style={{ backgroundColor: p.card, paddingLeft: 4 }}>
+          <Tick text={time} color={p.muted} />
+        </View>
+      </View>
     </View>
   );
 }
 
-/* ───────────── Pill runs: the goal bar and Sleep ───────────── */
+/* ───────────── Bars ───────────── */
 
-/** Fine upright grey strokes: what is still to come. */
-function Rest({ p, h }: { p: DayPalette; h: number }) {
+/** Faint slanted strokes: what is still to come. */
+function Hatch({ p, h }: { p: DayPalette; h: number }) {
   return (
-    <View style={[styles.pillRest, { height: h, borderRadius: h / 2 }]}>
-      {Array.from({ length: 80 }, (_, i) => (
-        <View key={i} style={{ width: 1, height: h, backgroundColor: p.track }} />
+    <View style={[styles.hatch, { height: h, borderRadius: h / 2 }]}>
+      {Array.from({ length: 90 }, (_, i) => (
+        <View key={i} style={{ width: 1, height: h * 2, marginTop: -h / 2, backgroundColor: p.track, transform: [{ rotate: '35deg' }] }} />
       ))}
     </View>
   );
 }
 
-/**
- * Pills of mixed length, black or red, over `filled` of the bar (growing in
- * once), then the strokes; with `dot`, a red dot at the end of the pills.
- */
-export function PillRun({ pills, filled, p, dot, marks }: { pills: Pill[]; filled: number; p: DayPalette; dot?: boolean; marks?: string[] }) {
-  const g = useGrow(filled, 1300, 250);
-  const grow = useAnimatedStyle(() => ({ width: `${g.value * 100}%` }));
-  const h = TOD.goalHeight;
+/** A tiny faint triangle over a bar at `at` (0..1): where the figure stands. */
+function Marker({ at, w }: { at: number; w: number }) {
   return (
-    <View {...hidden}>
-      <View style={[styles.pillTrack, { height: h, borderRadius: h / 2 }]}>
-        <Animated.View style={[styles.run, { height: h }, grow]}>
-          {pills.map((x, i) => (
-            <View key={i} style={{ flex: x.w, minWidth: 2, height: h, borderRadius: h / 2, backgroundColor: x.red ? p.accent : p.ringB }} />
-          ))}
-          {dot && pills.length ? <View style={{ width: h, height: h, borderRadius: h / 2, backgroundColor: p.accent }} /> : null}
-        </Animated.View>
-        <Rest p={p} h={h} />
-      </View>
-      {marks ? <Scale marks={marks} p={p} /> : null}
+    <View style={styles.markerRow}>
+      <View style={[styles.marker, { left: Math.max(0, Math.min(w - 6, at * w - 3)) }]} />
     </View>
   );
 }
 
-/** The goal bar: black pills to the steps with the leading one red, red past the goal, strokes for what is left. */
+/** A piece of a bar, ready to draw: a pill or a dot, in `color`. */
+export interface TrackPart {
+  from: number;
+  to: number;
+  color: string;
+  dot: boolean;
+}
+
+/** A bar's model pieces, coloured: black (or `black`) pills, red ones and red dots. */
+export function coloured(parts: Part[], p: DayPalette, black: string = p.ringB): TrackPart[] {
+  return parts.map((x) => ({ from: x.from, to: x.to, dot: x.dot, color: x.red ? p.accent : black }));
+}
+
+/**
+ * A rounded bar 10 high: pills and dots over a light base up to `filled`
+ * (shown left to right once), faint slanted strokes for the rest; optionally
+ * a tiny triangle over it and faint marks under it.
+ */
+export function Track({ parts, filled, p, marks, marker }: { parts: TrackPart[]; filled: number; p: DayPalette; marks?: string[]; marker?: number }) {
+  const [w, setW] = useState(0);
+  const h = TOD.pill;
+  const g = useGrow(1, 1300, 300);
+  const f = clamp01(filled);
+  // Each dot sits whole inside the bar; pills keep a small gap, more beside a dot.
+  const dotX = (x: number) => Math.max(h / 2, Math.min(w - h / 2, x * w));
+  const dots = parts.filter((x) => x.dot).map((x) => dotX(x.from));
+  const edge = (x: number, side: 1 | -1) => {
+    const px = x * w;
+    const near = dots.find((d) => Math.abs(d - px) < h);
+    if (near !== undefined) return near + side * (h / 2 + 2);
+    return px <= 0.5 || px >= w - 0.5 ? px : px + side * 1.5;
+  };
+  const end = Math.max(f * w, ...dots.map((d) => d + h / 2));
+  const reveal = useAnimatedStyle(() => ({ width: g.value * end }));
+  return (
+    <View {...hidden}>
+      {marker !== undefined && w > 0 ? <Marker at={clamp01(marker)} w={w} /> : null}
+      <View style={{ height: h }} onLayout={(e) => setW(e.nativeEvent.layout.width)}>
+        {w > 0 ? (
+          <>
+            <View style={[styles.track, { left: Math.min(w, end + (end > 0 ? 3 : 0)), right: 0 }]}>
+              <Hatch p={p} h={h} />
+            </View>
+            <Animated.View style={[styles.reveal, { height: h }, reveal]}>
+              {f > 0 ? <View style={[styles.base, { width: f * w, height: h, borderRadius: h / 2 }]} /> : null}
+              {parts.map((x, i) => {
+                if (x.dot) {
+                  return <View key={i} style={[styles.piece, { left: dotX(x.from) - h / 2, width: h, height: h, borderRadius: h / 2, backgroundColor: x.color }]} />;
+                }
+                const a = edge(x.from, 1);
+                const b = edge(x.to, -1);
+                return b - a < 2 ? null : <View key={i} style={[styles.piece, { left: a, width: b - a, height: h, borderRadius: h / 2, backgroundColor: x.color }]} />;
+              })}
+            </Animated.View>
+          </>
+        ) : null}
+      </View>
+      {marks ? <Scale marks={marks} /> : null}
+    </View>
+  );
+}
+
+/** The goal bar: long black pills to the steps, red dots at the quarters passed, red past the goal, strokes for what is left. */
 export function GoalBar({ steps, goal, p }: { steps: number; goal: number; p: DayPalette }) {
-  const { filled, pills } = goalPills(steps, goal);
-  return <PillRun pills={pills} filled={filled} p={p} />;
+  const { filled, parts } = goalTrack(steps, goal);
+  return <Track parts={coloured(parts, p)} filled={filled} p={p} />;
 }
 
-/** Sleep's bar: black pills with a red dot at their end. */
-export function SleepBar({ share, p }: { share: number; p: DayPalette }) {
+/** Sleep's bar: two black pills and a red dot at their end, the triangle over it. */
+export function SleepBar({ share, p, marks }: { share: number; p: DayPalette; marks?: string[] }) {
   const f = clamp01(share);
-  return <PillRun pills={pillRun(f, null, false, 2.5)} filled={f} p={p} dot />;
+  return <Track parts={coloured(sleepTrack(f), p)} filled={f} p={p} marks={marks} marker={f} />;
 }
 
-/* ───────────── Pill bars, scales and the now line ───────────── */
+/* ───────────── Scales ───────────── */
 
-/** A small number or time in monospace under a bar ("2,000", "15m") or at the end of the now line. */
-export function Tick({ text, color }: { text: string; color: string }) {
+/** A small number or time in monospace: a scale mark ("2,000", "15m") or the time on the now line. */
+export function Tick({ text, color, size = 10 }: { text: string; color: string; size?: number }) {
   return (
     <Text
       numberOfLines={1}
       maxFontSizeMultiplier={MaxTextScale}
-      style={{ fontFamily: 'monospace', fontSize: scaled(10), lineHeight: scaled(12), letterSpacing: 0.5, color, includeFontPadding: false }}>
+      style={{ fontFamily: 'monospace', fontSize: scaled(size), lineHeight: scaled(size + 2), letterSpacing: 0.5, color, includeFontPadding: false }}>
       {text}
     </Text>
   );
 }
 
-/** Marks under a bar, spread from left to right. */
-export function Scale({ marks, p }: { marks: string[]; p: DayPalette }) {
+/** Faint small marks under a bar, spread from left to right. */
+export function Scale({ marks }: { marks: string[] }) {
   return (
     <View {...hidden} style={styles.scale}>
       {marks.map((t, i) => (
-        <Tick key={`${i}-${t}`} text={t} color={p.muted} />
+        <Tick key={`${i}-${t}`} text={t} color={FAINT} size={9} />
       ))}
-    </View>
-  );
-}
-
-/**
- * A rounded bar: `share` filled in `color` (growing in once), the rest as fine
- * grey upright strokes, optionally with marks under it.
- */
-export function PillBar({ share, color, p, marks, tip }: { share: number; color: string; p: DayPalette; marks?: string[]; tip?: string }) {
-  const g = useGrow(share, 1300, 350);
-  const fill = useAnimatedStyle(() => ({ width: `${g.value * 100}%` }));
-  const h = TOD.pill;
-  return (
-    <View {...hidden}>
-      <View style={[styles.pillTrack, { height: h, borderRadius: h / 2 }]}>
-        <Animated.View style={[styles.pillFill, { height: h, borderRadius: h / 2, backgroundColor: color }, fill]}>
-          {tip && share >= 0.15 ? <View style={[styles.tip, { backgroundColor: tip }]} /> : null}
-        </Animated.View>
-        <Rest p={p} h={h} />
-      </View>
-      {marks ? <Scale marks={marks} p={p} /> : null}
-    </View>
-  );
-}
-
-/** The red line over the hour dots: a dot, a hairline and the time now ("11:10"). */
-export function NowLine({ time, p }: { time: string; p: DayPalette }) {
-  return (
-    <View {...hidden} style={styles.nowRow}>
-      <View style={[styles.nowDot, { backgroundColor: p.accent }]} />
-      <View style={[styles.nowLine, { backgroundColor: p.accent, opacity: 0.6 }]} />
-      <Tick text={time} color={p.muted} />
     </View>
   );
 }
@@ -438,17 +458,36 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     opacity: 0.9,
   },
-  water: { position: 'absolute', left: 0, right: 0, bottom: 0, height: '80%', opacity: 0.8 },
+  water: { position: 'absolute', left: 0, right: 0, bottom: 0, height: '80%' },
   dots: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
-  dotColumn: { flexDirection: 'column' },
-  cluster: { flexDirection: 'row', gap: 1, alignItems: 'flex-end' },
-  run: { flexDirection: 'row', gap: 3, overflow: 'hidden' },
-  pillTrack: { flexDirection: 'row', overflow: 'hidden' },
-  pillFill: { alignItems: 'flex-end', justifyContent: 'center', paddingRight: 2 },
-  tip: { width: 4, height: 4, borderRadius: 2 },
-  pillRest: { flex: 1, marginLeft: 3, flexDirection: 'row', gap: 2, overflow: 'hidden' },
+  nowRow: { position: 'absolute', left: 0, right: 0, height: 12, flexDirection: 'row', alignItems: 'center' },
+  nowTip: {
+    width: 0,
+    height: 0,
+    borderTopWidth: 4,
+    borderBottomWidth: 4,
+    borderLeftWidth: 6,
+    borderTopColor: 'transparent',
+    borderBottomColor: 'transparent',
+  },
+  nowLine: { flex: 1, height: 1, opacity: 0.55 },
+  track: { position: 'absolute', top: 0, bottom: 0 },
+  hatch: { flex: 1, flexDirection: 'row', gap: 3, overflow: 'hidden' },
+  reveal: { position: 'absolute', left: 0, top: 0, overflow: 'hidden' },
+  base: { position: 'absolute', left: 0, top: 0, backgroundColor: BASE },
+  piece: { position: 'absolute', top: 0 },
+  markerRow: { height: 4, marginBottom: 3 },
+  marker: {
+    position: 'absolute',
+    top: 0,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 3,
+    borderRightWidth: 3,
+    borderBottomWidth: 4,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderBottomColor: FAINT,
+  },
   scale: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
-  nowRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  nowDot: { width: 5, height: 5, borderRadius: 2.5 },
-  nowLine: { flex: 1, height: 1 },
 });

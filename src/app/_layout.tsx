@@ -19,7 +19,6 @@ import { Onboarding } from '@/components/onboarding';
 import { ActiveTheme, Colors, Fonts, ThemeMode } from '@/constants/theme';
 import { fontMap } from '@/constants/themes/build';
 import { CLEAN_FONT_FILES } from '@/constants/themes/fonts';
-import { Figtree_300Light } from '@expo-google-fonts/figtree/300Light';
 import { installPreviewClock } from '@/design-preview/clock';
 import { previewLaunch } from '@/design-preview/launch';
 import { SampleDataProvider } from '@/design-preview/providers';
@@ -45,7 +44,7 @@ if (PREVIEW) installPreviewClock(SAMPLE_NOW);
 
 /** The active theme's faces, plus the Clean+ faces (Poppins and Telugu); the splash waits for these. */
 // Figtree Light: Today's steps count (owner, 17 Nov 2026).
-const FONTS = { ...fontMap(ActiveTheme), ...CLEAN_FONT_FILES, Figtree_300Light };
+const FONTS = { ...fontMap(ActiveTheme), ...CLEAN_FONT_FILES };
 
 /** Fonts not loaded by then are skipped, and the system font stands in, so the splash never hangs. */
 const FONT_WAIT_MS = 3000;

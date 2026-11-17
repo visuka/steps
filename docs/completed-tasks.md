@@ -268,3 +268,9 @@ Not committed. No server or AWS change. Nothing is removed from any count.
 - Today: top row with avatar, NUTRITION / ACTIVITY switch and calendar button; light step count (Figtree Light); red now line with the time over dense hour dots; rounded goal pills with a scale; no percentage; Distance and Active as own cards with ↗ and scaled bars; FOOD & SLEEP title; red Sleep and Active bars; no card outlines. New `PillBar`, `NowLine`, `Scale`, `Tick` in `time-of-day-parts.tsx`; icons `calendar` and `arrow-up-right` (spec section 8).
 - Bottom bar: round 48 dp buttons without drawn labels (TalkBack names kept), on the screen's ground.
 - Second pass (owner: "Yes, make all 10"): hour dots as peaks only, mixed-length goal and Sleep pills (`pillRun`, `goalPills`, `clusterDots` in `steps-tile-model.ts`, tested), a line under the count, one figure style, bold section title, compact switch, soft shadows, 44 dp bottom circles.
+
+## Today, third pass on the reference; water in pale blue; bigger bottom buttons (17 Nov 2026, Opus)
+
+- Condensed figures ("8.2km", "52m", "6h 50m"); full-width divider; even round dot grid with wide peaks, latest dark (`dotGrid`); now line with a red triangle across the grid; 10 dp bars on a light base with slanted hatching (`Track`, `goalTrack`, `sleepTrack`); goal bar of long black pills and red quarter dots; pale grey Distance; faint triangles and scales on Food and Sleep; fainter, smaller scales.
+- Water pale blue: #2B70AE outlines and plus, #A9D4F5 fill, theme water blue.
+- Bottom bar: 52 dp circles 6 apart, idle icons black.

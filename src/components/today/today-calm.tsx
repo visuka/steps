@@ -27,7 +27,7 @@ import { formatSteps } from '@/lib/format';
 import { dailyQuote } from './model';
 import { NewsTicker } from './news-ticker';
 import { activeRange } from './steps-tile-model';
-import { Glasses, GoalBar, HourDots, NowLine, PillBar, Scale, SleepBar, useCountUp } from './time-of-day-parts';
+import { coloured, Glasses, GoalBar, HourDots, Scale, SleepBar, Track, useCountUp } from './time-of-day-parts';
 import {
   foodTile,
   lockedTileModel,
@@ -191,8 +191,8 @@ function Head({ icon, text, color, more }: { icon: SpecIconName; text: string; c
   );
 }
 
-/** Light numerals (Figtree Light) for the big figures. */
-const LIGHT = 'Figtree_300Light';
+/** Narrow light numerals for the figures, as in the owner's reference (the phone's own condensed face). */
+const CONDENSED = 'sans-serif-condensed';
 
 /** A big light figure with its unit as a small label: "8.1 KM", "7 MIN". */
 function Figure({ value, unit, size, p }: { value: string; unit?: string; size: number; p: DayPalette }) {
@@ -203,7 +203,7 @@ function Figure({ value, unit, size, p }: { value: string; unit?: string; size: 
         adjustsFontSizeToFit
         minimumFontScale={0.7}
         maxFontSizeMultiplier={MaxTextScale}
-        style={{ fontFamily: LIGHT, fontSize: scaled(size), lineHeight: scaled(size + 4), letterSpacing: -0.5, color: p.text, includeFontPadding: false, flexShrink: 1, fontVariant: ['tabular-nums'] }}>
+        style={{ fontFamily: CONDENSED, fontWeight: '300', fontSize: scaled(size), lineHeight: scaled(size + 4), letterSpacing: -0.5, color: p.text, includeFontPadding: false, flexShrink: 1, fontVariant: ['tabular-nums'] }}>
         {value}
       </Text>
       {unit ? <Label text={unit} color={p.muted} style={{ marginBottom: scaled(size / 6) }} /> : null}
@@ -214,20 +214,27 @@ function Figure({ value, unit, size, p }: { value: string; unit?: string; size: 
 /** The small Active bar is full at 30 active minutes. */
 const ACTIVE_BAR_MIN = 30;
 
-/** A card's figure, plain medium weight, the unit small right after it: "4.6km", "1,280kcal" (owner's reference). */
-function Amount({ value, unit, size, p }: { value: string; unit?: string; size: number; p: DayPalette }) {
+/** A card's figure in the narrow face, the unit joined to it at the same size: "4.6km", "52m", "6h 50m" (owner's reference). */
+function Amount({ text, size, p }: { text: string; size: number; p: DayPalette }) {
   return (
     <Text
       numberOfLines={1}
       adjustsFontSizeToFit
       minimumFontScale={0.7}
       maxFontSizeMultiplier={MaxTextScale}
-      style={{ fontFamily: face(500), fontSize: scaled(size), lineHeight: scaled(size + 6), letterSpacing: -0.4, color: p.text, includeFontPadding: false, fontVariant: ['tabular-nums'] }}>
-      {value}
-      {unit ? <Text style={{ fontSize: scaled(Math.round(size * 0.64)), letterSpacing: 0 }}>{` ${unit}`}</Text> : null}
+      style={{ fontFamily: CONDENSED, fontWeight: '400', fontSize: scaled(size), lineHeight: scaled(size + 4), letterSpacing: -0.2, color: p.text, includeFontPadding: false, fontVariant: ['tabular-nums'] }}>
+      {text}
     </Text>
   );
 }
+
+/** "52m", or "2h 24m" from an hour. */
+function minutes(n: number): string {
+  return n < 60 ? `${n}m` : `${Math.floor(n / 60)}h ${n % 60}m`;
+}
+
+/** Distance's bar: pale grey (owner's reference). */
+const PALE = '#C8C8C8';
 
 /** Soft shadow under cards and the selected buttons (owner's reference). */
 const LIFT = { elevation: 2, shadowColor: '#00000038' } as const;
@@ -242,7 +249,6 @@ function Stat({
   icon,
   label,
   value,
-  unit,
   share: s,
   color,
   marks,
@@ -256,7 +262,6 @@ function Stat({
   icon: SpecIconName;
   label: string;
   value: string;
-  unit: string;
   share: number;
   color: string;
   marks: string[] | undefined;
@@ -271,10 +276,10 @@ function Stat({
     <Press onPress={onPress} label={spoken} ripple={`${p.text}14`} style={[card, styles.half]}>
       <Head icon={icon} text={label} color={p.muted} more={p.text} />
       <View style={{ marginTop: tight ? 2 : 4 }}>
-        <Amount value={value} unit={unit} size={tight ? 20 : 22} p={p} />
+        <Amount text={value} size={tight ? 18 : 20} p={p} />
       </View>
       <View style={{ marginTop: tight ? 4 : 6 }}>
-        <PillBar share={s} color={color} p={p} marks={lean ? undefined : marks} />
+        <Track parts={[{ from: 0, to: Math.min(1, Math.max(0, s)), color, dot: false }]} filled={s} p={p} marks={lean ? undefined : marks} />
       </View>
     </Press>
   );
@@ -317,7 +322,7 @@ function Section({ text, p }: { text: string; p: DayPalette }) {
       accessibilityRole="header"
       numberOfLines={1}
       maxFontSizeMultiplier={MaxTextScale}
-      style={{ fontFamily: 'monospace', fontWeight: '700', fontSize: scaled(15), lineHeight: scaled(20), letterSpacing: 1.2, color: p.text, includeFontPadding: false, marginTop: 2 }}>
+      style={{ fontFamily: 'monospace', fontWeight: '700', fontSize: scaled(15), lineHeight: scaled(20), letterSpacing: 1.2, color: p.text, includeFontPadding: false, marginTop: 6 }}>
       {text.toUpperCase()}
     </Text>
   );
@@ -388,6 +393,9 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
   const distMarks = s > 0 && dist > 0 ? ['0', short(dist / s / 2), `${short(dist / s)} ${d.unit}`] : undefined;
   const past = Math.max(0, v.steps - v.goal);
   const active = Math.max(0, Math.round(v.activeMin ?? 0));
+  const foodShare = Math.min(1, Math.max(0, m.food.share ?? 0));
+  const foodTarget = Number(String(v.food.target ?? '').replace(/[^0-9.]/g, '')) || 0;
+  const foodMarks = foodTarget > 0 ? ['0', formatSteps(foodTarget / 2), formatSteps(foodTarget)] : null;
   const ripple = `${p.text}14`;
 
   return (
@@ -426,12 +434,9 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
             <Figure value={formatSteps(steps)} unit="Steps" size={tight ? 34 : 38} p={p} />
             {past > 0 ? null : <Label text={`${formatSteps(toGo)} to go`} color={p.muted} style={{ marginBottom: scaled(8) }} />}
           </View>
-          <View style={{ height: 1, backgroundColor: p.edge, marginTop: tight ? 4 : 8 }} />
-          <View style={{ marginTop: tight ? 3 : 5 }}>
-            <NowLine time={time} p={p} />
-          </View>
-          <View style={{ marginTop: tight ? 4 : 6 }}>
-            <HourDots hourly={v.hourly} nowHour={v.nowHour} p={p} gap={tight ? 1 : 1.5} />
+          <View style={{ height: 1, backgroundColor: p.edge, marginTop: tight ? 4 : 8, marginHorizontal: -16 }} />
+          <View style={{ marginTop: tight ? 6 : 10 }}>
+            <HourDots hourly={v.hourly} nowHour={v.nowHour} p={p} time={time} tight={tight} />
           </View>
           <View style={{ marginTop: tight ? 5 : 8 }}>
             <GoalBar steps={v.steps} goal={v.goal} p={p} />
@@ -445,7 +450,7 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
               </View>
             </View>
           ) : goalMarks ? (
-            <Scale marks={goalMarks} p={p} />
+            <Scale marks={goalMarks} />
           ) : null}
         </Pressable>
       </Rise>
@@ -454,10 +459,9 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
         <Stat
           icon="feet"
           label="Distance"
-          value={d.value}
-          unit={d.unit}
+          value={`${d.value}${d.unit}`}
           share={s}
-          color={p.ringA}
+          color={PALE}
           marks={distMarks}
           spoken={`Distance ${d.value} ${d.unit}`}
           onPress={v.on.steps}
@@ -469,8 +473,7 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
         <Stat
           icon="clock"
           label="Active"
-          value={String(active)}
-          unit="min"
+          value={minutes(active)}
           share={active / ACTIVE_BAR_MIN}
           color={p.accent}
           marks={['0', '15m', `${ACTIVE_BAR_MIN}m`]}
@@ -491,7 +494,7 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
         <Press onPress={tapFor(v, 'food')} label={m.food.spoken} ripple={ripple} style={[card, styles.half]}>
           <Head icon={L ? 'lock' : 'bowl'} text="Food" color={p.muted} more={L ? undefined : p.text} />
           <View style={{ marginTop: tight ? 2 : 4 }}>
-            <Amount value={m.food.value} unit={L ? undefined : 'kcal'} size={tight ? 20 : 22} p={p} />
+            <Amount text={L ? m.food.value : `${m.food.value} kcal`} size={tight ? 18 : 20} p={p} />
           </View>
           {L ? null : (
             <>
@@ -499,7 +502,13 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
                 of {v.food.target} kcal
               </T>
               <View style={{ marginTop: tight ? 4 : 8 }}>
-                <PillBar share={m.food.share ?? 0} color={p.main} tip={p.accent} p={p} />
+                <Track
+                  parts={coloured([{ from: 0, to: foodShare, red: false, dot: false }, { from: foodShare, to: foodShare, red: true, dot: true }], p, p.main)}
+                  filled={foodShare}
+                  p={p}
+                  marker={foodShare}
+                  marks={lean || !foodMarks ? undefined : foodMarks}
+                />
               </View>
             </>
           )}
@@ -507,7 +516,7 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
         <Press onPress={tapFor(v, 'sleep')} label={m.sleep.spoken} ripple={ripple} style={[card, styles.half]}>
           <Head icon={L ? 'lock' : 'moon'} text="Sleep" color={p.muted} more={L ? undefined : p.text} />
           <View style={{ marginTop: tight ? 2 : 4 }}>
-            <Amount value={m.sleep.value} unit={L ? undefined : m.sleep.unit} size={tight ? 20 : 22} p={p} />
+            <Amount text={!L && v.sleep ? `${v.sleep.h}h ${v.sleep.m}m` : m.sleep.value} size={tight ? 18 : 20} p={p} />
           </View>
           {L ? null : (
             <>
@@ -515,7 +524,7 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
                 Last night
               </T>
               <View style={{ marginTop: tight ? 4 : 8 }}>
-                <SleepBar share={m.sleep.share ?? 0} p={p} />
+                <SleepBar share={m.sleep.share ?? 0} p={p} marks={lean ? undefined : ['0h', '4h', '8h']} />
               </View>
             </>
           )}
@@ -533,14 +542,14 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
           {L ? null : (
             <>
               <View style={{ marginLeft: 'auto' }}>
-                <Glasses glasses={v.water.glasses} of={v.water.of} color={p.water} />
+                <Glasses glasses={v.water.glasses} of={v.water.of} color={p.water} fill={p.waterLane} />
               </View>
               <Press
                 onPress={v.on.addGlass}
                 label="Add a glass of water"
                 ripple={`${p.water}22`}
                 hitSlop={7}
-                style={[styles.plus, { borderColor: p.water, backgroundColor: p.waterLane }]}>
+                style={[styles.plus, { borderColor: p.water, backgroundColor: `${p.water}1F` }]}>
                 <SpecIcon name="plus" color={p.water} size={18} />
               </Press>
             </>

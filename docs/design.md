@@ -32,7 +32,8 @@ Size rule: the mockup phone screen is **360 px wide; 1 mockup px = 1 dp**. Text 
 | --- | --- |
 | Screen ground (`background`, `surface`, Today `bg`) | #F1F1F1 |
 | Cards (`surfaceContainerLowest`, Today `card`), the bottom bar | #FBFBFB |
-| Text, the main button, the data (steps, food, water), filled segments | #000000 |
+| Text, the main button, the data (steps, food), filled segments | #000000 |
+| Water (glasses, plus button, Water screen) | #2B70AE, fill #A9D4F5 |
 | Soft black (secondary, sleep, food3) | #3C3C3C |
 | Second text (`onSurfaceVariant`, Today `muted`) | #5E5E5E (#8C8C8C fails 4.5:1 on the ground, so it is used only for the hour dots) |
 | Hour dots with steps (Today `ringA`) | #8C8C8C |
@@ -65,9 +66,23 @@ The owner sent the reference next to build 80 and asked for every difference to 
 - FOOD & SLEEP title: bold mono 15.
 - The switch is a compact pill in the middle (each half sized to its word); the selected half, the round top buttons and the cards sit on a soft shadow (elevation 2).
 
+### Third pass on the reference, and water in pale blue (owner, 17 Nov 2026: "Yes, all in one")
+
+This replaces what the two passes above say about the figures, the hour dots, the now line and the bars.
+
+- **Figures:** the phone's condensed face (`sans-serif-condensed`): the step count light 38 (34 on short screens); the card figures regular 20 (18), the unit joined at the same size: "4.6km", "52m" or "2h 24m", "1,280 kcal", "6h 50m". Figtree Light is no longer loaded.
+- **Hour dots:** an even grid of round dots, 3.5 dp with 3.5 dp gaps (3 and 2.6 on short screens), 7 rows, two columns an hour, smoothed into wide peaks (`dotGrid`). The latest peak #3A3A3A, older peaks #CFCFCF, quiet columns one faint base dot (#E4E4E4).
+- **Now line:** across the grid on its second row: a red triangle (blinking, the one continuous movement), a red hairline (55%) and the time on the right.
+- **Divider** under the count: the full card width.
+- **Bars:** all 10 high. Filled part on a light base (#E8E8E8), the rest faint slanted strokes (#DCDCDC). Goal: a few long black pills with a red dot at each quarter of the goal passed; past the goal one red pill after it. Distance pale grey #C8C8C8, Active red, Food black with a red dot at its end, Sleep two black pills and a red dot.
+- **Food and Sleep:** a tiny faint triangle (#B0B0B0) over the bar where the figure stands; scales 0 · half · target (Food) and 0h · 4h · 8h (Sleep), hidden on short screens and with large text.
+- **Scales:** mono 9 in #B0B0B0 (decorative; the cards say their figures to TalkBack).
+- **FOOD & SLEEP** title: 6 dp more room above it.
+- **Water in pale blue:** glasses outlined #2B70AE and filled #A9D4F5; the plus button #2B70AE on a 12% tint. Theme `water` #2B70AE (5.2:1 on white, 3.2:1 on the #CCCCCC lane), `waterContainer` #DCEEFB, map water #D4E7F5.
+
 ### Bottom bar (every screen)
 
-A row of 44 dp round buttons (48 dp touch), 12 apart, centred, on the screen's own ground, no hairline; 60 dp plus the system inset. The selected one is a #FBFBFB circle on a soft shadow with a black icon, the others #E4E4E4 circles with grey icons. Labels are not drawn; TalkBack still says each name (`nav-style.ts`, `navigation-bar.tsx`).
+A row of 52 dp round buttons, 6 apart (almost touching), centred, on the screen's own ground, no hairline; 60 dp plus the system inset. The selected one is a #FBFBFB circle on a soft shadow with a black icon, the others #E4E4E4 circles with black icons. Labels are not drawn; TalkBack still says each name (`nav-style.ts`, `navigation-bar.tsx`).
 
 ## History
 
