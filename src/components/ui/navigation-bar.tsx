@@ -48,7 +48,7 @@ export interface NavigationBarProps {
 }
 
 /**
- * The bottom bar (docs/design.md "Bottom bar", owner 17 Nov 2026): 64 dp plus
+ * The bottom bar (docs/design.md "Bottom bar", owner 17 Nov 2026): 60 dp plus
  * the system inset, on the screen's ground, a row of 48 dp round buttons 16
  * apart. The selected one is a near-white circle with a black icon, the
  * others grey circles with grey icons. Labels are not drawn; TalkBack says them.

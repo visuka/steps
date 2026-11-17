@@ -233,6 +233,7 @@ function Stat({
   p,
   card,
   tight,
+  lean,
 }: {
   icon: SpecIconName;
   label: string;
@@ -246,25 +247,27 @@ function Stat({
   p: DayPalette;
   card: object;
   tight: boolean;
+  lean: boolean;
 }) {
   return (
     <Press onPress={onPress} label={spoken} ripple={`${p.text}14`} style={[card, styles.half]}>
       <Head icon={icon} text={label} color={p.muted} more={p.text} />
-      <View style={{ marginTop: tight ? 2 : 6 }}>
-        <Figure value={value} unit={unit} size={tight ? 22 : 26} p={p} />
+      <View style={{ marginTop: tight ? 0 : 4 }}>
+        <Figure value={value} unit={unit} size={tight ? 22 : 24} p={p} />
       </View>
-      <View style={{ marginTop: tight ? 6 : 10 }}>
-        <PillBar share={s} color={color} p={p} marks={tight ? undefined : marks} />
+      <View style={{ marginTop: tight ? 4 : 8 }}>
+        <PillBar share={s} color={color} p={p} marks={lean ? undefined : marks} />
       </View>
     </Press>
   );
 }
 
 /** Today's top row: the avatar, the Nutrition / Activity switch and the calendar. */
-function TopBar({ v, p }: { v: TodayView; p: DayPalette }) {
+function TopBar({ v, p, tight }: { v: TodayView; p: DayPalette; tight: boolean }) {
+  const h = tight ? styles.short : null;
   return (
     <View style={styles.topBar}>
-      <Press onPress={v.on.profile} label="Your profile" ripple={`${p.main}22`} style={[styles.round, { backgroundColor: p.card }]}>
+      <Press onPress={v.on.profile} label="Your profile" ripple={`${p.main}22`} style={[styles.round, h, { backgroundColor: p.card }]}>
         {v.initial ? (
           <T size={15} line={20} weight={700} color={p.main}>
             {v.initial}
@@ -273,7 +276,7 @@ function TopBar({ v, p }: { v: TodayView; p: DayPalette }) {
           <SpecIcon name="person" color={p.main} />
         )}
       </Press>
-      <View accessibilityRole="tablist" style={[styles.switch, { backgroundColor: p.edge }]}>
+      <View accessibilityRole="tablist" style={[styles.switch, h, { backgroundColor: p.edge }]}>
         <Press onPress={v.on.logFood} label="Nutrition, opens Food" ripple={`${p.text}14`} style={styles.switchPart}>
           <Label text="Nutrition" color={p.muted} />
         </Press>
@@ -281,7 +284,7 @@ function TopBar({ v, p }: { v: TodayView; p: DayPalette }) {
           <Label text="Activity" color={p.text} />
         </View>
       </View>
-      <Press onPress={() => v.on.calendar()} label="Calendar: steps by day" ripple={`${p.main}22`} style={[styles.round, { backgroundColor: p.card }]}>
+      <Press onPress={() => v.on.calendar()} label="Calendar: steps by day" ripple={`${p.main}22`} style={[styles.round, h, { backgroundColor: p.card }]}>
         <SpecIcon name="calendar" color={p.main} size={18} />
       </Press>
     </View>
@@ -295,17 +298,23 @@ function Section({ text, p }: { text: string; p: DayPalette }) {
       accessibilityRole="header"
       numberOfLines={1}
       maxFontSizeMultiplier={MaxTextScale}
-      style={{ fontFamily: 'monospace', fontSize: scaled(15), lineHeight: scaled(20), letterSpacing: 1.5, color: p.text, includeFontPadding: false, marginTop: 4 }}>
+      style={{ fontFamily: 'monospace', fontSize: scaled(14), lineHeight: scaled(18), letterSpacing: 1.5, color: p.text, includeFontPadding: false, marginTop: 2 }}>
       {text.toUpperCase()}
     </Text>
   );
 }
 
-/** The date's second line: the weather (or the weather offer), then the day's quote. */
+/** One line: the date, the weather (or the weather offer), then the day's quote. */
 function SubLine({ v, p }: { v: TodayView; p: DayPalette }) {
   const extra = v.weather ? null : (v.slots.dateExtra ?? null);
   return (
     <View style={styles.subLine}>
+      <T size={15} line={20} weight={700} color={p.text} lines={1} style={{ letterSpacing: -0.2 }}>
+        {v.dateLabel}
+      </T>
+      <T size={13} line={18} color={p.muted}>
+        ·
+      </T>
       {v.weather ? (
         <View accessible accessibilityLabel={v.weather.spoken} style={styles.weather}>
           <WeatherIcon condition={v.weather.condition} color={p.muted} size={14} />
@@ -341,9 +350,12 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
   const L = m.locked;
   // A short screen (360 x 800 and below): tighter, so Today still fits without scrolling (CI run 44063597324).
   const { height } = useWindowDimensions();
+  // Large text: the optional extras (section title, bar scales) step aside so Today still fits.
+  const { fontScale } = useWindowDimensions();
   const tight = height < 820;
-  const gap = tight ? 8 : 12;
-  const padV = tight ? 10 : 14;
+  const lean = tight || fontScale > 1.1;
+  const gap = tight ? 8 : 10;
+  const padV = tight ? 9 : 12;
   // No outline: soft white cards on the grey ground (owner's reference).
   const card = { backgroundColor: p.card, borderRadius: 20, paddingHorizontal: 16, paddingVertical: padV };
   const steps = useCountUp(Math.max(0, v.steps));
@@ -351,7 +363,7 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
   const now = new Date();
   const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   const toGo = Math.max(0, v.goal - v.steps);
-  const goalMarks = v.goal > 0 ? [1, 2, 3, 4].map((q) => formatSteps(Math.round((v.goal * q) / 4))) : null;
+  const goalMarks = v.goal > 0 ? ['0', ...[1, 2, 3, 4].map((q) => formatSteps(Math.round((v.goal * q) / 4)))] : null;
   const dist = Number(d.value) || 0;
   const s = share(v);
   const distMarks = s > 0 && dist > 0 ? ['0', short(dist / s / 2), `${short(dist / s)} ${d.unit}`] : undefined;
@@ -361,14 +373,9 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
 
   return (
     <View style={[styles.column, { gap }]}>
-      <Rise delay={0} duration={700} distance={10} style={{ gap: tight ? 6 : 10 }}>
-        <TopBar v={v} p={p} />
-        <View style={{ minWidth: 0 }}>
-          <T size={20} line={24} weight={700} color={p.text} style={{ letterSpacing: -0.3 }} lines={1}>
-            {v.dateLabel}
-          </T>
-          <SubLine v={v} p={p} />
-        </View>
+      <Rise delay={0} duration={700} distance={10} style={{ gap: tight ? 6 : 8 }}>
+        <TopBar v={v} p={p} tight={tight} />
+        <SubLine v={v} p={p} />
       </Rise>
 
       {/* Good news moving by (owner, 16 Nov 2026). */}
@@ -397,16 +404,16 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
             {range ? <Label text={range} color={p.muted} /> : null}
           </View>
           <View style={[styles.spread, { alignItems: 'flex-end', marginTop: tight ? 2 : 6 }]}>
-            <Figure value={formatSteps(steps)} unit="Steps" size={tight ? 38 : 46} p={p} />
+            <Figure value={formatSteps(steps)} unit="Steps" size={tight ? 34 : 42} p={p} />
             {past > 0 ? null : <Label text={`${formatSteps(toGo)} to go`} color={p.muted} style={{ marginBottom: scaled(8) }} />}
           </View>
-          <View style={{ marginTop: tight ? 4 : 8 }}>
+          <View style={{ marginTop: tight ? 4 : 6 }}>
             <NowLine time={time} p={p} />
           </View>
           <View style={{ marginTop: tight ? 4 : 6 }}>
-            <HourDots hourly={v.hourly} nowHour={v.nowHour} p={p} />
+            <HourDots hourly={v.hourly} nowHour={v.nowHour} p={p} gap={tight ? 1 : 1.5} />
           </View>
-          <View style={{ marginTop: tight ? 8 : 14 }}>
+          <View style={{ marginTop: tight ? 6 : 10 }}>
             <GoalBar steps={v.steps} goal={v.goal} p={p} />
           </View>
           {past > 0 ? (
@@ -437,6 +444,7 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
           p={p}
           card={card}
           tight={tight}
+          lean={lean}
         />
         <Stat
           icon="clock"
@@ -451,23 +459,24 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
           p={p}
           card={card}
           tight={tight}
+          lean={lean}
         />
       </Rise>
 
       {v.slots.walking}
 
-      {tight ? null : <Section text="Food & sleep" p={p} />}
+      {lean ? null : <Section text="Food & sleep" p={p} />}
 
       <Rise delay={180} duration={700} distance={10} style={[styles.pair, { gap }]}>
         <Press onPress={tapFor(v, 'food')} label={m.food.spoken} ripple={ripple} style={[card, styles.half]}>
           <Head icon={L ? 'lock' : 'bowl'} text="Food" color={p.muted} more={L ? undefined : p.text} />
-          <Value value={m.food.value} unit={L ? undefined : 'kcal'} p={p} />
+          <Value value={m.food.value} unit={L ? undefined : 'kcal'} p={p} tight={tight} />
           {L ? null : (
             <>
               <T size={12} line={16} color={p.muted} fit>
                 of {v.food.target} kcal
               </T>
-              <View style={{ marginTop: tight ? 6 : 10 }}>
+              <View style={{ marginTop: tight ? 4 : 8 }}>
                 <PillBar share={m.food.share ?? 0} color={p.main} tip={p.accent} p={p} />
               </View>
             </>
@@ -475,13 +484,13 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
         </Press>
         <Press onPress={tapFor(v, 'sleep')} label={m.sleep.spoken} ripple={ripple} style={[card, styles.half]}>
           <Head icon={L ? 'lock' : 'moon'} text="Sleep" color={p.muted} more={L ? undefined : p.text} />
-          <Value value={m.sleep.value} unit={L ? undefined : m.sleep.unit} p={p} />
+          <Value value={m.sleep.value} unit={L ? undefined : m.sleep.unit} p={p} tight={tight} />
           {L ? null : (
             <>
               <T size={12} line={16} color={p.muted}>
                 Last night
               </T>
-              <View style={{ marginTop: tight ? 6 : 10 }}>
+              <View style={{ marginTop: tight ? 4 : 8 }}>
                 <PillBar share={m.sleep.share ?? 0} color={p.accent} p={p} />
               </View>
             </>
@@ -554,14 +563,14 @@ export function TodayCalm({ v }: { v: TodayView; look: TodayFrameLook }) {
 }
 
 /** A card's figure, 21 bold, with its unit in 13 semibold ("1,280 kcal", "6 h 50 min"). */
-function Value({ value, unit, p }: { value: string; unit?: string; p: DayPalette }) {
+function Value({ value, unit, p, tight }: { value: string; unit?: string; p: DayPalette; tight?: boolean }) {
   return (
     <Text
       numberOfLines={1}
       adjustsFontSizeToFit
       minimumFontScale={0.7}
       maxFontSizeMultiplier={MaxTextScale}
-      style={[styles.value, { fontFamily: face(700), fontSize: scaled(21), lineHeight: scaled(26), color: p.text }]}>
+      style={[styles.value, { fontFamily: face(700), fontSize: scaled(21), lineHeight: scaled(26), color: p.text }, tight ? { marginTop: 3 } : null]}>
       {value}
       {unit ? <Text style={{ fontFamily: face(600), fontSize: scaled(13), letterSpacing: 0 }}> {unit}</Text> : null}
     </Text>
@@ -572,6 +581,7 @@ const styles = StyleSheet.create({
   column: { width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center', flexGrow: 1, paddingHorizontal: 18, paddingTop: 8, paddingBottom: 10 },
   topBar: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   round: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  short: { height: 36, minWidth: 36 },
   switch: { flex: 1, maxWidth: 260, marginHorizontal: 'auto', height: 40, borderRadius: 20, padding: 3, flexDirection: 'row' },
   switchPart: { flex: 1, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   subLine: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 18 },

@@ -9,7 +9,7 @@ import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
  */
 export const NAV = {
   /** Bar height without the system inset. */
-  height: 64,
+  height: 60,
   /** No hairline on top. */
   hairline: 0,
   sidePadding: 8,

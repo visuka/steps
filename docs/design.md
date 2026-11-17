@@ -47,18 +47,18 @@ Dawn, Noon and Dusk still exist in code (`day-part.ts`, the preview's `&part=`) 
 
 The owner sent the reference next to build 80 and asked for every difference to be made ("complete this each and every thing").
 
-- **Top row:** the avatar (opens You) on the left; in the middle a NUTRITION / ACTIVITY switch (grey track #E4E4E4, the selected half a #FBFBFB pill; Nutrition opens Food, Activity is this screen); on the right a round calendar button (opens the steps by day). The date (20/24 bold), weather and quote sit under it, as before.
-- **Cards:** no outline, radius 20, #FBFBFB on #F1F1F1, padding 14/16 (10 on short screens), 12 apart (8 on short screens).
-- **Steps card:** a clock icon and TODAY, the hours on your feet on the right. The count in Figtree Light 46 (38 on short screens) with STEPS beside it and "x TO GO" on the right; no percentage. A red line with a red dot and the time now, then the hour dots: 8 small dots (3 dp, 2 apart) per hour, the hour now red and blinking. The goal bar: 16 rounded pills (8 high, 3 apart), black up to the steps with the leading pill red, hatched for what is left, red past the goal. Under it a quarter scale of the goal (2,500 · 5,000 · 7,500 · 10,000), or past the goal "GOAL x" and a red square with "+x PAST GOAL".
-- **Distance and Active:** their own cards side by side: icon, name and a small ↗ arrow; the figure in Figtree Light; a rounded bar (8 high) with its scale (hidden on short screens). Distance grey, Active red (full at 30 min). Both open the steps detail.
-- **FOOD & SLEEP:** a title in mono capitals (15, tracking 1.5) above the pair, hidden on short screens. Food's bar black with a small red dot at its end; Sleep's bar red. Both heads have the ↗ arrow.
+- **Top row:** the avatar (opens You) on the left; in the middle a NUTRITION / ACTIVITY switch (grey track #E4E4E4, the selected half a #FBFBFB pill; Nutrition opens Food, Activity is this screen); on the right a round calendar button (opens the steps by day). 40 high, 36 on short screens. Under it one line: the date (15 bold), the weather and the quote.
+- **Cards:** no outline, radius 20, #FBFBFB on #F1F1F1, padding 12/16 (9 on short screens), 10 apart (8 on short screens).
+- **Steps card:** a clock icon and TODAY, the hours on your feet on the right. The count in Figtree Light 42 (34 on short screens) with STEPS beside it and "x TO GO" on the right; no percentage. A red line with a red dot and the time now, then the hour dots: 8 small dots (3 dp, 2 apart) per hour, the hour now red and blinking. The goal bar: 16 rounded pills (8 high, 3 apart), black up to the steps with the leading pill red, hatched for what is left, red past the goal. Under it a scale of the goal (0 · 2,500 · 5,000 · 7,500 · 10,000), or past the goal "GOAL x" and a red square with "+x PAST GOAL".
+- **Distance and Active:** their own cards side by side: icon, name and a small ↗ arrow; the figure in Figtree Light; a rounded bar (8 high) with its scale (hidden on short screens and with large text). Distance grey, Active red (full at 30 min). Both open the steps detail.
+- **FOOD & SLEEP:** a title in mono capitals (14, tracking 1.5) above the pair, hidden on short screens and with large text. Food's bar black with a small red dot at its end; Sleep's bar red. Both heads have the ↗ arrow.
 - Water, the walk and Log food as before, without outlines.
 - Motion as before: blocks rise once, bars grow once, the count counts up, the hour now keeps blinking, the news keeps moving. With "Remove animations" on, nothing moves.
 - Today must not scroll at 360 x 800 with normal text.
 
 ### Bottom bar (every screen)
 
-A row of 48 dp round buttons, 16 apart, centred, on the screen's own ground, no hairline; 64 dp plus the system inset. The selected one is a #FBFBFB circle with a black icon, the others #E4E4E4 circles with grey icons. Labels are not drawn; TalkBack still says each name (`nav-style.ts`, `navigation-bar.tsx`).
+A row of 48 dp round buttons, 16 apart, centred, on the screen's own ground, no hairline; 60 dp plus the system inset. The selected one is a #FBFBFB circle with a black icon, the others #E4E4E4 circles with grey icons. Labels are not drawn; TalkBack still says each name (`nav-style.ts`, `navigation-bar.tsx`).
 
 ## History
 
