@@ -17,8 +17,8 @@ import { useTodayExtras } from '@/components/today/use-today-extras';
 import type { TodayFrameLook, TodayView } from '@/components/today/view';
 import { WalkingCard } from '@/components/today/walking-card';
 import { Spacing } from '@/constants/theme';
+import { scaled } from '@/constants/ui-scale';
 import type { LogEntry } from '@/data/types';
-import { useTheme } from '@/hooks/use-theme';
 import { addDaysToKey } from '@/lib/dates';
 import { formatSteps, minutesAgo } from '@/lib/format';
 import { SUGGESTION_DAYS, suggestGoal } from '@/lib/goals';
@@ -33,6 +33,9 @@ import { type AddedGlass, useWaterToday } from '@/state/use-water';
 import { useClock } from '@/hooks/use-clock';
 
 const WEATHER_PROMPT_KEY = 'weatherPromptDismissed';
+/** The most taken off the 12 dp between Today's tiles to fit a short screen, and about how many gaps there are. */
+const MAX_GAP_CUT = 6;
+const TODAY_GAPS = 8;
 
 /**
  * Today: the Calm and large Today (components/today/today-calm.tsx),
@@ -43,7 +46,6 @@ const WEATHER_PROMPT_KEY = 'weatherPromptDismissed';
  */
 export default function TodayScreen() {
   const { source, profile, today, displaySteps, lastSyncAt, syncing, refresh, updateProfile } = useApp();
-  const theme = useTheme();
   const router = useRouter();
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
   const premium = usePremium();
@@ -66,6 +68,16 @@ export default function TodayScreen() {
   const [viewH, setViewH] = useState(0);
   const [contentH, setContentH] = useState(0);
   const overflows = contentH > viewH + 1;
+  // Fit any phone without scrolling (360 x 800 with a tall status bar): when the tiles run past
+  // the screen, the 12 dp between them shrinks, down to 6, until they fit. A new screen size starts again.
+  const [gapCut, setGapCut] = useState(0);
+  const [cutFor, setCutFor] = useState(viewH);
+  if (cutFor !== viewH) {
+    setCutFor(viewH);
+    setGapCut(0);
+  } else if (viewH > 0 && overflows && gapCut < MAX_GAP_CUT) {
+    setGapCut(Math.min(MAX_GAP_CUT, gapCut + Math.max(1, Math.ceil((contentH - viewH) / (TODAY_GAPS * scaled(1))))));
+  }
 
   useFocusEffect(
     useCallback(() => {
@@ -198,13 +210,13 @@ export default function TodayScreen() {
           <RefreshControl
             refreshing={syncing}
             onRefresh={refresh}
-            colors={[theme.primary]}
-            tintColor={theme.primary}
-            progressBackgroundColor={theme.surfaceContainerHigh}
+            colors={[PLAIN.main]}
+            tintColor={PLAIN.main}
+            progressBackgroundColor={PLAIN.field}
             progressViewOffset={insets.top}
           />
         }>
-        <TodayCalm v={view} look={look} sync={syncLine} />
+        <TodayCalm v={view} look={look} sync={syncLine} gapCut={gapCut} />
       </ScrollView>
       {/* The status bar's strip: content scrolls under it, never under the clock. */}
       <View pointerEvents="none" style={[styles.statusInset, { height: insets.top, backgroundColor: PLAIN.ground.top }]} />

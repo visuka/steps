@@ -78,7 +78,8 @@ function DateLine({ v }: { v: TodayView }) {
   );
 }
 
-export function TodayCalm({ v, sync }: { v: TodayView; look: TodayFrameLook; sync?: string }) {
+/** `gapCut`: dp taken off the 12 between tiles so Today fits a short screen without scrolling (index.tsx). */
+export function TodayCalm({ v, sync, gapCut = 0 }: { v: TodayView; look: TodayFrameLook; sync?: string; gapCut?: number }) {
   const m = modelsOf(v);
   const L = m.locked;
   const d = distanceText(v);
@@ -95,7 +96,7 @@ export function TodayCalm({ v, sync }: { v: TodayView; look: TodayFrameLook; syn
   const tail = v.details ? v.slots.below : v.slots.locked;
 
   return (
-    <View style={[styles.column, { gap: S(PLAIN_SIZE.gapRoomy) }]}>
+    <View style={[styles.column, { gap: S(PLAIN_SIZE.gapRoomy - gapCut) }]}>
       <TopRow part="activity" initial={v.initial} onCalendar={() => v.on.calendar()} />
       <DateLine v={v} />
 
@@ -181,7 +182,7 @@ export function TodayCalm({ v, sync }: { v: TodayView; look: TodayFrameLook; syn
 
       {tail ? <View style={{ gap: S(10) }}>{tail}</View> : null}
 
-      {sync ? <SyncLine text={sync} /> : null}
+      {sync ? <SyncLine text={sync} bottom={24 - 2 * gapCut} /> : null}
     </View>
   );
 }

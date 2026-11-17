@@ -85,6 +85,8 @@ export const PLAIN_FONT = {
   regular: 'Figtree_400Regular',
   medium: 'Figtree_500Medium',
   semibold: 'Figtree_600SemiBold',
+  /** Light condensed (the big figures): Android names the 300 face on its own; a weight on the family drew it heavy (CI run 44137089959). */
+  condensedLight: 'sans-serif-condensed-light',
   condensed: 'sans-serif-condensed',
   mono: 'monospace',
 } as const;

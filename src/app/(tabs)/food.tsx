@@ -215,6 +215,8 @@ function CaloriesTile({ eaten, target, atLeast, meals }: { eaten: number; target
         {meals.map((m) => (
           <Cell key={m.text} name={m.text} value={formatSteps(m.kcal)} />
         ))}
+        {/* Thirds, as on the mockup, when fewer than three meals are eaten. */}
+        {meals.length < 3 ? Array.from({ length: 3 - meals.length }, (_, i) => <View key={`gap-${i}`} style={ps.col} />) : null}
       </View>
     </Tile>
   );
@@ -222,9 +224,11 @@ function CaloriesTile({ eaten, target, atLeast, meals }: { eaten: number; target
 
 /** A nutrient's figure for the summary: "42" with "of 60 g", or "≥ 42" when some of it isn't known. */
 function figure(row: NutrientRowData | undefined, unit: string): { value: string; unit: string } {
-  if (!row || row.value === undefined) return { value: '–', unit };
-  const of = row.state.target.daily;
-  return { value: `${row.partial ? '≥ ' : ''}${formatSteps(row.value)}`, unit: of ? `of ${formatSteps(of)} ${unit}` : unit };
+  const of = row?.state.target.daily;
+  const unitText = of ? `of ${formatSteps(of)} ${unit}` : unit;
+  // Not known yet (calorie-only entries): a dash, with the target still beside it.
+  if (!row || row.value === undefined) return { value: '–', unit: unitText };
+  return { value: `${row.partial ? '≥ ' : ''}${formatSteps(row.value)}`, unit: unitText };
 }
 
 /** How many of a group are where they should be: "7 of 13". */

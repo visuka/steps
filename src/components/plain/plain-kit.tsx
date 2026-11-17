@@ -160,7 +160,7 @@ export function Big({ text, size, line }: { text: string; size: number; line: nu
       adjustsFontSizeToFit
       minimumFontScale={0.6}
       maxFontSizeMultiplier={MaxTextScale}
-      style={{ fontFamily: PLAIN_FONT.condensed, fontWeight: '300', fontSize: S(size), lineHeight: S(line), letterSpacing: -1, color: PLAIN.text, includeFontPadding: false, flexShrink: 1 }}>
+      style={{ fontFamily: PLAIN_FONT.condensedLight, fontSize: S(size), lineHeight: S(line), letterSpacing: -1, color: PLAIN.text, includeFontPadding: false, flexShrink: 1 }}>
       {text}
     </Text>
   );
@@ -176,7 +176,7 @@ export function Num({ value, unit, roomy, style }: { value: string; unit?: strin
       adjustsFontSizeToFit
       minimumFontScale={0.7}
       maxFontSizeMultiplier={MaxTextScale}
-      style={[{ fontFamily: PLAIN_FONT.condensed, fontWeight: '300', fontSize: S(size), lineHeight: S(line), color: PLAIN.text, includeFontPadding: false, marginTop: S(4) }, style]}>
+      style={[{ fontFamily: PLAIN_FONT.condensedLight, fontSize: S(size), lineHeight: S(line), color: PLAIN.text, includeFontPadding: false, marginTop: S(4) }, style]}>
       {value}
       {unit ? <Text style={styles.unit}>{` ${unit}`}</Text> : null}
     </Text>
@@ -191,7 +191,7 @@ export function Mid({ value, unit, style, fit }: { value: string; unit?: string;
       adjustsFontSizeToFit={fit}
       minimumFontScale={fit ? 0.75 : undefined}
       maxFontSizeMultiplier={MaxTextScale}
-      style={[{ fontFamily: PLAIN_FONT.condensed, fontWeight: '400', fontSize: S(22), lineHeight: S(26), color: PLAIN.text, includeFontPadding: false }, style]}>
+      style={[{ fontFamily: PLAIN_FONT.condensed, fontSize: S(22), lineHeight: S(26), color: PLAIN.text, includeFontPadding: false }, style]}>
       {value}
       {unit ? <Text style={styles.unit}>{` ${unit}`}</Text> : null}
     </Text>

@@ -308,5 +308,6 @@ const styles = StyleSheet.create({
   person: { alignItems: 'center', gap: S(6), width: S(56) },
   av: { width: S(48), height: S(48), borderRadius: S(24), backgroundColor: PLAIN.chip, alignItems: 'center', justifyContent: 'center' },
   add: { backgroundColor: PLAIN.field, borderWidth: 1, borderColor: PLAIN.hairline },
-  badge: { minWidth: S(20), height: S(20), borderRadius: S(10), backgroundColor: PLAIN.sand, paddingHorizontal: S(6), alignItems: 'center', marginTop: S(4) },
+  // As wide as the time above it at least, as on the mockup (a block under the time).
+  badge: { minWidth: S(20), height: S(20), borderRadius: S(10), backgroundColor: PLAIN.sand, paddingHorizontal: S(6), alignItems: 'center', alignSelf: 'stretch', marginTop: S(4) },
 });
