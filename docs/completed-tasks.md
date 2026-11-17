@@ -251,3 +251,7 @@ Not committed. No server or AWS change. Nothing is removed from any count.
 ### T18 fixes (17 Nov 2026, commit aad39d9, CI run 44035038255 green)
 - Steps card gradient: HeroGradient measures the card and draws in exact dp; a "100%" Svg left a lighter strip on the right and bottom.
 - New `src/components/ui/rise.tsx` (opacity and shift only) replaces Reanimated `entering` animations on `Screen` and Today. On Fabric those froze a block's first size, so the Chats list (loaded a moment later) overlapped "Coming next". Use `Rise`, not `entering`, for any block whose content can change size.
+
+### Every screen photographed (17 Nov 2026, commits edd67cc and the fixes after it; CI run 44042305951 green)
+- The design preview now draws every screen: you, foodtab, buddies, settings, insights, stepcheck, places, record, scan, find, requests, chat (&key=&title=), walker (&pid=&name=&handle=), signin, welcome; activity takes &section=workouts|bp|weight. CI saves smoke/all-<screen>.png and scrolls each to its end (-2, -3…), and keeps a -crash.txt log for any screen that closes the app.
+- Found and fixed: the preview had no lock provider, so Settings and sign-in closed (preview only); "1 days" on Profile; request buttons squeezed the walker ID; the curly apostrophe in "That’s all for today" made the button label wrap (straight one now).
