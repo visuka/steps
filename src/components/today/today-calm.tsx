@@ -78,8 +78,26 @@ function DateLine({ v }: { v: TodayView }) {
   );
 }
 
-/** `gapCut`: dp taken off the 12 between tiles so Today fits a short screen without scrolling (index.tsx). */
-export function TodayCalm({ v, sync, gapCut = 0 }: { v: TodayView; look: TodayFrameLook; sync?: string; gapCut?: number }) {
+/**
+ * `squeeze` (0–10, index.tsx) fits a short screen without scrolling: up to 6 dp off the 12 between
+ * tiles, then up to 4 off each tile's top and bottom padding. The sync line stays clear of the
+ * gesture bar (`bottomInset`).
+ */
+export function TodayCalm({
+  v,
+  sync,
+  squeeze = 0,
+  bottomInset = 0,
+}: {
+  v: TodayView;
+  look: TodayFrameLook;
+  sync?: string;
+  squeeze?: number;
+  bottomInset?: number;
+}) {
+  const gapCut = Math.min(6, squeeze);
+  const padCut = Math.max(0, squeeze - 6);
+  const pad = { paddingVertical: S(PLAIN_SIZE.padRoomy.v - padCut) };
   const m = modelsOf(v);
   const L = m.locked;
   const d = distanceText(v);
@@ -100,7 +118,7 @@ export function TodayCalm({ v, sync, gapCut = 0 }: { v: TodayView; look: TodayFr
       <TopRow part="activity" initial={v.initial} onCalendar={() => v.on.calendar()} />
       <DateLine v={v} />
 
-      <Tile kind="hero" roomy onPress={v.on.steps} label={v.stepsSpoken} style={{ paddingTop: S(16), paddingBottom: S(18) }}>
+      <Tile kind="hero" roomy onPress={v.on.steps} label={v.stepsSpoken} style={{ paddingTop: S(16 - padCut), paddingBottom: S(18 - padCut) }}>
         <View style={ps.spread}>
           <Label icon="steps" text="Steps today" />
           {range ? <Caps text={range.replace('NOW', time)} /> : null}
@@ -120,12 +138,12 @@ export function TodayCalm({ v, sync, gapCut = 0 }: { v: TodayView; look: TodayFr
       {v.slots.walking}
 
       <Pair>
-        <Tile roomy onPress={v.on.steps} label={`Distance ${d.value} ${d.unit}`} style={ps.half}>
+        <Tile roomy onPress={v.on.steps} label={`Distance ${d.value} ${d.unit}`} style={[ps.half, pad]}>
           <Label icon="pin" text="Distance" />
           <Num value={d.value} unit={d.unit} roomy />
           <Note lines={1}>{distOf}</Note>
         </Tile>
-        <Tile roomy onPress={v.on.steps} label={`Active ${active} minutes`} style={ps.half}>
+        <Tile roomy onPress={v.on.steps} label={`Active ${active} minutes`} style={[ps.half, pad]}>
           <Label icon="bolt" text="Active" />
           <Num value={String(active)} unit="min" roomy />
           <Note lines={1}>goal {ACTIVE_GOAL_MIN} min</Note>
@@ -133,19 +151,19 @@ export function TodayCalm({ v, sync, gapCut = 0 }: { v: TodayView; look: TodayFr
       </Pair>
 
       <Pair>
-        <Tile roomy onPress={tapFor(v, 'food')} label={m.food.spoken} style={ps.half}>
+        <Tile roomy onPress={tapFor(v, 'food')} label={m.food.spoken} style={[ps.half, pad]}>
           <Label icon={L ? 'lock' : 'bowl'} text="Food" />
           {L ? <Num value={m.food.value} roomy /> : <Num value={v.food.text} unit="kcal" roomy />}
           {L ? null : <Note lines={1}>of {v.food.target} kcal</Note>}
         </Tile>
-        <Tile roomy onPress={tapFor(v, 'sleep')} label={m.sleep.spoken} style={ps.half}>
+        <Tile roomy onPress={tapFor(v, 'sleep')} label={m.sleep.spoken} style={[ps.half, pad]}>
           <Label icon={L ? 'lock' : 'moon'} text="Sleep" />
           <Num value={!L && v.sleep ? `${v.sleep.h}h ${v.sleep.m}m` : m.sleep.value} roomy />
           {L ? null : <Note lines={1}>{v.sleep ? 'last night' : 'no data yet'}</Note>}
         </Tile>
       </Pair>
 
-      <Tile roomy onPress={tapFor(v, 'water')} label={m.water.spoken} style={ps.row}>
+      <Tile roomy onPress={tapFor(v, 'water')} label={m.water.spoken} style={[ps.row, pad]}>
         <View style={{ flex: 1, minWidth: 0 }}>
           <Label icon={L ? 'lock' : 'drop'} text="Water" />
           {L ? (
@@ -163,7 +181,7 @@ export function TodayCalm({ v, sync, gapCut = 0 }: { v: TodayView; look: TodayFr
         )}
       </Tile>
 
-      <Tile kind="second" roomy onPress={tapFor(v, 'walk')} label={m.walk.spoken}>
+      <Tile kind="second" roomy onPress={tapFor(v, 'walk')} label={m.walk.spoken} style={pad}>
         <Label icon={L ? 'lock' : 'walk'} text={v.walk && !L ? v.walk.title : 'Walk'} />
         {L ? (
           <Num value={m.walk.value} roomy />
@@ -182,7 +200,7 @@ export function TodayCalm({ v, sync, gapCut = 0 }: { v: TodayView; look: TodayFr
 
       {tail ? <View style={{ gap: S(10) }}>{tail}</View> : null}
 
-      {sync ? <SyncLine text={sync} bottom={24 - 2 * gapCut} /> : null}
+      {sync ? <SyncLine text={sync} bottom={Math.max(24 - 2 * gapCut, bottomInset / S(1) + 6)} /> : null}
     </View>
   );
 }

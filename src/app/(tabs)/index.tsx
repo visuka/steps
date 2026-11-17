@@ -33,8 +33,8 @@ import { type AddedGlass, useWaterToday } from '@/state/use-water';
 import { useClock } from '@/hooks/use-clock';
 
 const WEATHER_PROMPT_KEY = 'weatherPromptDismissed';
-/** The most taken off the 12 dp between Today's tiles to fit a short screen, and about how many gaps there are. */
-const MAX_GAP_CUT = 6;
+/** How far Today squeezes to fit a short screen (today-calm.tsx: 6 off the gaps, then 4 off each tile's padding), and about how many gaps there are. */
+const MAX_SQUEEZE = 10;
 const TODAY_GAPS = 8;
 
 /**
@@ -69,14 +69,15 @@ export default function TodayScreen() {
   const [contentH, setContentH] = useState(0);
   const overflows = contentH > viewH + 1;
   // Fit any phone without scrolling (360 x 800 with a tall status bar): when the tiles run past
-  // the screen, the 12 dp between them shrinks, down to 6, until they fit. A new screen size starts again.
+  // the screen, the 12 dp between them shrinks to 6, then the tiles' padding by up to 4, until they fit.
+  // A new screen size starts again.
   const [gapCut, setGapCut] = useState(0);
   const [cutFor, setCutFor] = useState(viewH);
   if (cutFor !== viewH) {
     setCutFor(viewH);
     setGapCut(0);
-  } else if (viewH > 0 && overflows && gapCut < MAX_GAP_CUT) {
-    setGapCut(Math.min(MAX_GAP_CUT, gapCut + Math.max(1, Math.ceil((contentH - viewH) / (TODAY_GAPS * scaled(1))))));
+  } else if (viewH > 0 && overflows && gapCut < MAX_SQUEEZE) {
+    setGapCut(Math.min(MAX_SQUEEZE, gapCut + Math.max(1, Math.ceil((contentH - viewH) / (TODAY_GAPS * scaled(1))))));
   }
 
   useFocusEffect(
@@ -216,7 +217,7 @@ export default function TodayScreen() {
             progressViewOffset={insets.top}
           />
         }>
-        <TodayCalm v={view} look={look} sync={syncLine} gapCut={gapCut} />
+        <TodayCalm v={view} look={look} sync={syncLine} squeeze={gapCut} bottomInset={insets.bottom} />
       </ScrollView>
       {/* The status bar's strip: content scrolls under it, never under the clock. */}
       <View pointerEvents="none" style={[styles.statusInset, { height: insets.top, backgroundColor: PLAIN.ground.top }]} />
