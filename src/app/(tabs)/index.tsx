@@ -8,6 +8,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Button, Snackbar } from '@/components/ui';
 import { distanceOf, heroSpoken, percentOf, untimedNote } from '@/components/today/model';
 import { detailRoute, type DetailKind, walkingLine } from '@/components/today/today-actions';
+import { useFootInset } from '@/components/plain/part-bar';
 import { PlainGround } from '@/components/plain/plain-kit';
 import { PLAIN, PLAIN_SIZE } from '@/components/plain/plain-theme';
 import { TodayCalm } from '@/components/today/today-calm';
@@ -49,6 +50,8 @@ export default function TodayScreen() {
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
   const premium = usePremium();
   const insets = useSafeAreaInsets();
+  // The part bar under Today keeps clear of the gesture bar (part-bar.tsx).
+  const foot = useFootInset();
   // today-calm adds the 16 dp under the status bar; the safe-area inset is added here.
   const look: TodayFrameLook = { background: PLAIN.ground.top, gutter: TODAY_LAYOUT.sideMargin };
   const details = !premium.isLocked('today-details');
@@ -227,7 +230,7 @@ export default function TodayScreen() {
             progressViewOffset={insets.top}
           />
         }>
-        <TodayCalm v={view} look={look} sync={syncLine} squeeze={gapCut} bottomInset={insets.bottom} />
+        <TodayCalm v={view} look={look} sync={syncLine} squeeze={gapCut} bottomInset={foot} />
       </ScrollView>
       {/* The status bar's strip: content scrolls under it, never under the clock. */}
       <View pointerEvents="none" style={[styles.statusInset, { height: insets.top, backgroundColor: PLAIN.ground.top }]} />

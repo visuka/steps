@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
+import { PLAIN_SHADOW } from '@/constants/themes/plain';
 
 import { CARD_LOOK, pressedColor, pressedColorOnAccent, splitCardStyle } from '../surface-style';
 
@@ -9,7 +10,8 @@ describe('card style', () => {
     expect(CARD_LOOK.radius).toBe(CLEAN_SPEC.radius.card);
     expect(CARD_LOOK.radius).toBe(24);
     expect(CARD_LOOK.padding).toBe(16);
-    expect(CARD_LOOK.boxShadow).toBe(CLEAN_SPEC.shadow.card);
+    // The plain tiles' soft lift, the same on every card.
+    expect(CARD_LOOK.boxShadow).toBe(PLAIN_SHADOW);
   });
 
   it('presses with ink at 8 percent and white at 24 percent on accent', () => {

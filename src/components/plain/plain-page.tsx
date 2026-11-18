@@ -9,25 +9,24 @@ import { scaled } from '@/constants/ui-scale';
 import { cleanName } from '@/data/profile';
 import { useApp } from '@/state/app-state';
 
-import { PlainGround, type Part, TopRow } from './plain-kit';
+import { useFootInset } from './part-bar';
+import { PlainGround, TopRow } from './plain-kit';
 import { PLAIN, PLAIN_SIZE } from './plain-theme';
 
 const S = scaled;
 
 /**
- * A part's page in the plain look (Nutrition or Meet): the grey ground, the
- * top row with the three-part switch, then the tiles 9 apart, scrolling when
- * they don't fit. `overlay` sits over everything (a snackbar).
+ * A part's page in the plain look (Nutrition or Buddies): the grey ground, the
+ * top row (calendar, avatar), then the tiles 9 apart, scrolling when they don't
+ * fit; the part bar sits under it. `overlay` sits over everything (a snackbar).
  */
 export function PlainPage({
-  part,
   children,
   overlay,
   onRefresh,
   refreshing = false,
   gap = PLAIN_SIZE.gap,
 }: {
-  part: Part;
   children: ReactNode;
   overlay?: ReactNode;
   onRefresh?: () => void;
@@ -35,6 +34,7 @@ export function PlainPage({
   gap?: number;
 }) {
   const insets = useSafeAreaInsets();
+  const foot = useFootInset();
   const router = useRouter();
   const { profile } = useApp();
   const initial = avatarInitial(cleanName(profile.name));
@@ -42,7 +42,7 @@ export function PlainPage({
     <View style={styles.screen}>
       <PlainGround />
       <ScrollView
-        contentContainerStyle={{ paddingTop: insets.top + PLAIN_SIZE.topUnderStatus, paddingBottom: insets.bottom, flexGrow: 1 }}
+        contentContainerStyle={{ paddingTop: insets.top + PLAIN_SIZE.topUnderStatus, paddingBottom: foot, flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
         refreshControl={
           onRefresh ? (
@@ -51,7 +51,6 @@ export function PlainPage({
         }>
         <View style={[styles.column, { gap: S(gap) }]}>
           <TopRow
-            part={part}
             initial={initial}
             onCalendar={() => router.push({ pathname: '/detail/steps', params: {} } as unknown as Href)}
           />
@@ -60,7 +59,7 @@ export function PlainPage({
       </ScrollView>
       <View pointerEvents="none" style={[styles.statusInset, { height: insets.top }]} />
       {overlay ? (
-        <View pointerEvents="box-none" style={[styles.overlay, { bottom: insets.bottom + 16 }]}>
+        <View pointerEvents="box-none" style={[styles.overlay, { bottom: foot + 16 }]}>
           {overlay}
         </View>
       ) : null}

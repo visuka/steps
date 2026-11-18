@@ -2,16 +2,16 @@
  * Today, the Activity part, in the plain sage-and-sand look (owner, 17 Nov
  * 2026: "I need the app exactly as in the mock.. pixel to pixel"), as mock d38
  * (owner approved 18 Nov 2026; plain.html?s=a&k=1&ic=1&icx=1&f=4&b=1&h=1&d=38).
- * Top row: calendar, the Nutrition · Activity · Meet switch and the avatar.
- * Then the date line, Steps today in the sage tile (with the sync line inside
- * it), Distance and Active, the empty ad space, Food and Sleep, Water with its
- * plus, and the walk in the sand tile. Every tap, figure and slot is as before;
- * News and Log food left Today with the three-part switch (Nutrition opens Food).
+ * Top row: calendar and avatar (the Nutrition · Activity · Buddies switch is the
+ * bar at the bottom). Then the date line, Steps today in the sage tile (with the
+ * sync line inside it), Distance and Active, Food and Sleep, Water with its plus,
+ * and the walk in the sand tile (the ad space went, owner 18 Nov 2026). Every tap,
+ * figure and slot is as before; News and Log food left Today (Nutrition opens Food).
  */
 
 import { StyleSheet, View } from 'react-native';
 
-import { AdSpace, Big, Caps, Label, Mid, Note, Num, Pair, plainStyles as ps, Round, Sub, Tile, TopRow, Words } from '@/components/plain/plain-kit';
+import { Big, Caps, Label, Mid, Note, Num, Pair, plainStyles as ps, Round, Sub, Tile, TopRow, Words } from '@/components/plain/plain-kit';
 import { PLAIN, PLAIN_SIZE } from '@/components/plain/plain-theme';
 import { MaxContentWidth } from '@/constants/theme';
 import { scaled } from '@/constants/ui-scale';
@@ -82,7 +82,7 @@ function DateLine({ v }: { v: TodayView }) {
 /**
  * `squeeze` (0–6, index.tsx) fits a short screen without scrolling. 1: the tiles take the standard
  * padding 14 × 18 (d38's small phone). 2–4: the 9 dp between tiles shrinks to 6. 5–6: for a tall
- * status bar, smaller figures (see below). The last tile stays clear of the gesture bar (`bottomInset`).
+ * status bar, smaller figures (see below). `bottomInset`: the gesture bar's room, 0 above the part bar.
  */
 export function TodayCalm({
   v,
@@ -121,7 +121,7 @@ export function TodayCalm({
 
   return (
     <View style={[styles.column, { gap: S(PLAIN_SIZE.gap - gapCut) }]}>
-      <TopRow part="activity" initial={v.initial} onCalendar={() => v.on.calendar()} />
+      <TopRow initial={v.initial} onCalendar={() => v.on.calendar()} />
       <DateLine v={v} />
 
       <Tile
@@ -164,8 +164,6 @@ export function TodayCalm({
           <Note lines={1}>goal {ACTIVE_GOAL_MIN} min</Note>
         </Tile>
       </Pair>
-
-      <AdSpace />
 
       <Pair>
         <Tile roomy onPress={tapFor(v, 'food')} label={m.food.spoken} style={[ps.half, pad]}>

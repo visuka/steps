@@ -1,5 +1,5 @@
 /**
- * Meet: Walk buddies in the plain sage-and-sand look (owner, 17 Nov 2026; the
+ * Buddies: Walk buddies in the plain sage-and-sand look (owner, 17 Nov 2026; the
  * mock is plain.html?s=m&k=1&ic=1&icx=1). Not joined yet → the sign-up form
  * (walker ID, the name buddies see, 18+ and the rules). Joined → Chats in the
  * sage tile, Requests (sand) and Find walkers, Buddies, your walker ID with
@@ -35,7 +35,7 @@ export function BuddiesHome(_: { initialSegment?: Segment } = {}) {
   const { me, setMe, error, loading, refresh } = useSocialMe();
   if (!me) {
     return (
-      <PlainPage part="meet" onRefresh={refresh}>
+      <PlainPage onRefresh={refresh}>
         <Sub lead="Walk buddies" />
         <Tile>
           {loading ? (
@@ -78,7 +78,7 @@ function JoinForm({ onJoined }: { onJoined: (me: SocialMe) => void }) {
   };
 
   return (
-    <PlainPage part="meet" overlay={<Snackbar message={snack} onDismiss={dismiss} />}>
+    <PlainPage overlay={<Snackbar message={snack} onDismiss={dismiss} />}>
       <Sub lead="Walk buddies" />
       <Tile kind="hero">
         <Label icon="people" text="Join Walk buddies" />
@@ -147,7 +147,7 @@ function Joined({ me, refreshMe }: { me: Extract<SocialMe, { joined: true }>; re
   const subRest = [count(buddyCount, 'buddy', 'buddies'), reqCount ? count(reqCount, 'request', 'requests') : null].filter(Boolean).join(' · ');
 
   return (
-    <PlainPage part="meet" onRefresh={refresh} overlay={<Snackbar message={snack} onDismiss={dismiss} />}>
+    <PlainPage onRefresh={refresh} overlay={<Snackbar message={snack} onDismiss={dismiss} />}>
       <Sub lead="Walk buddies" rest={subRest} />
 
       <Tile kind="hero" style={{ paddingBottom: S(8) }}>

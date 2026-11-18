@@ -3,6 +3,7 @@ import { type ReactNode, useEffect, useState } from 'react';
 import { BackHandler, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { PlainGround } from '@/components/plain/plain-kit';
 import { NumberField, Segmented, Stepper } from '@/components/controls';
 import { DietChips } from '@/components/food/food-settings';
 import { ThemedText } from '@/components/themed-text';
@@ -81,6 +82,7 @@ export function Onboarding() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.surface }]}>
+      <PlainGround />
       <SafeAreaView style={styles.container}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <View style={styles.inner}>

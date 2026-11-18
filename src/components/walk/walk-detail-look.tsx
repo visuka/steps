@@ -8,12 +8,13 @@
  * Data and taps come in as props; the route screen loads the walk.
  */
 
-import { BottomTabBarHeightContext } from 'expo-router/js-tabs';
 import { type ReactNode, use, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
+import { useBarBelow } from '@/components/plain/part-bar';
+import { PlainGround } from '@/components/plain/plain-kit';
 import { mapSchemeFor } from '@/components/map-style';
 import { RouteMap } from '@/components/route-map';
 import { ThemedText } from '@/components/themed-text';
@@ -77,7 +78,8 @@ export interface WalkDetailLookProps {
 export function WalkDetailLook(props: WalkDetailLookProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const inTabs = use(BottomTabBarHeightContext) !== undefined;
+  // The part bar takes the bottom inset when it sits under this screen.
+  const inTabs = useBarBelow();
   const clock = useClockStyle();
   const [sheetOrd, setSheetOrd] = useState<number | null>(null);
   const { walk, points, parts, units } = props;
@@ -95,6 +97,7 @@ export function WalkDetailLook(props: WalkDetailLookProps) {
 
   return (
     <View style={[styles.fill, { backgroundColor: theme.surface }]}>
+      <PlainGround />
       <ScrollView
         contentContainerStyle={[
           styles.content,

@@ -1,10 +1,11 @@
 import { useIsFocused } from 'expo-router';
-import { BottomTabBarHeightContext } from 'expo-router/js-tabs';
 import { type ReactNode, use, useEffect, useRef, useState } from 'react';
 import { BackHandler, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { PlainGround } from '@/components/plain/plain-kit';
 import { useFoodResultCovering } from '@/components/food/food-result-cover';
+import { useBarBelow } from '@/components/plain/part-bar';
 import { Chip, NumberField, Button as OldButton, Stepper } from '@/components/controls';
 import { ThemedText } from '@/components/themed-text';
 import { Button as UiButton, Chip as UiChip, Donut, IconCircle, NutrientRow, Pill, SpecIcon } from '@/components/ui';
@@ -165,7 +166,7 @@ function Result({
   const insets = useSafeAreaInsets();
   // The tab bar carries the bottom inset, unless it has stepped aside for this result (food-result-cover.ts).
   const barHidden = useFoodResultCovering();
-  const inTabs = use(BottomTabBarHeightContext) !== undefined && !barHidden;
+  const inTabs = useBarBelow() && !barHidden;
   const back = onBack ?? onCancel;
   const backRef = useRef(back);
   useEffect(() => {
@@ -307,6 +308,7 @@ function Result({
 
   return (
     <View style={[styles.fill, { backgroundColor: theme.surface, paddingTop: insets.top }]}>
+      <PlainGround />
       <ScrollView
         style={styles.fill}
         keyboardShouldPersistTaps="handled"

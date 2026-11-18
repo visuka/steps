@@ -1,16 +1,25 @@
-import { Tabs } from 'expo-router/js-tabs';
+import { type BottomTabBarProps, Tabs } from 'expo-router/js-tabs';
 
 import { useReducedMotion } from '@/components/ui/motion';
 import { BAR_TABS, TAB_SCREENS } from '@/components/tab-routes';
+import { PART_SCREEN, PartBar, partOfScreen } from '@/components/plain/part-bar';
 import { PLAIN } from '@/components/plain/plain-theme';
 
 /** The bar's buttons; the screens without one are in tab-routes.ts. */
 export const TABS = BAR_TABS;
 
+/** The part bar under the focused tab, when it is one of the three parts (part-bar.tsx). */
+function TabsPartBar({ state, navigateToTab, insets }: BottomTabBarProps) {
+  const go = (name: string) => {
+    const route = state.routes.find((r) => r.name === name);
+    if (route) navigateToTab(route.key);
+  };
+  return <PartBar part={partOfScreen(state.routes[state.index].name)} bottomInset={insets.bottom} onChange={(p) => go(PART_SCREEN[p])} />;
+}
+
 /**
- * No bottom bar (owner, 17 Nov 2026, the plain look): the top row's
- * Nutrition · Activity · Meet switch moves between Food, Today and Chats, and
- * the avatar opens Profile. Every screen is still declared (never href null: see tab-routes.ts).
+ * The bottom bar is the Nutrition · Activity · Buddies switch (owner, 18 Nov
+ * 2026), under Food, Today and Chats only; the top row's avatar opens Profile. Every screen is still declared (never href null: see tab-routes.ts).
  * Tabs move with a short shift (Material's shared axis), or cut with reduce motion.
  * System Back from any tab returns to Today, then leaves the app.
  */
@@ -18,7 +27,7 @@ export default function AppTabs() {
   const reduced = useReducedMotion();
   return (
     <Tabs
-      tabBar={() => null}
+      tabBar={(props) => <TabsPartBar {...props} />}
       backBehavior="firstRoute"
       screenOptions={{
         headerShown: false,

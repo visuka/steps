@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { FlatList, KeyboardAvoidingView, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { PlainGround } from '@/components/plain/plain-kit';
 import { ReportSheet } from '@/components/buddies/report-sheet';
 import { useSnack } from '@/components/buddies/parts';
 import { PremiumGate } from '@/components/premium-gate';
@@ -74,6 +75,7 @@ export default function ChatScreen() {
   return (
     <PremiumGate feature={SCREEN_FEATURES.buddies} title={name} onBack={back}>
       <KeyboardAvoidingView behavior="padding" style={[styles.fill, { backgroundColor: theme.background }]}>
+        <PlainGround />
         <View style={[styles.top, { paddingTop: insets.top + Spacing.one }]}>
           <IconButton icon="arrow-back" accessibilityLabel="Back" onPress={back} />
           <ThemedText type="titleMedium" numberOfLines={1} style={styles.grow} maxFontSizeMultiplier={1.3}>

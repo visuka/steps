@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { resolveFont, ThemedText } from '@/components/themed-text';
 import { Button as UiButton, type ButtonVariant } from '@/components/ui/button';
+import { Segments } from '@/components/plain/plain-kit';
 import { Chip as UiChip } from '@/components/ui/chip';
 import { Controls, NumeralMaxScale, Radius, Spacing, TouchTarget, Type } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -31,7 +32,11 @@ export function Button({
   return <UiButton label={label} onPress={onPress} variant={v} danger={kind === 'danger'} disabled={disabled} />;
 }
 
-/** Material 3 segmented buttons: 2 to 5 short choices, the chosen one ticked. */
+/**
+ * A screen's segmented choice (Day / Week / Month, Walk / Cycle): the plain
+ * switch on glass, the chosen part a white pill, so the screen's one sage pill
+ * stays its main button. 2 to 5 short choices.
+ */
 export function Segmented<T extends string>({
   options,
   value,
@@ -41,36 +46,15 @@ export function Segmented<T extends string>({
   value: T;
   onChange: (v: T) => void;
 }) {
-  const theme = useTheme();
   return (
-    <View accessibilityRole="tablist" style={[styles.segmented, { borderColor: theme.outline }]}>
-      {options.map((o, i) => {
-        const active = o.value === value;
-        return (
-          <Pressable
-            key={o.value}
-            onPress={() => onChange(o.value)}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: active }}
-            aria-selected={active}
-            accessibilityLabel={o.label}
-            style={({ pressed }) => [
-              styles.segment,
-              i > 0 && { borderLeftWidth: 1, borderLeftColor: theme.outline },
-              { backgroundColor: active ? theme.secondaryContainer : pressed ? theme.surfaceContainerHigh : 'transparent' },
-            ]}>
-            {active ? <Ionicons name="checkmark" size={16} color={theme.onSecondaryContainer} /> : null}
-            <ThemedText
-              type="labelLarge"
-              themeColor={active ? 'onSecondaryContainer' : 'onSurface'}
-              numberOfLines={1}
-              style={[styles.segmentLabel, Controls.buttonLabel]}>
-              {o.label}
-            </ThemedText>
-          </Pressable>
-        );
-      })}
-    </View>
+    <Segments<T>
+      quiet
+      stretch
+      parts={options.map((o) => ({ value: o.value, text: o.label.toUpperCase() }))}
+      value={value}
+      onChange={onChange}
+      spoken={(v) => options.find((o) => o.value === v)?.label ?? v}
+    />
   );
 }
 

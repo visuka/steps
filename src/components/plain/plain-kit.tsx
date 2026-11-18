@@ -1,7 +1,7 @@
 /**
  * The plain look's pieces (plain-theme.ts has every value): the grey ground,
  * glass tiles, mono labels with coloured icons, the figures, buttons, the
- * top row with the Nutrition · Activity · Meet switch, and the sync line.
+ * top row (calendar, avatar), the part switch (drawn by part-bar.tsx) and the sync line.
  * 1 mockup px = 1 dp, through scaled() like the rest of the app.
  */
 
@@ -14,7 +14,7 @@ import { MaxTextScale } from '@/constants/theme';
 import { scaled } from '@/constants/ui-scale';
 
 import { PlainCalendar, PlainIcon } from './plain-icons';
-import { PLAIN, PLAIN_FONT, PLAIN_SIZE, type PlainIconName } from './plain-theme';
+import { PLAIN, PLAIN_FONT, PLAIN_SHADOW, PLAIN_SIZE, type PlainIconName } from './plain-theme';
 
 const S = scaled;
 /** A text size through scaled(), never under 11 dp (small phones shrink the layout to 0.85). */
@@ -296,6 +296,7 @@ export function Segments<T extends string>({
   pad = 11,
   spoken,
   quiet,
+  stretch,
 }: {
   parts: { value: T; text: string }[];
   value: T;
@@ -305,11 +306,13 @@ export function Segments<T extends string>({
   pad?: number;
   spoken?: (v: T) => string;
   quiet?: boolean;
+  /** Fill the row, each part an equal share (a screen's Day / Week / Month). */
+  stretch?: boolean;
 }) {
   const onFill = quiet ? styles.quietOn : { backgroundColor: PLAIN.main };
   const onInk = quiet ? PLAIN.text : PLAIN.onMain;
   return (
-    <View accessibilityRole="tablist" style={[styles.switch, { height: S(height), borderRadius: S(height / 2) }]}>
+    <View accessibilityRole="tablist" style={[styles.switch, { height: S(height), borderRadius: S(height / 2) }, stretch ? styles.stretch : null]}>
       {parts.map((p) => {
         const on = p.value === value;
         return (
@@ -319,7 +322,7 @@ export function Segments<T extends string>({
             accessibilityRole="tab"
             accessibilityState={{ selected: on }}
             accessibilityLabel={spoken ? spoken(p.value) : p.text}
-            style={[styles.part, { paddingHorizontal: S(pad), borderRadius: S(height / 2 - 3) }, on ? onFill : null]}>
+            style={[styles.part, { paddingHorizontal: S(pad), borderRadius: S(height / 2 - 3) }, stretch ? styles.share : null, on ? onFill : null]}>
             <Text
               numberOfLines={1}
               maxFontSizeMultiplier={MaxTextScale}
@@ -333,33 +336,17 @@ export function Segments<T extends string>({
   );
 }
 
-export type Part = 'nutrition' | 'activity' | 'meet';
-
-const PART_ROUTE = { nutrition: '/food', activity: '/', meet: '/plus' } as const;
-
 /**
- * The top row on all three parts: the calendar (left), the switch, the avatar
- * (right, opens Profile). The switch moves between Food, Today and Meet.
+ * The top row on all three parts: the calendar (left) and the avatar (right,
+ * opens Profile). The part switch is the bar at the bottom (part-bar.tsx).
  */
-export function TopRow({ part, initial, onCalendar }: { part: Part; initial: string; onCalendar: () => void }) {
+export function TopRow({ initial, onCalendar }: { initial: string; onCalendar: () => void }) {
   const router = useRouter();
   return (
     <View style={styles.top}>
       <Round onPress={onCalendar} label="Calendar: steps by day">
         <PlainCalendar color={PLAIN.text} />
       </Round>
-      <Segments<Part>
-        parts={[
-          { value: 'nutrition', text: 'NUTRITION' },
-          { value: 'activity', text: 'ACTIVITY' },
-          { value: 'meet', text: 'MEET' },
-        ]}
-        value={part}
-        onChange={(p) => {
-          if (p !== part) router.navigate(PART_ROUTE[p]);
-        }}
-        spoken={(p) => ({ nutrition: 'Nutrition: food', activity: 'Activity: today', meet: 'Meet: chats and walk buddies' })[p]}
-      />
       <Round onPress={() => router.navigate('/you')} label="Your profile">
         {initial ? (
           <Words size={16} weight={600} line={20}>
@@ -410,16 +397,11 @@ export const plainStyles = StyleSheet.create({
   footRow: { flexDirection: 'row', alignItems: 'center', gap: S(12), marginTop: 'auto', paddingTop: S(12) },
 });
 
-/** The empty ad space mid-Today: 50 dp on every phone (not scaled), nothing drawn, hidden from screen readers. */
-export function AdSpace() {
-  return <View accessible={false} importantForAccessibility="no-hide-descendants" style={{ height: PLAIN_SIZE.adSpace }} />;
-}
-
 const styles = StyleSheet.create({
   tile: {
     borderRadius: S(PLAIN_SIZE.radius),
     borderWidth: 1,
-    boxShadow: '0px 8px 24px rgba(40, 40, 50, 0.06)',
+    boxShadow: PLAIN_SHADOW,
   },
   label: { flexDirection: 'row', alignItems: 'center', minWidth: 0, flexShrink: 1 },
   unit: { fontFamily: PLAIN_FONT.regular, fontWeight: '400', fontSize: S(15), color: PLAIN.muted, letterSpacing: 0 },
@@ -445,7 +427,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
-    boxShadow: '0px 8px 24px rgba(40, 40, 50, 0.06)',
+    boxShadow: PLAIN_SHADOW,
   },
   switch: {
     padding: 3,
@@ -453,9 +435,11 @@ const styles = StyleSheet.create({
     backgroundColor: PLAIN.tile,
     borderWidth: 1,
     borderColor: PLAIN.tileEdge,
-    boxShadow: '0px 8px 24px rgba(40, 40, 50, 0.06)',
+    boxShadow: PLAIN_SHADOW,
   },
   part: { alignItems: 'center', justifyContent: 'center' },
+  stretch: { alignSelf: 'stretch' },
+  share: { flex: 1, minWidth: 0 },
   quietOn: { backgroundColor: PLAIN.quietOn, boxShadow: '0px 1px 4px rgba(0, 0, 0, 0.08)' },
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   subRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: S(10) },

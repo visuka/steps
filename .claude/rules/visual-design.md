@@ -19,12 +19,12 @@ These rules apply to every mockup, screen and component change. They cover the l
 ## Layout and spacing
 
 1. **Tiles stay.** Use frosted white tiles on a soft grey ground. The open look with dividers instead of tiles was rejected on 18 Nov 2026.
-2. **Top row:** the NUTRITION · ACTIVITY · MEET switch, calendar on the left, avatar on the right. There is no bottom bar.
+2. **Top row:** calendar on the left, avatar on the right. **Bottom bar** (owner, 18 Nov 2026): the NUTRITION · ACTIVITY · BUDDIES switch, on the three parts only (`part-bar.tsx`).
 3. **One focal point per screen:** the top (hero) tile.
 4. **Precise alignment:** one gutter, one tile gap and one tile padding per screen. Take them from `docs/design.md`; never use one-off values.
 5. **Comfortable density.**
    - Never fill space just to avoid emptiness.
-   - Keep room in the middle of Today for a future ad space, and leave it empty. Owner, 18 Nov 2026: it sits between tiles, mid-screen (between the Distance/Active pair and the Food/Sleep pair), a real 50 dp tall on every phone, full tile width.
+   - No ad space for now (owner, 18 Nov 2026: "currently remove the space left for Ad"). Ads come back only with an approved design.
 6. **Today (Activity) never scrolls** at 360 × 800 dp with normal text size.
 7. **No tile inside a tile.**
    - Use the spec's corner radius; don't round anything further.

@@ -6,13 +6,15 @@
 import type { ViewStyle } from 'react-native';
 
 import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
+import { PLAIN_SHADOW } from '@/constants/themes/plain';
 
 export const CARD_LOOK = {
   radius: CLEAN_SPEC.radius.card,
   /** Padding when the card has content, and the gap between its rows. */
   padding: CLEAN_SPEC.space.s16,
   gap: CLEAN_SPEC.space.s16,
-  boxShadow: CLEAN_SPEC.shadow.card,
+  /** The plain tile's soft lift (plain.ts), so cards match the three parts' tiles. */
+  boxShadow: PLAIN_SHADOW,
 } as const;
 
 /** Spec 10.3: pressed = ink at 8 % on white and tinted surfaces (0x14 of 0xFF). */

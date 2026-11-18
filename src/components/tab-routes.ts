@@ -2,8 +2,8 @@
  * The screens of the tabs navigator (app/(tabs)) and the bar's buttons, as
  * plain data so jest can check them (components/__tests__/tab-routes.test.ts).
  *
- * The bar, in order: Today, Chats (chats and groups), Profile, each with a
- * label (owner, 17 Nov 2026; docs/design.md "Bottom bar"). Food and Activity left the bar (owner, 16 Nov 2026): Today's
+ * BAR_TABS lists the tab screens in order: Today, Chats (chats and groups), Profile.
+ * The bottom bar itself is the Nutrition · Activity · Buddies switch (part-bar.tsx). Food and Activity left the bar (owner, 16 Nov 2026): Today's
  * Food tile and Log food open Food, its Walk tile opens Activity. Journal only
  * sends old links (notifications) on to Food or Activity.
  *

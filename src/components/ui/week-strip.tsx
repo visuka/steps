@@ -30,7 +30,7 @@ export function WeekStrip({ days, selectedIndex, onSelect }: WeekStripProps) {
             <ThemedText
               type="bodySmall"
               maxFontSizeMultiplier={1.3}
-              style={today ? { color: theme.primary, fontWeight: WEEK_STYLE.todayWeight } : { color: theme.onSurfaceVariant }}>
+              style={today ? { color: theme.onSurface, fontWeight: WEEK_STYLE.todayWeight } : { color: theme.onSurfaceVariant }}>
               {d.label}
             </ThemedText>
             <View style={[styles.track, { backgroundColor: today ? selectedTrack(theme) : midTone(theme) }]}>

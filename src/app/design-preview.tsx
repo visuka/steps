@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { BottomTabBarHeightContext } from 'expo-router/js-tabs';
-import { type ReactNode, useEffect } from 'react';
+import { BottomTabBarHeightCallbackContext, BottomTabBarHeightContext } from 'expo-router/js-tabs';
+import { type ReactNode, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -23,6 +23,7 @@ import { AuthScreen } from '@/components/auth/auth-screen';
 import { BuddiesHome } from '@/components/buddies/buddies-home';
 import { ScanScreen } from '@/components/food/scan-screen';
 import { Onboarding } from '@/components/onboarding';
+import { type Part, PartBar } from '@/components/plain/part-bar';
 import { Detail } from '@/app/detail/[kind]';
 import { dayKey } from '@/lib/dates';
 import { BuddiesSource } from '@/buddies/use-buddies';
@@ -49,6 +50,9 @@ const TAB_OF: Partial<Record<PreviewScreen, string>> = {
   you: 'you',
   foodtab: 'none',
 };
+
+/** The part bar's selection on the previews of the three parts. */
+const PART_OF: Partial<Record<PreviewScreen, Part>> = { today: 'activity', foodtab: 'nutrition', plus: 'buddies', buddies: 'buddies' };
 
 /**
  * The real Today, Food result, Walk and hourly detail screens over the mockups'
@@ -128,7 +132,7 @@ function DesignPreviewScreens() {
   }
   return (
     <SampleDataProvider>
-      <WithNavigationBar activeKey={TAB_OF[params.screen] ?? 'none'}>
+      <WithNavigationBar part={PART_OF[params.screen] ?? null}>
         <PreviewScreenBody screen={params.screen} />
       </WithNavigationBar>
     </SampleDataProvider>
@@ -244,14 +248,18 @@ function PreviewScreenBody({ screen, edit, mine }: { screen: PreviewScreen; edit
 }
 
 /**
- * The screen above the real navigation bar, with the tab the mockup selects;
- * the screen is told it is inside the tabs, as on the phone. Tabs do nothing here.
+ * A tab screen as on the phone: the real part bar under the three parts (with the
+ * mockup's part selected), nothing under the others. The bar's switch does nothing here.
  */
-function WithNavigationBar({ children }: { activeKey: string; children: ReactNode }) {
-  // No bottom bar any more (owner, 17 Nov 2026): the top row's switch moves between the parts.
+function WithNavigationBar({ part, children }: { part: Part | null; children: ReactNode }) {
+  const insets = useSafeAreaInsets();
+  const [barH, setBarH] = useState(0);
   return (
-    <BottomTabBarHeightContext.Provider value={0}>
+    <BottomTabBarHeightContext.Provider value={part ? barH || 1 : 0}>
       <View style={styles.fill}>{children}</View>
+      <BottomTabBarHeightCallbackContext.Provider value={setBarH}>
+        <PartBar part={part} bottomInset={insets.bottom} onChange={() => undefined} />
+      </BottomTabBarHeightCallbackContext.Provider>
     </BottomTabBarHeightContext.Provider>
   );
 }

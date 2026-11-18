@@ -79,7 +79,7 @@ export default function FoodTab() {
   const premium = usePremium();
   if (premium.isLocked(SCREEN_FEATURES['journal/food'])) {
     return (
-      <PlainPage part="nutrition">
+      <PlainPage>
         <Sub lead="Food" />
         <PremiumCard />
       </PlainPage>
@@ -137,7 +137,7 @@ function FoodScreen({ focusKey }: { focusKey?: string }) {
   // A food result opens as a screen of its own over the tab, as on the mockups (FoodLog).
   return (
     <FoodResultHostView>
-      <PlainPage part="nutrition" overlay={<Snackbar message={snack?.text ?? null} action={snack?.action} onDismiss={() => setSnack(null)} />}>
+      <PlainPage overlay={<Snackbar message={snack?.text ?? null} action={snack?.action} onDismiss={() => setSnack(null)} />}>
         <Sub lead="Food" rest={formatDayLong(today)}>
           <Segments<Tab>
             parts={[

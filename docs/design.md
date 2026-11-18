@@ -34,18 +34,17 @@ Size rule for this look: the mockup phone is **411 px wide; 1 mockup px = 1 dp**
 
 ### Structure
 
-- Three parts, switched by the top row: **NUTRITION · ACTIVITY · MEET**. Activity (Today) opens first. No bottom bar.
-- Top row: calendar (left, opens Steps by day), the switch, the avatar (right, opens Profile).
-- Nutrition = Food tab, Activity = Today, Meet = Walk buddies. News and Log food left Today (owner's OK, 17 Nov); News stays at `/news`.
+- Three parts, switched by the bar at the bottom: **NUTRITION · ACTIVITY · BUDDIES** (owner, 18 Nov 2026: "move the nutrition, activity, meet to bottom and rename meet to buddies"). Activity (Today) opens first. The bar shows on these three only (`part-bar.tsx`); it carries the gesture-bar inset, so the pages above it add none.
+- Top row: calendar (left, opens Steps by day) and the avatar (right, opens Profile).
+- Nutrition = Food tab, Activity = Today, Buddies = Walk buddies. News and Log food left Today (owner's OK, 17 Nov); News stays at `/news`.
 - **Today, top to bottom:**
   1. the date line;
   2. the Steps tile;
   3. Distance and Active;
-  4. **the ad space**;
-  5. Food and Sleep;
-  6. Water;
-  7. the latest walk (sand tile).
-- **Ad space:** empty, full tile width, **50 dp tall on every phone** (not scaled). It sits between the Distance/Active pair and the Food/Sleep pair. Nothing is drawn there until the ads design is approved.
+  4. Food and Sleep;
+  5. Water;
+  6. the latest walk (sand tile).
+- **No ad space for now** (owner, 18 Nov 2026: "currently remove the space left for Ad").
 
 ### Colours
 
@@ -172,9 +171,9 @@ This replaces what the two passes above say about the figures, the hour dots, th
 - **FOOD & SLEEP** title: 6 dp more room above it.
 - **Water in pale blue:** glasses outlined #2B70AE and filled #A9D4F5; the plus button #2B70AE on a 12% tint. Theme `water` #2B70AE (5.2:1 on white, 3.2:1 on the #CCCCCC lane), `waterContainer` #DCEEFB, map water #D4E7F5.
 
-### Bottom bar (every screen)
+### Bottom bar (the three parts)
 
-A row of 52 dp round buttons, 6 apart (almost touching), centred, on the screen's own ground, no hairline; 60 dp plus the system inset. The selected one is a #FBFBFB circle on a soft shadow with a black icon, the others #E4E4E4 circles with black icons. Labels are not drawn; TalkBack still says each name (`nav-style.ts`, `navigation-bar.tsx`).
+The plain switch (`Segments`, 40 dp, stretched to the gutter), NUTRITION · ACTIVITY · BUDDIES, on the ground's bottom grey, 6 above and 8 plus the system inset below. It steps aside while the keyboard or a food result is up. Other screens have no bottom bar (`part-bar.tsx`, `app-tabs.tsx`).
 
 ## History
 

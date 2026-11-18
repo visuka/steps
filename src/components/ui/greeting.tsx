@@ -31,7 +31,7 @@ export function Greeting({ date, name, initial, onAvatarPress, greeting = 'Hello
     <ThemedText
       type="bodyMedium"
       maxFontSizeMultiplier={1.3}
-      style={{ color: theme.primary, fontWeight: GREETING_STYLE.initialWeight }}>
+      style={{ color: theme.onSurface, fontWeight: GREETING_STYLE.initialWeight }}>
       {letter}
     </ThemedText>
   );

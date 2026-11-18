@@ -5,12 +5,12 @@ import { PremiumCard } from '@/components/premium-gate';
 import { SCREEN_FEATURES } from '@/premium/premium';
 import { usePremium } from '@/state/use-premium';
 
-/** Meet: Walk buddies (chats, buddies, requests); clubs, plans and QR come next. Locked: the premium card, under the top row. */
+/** Buddies: Walk buddies (chats, buddies, requests); clubs, plans and QR come next. Locked: the premium card, under the top row. */
 export default function PlusTab() {
   const premium = usePremium();
   if (premium.isLocked(SCREEN_FEATURES.buddies)) {
     return (
-      <PlainPage part="meet">
+      <PlainPage>
         <Sub lead="Walk buddies" />
         <PremiumCard />
       </PlainPage>

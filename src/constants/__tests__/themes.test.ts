@@ -1,5 +1,5 @@
 /**
- * The app's one look, Calm and large (themes/e.ts). The other seven looks were
+ * The app's one look, Plain (themes/e.ts, from the d38 tokens in themes/plain.ts). The other seven looks were
  * archived on 17 Nov 2026 (branch archive/all-looks), with their tests.
  */
 
@@ -13,11 +13,11 @@ import { contrast, TouchTarget, TYPE_ROLES } from '../tokens';
 const calm = themeById('e');
 
 describe('the one look', () => {
-  it('is Calm and large, and it is what the app draws', () => {
+  it('is Plain, and it is what the app draws', () => {
     expect(THEME_IDS).toEqual(['e']);
     expect(THEMES).toEqual([calm]);
     expect(DEFAULT_THEME_ID).toBe('e');
-    expect(calm.name).toBe('Calm and large');
+    expect(calm.name).toBe('Plain');
     expect(activeTheme()).toBe(calm);
   });
 
@@ -28,9 +28,10 @@ describe('the one look', () => {
 
   // The font stub gives each export its own name, so this checks the file, not just the label.
   it('loads every face under its own file’s name', () => {
+    // A bundled .ttf (the Outfit figures) has no export name to check; its file is named after the family.
     for (const [weight, face] of Object.entries(calm.fonts))
-      expect({ weight, family: face.family }).toEqual({ weight, family: face.source });
-    for (const [family, source] of Object.entries(fontMap(calm))) expect(source).toBe(family);
+      if (typeof face.source === 'string') expect({ weight, family: face.family }).toEqual({ weight, family: face.source });
+    for (const [family, source] of Object.entries(fontMap(calm))) if (typeof source === 'string') expect(source).toBe(family);
   });
 
   it('has its own map', () => {
@@ -90,12 +91,12 @@ describe('the one look', () => {
 });
 
 describe('type built from the look', () => {
-  it('builds every role in Figtree with its size', () => {
+  it('builds words in Figtree and figures in Outfit, each at its size', () => {
     const fonts = buildFonts(calm, 'android');
     const type = buildType(calm, fonts);
     for (const role of TYPE_ROLES) {
       expect(type[role].fontSize).toBe(calm.type[role].size);
-      expect(type[role].fontFamily).toMatch(/^Figtree_/);
+      expect(type[role].fontFamily).toMatch(calm.type[role].numeral ? /^Outfit_/ : /^Figtree_/);
     }
     expect(type.numeralHero.fontVariant).toEqual(['tabular-nums']);
   });
@@ -114,12 +115,12 @@ describe('type built from the look', () => {
 describe('button, chip and FAB shapes', () => {
   const c = buildControls(calm);
 
-  it('draws 56 dp buttons at radius 20, as the mockup', () => {
-    expect(c.button.minHeight).toBe(56);
+  it('draws 48 dp pill buttons, as the plain tiles', () => {
+    expect(c.button.minHeight).toBe(48);
     expect(c.button.minHeight).toBeGreaterThanOrEqual(TouchTarget);
-    expect(c.button.borderRadius).toBe(20);
-    expect(c.action.minHeight).toBe(56);
-    expect(c.fab.borderRadius).toBe(20);
+    expect(c.button.borderRadius).toBe(999);
+    expect(c.action.minHeight).toBe(48);
+    expect(c.fab.borderRadius).toBe(999);
   });
 
   it('keeps chips and buttons in sentence case and the FAB flat', () => {

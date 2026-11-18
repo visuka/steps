@@ -1,150 +1,150 @@
 /**
- * E, Calm and large (app-look/project/E-Calm.dc.html). Light only, as mocked.
+ * The app's one look: the plain sage-and-sand look of mock d38 (owner approved
+ * 18 Nov 2026), for every screen. Light only.
  *
- * Big, clear and unhurried. Colours (owner, 17 Nov 2026, every screen): a
- * light grey ground (#F1F1F1), near-white cards (#FBFBFB) edged in a 1 dp
- * grey line, black for text, the main action and the data, greys for second
- * text and tracks, and one red (#C8201F, warnings and over the limit).
- * Figtree throughout: body 18, labels 16 at the least, titles 24,
- * the steps hero 72, all numbers in tabular figures.
+ * Every colour and face comes from plain.ts, the same tokens the three parts
+ * (Nutrition, Activity, Buddies) draw with, so a screen built from the shared
+ * pieces (Screen, Card, Button, Segmented, ThemedText) looks like those parts
+ * without knowing about them. Change the look in plain.ts, never per screen.
  *
- * The lane is #CCCCCC so tracks still show on the grey ground (1.25:1).
+ * Words: Figtree, charcoal and one grey. Figures: Outfit, light. Colour sits
+ * on surfaces only: sage for main buttons and progress, sand for chips and
+ * second tiles. Red stays for warnings (over a limit) only.
  */
 
 import { Figtree_400Regular } from '@expo-google-fonts/figtree/400Regular';
+import { Figtree_500Medium } from '@expo-google-fonts/figtree/500Medium';
 import { Figtree_600SemiBold } from '@expo-google-fonts/figtree/600SemiBold';
-import { Figtree_700Bold } from '@expo-google-fonts/figtree/700Bold';
 
 import { type RadiusScale, schemeFromRoles, type SchemeRoles, type TypeScaleShape } from '../tokens';
-import type { ThemeDef } from './types';
+import { PLAIN, PLAIN_FONT, PLAIN_SIZE } from './plain';
+import type { ColorRef, ThemeDef } from './types';
+
+/** A plain.ts colour where the theme takes a hex. */
+const hex = (c: string) => c as ColorRef;
 
 const light: SchemeRoles = {
-  // Deep green: "Log food", "Save to lunch", the selected tab's ink.
-  primary: '#000000',
-  onPrimary: '#FFFFFF',
-  // The round icon plates beside a walk.
-  primaryContainer: '#E6E6E6',
-  onPrimaryContainer: '#000000',
-  secondary: '#3C3C3C',
+  // Main buttons, the selected day, links: sage.
+  primary: PLAIN.main,
+  onPrimary: PLAIN.onMain,
+  // Icon plates and the top tile's tint.
+  primaryContainer: PLAIN.hero,
+  onPrimaryContainer: PLAIN.text,
+  secondary: PLAIN.muted,
   onSecondary: '#FFFFFF',
-  // The navigation pill.
-  secondaryContainer: '#E2E2E2',
-  onSecondaryContainer: '#000000',
-  tertiary: '#3C3C3C',
+  // Chips, the stepper's round buttons: sand.
+  secondaryContainer: PLAIN.chip,
+  onSecondaryContainer: PLAIN.text,
+  tertiary: PLAIN.sand,
   onTertiary: '#FFFFFF',
-  tertiaryContainer: '#E8E8E8',
-  onTertiaryContainer: '#000000',
-  // The "High" sodium badge.
-  error: '#C8201F',
+  tertiaryContainer: PLAIN.second,
+  onTertiaryContainer: PLAIN.text,
+  // The "High" sodium badge and over-the-limit marks.
+  error: '#B3261E',
   onError: '#FFFFFF',
-  errorContainer: '#FDE4E4',
-  onErrorContainer: '#A51A19',
-  background: '#F1F1F1',
-  onBackground: '#000000',
-  surface: '#F1F1F1',
-  onSurface: '#000000',
-  surfaceVariant: '#DCDCDC',
-  onSurfaceVariant: '#5E5E5E',
-  surfaceDim: '#DCDCDC',
-  surfaceBright: '#FBFBFB',
-  // Cards are white (tile: 'outlined').
-  surfaceContainerLowest: '#FBFBFB',
-  surfaceContainerLow: '#F7F7F7',
-  // Neutral icon plates, list dividers.
-  surfaceContainer: '#E8E8E8',
-  // The segmented control's well.
-  surfaceContainerHigh: '#E4E4E4',
-  surfaceContainerHighest: '#DCDCDC',
-  inverseSurface: '#1A1A1A',
-  inverseOnSurface: '#F1F1F1',
-  inversePrimary: '#CFCFCF',
-  // The card edge is the mockup's #E3DBCD (outlineVariant); outline is darker so a field's edge shows 3:1.
-  outline: '#7C7C7C',
-  outlineVariant: '#DCDCDC',
-  surfaceTint: '#000000',
+  errorContainer: '#FBE9E7',
+  onErrorContainer: '#8C1D18',
+  background: PLAIN.ground.top,
+  onBackground: PLAIN.text,
+  surface: PLAIN.ground.top,
+  onSurface: PLAIN.text,
+  surfaceVariant: PLAIN.hairline,
+  onSurfaceVariant: PLAIN.muted,
+  surfaceDim: PLAIN.ground.shade,
+  surfaceBright: PLAIN.tileEdge,
+  // Cards are the frosted tile (tile: 'plain').
+  surfaceContainerLowest: PLAIN.tile,
+  surfaceContainerLow: PLAIN.ground.bottom,
+  surfaceContainer: PLAIN.ground.mid,
+  surfaceContainerHigh: PLAIN.fieldEdge,
+  surfaceContainerHighest: PLAIN.hairline,
+  inverseSurface: PLAIN.text,
+  inverseOnSurface: PLAIN.ground.top,
+  inversePrimary: PLAIN.hero,
+  // A field's edge shows 3:1; dividers are the hairline.
+  outline: '#7A7A80',
+  outlineVariant: PLAIN.hairline,
+  surfaceTint: PLAIN.main,
   shadow: '#000000',
   scrim: '#000000',
 
-  steps: '#000000',
-  onSteps: '#FFFFFF',
-  stepsContainer: '#E2E2E2',
-  onStepsContainer: '#000000',
-  food: '#000000',
+  steps: PLAIN.main,
+  onSteps: PLAIN.onMain,
+  stepsContainer: PLAIN.hero,
+  onStepsContainer: PLAIN.text,
+  food: PLAIN.sand,
   onFood: '#FFFFFF',
-  // The macro plates on a food result.
-  foodContainer: '#ECECEC',
-  onFoodContainer: '#000000',
-  food2: '#5E5E5E',
-  food3: '#3C3C3C',
-  water: '#2B70AE',
-  onWater: '#FFFFFF',
+  foodContainer: PLAIN.second,
+  onFoodContainer: PLAIN.text,
+  food2: PLAIN.muted,
+  food3: PLAIN.main,
+  water: PLAIN.main,
+  onWater: PLAIN.onMain,
   // The "+ 1 glass" button.
-  waterContainer: '#DCEEFB',
-  onWaterContainer: '#000000',
-  sleep: '#3C3C3C',
+  waterContainer: PLAIN.chip,
+  onWaterContainer: PLAIN.text,
+  sleep: PLAIN.sand,
   onSleep: '#FFFFFF',
-  sleepContainer: '#E4E4E4',
-  onSleepContainer: '#000000',
-  near: '#5E5E5E',
+  sleepContainer: PLAIN.second,
+  onSleepContainer: PLAIN.text,
+  near: PLAIN.muted,
   onNear: '#FFFFFF',
-  nearContainer: '#E4E4E4',
-  onNearContainer: '#000000',
-  over: '#C8201F',
+  nearContainer: PLAIN.ground.mid,
+  onNearContainer: PLAIN.text,
+  over: '#B3261E',
   onOver: '#FFFFFF',
 
-  lane: '#CCCCCC',
+  // A track's empty part: shows on the tiles and on the grey ground.
+  lane: '#D2D2D7',
   tick: '#FFFFFF',
-  laneTick: '#5E5E5E',
+  laneTick: PLAIN.muted,
 };
 
 /**
- * From the mockup: body 18, labels and secondary lines 16 (never smaller),
- * card titles 18 at 700, screen titles 24, buttons 18 at 700, the steps
- * hero 72. Weight names map to files in `fonts` below: regular 400,
- * medium and semibold 600, bold 700 (the mockup uses no other weights).
+ * The plain sizes (docs/design.md): words 14 to 16, card names 16 semibold,
+ * screen titles 22, buttons 14 semibold; figures in Outfit 300 (the bold
+ * weight names pick the light figure file, as on the three parts) and 400.
  */
 const type: TypeScaleShape = {
-  displayLarge: { size: 57, line: 64, weight: 'bold', tracking: -0.5 },
-  displayMedium: { size: 45, line: 52, weight: 'bold', tracking: -0.5 },
-  displaySmall: { size: 36, line: 44, weight: 'bold', tracking: 0 },
-  /** Page heads: 32/40. */
-  headlineLarge: { size: 32, line: 40, weight: 'bold', tracking: 0 },
-  headlineMedium: { size: 28, line: 36, weight: 'bold', tracking: 0 },
-  /** "Fri, 14 Nov", "Morning walk · 7:10 am". */
-  headlineSmall: { size: 24, line: 32, weight: 'bold', tracking: 0 },
-  /** The typed dish: 18/26 at 700. */
-  titleLarge: { size: 18, line: 26, weight: 'bold', tracking: 0 },
-  /** Card titles: "Ingredients", "Nutrients, at least". */
-  titleMedium: { size: 18, line: 24, weight: 'bold', tracking: 0 },
-  /** "Steps today", list row names. */
-  titleSmall: { size: 18, line: 24, weight: 'semibold', tracking: 0 },
-  bodyLarge: { size: 18, line: 26, weight: 'regular', tracking: 0 },
-  bodyMedium: { size: 18, line: 24, weight: 'regular', tracking: 0 },
-  /** Notes and secondary lines: 16 is the floor. */
-  bodySmall: { size: 16, line: 24, weight: 'regular', tracking: 0 },
-  /** Buttons: 18 at 700. */
-  labelLarge: { size: 18, line: 24, weight: 'bold', tracking: 0 },
-  /** Tile labels, navigation. */
-  labelMedium: { size: 16, line: 24, weight: 'semibold', tracking: 0 },
+  displayLarge: { size: 48, line: 54, weight: 'semibold', tracking: -0.5 },
+  displayMedium: { size: 40, line: 46, weight: 'semibold', tracking: -0.5 },
+  displaySmall: { size: 32, line: 38, weight: 'semibold', tracking: 0 },
+  headlineLarge: { size: 28, line: 34, weight: 'semibold', tracking: 0 },
+  headlineMedium: { size: 24, line: 30, weight: 'semibold', tracking: 0 },
+  /** Screen titles: "Settings", "Steps". */
+  headlineSmall: { size: 22, line: 28, weight: 'semibold', tracking: 0 },
+  /** The typed dish. */
+  titleLarge: { size: 17, line: 23, weight: 'semibold', tracking: 0 },
+  /** Card titles: "Ingredients", "Profile". */
+  titleMedium: { size: 16, line: 22, weight: 'semibold', tracking: 0 },
+  /** List row names. */
+  titleSmall: { size: 15, line: 20, weight: 'medium', tracking: 0 },
+  bodyLarge: { size: 16, line: 22, weight: 'regular', tracking: 0 },
+  bodyMedium: { size: 15, line: 20, weight: 'regular', tracking: 0 },
+  /** Notes and second lines, as the tiles' notes. */
+  bodySmall: { size: 14, line: 19, weight: 'regular', tracking: 0 },
+  /** Buttons. */
+  labelLarge: { size: 14, line: 18, weight: 'semibold', tracking: 0 },
+  labelMedium: { size: 13, line: 17, weight: 'medium', tracking: 0 },
   /** Chips and badges. */
-  labelSmall: { size: 16, line: 22, weight: 'regular', tracking: 0 },
-  /** Today's steps. */
-  numeralHero: { size: 72, line: 72, weight: 'bold', tracking: -1, numeral: true },
-  /** A walk's distance. */
-  numeralLarge: { size: 32, line: 40, weight: 'bold', tracking: 0, numeral: true },
-  /** Tile values: "1,280", "52 min". */
-  numeralMedium: { size: 24, line: 32, weight: 'bold', tracking: 0, numeral: true },
+  labelSmall: { size: 12, line: 16, weight: 'regular', tracking: 0 },
+  /** A screen's one big figure. */
+  numeralHero: { size: 64, line: 68, weight: 'bold', tracking: -2, numeral: true },
+  /** "6,240 of 8,000", a walk's distance. */
+  numeralLarge: { size: 38, line: 44, weight: 'bold', tracking: -0.5, numeral: true },
+  /** Tile figures. */
+  numeralMedium: { size: 28, line: 32, weight: 'bold', tracking: 0, numeral: true },
   /** A macro, a list row's value. */
-  numeralSmall: { size: 18, line: 24, weight: 'bold', tracking: 0, numeral: true },
+  numeralSmall: { size: 17, line: 24, weight: 'medium', tracking: 0, numeral: true },
 };
 
-/** Soft but not bubbly: 20 dp cards and buttons, 16 dp chips and inner plates, 32 dp sheets. */
+/** Tiles 24, fields and chips 16, sheets 32. */
 const radius: RadiusScale = {
   none: 0,
-  xs: 16,
+  xs: 12,
   sm: 16,
-  md: 20,
-  lg: 20,
+  md: PLAIN_SIZE.radius,
+  lg: PLAIN_SIZE.radius,
   xl: 32,
   full: 999,
 };
@@ -153,86 +153,86 @@ const scheme = schemeFromRoles(light);
 
 const theme: ThemeDef = {
   id: 'e',
-  name: 'Calm and large',
-  description: 'Bigger text and plenty of room. Soft and easy to read.',
+  name: 'Plain',
+  description: 'Frosted tiles on soft grey, sage and sand.',
   mode: 'light',
   colors: { light: scheme, dark: scheme },
   fonts: {
-    regular: { family: 'Figtree_400Regular', source: Figtree_400Regular },
-    medium: { family: 'Figtree_600SemiBold', source: Figtree_600SemiBold },
-    semibold: { family: 'Figtree_600SemiBold', source: Figtree_600SemiBold },
-    bold: { family: 'Figtree_700Bold', source: Figtree_700Bold },
-    numeralMedium: { family: 'Figtree_600SemiBold', source: Figtree_600SemiBold },
-    numeral: { family: 'Figtree_700Bold', source: Figtree_700Bold },
+    regular: { family: PLAIN_FONT.regular, source: Figtree_400Regular },
+    medium: { family: PLAIN_FONT.medium, source: Figtree_500Medium },
+    semibold: { family: PLAIN_FONT.semibold, source: Figtree_600SemiBold },
+    bold: { family: PLAIN_FONT.semibold, source: Figtree_600SemiBold },
+    numeralMedium: { family: PLAIN_FONT.mid, source: require('@/assets/fonts/Outfit_400Regular.ttf') },
+    numeral: { family: PLAIN_FONT.figure, source: require('@/assets/fonts/Outfit_300Light.ttf') },
   },
   type,
   radius,
-  /** E: big 56 dp buttons with 20 dp corners and 18 dp labels at 700, flat. */
   style: {
-    tile: 'outlined',
+    tile: 'plain',
     hero: 'bar',
     bar: 'solid',
     navIndicator: 'neutral',
     numeralTabular: true,
-    buttonRadius: 20,
-    buttonHeight: 56,
+    // Pill buttons 48 high, 14 semibold labels, flat.
+    buttonRadius: radius.full,
+    buttonHeight: 48,
     buttonCase: 'none',
     chipCase: 'none',
-    fabRadius: radius.lg,
+    fabRadius: radius.full,
     fabShadow: false,
-    actionHeight: 56,
-    compactLabel: { size: 18, line: 24, weight: 'bold' },
+    actionHeight: 48,
+    compactLabel: { size: 14, line: 18, weight: 'semibold' },
     filledRole: 'primary',
-    outlined: { border: 'primary', fill: '#FBFBFB', ink: 'primary' },
-    // Card titles: "Ingredients", "Nutrients, at least": 18/24 at 700.
-    overline: { size: 18, line: 24, weight: 'bold', tracking: 0, case: 'none', color: 'onSurface' },
+    // White round buttons with a grey hairline, as the top row's.
+    outlined: { border: hex(PLAIN.fieldEdge), fill: hex(PLAIN.field), ink: 'onSurface' },
+    overline: { size: 11.5, line: 15, weight: 'medium', tracking: 2, case: 'upper', color: hex(PLAIN.label) },
     segment: {
-      height: 56,
-      well: 'surfaceContainerHigh',
-      wellBorder: null,
-      radius: 20,
-      pad: 4,
-      selected: '#FBFBFB',
-      onSelected: 'primary',
-      selectedBorder: 'primary',
-      selectedRadius: 16,
-      idle: '#3C3C3C',
+      height: PLAIN_SIZE.switchH,
+      well: hex(PLAIN.tile),
+      wellBorder: hex(PLAIN.tileEdge),
+      radius: PLAIN_SIZE.switchH / 2,
+      pad: 3,
+      selected: hex(PLAIN.quietOn),
+      onSelected: 'onSurface',
+      selectedBorder: null,
+      selectedRadius: PLAIN_SIZE.switchH / 2 - 3,
+      idle: hex(PLAIN.muted),
       divider: null,
       check: false,
-      label: { size: 18, weight: 'semibold', selectedWeight: 'bold' },
+      label: { size: 13, weight: 'medium', selectedWeight: 'semibold' },
     },
     nav: {
-      height: 72,
-      background: '#FBFBFB',
+      height: 64,
+      background: hex(PLAIN.tile),
       border: 'outlineVariant',
       pill: 'secondaryContainer',
-      onPill: 'primary',
+      onPill: 'onSurface',
       pillWidth: 56,
-      active: 'primary',
+      active: 'onSurface',
       idle: 'onSurfaceVariant',
-      label: { size: 16, line: 20, weight: 'semibold', activeWeight: 'bold' },
+      label: { size: 12, line: 16, weight: 'medium', activeWeight: 'semibold' },
     },
   },
-  // The mockup's map: parchment land, white streets, thin sand lanes, the deep green route.
+  // The walk map: soft grey land, white streets, the route in sage.
   map: {
     base: 'light',
-    land: '#F1F1F1',
-    road: '#FBFBFB',
-    minorRoad: '#DCDCDC',
-    park: '#E4E4E4',
-    water: '#D4E7F5',
-    building: '#E8E8E8',
-    label: '#5E5E5E',
-    border: '#DCDCDC',
-    radius: 20,
+    land: PLAIN.ground.mid,
+    road: '#FFFFFF',
+    minorRoad: PLAIN.hairline,
+    park: PLAIN.hero,
+    water: '#DCE6EE',
+    building: PLAIN.fieldEdge,
+    label: PLAIN.muted,
+    border: PLAIN.tileEdge,
+    radius: PLAIN_SIZE.radius,
     height: 160,
-    route: '#000000',
-    routeWidth: 6,
+    route: PLAIN.main,
+    routeWidth: 5,
     casing: null,
-    start: '#FBFBFB',
-    startRing: '#000000',
-    end: '#000000',
-    endRing: '#FBFBFB',
+    start: '#FFFFFF',
+    startRing: PLAIN.main,
+    end: PLAIN.main,
+    endRing: '#FFFFFF',
   },
 };
 

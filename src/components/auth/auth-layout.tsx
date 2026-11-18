@@ -3,6 +3,7 @@ import { type ComponentProps, type ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, type TextInputProps, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { PlainGround } from '@/components/plain/plain-kit';
 import { resolveFont, ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
 import { Radius, Spacing, TouchTarget, Type } from '@/constants/theme';
@@ -24,6 +25,7 @@ export function AuthLayout({
   const theme = useTheme();
   return (
     <View style={[styles.container, { backgroundColor: theme.surface }]}>
+      <PlainGround />
       <SafeAreaView style={styles.container}>
         <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">

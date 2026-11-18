@@ -105,7 +105,8 @@ export function Card({
     const { outer, inner } = splitCardStyle(flat);
     const radius = flat.borderRadius ?? CARD_LOOK.radius;
     const hasContent = !!(title || right || children);
-    const shape: ViewStyle = { borderRadius: radius, backgroundColor: theme.surfaceContainerLowest, boxShadow: CARD_LOOK.boxShadow };
+    // The frosted tile: its white hairline edge and soft lift, as the plain tiles.
+    const shape: ViewStyle = { borderRadius: radius, backgroundColor: theme.surfaceContainerLowest, borderWidth: 1, borderColor: theme.surfaceBright, boxShadow: CARD_LOOK.boxShadow };
     const content: StyleProp<ViewStyle> = [
       styles.fill,
       { borderRadius: radius, padding: hasContent ? CARD_LOOK.padding : 0, gap: CARD_LOOK.gap },

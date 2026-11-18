@@ -127,7 +127,7 @@ export function EditIngredientRows({
                     accessibilityLabel={rowMethodSpoken(r)}
                     hitSlop={{ left: RESULT.methodSlack, right: RESULT.methodSlack }}
                     style={styles.method}>
-                    <ThemedText type="bodySmall" maxFontSizeMultiplier={NumeralMaxScale} style={{ color: theme.primary }}>
+                    <ThemedText type="bodySmall" maxFontSizeMultiplier={NumeralMaxScale} style={{ color: theme.onSurface }}>
                       {rowMethodWord(r)}
                     </ThemedText>
                     <SpecIcon name="chevron-down" color={theme.primary} size={RESULT.methodChevron} />
@@ -200,7 +200,7 @@ export function EditIngredientRows({
         accessibilityLabel="Add ingredient"
         style={[styles.row, styles.add, locked && { opacity: 0.5 }]}>
         <IconCircle name="plus" tone="accent" />
-        <ThemedText type="labelLarge" maxFontSizeMultiplier={NumeralMaxScale} style={{ color: theme.primary }}>
+        <ThemedText type="labelLarge" maxFontSizeMultiplier={NumeralMaxScale} style={{ color: theme.onSurface }}>
           Add ingredient
         </ThemedText>
       </Pressable>

@@ -57,7 +57,8 @@ describe('colour roles', () => {
     for (const bg of SURFACES) {
       expect(contrast(c.onSurface, c[bg])).toBeGreaterThanOrEqual(4.5);
       expect(contrast(c.onSurfaceVariant, c[bg])).toBeGreaterThanOrEqual(4.5);
-      expect(contrast(c.primary, c[bg])).toBeGreaterThanOrEqual(4.5);
+      // Sage is a surface colour (buttons, progress), never words: 3:1 as a UI part.
+      expect(contrast(c.primary, c[bg])).toBeGreaterThanOrEqual(3);
     }
   });
 

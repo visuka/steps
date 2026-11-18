@@ -1,8 +1,9 @@
-import { BottomTabBarHeightContext } from 'expo-router/js-tabs';
 import { Children, type ReactNode, use } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useBarBelow } from '@/components/plain/part-bar';
+import { PlainGround } from '@/components/plain/plain-kit';
 import { ThemedText } from '@/components/themed-text';
 import { MaxContentWidth } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -51,11 +52,14 @@ export function Screen({
 }: ScreenProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const inTabs = use(BottomTabBarHeightContext) !== undefined;
+  // The part bar takes the bottom inset when it sits under this screen.
+  const inTabs = useBarBelow();
   const bottom = bottomOffset(inTabs, insets.bottom);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.surface }]}>
+      {/* The same soft grey ground as the three parts. */}
+      <PlainGround />
       <ScrollView
         contentContainerStyle={[
           styles.content,
