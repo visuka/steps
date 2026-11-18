@@ -77,7 +77,7 @@ These rules apply to every mockup, screen and component change. They cover the l
 
 ## Motion
 
-1. **Gentle continuous movement on the ground and the hero tile:** slow drifting light and a slow sheen behind the text. It never passes over text.
+1. **Gentle continuous movement in the ground only:** slow drifting light behind the tiles. Nothing moves on tiles or text, and there is no sheen (see Colour: no shine).
 2. **Calm transitions.** No bounce and no exaggerated springs.
 3. **Respect the phone's "Remove animations" setting.** When it is on, everything stops.
 
