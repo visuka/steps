@@ -94,7 +94,7 @@ Size rule for this look: the mockup phone is **411 px wide; 1 mockup px = 1 dp**
   - gutter 18;
   - **tiles 9 apart on every screen, Today included** (Today was 12; it gave the room to the ad space);
   - tile radius 24;
-  - padding 14 × 18, or 18 × 20 on Today. On a small phone (360 × 800), Today's tiles take 14 × 18 too, so Today never scrolls and keeps at least 12 dp above the bottom edge.
+  - padding 14 × 18, or 18 × 20 on Today. On a small phone (360 × 800), Today's tiles take 14 × 18 too, so Today never scrolls and keeps at least 12 dp above the bottom edge. If the phone is shorter still (a tall status bar: CI's 360 × 800 emulator has 43 dp), Today squeezes in this order, one step at a time and only as far as needed: the gaps go from 9 down to 6, then the tile figures take the standard 34/38, then the steps figure is 78/82 with 12 above it and 10 below it. Normal phones never reach these steps.
 - **Shadows and controls:** shadow 0 8 24 rgba(40,40,50,.06); round buttons 40; top row 6 under the status bar.
 - **Side-by-side tiles:** the buttons sit at each tile's foot on one line, at least 12 under the words.
 - **Measured exceptions in the mock (keep them):**
