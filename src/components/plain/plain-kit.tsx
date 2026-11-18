@@ -14,7 +14,7 @@ import { MaxTextScale } from '@/constants/theme';
 import { scaled } from '@/constants/ui-scale';
 
 import { PlainCalendar, PlainIcon } from './plain-icons';
-import { PLAIN, PLAIN_FONT, PLAIN_SHADOW, PLAIN_SIZE, type PlainIconName } from './plain-theme';
+import { PLAIN, PLAIN_FIELD, PLAIN_FONT, PLAIN_SHADOW, PLAIN_SIZE, type PlainIconName } from './plain-theme';
 
 const S = scaled;
 /** A text size through scaled(), never under 11 dp (small phones shrink the layout to 0.85). */
@@ -406,11 +406,9 @@ const styles = StyleSheet.create({
   label: { flexDirection: 'row', alignItems: 'center', minWidth: 0, flexShrink: 1 },
   unit: { fontFamily: PLAIN_FONT.regular, fontWeight: '400', fontSize: S(15), color: PLAIN.muted, letterSpacing: 0 },
   field: {
+    ...PLAIN_FIELD,
     height: S(42),
-    borderRadius: S(21),
-    backgroundColor: PLAIN.field,
-    borderWidth: 1,
-    borderColor: PLAIN.fieldEdge,
+    borderRadius: S(PLAIN_FIELD.borderRadius),
     paddingHorizontal: S(16),
     paddingVertical: 0,
     fontFamily: PLAIN_FONT.regular,

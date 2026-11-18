@@ -46,6 +46,12 @@ export const PLAIN = {
   ripple: '#2C2C2E14',
 } as const;
 
+/**
+ * Every text box in the app (settings, sign-in, search, chat): white, a grey
+ * hairline all round, pill corners. A box of several lines takes radius 16.
+ */
+export const PLAIN_FIELD = { backgroundColor: PLAIN.field, borderWidth: 1, borderColor: PLAIN.fieldEdge, borderRadius: 21 } as const;
+
 /** The soft lift under every tile, round button and switch. */
 export const PLAIN_SHADOW = '0px 8px 24px rgba(40, 40, 50, 0.06)';
 

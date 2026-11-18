@@ -3,6 +3,7 @@ import { type ComponentProps, type ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, type TextInputProps, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { PLAIN_FIELD } from '@/constants/themes/plain';
 import { PlainGround } from '@/components/plain/plain-kit';
 import { resolveFont, ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
@@ -96,10 +97,9 @@ export function Field({
     <View style={styles.field}>
       <View
         style={[
+          PLAIN_FIELD,
           styles.box,
           {
-            backgroundColor: onCard ? theme.surfaceContainerLowest : theme.surfaceContainerHighest,
-            borderBottomColor: theme.onSurfaceVariant,
             opacity: editable ? 1 : 0.6,
           },
         ]}>
@@ -146,10 +146,8 @@ const styles = StyleSheet.create({
   box: {
     minHeight: 56,
     paddingTop: Spacing.two,
-    paddingHorizontal: Spacing.three,
-    borderTopLeftRadius: Radius.xs,
-    borderTopRightRadius: Radius.xs,
-    borderBottomWidth: 1,
+    paddingHorizontal: Spacing.four,
+    borderRadius: 28,
     justifyContent: 'center',
   },
   input: { minHeight: TouchTarget - 16, paddingVertical: Spacing.one, paddingHorizontal: 0 },

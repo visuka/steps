@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { resolveFont, ThemedText } from '@/components/themed-text';
 import { Button as UiButton, type ButtonVariant } from '@/components/ui/button';
 import { Segments } from '@/components/plain/plain-kit';
+import { PLAIN_FIELD } from '@/constants/themes/plain';
 import { Chip as UiChip } from '@/components/ui/chip';
 import { Controls, NumeralMaxScale, Radius, Spacing, TouchTarget, Type } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -235,11 +236,8 @@ export function TextField({
 function inputStyle(theme: ReturnType<typeof useTheme>, extra: Parameters<typeof resolveFont>[0]) {
   return resolveFont([
     Type.bodyLarge,
-    {
-      color: theme.onSurface,
-      backgroundColor: theme.surfaceContainerHighest,
-      borderBottomColor: theme.onSurfaceVariant,
-    },
+    PLAIN_FIELD,
+    { color: theme.onSurface },
     extra,
   ]);
 }
@@ -347,11 +345,8 @@ const styles = StyleSheet.create({
     minHeight: TouchTarget,
     textAlign: 'right',
     paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.three - 4,
-    borderTopLeftRadius: Radius.xs,
-    borderTopRightRadius: Radius.xs,
-    borderBottomWidth: 1,
+    paddingHorizontal: Spacing.three,
   },
   textField: { textAlign: 'left', minWidth: 0 },
-  multiline: { minHeight: 72, textAlignVertical: 'top' },
+  multiline: { minHeight: 72, textAlignVertical: 'top', borderRadius: 16 },
 });

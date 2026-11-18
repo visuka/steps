@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { FlatList, KeyboardAvoidingView, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { PLAIN_FIELD } from '@/constants/themes/plain';
 import { PlainGround } from '@/components/plain/plain-kit';
 import { ReportSheet } from '@/components/buddies/report-sheet';
 import { useSnack } from '@/components/buddies/parts';
@@ -135,7 +136,7 @@ export default function ChatScreen() {
                 maxLength={MESSAGE_MAX}
                 maxFontSizeMultiplier={1.3}
                 accessibilityLabel="Message"
-                style={resolveFont([Type.bodyLarge, styles.input, { color: theme.onSurface, backgroundColor: theme.surfaceContainerHigh }])}
+                style={resolveFont([Type.bodyLarge, PLAIN_FIELD, styles.input, { color: theme.onSurface }])}
               />
               {count ? (
                 <ThemedText type="bodySmall" themeColor="onSurfaceVariant">
