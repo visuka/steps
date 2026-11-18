@@ -33,8 +33,8 @@ import { type AddedGlass, useWaterToday } from '@/state/use-water';
 import { useClock } from '@/hooks/use-clock';
 
 const WEATHER_PROMPT_KEY = 'weatherPromptDismissed';
-/** How far Today squeezes to fit a short screen (today-calm.tsx: 1 = standard tile padding, 2–4 = the 9 between tiles down to 6). */
-const MAX_SQUEEZE = 4;
+/** How far Today squeezes to fit a short screen (today-calm.tsx: 1 = standard tile padding, 2–4 = the 9 between tiles down to 6, 5–6 = smaller figures). */
+const MAX_SQUEEZE = 6;
 
 /**
  * Today: the Calm and large Today (components/today/today-calm.tsx),

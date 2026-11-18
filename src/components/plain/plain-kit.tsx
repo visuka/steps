@@ -169,7 +169,8 @@ export function Big({ text, size, line }: { text: string; size: number; line: nu
 }
 
 /** A tile's figure, Outfit 300 34/38 (38/46 roomy: Outfit is wider), with its unit 15 grey: "4.6 km". */
-export function Num({ value, unit, roomy, style }: { value: string; unit?: string; roomy?: boolean; style?: TextStyle }) {
+// `pairs`: a figure in parts, each with its small unit (Sleep: 6 h 50 m, as mock d38).
+export function Num({ value, unit, roomy, style, pairs }: { value: string; unit?: string; roomy?: boolean; style?: TextStyle; pairs?: [string, string][] }) {
   const size = roomy ? 38 : 34;
   const line = roomy ? 46 : 38;
   return (
@@ -179,8 +180,16 @@ export function Num({ value, unit, roomy, style }: { value: string; unit?: strin
       minimumFontScale={0.7}
       maxFontSizeMultiplier={MaxTextScale}
       style={[{ fontFamily: PLAIN_FONT.figure, fontSize: S(size), lineHeight: S(line), color: PLAIN.text, includeFontPadding: false, marginTop: S(4) }, style]}>
-      {value}
-      {unit ? <Text style={styles.unit}>{` ${unit}`}</Text> : null}
+      {pairs
+        ? pairs.map(([n, u], i) => (
+            <Text key={i}>
+              {i > 0 ? ' ' : ''}
+              {n}
+              <Text style={styles.unit}>{` ${u}`}</Text>
+            </Text>
+          ))
+        : value}
+      {unit && !pairs ? <Text style={styles.unit}>{` ${unit}`}</Text> : null}
     </Text>
   );
 }
