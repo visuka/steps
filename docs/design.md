@@ -22,52 +22,91 @@
 
 Size rule: the mockup phone screen is **360 px wide; 1 mockup px = 1 dp**. Text keeps `scaled()` (ui-scale.ts) and `MaxTextScale`. On wider phones the extra width goes to the cards, not to bigger text.
 
-## Current: plain, sage and sand (owner, 17 Nov 2026)
+## Current: plain, sage and sand, mock d38 (owner approved 18 Nov 2026)
 
-**Source:** the owner's words "Let us finalise on sage plus sand", "I need the app exactly as in the mock.. pixel to pixel", "Build it". Mockup: `docs/design/plain-sage-sand/plain.html?s=a|n|m&k=1&ic=1&icx=1` (Activity, Nutrition, Meet); pictures `pair-1-activity.png`, `pair-1-nutrition.png`, `pair-1-meet.png` in the same folder. It replaces the grey-black-red look below on Today, Food and Meet. Code: `src/components/plain/` (`plain-theme.ts` holds every value).
+**Source:** the owner chose sage plus sand on 17 Nov ("Let us finalise on sage plus sand", "I need the app exactly as in the mock.. pixel to pixel"). On 18 Nov they asked for bolder figures, larger small words and a darker grey, and for the ad space between tiles mid-Today; then "Approve d38".
+- **Mockup:** `docs/design/plain-sage-sand/plain.html?s=a|n|m&k=1&ic=1&icx=1&f=4&b=1&h=1&d=38` (Activity, Nutrition, Meet).
+  - Add `&sm=1` for the small phone (360 × 800), `&lg=1` for large text, `&admark=1` to outline the ad space, `&check=1` to run the rule check (`rulecheck.js`), `&dump=1` to list the drawn values (`measure.js`).
+- **Pictures:** `d38-activity.png`, `d38-nutrition.png`, `d38-meet.png` and `d38-small-*.png` in the same folder.
+- **Code:** `src/components/plain/` (`plain-theme.ts` holds every value). **The code still has the 17 Nov values until d38 is built.**
 
-Size rule for this look: the mockup phone is **411 px wide; 1 mockup px = 1 dp**, through `scaled()`.
+Size rule for this look: the mockup phone is **411 px wide; 1 mockup px = 1 dp**, through `scaled()`. On small phones `scaled()` shrinks everything (down to 0.85), but **no text is drawn below 11 dp**: labels, switches, badges and the sync line take `max(11, scaled(size))`.
 
 ### Structure
 
 - Three parts, switched by the top row: **NUTRITION · ACTIVITY · MEET**. Activity (Today) opens first. No bottom bar.
 - Top row: calendar (left, opens Steps by day), the switch, the avatar (right, opens Profile).
 - Nutrition = Food tab, Activity = Today, Meet = Walk buddies. News and Log food left Today (owner's OK, 17 Nov); News stays at `/news`.
+- **Today, top to bottom:**
+  1. the date line;
+  2. the Steps tile;
+  3. Distance and Active;
+  4. **the ad space**;
+  5. Food and Sleep;
+  6. Water;
+  7. the latest walk (sand tile).
+- **Ad space:** empty, full tile width, **50 dp tall on every phone** (not scaled). It sits between the Distance/Active pair and the Food/Sleep pair. Nothing is drawn there until the ads design is approved.
 
 ### Colours
 
 | Use | Value |
 |---|---|
 | Words, numbers | #2C2C2E |
-| Labels, notes, units | #8E8E93 |
+| Labels (capitals) | #55555A |
+| Notes, units, date line, times | #5E5E63 |
 | Ground | 170° wash #F5F5F6 → #ECECEE → #F3F3F4, white glows top right and bottom right, #DADADE glow left middle |
 | Plain tile | #F8F8F9, 1 px white edge |
-| Sage (selected switch, primary buttons, Water +) | #5E7E6F, white text |
+| Sage (selected switch, primary buttons, Water +) | **#567565**, white text |
 | Top tile on each screen (sage tint) | #DEE4E2, edge #D3DDD8 |
 | Second tile (sand tint) | #F2EAE1, edge #EFE3D6 |
 | Chips, avatars | #F2E9DE |
-| Badge | #C9A47C, white text |
+| Badge | **#876644**, white text |
+| Secondary button (Later) | white 80 %, ink text |
 | Search field | white, edge #E8E8EB |
+| Today / Week switch, selected side | white pill, ink text, shadow 0 1 4 rgba(0,0,0,.08) (only one sage pill per screen) |
 
-Colour sits on surfaces only; words stay black and grey. Each label icon has its own colour (`PLAIN_ICON_COLOR`).
+- Colour sits on surfaces only; words stay ink and grey.
+- Every text colour passes contrast: 4.5:1 for small text, 3:1 for large.
+- Each label icon has its own colour (`PLAIN_ICON_COLOR`), 17 dp, stroke 1.9.
+- The calendar icon is ink #2C2C2E, 18 dp, stroke 1.6.
 
 ### Type
 
 | Element | Face | Size / line |
 |---|---|---|
-| Label (STEPS TODAY) | Outfit 500, tracked 2, capitals | 10.5 / 15 |
-| Big figure | Outfit 200, tracking −2 | 96/100 Activity, 64/66 Nutrition |
-| Tile figure | Outfit 200 | 38/46 Activity, 34/38 elsewhere; unit Figtree 14 grey |
-| Middle figure | Outfit 300 | 22 / 26 |
-| Note | Figtree 400 grey | 13 |
+| Label (STEPS TODAY) | Outfit 500, tracked 2, capitals | 11.5 |
+| Big figure | Outfit **300**, tracking −2 | 96/100 Activity, 64/66 Nutrition |
+| Tile figure | Outfit **300** | 38/46 Activity, 34/38 elsewhere |
+| Unit after a figure | Figtree 400 grey | 15 |
+| Middle figure | Outfit **400** | 22 / 26 |
+| Note | Figtree 400 grey | 14 |
+| Date line under the top row | Figtree 400, first words ink 600 | 15 |
 | Button | Figtree 600 | 13, padding 8 × 16, radius 18 |
-| Switch | Outfit 500, tracked 1.6 | 11.5 in 40 high; 10 in 32 high (Today / Week) |
+| Switch | Outfit 500, tracked 1.6 | 11.5 in 40 high; 11.5 in 32 high (Today / Week) |
+| Badge | Figtree 600 | 11 |
 
-Figtree 400/500/600 and Outfit 200/300/500 are bundled. Outfit ("Outfit thin", owner 18 Nov 2026; mockup `plain.html?f=4`) replaced the phone's condensed and mono faces; its files and licence are in `assets/fonts/`.
+- Fonts: Figtree 400/500/600 and Outfit 200/300/400/500 are bundled. Outfit ("Outfit thin", owner 18 Nov 2026) replaced the phone's condensed and mono faces; its files and licence are in `assets/fonts/`. **Outfit 400 (middle figures) is new for d38 and not bundled yet** (`assets/fonts/` has 200, 300 and 500). Same family and licence; download only with the owner's OK.
+- Units never wrap on their own. With large text, a unit moves under its figure only as a whole ("of 250 g").
 
 ### Spacing
 
-Gutter 18; tiles 9 apart (12 on Activity); tile radius 24, padding 14 × 18 (18 × 20 on Activity), shadow 0 8 24 rgba(40,40,50,.06); round buttons 40; top row 6 under the status bar.
+- **Screen and tiles:**
+  - gutter 18;
+  - **tiles 9 apart on every screen, Today included** (Today was 12; it gave the room to the ad space);
+  - tile radius 24;
+  - padding 14 × 18, or 18 × 20 on Today. On a small phone (360 × 800), Today's tiles take 14 × 18 too, so Today never scrolls and keeps at least 12 dp above the bottom edge.
+- **Shadows and controls:** shadow 0 8 24 rgba(40,40,50,.06); round buttons 40; top row 6 under the status bar.
+- **Side-by-side tiles:** the buttons sit at each tile's foot on one line, at least 12 under the words.
+- **Measured exceptions in the mock (keep them):**
+  - Calories tile padding 15 / 18 / 14;
+  - Eaten today and Chats tiles bottom padding 8, because their list rows carry their own;
+  - Coming next tile 12 × 18.
+
+### Motion
+
+- **Ground only:** three soft lights drift slowly behind the tiles, on 16, 19 and 22 second loops.
+- **Nothing moves on tiles or text.**
+- **"Remove animations":** when the phone has it on, the lights stop.
 
 ### Kept from before, not on the mockup (never removed)
 
@@ -138,6 +177,8 @@ This replaces what the two passes above say about the figures, the hour dots, th
 A row of 52 dp round buttons, 6 apart (almost touching), centred, on the screen's own ground, no hairline; 60 dp plus the system inset. The selected one is a #FBFBFB circle on a soft shadow with a black icon, the others #E4E4E4 circles with black icons. Labels are not drawn; TalkBack still says each name (`nav-style.ts`, `navigation-bar.tsx`).
 
 ## History
+
+- **Plain, sage and sand, 17 Nov 2026 values** (sage #5E7E6F, badge #C9A47C, grey #8E8E93, labels 10.5, notes 13, Outfit 200 figures, Today gap 12): replaced by mock d38 on 18 Nov 2026. The old table is in git history (this file, before commit "Design: approve mock d38").
 
 - **Today "Time of day" (17 Nov 2026), replaced the same day:** Dawn/Noon/Dusk colours, a steps ring and hour bars (`docs/design/today-time-of-day.html`). Its full spec is in git history (commit b4274a0, this file).
 

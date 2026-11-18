@@ -192,6 +192,14 @@
   .f4 .num { font-family: Outfit; font-weight: 200; } .f4 .mid { font-family: Outfit; font-weight: 300; }
   .f4 .label { font: 500 10.5px Outfit; letter-spacing: 2px; }
   .f4 .switch { font: 500 11.5px Outfit; letter-spacing: 1.6px; }
+  /* b=1 (owner 18 Nov 2026, "a little bolder"): Outfit one step up. */
+  .bold .big { font-weight: 300; } .bold .num { font-weight: 300; } .bold .mid { font-weight: 400; }
+  /* Small words easier to read (owner: "the smaller ones"): a size up and a darker grey. */
+  .phone.bold { --muted: #5E5E63; }
+  .phone.bold .note { font-size: 14px; color: #5E5E63; }
+  .phone.bold .num small, .phone.bold .mid small { font-size: 15px; color: #5E5E63; }
+  .phone.bold .label { font-size: 11.5px; color: #55555A; }
+  .phone.bold .sub { color: #5E5E63; }
   .f5 .big, .f5 .num, .f5 .mid { font-family: 'Inter Tight'; font-variant-numeric: tabular-nums; }
   .f5 .big { font-weight: 200; letter-spacing: -4px; } .f5.roomy .big { font-size: 96px; line-height: 100px; }
   .f5 .num { font-weight: 300; letter-spacing: -1px; } .f5 .mid { font-weight: 400; }
@@ -199,6 +207,638 @@
   .f5 .switch { font: 400 11px 'DM Mono'; letter-spacing: 1.2px; }
   .f2 .num, .f4 .num, .f5 .num { white-space: nowrap; }
   .f2.roomy .num, .f4.roomy .num, .f5.roomy .num { font-size: 38px; line-height: 46px; }
+  /* d=1..3 (owner 18 Nov 2026, "mock 3 very different directions"): same screens, same data. */
+  /* d=1 Evening: a dark sage night, warm white figures, the top tile deep sage. */
+  .phone.d1 { --text: #F2F0EB; --muted: #AEB3B0; --chip: #2A2F2D; color: var(--text); }
+  .d1 .ground { background: linear-gradient(170deg, #1A1E1C 0%, #121514 55%, #171A19 100%) !important; }
+  .d1 .blob.lt { background: #2C3A34 !important; opacity: .55; } .d1 .blob.dk { background: #0B0D0C !important; opacity: .8; }
+  .d1 .tile, .d1 .switch { background: rgba(255,255,255,.055) !important; border: 1px solid rgba(255,255,255,.08) !important; box-shadow: 0 10px 30px rgba(0,0,0,.35) !important; }
+  .d1 .hero { background: linear-gradient(160deg, #35574A 0%, #29443A 100%) !important; border-color: rgba(255,255,255,.10) !important; }
+  .d1 .second { background: rgba(201,164,124,.16) !important; border-color: rgba(201,164,124,.22) !important; }
+  .d1 svg { stroke: #F2F0EB; } .d1 .hero .ic { stroke: #CFE3D8 !important; }
+  .phone.d1.bold .note, .phone.d1.bold .num small, .phone.d1.bold .mid small, .phone.d1.bold .sub { color: #B4B9B6; }
+  .phone.d1.bold .label { color: #C4C8C5; }
+  .d1 .sub b { color: #F2F0EB; }
+  .d1 .switch .on { background: #7FA392 !important; color: #10201A !important; }
+  .d1 .btn, .d1 .av, .d1 .badge { background: #2A2F2D !important; color: #F2F0EB !important; }
+  .d1 .plusb { background: #7FA392 !important; color: #10201A !important; }
+  .d1 .field { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.12); color: #AEB3B0; }
+  /* d=2 Colour blocks: solid white cards on warm stone, the top tile solid sage with white figures, the walk in solid sand. */
+  .d2 .ground { background: #EFECE6 !important; } .d2 .blob { display: none; }
+  .d2 .tile, .d2 .switch { background: #FFFFFF !important; border: 0 !important; backdrop-filter: none !important; box-shadow: 0 1px 2px rgba(40,35,30,.05), 0 6px 18px rgba(40,35,30,.05) !important; }
+  .d2 .hero { background: #56766A !important; color: #fff; --text: #fff; }
+  .d2 .hero .big, .d2 .hero .mid { color: #fff; }
+  .phone.d2.bold .hero .label, .phone.d2.bold .hero .note, .phone.d2.bold .hero .mid small { color: rgba(255,255,255,.86) !important; }
+  .d2 .hero .ic { stroke: #fff !important; }
+  .d2 .second { background: #D9BD9A !important; }
+  .phone.d2.bold .second .label, .phone.d2.bold .second .note, .phone.d2.bold .second .num small { color: #4E3F2E !important; }
+  .d2 .second .ic { stroke: #4E3F2E !important; }
+  .d2 .second .btn { background: rgba(255,255,255,.7) !important; } .d2 .second .btn.white { background: #56766A !important; color: #fff !important; border-color: #56766A !important; } .d2 .hero .av { color: #2C2C2E !important; } .d2 .hero svg { stroke: #fff !important; }
+  .d2 .tile { border-radius: 26px; }
+  /* d=3 Ivory serif: warm ivory paper tiles, hairline edges, figures in a fine serif, sage only on the switch. */
+  .phone.d3 { --text: #26241F; --chip: #EFE9DE; }
+  .d3 .ground { background: linear-gradient(170deg, #F7F4EE 0%, #F1ECE3 55%, #F5F1EA 100%) !important; } .d3 .blob { display: none; }
+  .d3 .tile, .d3 .switch { background: #FCFAF6 !important; border: 1px solid #E6DFD2 !important; backdrop-filter: none !important; box-shadow: none !important; border-radius: 18px; }
+  .d3 .round.tile { border-radius: 20px; }
+  .d3 .switch { border-radius: 20px; } .d3 .switch span { border-radius: 16px; }
+  .d3 .hero { background: #FCFAF6 !important; border-color: #D9D0BF !important; }
+  .d3 .second { background: #F3ECE0 !important; border-color: #E6DCCB !important; }
+  .d3 .big, .d3 .num, .d3 .mid { font-family: 'Instrument Serif' !important; font-weight: 400 !important; letter-spacing: 0 !important; }
+  .d3.roomy .big { font-size: 140px !important; line-height: 124px !important; letter-spacing: -2px !important; }
+  .d3 .big { font-size: 84px; line-height: 80px; }
+  .d3.roomy .num { font-size: 46px; line-height: 48px; } .d3 .num { font-size: 40px; line-height: 42px; }
+  .d3 .mid { font-size: 28px; line-height: 30px; }
+  .phone.d3.bold .label { font: 600 11px Figtree; letter-spacing: 1.8px; color: #6B6356; }
+  .phone.d3.bold .note, .phone.d3.bold .num small, .phone.d3.bold .mid small, .phone.d3.bold .sub { color: #6B6356; }
+  .d3 .switch { font: 600 11px Figtree; letter-spacing: 1.5px; }
+  /* Teal glass, improved (owner 18 Nov 2026 sent yesterday's bg=5&wt=1 look): white words kept white,
+     small words a size up and nearly solid white, icons white, no caption. */
+  .phone.wt.bold { --muted: rgba(255,255,255,.92); }
+  .phone.wt.bold .note, .phone.wt.bold .num small, .phone.wt.bold .mid small, .phone.wt.bold .sub { color: rgba(255,255,255,.92) !important; }
+  .phone.wt.bold .label { color: rgba(255,255,255,.9) !important; }
+  .phone.wt.bold .label .ic { width: 17px; height: 17px; stroke-width: 1.9; vertical-align: -2.5px; margin: -4px 8px -4px 0; }
+  .wt.bold .cap { display: none; }
+  .wt.bold .hero { background: rgba(255,255,255,.20) !important; border-color: rgba(255,255,255,.5) !important; }
+  /* d=4..6 (owner 18 Nov 2026: "cheerful colors.. highlighting information"): each kind of
+     information has its own bright colour (c), a pastel of it (p) and a deep shade for words (d). */
+  .d4, .d5, .d6 { --c: #8E8E93; --p: #F1F1F3; --d: #55555A; }
+  .phone :is(.tile, .x):has(.ic-steps), .phone :is(.tile, .x):has(.ic-plus) { --c: #22A06B; --p: #DCF5E8; --d: #157A50; }
+  .phone .tile:has(.ic-pin) { --c: #F2685A; --p: #FFE4E0; --d: #C7402F; --w: 78%; }
+  .phone .tile:has(.ic-bolt) { --c: #F4AE1A; --p: #FFF1C9; --d: #9C6A00; --w: 100%; }
+  .phone .tile:has(.ic-bowl) { --c: #F5873A; --p: #FFE7D4; --d: #C25A12; --w: 67%; }
+  .phone .tile:has(.ic-moon) { --c: #6E66E8; --p: #E8E6FF; --d: #4A40C9; --w: 85%; }
+  .phone .tile:has(.ic-drop) { --c: #2C9BEA; --p: #DDF0FF; --d: #156FB0; --w: 62%; }
+  .phone .tile:has(.ic-walk) { --c: #13A89A; --p: #D3F5F0; --d: #0A7D72; }
+  .phone .tile:has(.ic-flame) { --c: #F26B3A; --p: #FFE5DA; --d: #C2461A; }
+  .phone .tile:has(.ic-list) { --c: #3E7CC4; --p: #E0ECFA; --d: #2A5C9C; }
+  .phone .tile:has(.ic-leaf) { --c: #4CAF50; --p: #E3F4DF; --d: #2F7F33; }
+  .phone .tile:has(.ic-chat) { --c: #2C9BEA; --p: #DDF0FF; --d: #156FB0; }
+  .phone .tile:has(.ic-useradd) { --c: #13A89A; --p: #D3F5F0; --d: #0A7D72; }
+  .phone .tile:has(.ic-search) { --c: #7C6CE0; --p: #ECE8FF; --d: #5546C2; }
+  .phone .tile:has(.ic-people) { --c: #E5679B; --p: #FFE3EE; --d: #B83F70; }
+  .phone .tile:has(.ic-card) { --c: #F4AE1A; --p: #FFF1C9; --d: #9C6A00; }
+  .phone .tile:has(.ic-spark) { --c: #F5873A; --p: #FFE7D4; --d: #C25A12; }
+  /* Shared: flat white ground, no glass; the switch and main buttons in ink. */
+  :is(.d4, .d5, .d6) .ground { background: #F6F6F3 !important; } :is(.d4, .d5, .d6) .blob { display: none; }
+  :is(.d4, .d5, .d6) .tile, :is(.d4, .d5, .d6) .switch { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; border: 0 !important; border-radius: 26px; box-shadow: 0 1px 2px rgba(30,30,40,.05), 0 6px 18px rgba(30,30,40,.05) !important; background: #fff !important; }
+  :is(.d4, .d5, .d6) .switch .on { background: #1F1F24 !important; color: #fff !important; }
+  :is(.d4, .d5, .d6) .btn.white, :is(.d4, .d5, .d6) .plusb { background: var(--c) !important; color: #fff !important; border-color: transparent !important; }
+  :is(.d4, .d5, .d6) .btn:not(.white) { background: var(--p) !important; color: var(--d) !important; }
+  :is(.d4, .d5, .d6) .badge { background: var(--c) !important; color: #fff !important; }
+  :is(.d4, .d5, .d6) .av { background: var(--p) !important; color: var(--d) !important; }
+  :is(.d4, .d5, .d6) .tile .label { color: var(--d) !important; }
+  :is(.d4, .d5, .d6) .tile .ic { stroke: var(--d) !important; }
+  /* The top tile: the information's colour, solid, white words (all three). */
+  :is(.d4, .d6) .hero { background: var(--c) !important; }
+  :is(.d4, .d6) .hero, :is(.d4, .d6) .hero :is(.big, .num, .mid, b, span, div) { color: #fff; }
+  :is(.d4, .d6) .hero :is(.label, .note, small) { color: rgba(255,255,255,.92) !important; }
+  :is(.d4, .d6) .hero .ic { stroke: #fff !important; }
+  :is(.d4, .d6) .hero .av { background: #fff !important; color: var(--d) !important; }
+  :is(.d4, .d6) .hero .badge { background: #fff !important; color: var(--d) !important; }
+  /* d=4 Pastel tiles: every tile tinted with its own colour. */
+  .d4 .tile:not(.hero) { background: var(--p) !important; box-shadow: none !important; }
+  .d4 .tile:not(.hero) .field, .d4 .tile:not(.hero) .btn:not(.white) { background: #fff !important; }
+  /* d=5 Colour figures: white tiles, each figure in its colour, icons in a pastel circle, the top tile pastel. */
+  .d5 .tile :is(.big, .num, .mid) { color: var(--d); }
+  .d5 .tile :is(.num, .mid, .big) small { color: #5E5E63 !important; }
+  .d5 .hero { background: var(--p) !important; }
+  .d5 .label .ic { background: var(--p); border-radius: 50%; padding: 4px; width: 26px !important; height: 26px !important; margin: -8px 6px -8px -2px !important; stroke-width: 2 !important; }
+  .d5 .hero .label .ic { background: #fff; }
+  /* d=6 Bright and progress: white tiles, a solid colour dot behind each icon, a thin bar shows how far along. */
+  .d6 .tile:not(.hero) .label .ic { background: var(--c); stroke: #fff !important; border-radius: 50%; padding: 4px; width: 26px !important; height: 26px !important; margin: -8px 6px -8px -2px !important; stroke-width: 2 !important; }
+  .d6 .tile:is(:has(.ic-pin), :has(.ic-bolt), :has(.ic-bowl), :has(.ic-moon), :has(.ic-drop)):not(.hero)::after { content: ''; position: absolute; left: 20px; right: 20px; bottom: 9px; height: 5px; border-radius: 3px; background: linear-gradient(90deg, var(--c) var(--w), var(--p) var(--w)); }
+  .d6 .hero { background: linear-gradient(135deg, var(--c) 0%, color-mix(in srgb, var(--c) 72%, #fff) 100%) !important; }
+  .d5 .hero .av { background: #fff !important; }
+  :is(.d4, .d5, .d6) .screen > :not(.tile) .btn.white, :is(.d4, .d5, .d6) .screen > .btn.white { background: #22A06B !important; color: #fff !important; }
+  /* d=7..9 (owner 18 Nov 2026: "cheerful yet not premium"): jewel tones instead of candy colours,
+     each information keeps its colour (jc), a warm tint (jp) and a deep shade for words (jd). */
+  :is(.d7, .d8, .d9) { --jc: #8E8E93; --jp: #F1EFEB; --jd: #55555A; --ink: #1E1E22; }
+  .phone .tile:has(.ic-steps), .phone .tile:has(.ic-plus) { --jc: #1F8A5B; --jp: #E6F1EA; --jd: #17694A; --jw: 78%; }
+  .phone .tile:has(.ic-pin) { --jc: #D9684E; --jp: #F8E8E2; --jd: #A9472F; --jw: 78%; }
+  .phone .tile:has(.ic-bolt) { --jc: #D9A230; --jp: #F7EED8; --jd: #8C6510; --jw: 100%; }
+  .phone .tile:has(.ic-bowl), .phone .tile:has(.ic-flame), .phone .tile:has(.ic-spark) { --jc: #E07B4F; --jp: #F9E9DF; --jd: #A8522B; --jw: 67%; }
+  .phone .tile:has(.ic-moon) { --jc: #6A5A9E; --jp: #ECE8F3; --jd: #4E4080; --jw: 85%; }
+  .phone .tile:has(.ic-drop), .phone .tile:has(.ic-chat) { --jc: #2F6E9E; --jp: #E4EDF4; --jd: #245A84; --jw: 62%; }
+  .phone .tile:has(.ic-walk), .phone .tile:has(.ic-useradd) { --jc: #2A9182; --jp: #E1F0ED; --jd: #1E6E63; }
+  .phone .tile:has(.ic-list) { --jc: #4A6B8A; --jp: #E7ECF1; --jd: #375470; }
+  .phone .tile:has(.ic-leaf) { --jc: #5E8C3A; --jp: #EAF1E2; --jd: #456A28; }
+  .phone .tile:has(.ic-search) { --jc: #6A5A9E; --jp: #ECE8F3; --jd: #4E4080; }
+  .phone .tile:has(.ic-people) { --jc: #B4577A; --jp: #F5E6EC; --jd: #8C3D5C; }
+  .phone .tile:has(.ic-card) { --jc: #C79A3B; --jp: #F5EDDA; --jd: #8A6820; }
+  /* Shared */
+  :is(.d7, .d8, .d9) .switch .on { background: var(--ink) !important; color: #fff !important; box-shadow: none !important; }
+  :is(.d7, .d8, .d9) .tile .label { color: var(--jd) !important; }
+  :is(.d7, .d8, .d9) .tile .ic { stroke: var(--jd) !important; }
+  :is(.d7, .d8, .d9) .btn.white, :is(.d7, .d8, .d9) .plusb { background: var(--jc) !important; color: #fff !important; border-color: transparent !important; }
+  :is(.d7, .d8, .d9) .screen > .row .btn.white { background: var(--ink) !important; }
+  :is(.d7, .d8, .d9) .btn:not(.white) { background: var(--jp) !important; color: var(--jd) !important; }
+  :is(.d7, .d8, .d9) .badge { background: var(--jc) !important; color: #fff !important; }
+  :is(.d7, .d8, .d9) .av { background: var(--jp) !important; color: var(--jd) !important; }
+  :is(.d7, .d8) .hero, :is(.d7, .d8) .hero :is(.big, .num, .mid, b, span, div) { color: #fff; }
+  :is(.d7, .d8) .hero :is(.note, small) { color: rgba(255,255,255,.88) !important; }
+  :is(.d7, .d8) .hero .av, :is(.d7, .d8) .hero .badge { background: #fff !important; color: var(--jd) !important; }
+  /* d=7 Jewel tints: warm ivory ground, each tile a quiet tint of its jewel, the top tile deep jewel. */
+  .d7 .ground { background: #F7F4EF !important; } .d7 .blob { display: none; }
+  .d7 .tile, .d7 .switch { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; border-radius: 26px; box-shadow: none !important; }
+  .d7 .tile { background: var(--jp) !important; border: 1px solid color-mix(in srgb, var(--jc) 14%, #fff) !important; }
+  .d7 .switch, .d7 .round:not(.plusb) { background: #fff !important; border: 1px solid #ECE7DF !important; box-shadow: none !important; }
+  .d7 .tile:not(.hero) .field, .d7 .tile:not(.hero) .btn:not(.white) { background: #fff !important; }
+  .d7 .hero { background: linear-gradient(150deg, var(--jc) 0%, color-mix(in srgb, var(--jc) 72%, #000) 100%) !important; border: 0 !important; }
+  .d7 .hero .label { color: rgba(255,255,255,.88) !important; } .d7 .hero .ic { stroke: #fff !important; }
+  /* d=8 Ink and jewels: the top tile in deep ink with a jewel glow; white tiles, a jewel dot behind each icon, a slim bar shows progress. */
+  .d8 .ground { background: #F5F3EF !important; } .d8 .blob { display: none; }
+  .d8 .tile, .d8 .switch { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; border-radius: 26px; background: #fff !important; border: 1px solid #ECE8E1 !important; box-shadow: 0 6px 18px rgba(40,35,30,.04) !important; }
+  .d8 .round:not(.plusb) { background: #fff !important; border: 1px solid #ECE8E1 !important; box-shadow: none !important; }
+  .d8 .hero { background: radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--jc) 55%, #1C1C1F) 0%, #1C1C1F 60%) !important; border: 0 !important; }
+  .d8 .hero .label { color: color-mix(in srgb, var(--jc) 45%, #fff) !important; } .d8 .hero .ic { stroke: color-mix(in srgb, var(--jc) 45%, #fff) !important; }
+  .d8 .tile:not(.hero) .label .ic { background: var(--jc); stroke: #fff !important; border-radius: 50%; padding: 4px; width: 26px !important; height: 26px !important; margin: -8px 6px -8px -2px !important; stroke-width: 2 !important; }
+  .d8 .tile:is(:has(.ic-pin), :has(.ic-bolt), :has(.ic-bowl), :has(.ic-moon), :has(.ic-drop)):not(.hero)::after,
+  .d8 .hero:has(.ic-steps)::after { content: ''; position: absolute; left: 20px; right: 20px; bottom: 9px; height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--jc) var(--jw), color-mix(in srgb, var(--jc) 16%, #fff) var(--jw)); }
+  .d8 .hero:has(.ic-steps)::after { background: linear-gradient(90deg, #4FC08D var(--jw), rgba(255,255,255,.14) var(--jw)); bottom: 11px; }
+  /* d=9 Warm glass: a soft peach, lilac and mint ground under frosted white glass; jewel icons in tinted circles. */
+  .d9 .ground { background: linear-gradient(165deg, #FBE7DA 0%, #F2E5F0 45%, #E1EFEA 100%) !important; }
+  .d9 .blob.lt { background: #FFF3EA !important; opacity: .9; } .d9 .blob.dk { background: #D9D2F0 !important; opacity: .7; }
+  .d9 .tile, .d9 .switch, .d9 .round:not(.plusb) { background: rgba(255,255,255,.66) !important; border: 1px solid rgba(255,255,255,.95) !important; box-shadow: inset 0 1px 0 #fff, 0 10px 30px rgba(90,60,70,.08) !important; }
+  .d9 .label .ic { background: var(--jp); border-radius: 50%; padding: 4px; width: 26px !important; height: 26px !important; margin: -8px 6px -8px -2px !important; stroke-width: 2 !important; }
+  .d9 .hero { background: rgba(255,255,255,.82) !important; }
+  .d9 .hero .big { color: var(--jd); }
+  .d9 .hero:has(.ic-steps)::after { content: ''; position: absolute; left: 20px; right: 20px; bottom: 10px; height: 5px; border-radius: 3px; background: linear-gradient(90deg, var(--jc) var(--jw), var(--jp) var(--jw)); }
+  /* d=10..12 (owner 18 Nov 2026: "soft and gentle look is missing"): the same colour per information,
+     but in gentle pastels: no black, no deep solid blocks, warm soft ink, soft shadows instead of lines.
+     sc = the soft colour, sp = its palest tint, sd = a gentle deeper shade for words. */
+  :is(.d10, .d11, .d12) { --sc: #B9B4C2; --sp: #F3F1F5; --sd: #6E6A78; --text: #38363E; --muted: #6F6B77; --soft-ink: #3F8A6E; }
+  :is(.d10, .d11, .d12) .tile:has(.ic-steps), :is(.d10, .d11, .d12) .tile:has(.ic-plus) { --sc: #6DBB98; --sp: #E9F5EF; --sd: #3A8466; --jw: 78%; }
+  :is(.d10, .d11, .d12) .tile:has(.ic-pin) { --sc: #F0A08C; --sp: #FDEFEA; --sd: #B65F48; --jw: 78%; }
+  :is(.d10, .d11, .d12) .tile:has(.ic-bolt) { --sc: #EBC56E; --sp: #FCF5E2; --sd: #94701F; --jw: 100%; }
+  :is(.d10, .d11, .d12) .tile:is(:has(.ic-bowl), :has(.ic-flame), :has(.ic-spark)) { --sc: #F3AC86; --sp: #FDF0E8; --sd: #B0673F; --jw: 67%; }
+  :is(.d10, .d11, .d12) .tile:is(:has(.ic-moon), :has(.ic-search)) { --sc: #A99DDF; --sp: #F2F0FB; --sd: #6355A8; --jw: 85%; }
+  :is(.d10, .d11, .d12) .tile:is(:has(.ic-drop), :has(.ic-chat)) { --sc: #86BCE6; --sp: #ECF5FC; --sd: #336F9F; --jw: 62%; }
+  :is(.d10, .d11, .d12) .tile:is(:has(.ic-walk), :has(.ic-useradd)) { --sc: #76C7B9; --sp: #E8F6F3; --sd: #2E7F72; --jw: 70%; }
+  :is(.d10, .d11, .d12) .tile:has(.ic-list) { --sc: #98AEDB; --sp: #EEF2FB; --sd: #4A6696; }
+  :is(.d10, .d11, .d12) .tile:has(.ic-leaf) { --sc: #A2C988; --sp: #F0F7EA; --sd: #557F38; }
+  :is(.d10, .d11, .d12) .tile:has(.ic-people) { --sc: #E9A5BD; --sp: #FCEFF4; --sd: #A65473; }
+  :is(.d10, .d11, .d12) .tile:has(.ic-card) { --sc: #E6C47A; --sp: #FBF4E2; --sd: #8E6C22; }
+  /* Shared soft parts */
+  :is(.d10, .d11, .d12) .blob { display: none; }
+  :is(.d10, .d11, .d12) .tile, :is(.d10, .d11, .d12) .switch, :is(.d10, .d11, .d12) .round:not(.plusb) { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; border-radius: 28px; border: 0 !important; }
+  :is(.d10, .d11, .d12) .switch .on { background: #E6F3EC !important; color: #3A8466 !important; box-shadow: none !important; }
+  :is(.d10, .d11, .d12) .switch span:not(.on) { color: #7C7884 !important; }
+  :is(.d10, .d11, .d12) .tile .label { color: var(--sd) !important; }
+  :is(.d10, .d11, .d12) .tile .ic { stroke: var(--sd) !important; }
+  :is(.d10, .d11, .d12) .btn { background: var(--sp) !important; color: var(--sd) !important; border: 0 !important; }
+  :is(.d10, .d11, .d12) .tile .btn:not(.white) { background: #fff !important; }
+  :is(.d10, .d11, .d12) .btn.white, :is(.d10, .d11, .d12) .plusb { background: color-mix(in srgb, var(--sc) 55%, var(--sd)) !important; color: #fff !important; border: 0 !important; text-shadow: 0 1px 1px color-mix(in srgb, var(--sd) 35%, transparent); }
+  :is(.d10, .d11, .d12) .screen > .row .btn.white { background: #E6F3EC !important; color: #3A8466 !important; text-shadow: none; }
+  :is(.d10, .d11, .d12) .badge { background: color-mix(in srgb, var(--sc) 55%, var(--sd)) !important; color: #fff !important; }
+  :is(.d10, .d11, .d12) .av { background: var(--sp) !important; color: var(--sd) !important; }
+  :is(.d10, .d11, .d12) .tile .av { background: #fff !important; }
+  :is(.d10, .d11, .d12) .field { background: #fff !important; border: 0 !important; }
+  :is(.d10, .d11, .d12) .hero .big { color: var(--sd); }
+  :is(.d10, .d11, .d12) .tile:is(:has(.ic-steps), :has(.ic-pin), :has(.ic-bolt), :has(.ic-bowl), :has(.ic-moon), :has(.ic-drop), :has(.ic-walk))::after { content: ''; position: absolute; left: 20px; right: 20px; bottom: 10px; height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--sc) var(--jw), color-mix(in srgb, var(--sc) 22%, #fff) var(--jw)); }
+  :is(.d10, .d11, .d12) .tile:has(.ic-walk):not(.hero)::after { display: none; }
+  /* d=10 Pastel morning: cream ground, each tile a pale wash of its colour, the top tile a mint-to-sky morning glow. */
+  .d10 .ground { background: #FBF8F3 !important; }
+  .d10 .tile { background: var(--sp) !important; box-shadow: none !important; }
+  .d10 .switch, .d10 .round:not(.plusb) { background: #fff !important; box-shadow: 0 4px 14px rgba(120,100,80,.06) !important; }
+  .d10 .hero { background: linear-gradient(150deg, color-mix(in srgb, var(--sc) 30%, #fff) 0%, var(--sp) 65%, #F3F2FA 100%) !important; }
+  .d10 .tile:not(.hero)::after { background: linear-gradient(90deg, var(--sc) var(--jw), #fff var(--jw)) !important; }
+  /* d=11 Cloud white: a quiet lilac-grey ground, white tiles that float on soft shadows, a pastel circle behind each icon. */
+  .d11 .ground { background: #F5F4F8 !important; }
+  .d11 .tile, .d11 .switch, .d11 .round:not(.plusb) { background: #fff !important; box-shadow: 0 10px 30px rgba(90,80,120,.07), 0 1px 3px rgba(90,80,120,.04) !important; }
+  .d11 .label .ic { background: var(--sp); border-radius: 50%; padding: 5px; width: 28px !important; height: 28px !important; margin: -9px 7px -9px -2px !important; stroke-width: 2 !important; }
+  .d11 .hero { background: radial-gradient(90% 80% at 100% 0%, color-mix(in srgb, var(--sc) 28%, #fff) 0%, rgba(255,255,255,0) 70%), radial-gradient(70% 70% at 0% 100%, #FCEFE6 0%, rgba(255,255,255,0) 70%), #fff !important; }
+  .d11 .tile .btn:not(.white), .d11 .tile .av, .d11 .tile .field { background: var(--sp) !important; }
+  /* d=12 Sorbet: a gentle peach, lilac and mint ground; frosted tiles carrying a breath of their own colour. */
+  .d12 .ground { background: linear-gradient(170deg, #FDF0E7 0%, #F5EFF8 50%, #EBF5F0 100%) !important; }
+  .d12 .tile { background: linear-gradient(160deg, color-mix(in srgb, var(--sp) 75%, rgba(255,255,255,.5)) 0%, rgba(255,255,255,.72) 80%) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 8px 26px rgba(120,90,110,.06) !important; }
+  .d12 .switch, .d12 .round:not(.plusb) { background: rgba(255,255,255,.75) !important; box-shadow: 0 6px 18px rgba(120,90,110,.06) !important; }
+  .d12 .hero { background: linear-gradient(155deg, color-mix(in srgb, var(--sc) 28%, #fff) 0%, rgba(255,255,255,.8) 85%) !important; }
+  /* d=13..15 (owner 18 Nov 2026: "i want ultra premium"): still soft and colour by information, but dusty,
+     greyed tones instead of sweet pastels, a fine paper grain, light large numbers, thin bars, layered shadows. */
+  :is(.d13, .d14, .d15) { --uc: #B4AFBA; --up: #F3F2F4; --ud: #67626E; --text: #2F2D33; --muted: #6A6670; }
+  :is(.d13, .d14, .d15) .tile:is(:has(.ic-steps), :has(.ic-plus)) { --uc: #8DB5A0; --up: #EDF4F0; --ud: #4A7862; --jw: 78%; }
+  :is(.d13, .d14, .d15) .tile:has(.ic-pin) { --uc: #D7A895; --up: #F8EFEB; --ud: #985C49; --jw: 78%; }
+  :is(.d13, .d14, .d15) .tile:has(.ic-bolt) { --uc: #D2BC88; --up: #F7F2E6; --ud: #7F6A38; --jw: 100%; }
+  :is(.d13, .d14, .d15) .tile:is(:has(.ic-bowl), :has(.ic-flame), :has(.ic-spark)) { --uc: #DCAA8D; --up: #F8F0EA; --ud: #966045; --jw: 67%; }
+  :is(.d13, .d14, .d15) .tile:is(:has(.ic-moon), :has(.ic-search)) { --uc: #ABA4CE; --up: #F2F1F8; --ud: #5F588C; --jw: 85%; }
+  :is(.d13, .d14, .d15) .tile:is(:has(.ic-drop), :has(.ic-chat)) { --uc: #97B5CF; --up: #EEF3F8; --ud: #446687; --jw: 62%; }
+  :is(.d13, .d14, .d15) .tile:is(:has(.ic-walk), :has(.ic-useradd)) { --uc: #8DBFB5; --up: #EDF5F3; --ud: #42786E; }
+  :is(.d13, .d14, .d15) .tile:has(.ic-list) { --uc: #A3B0C6; --up: #F0F2F7; --ud: #52607A; }
+  :is(.d13, .d14, .d15) .tile:has(.ic-leaf) { --uc: #A8BE92; --up: #F2F6EE; --ud: #5B7245; }
+  :is(.d13, .d14, .d15) .tile:has(.ic-people) { --uc: #D6A5B5; --up: #F8EEF2; --ud: #91536A; }
+  :is(.d13, .d14, .d15) .tile:has(.ic-card) { --uc: #D2BB8A; --up: #F7F2E5; --ud: #7F6A38; }
+  /* Shared craft */
+  :is(.d13, .d14, .d15) .blob { display: none; }
+  :is(.d13, .d14, .d15) .ground::after { content: ''; position: absolute; inset: 0; opacity: .5; mix-blend-mode: multiply; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .47 0 0 0 0 .45 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  :is(.d13, .d14, .d15) .tile, :is(.d13, .d14, .d15) .switch, :is(.d13, .d14, .d15) .round:not(.plusb) { border-radius: 30px; }
+  :is(.d13, .d14, .d15) .switch { padding: 4px; }
+  :is(.d13, .d14, .d15) .switch .on { background: #fff !important; color: var(--text) !important; box-shadow: 0 1px 2px rgba(40,30,50,.06), 0 4px 12px rgba(40,30,50,.06) !important; }
+  :is(.d13, .d14, .d15) .switch span:not(.on) { color: #807B86 !important; }
+  :is(.d13, .d14, .d15) .label { color: var(--ud) !important; font-weight: 500 !important; letter-spacing: 2.2px !important; }
+  :is(.d13, .d14, .d15) .tile .ic { stroke: var(--ud) !important; stroke-width: 1.6 !important; }
+  :is(.d13, .d14, .d15) .big { font-weight: 200 !important; letter-spacing: -3px !important; font-variant-numeric: tabular-nums; color: var(--ud); }
+  :is(.d13, .d14, .d15) .num { font-weight: 300 !important; letter-spacing: -.5px; }
+  :is(.d13, .d14, .d15) .btn { background: transparent !important; color: var(--ud) !important; border: 1px solid color-mix(in srgb, var(--uc) 55%, #fff) !important; }
+  :is(.d13, .d14, .d15) .btn.white, :is(.d13, .d14, .d15) .plusb { background: var(--ud) !important; color: #fff !important; border-color: transparent !important; box-shadow: 0 6px 14px color-mix(in srgb, var(--ud) 22%, transparent) !important; }
+  :is(.d13, .d14, .d15) .screen > .row:not(.tile) .btn.white { background: #fff !important; color: var(--text) !important; box-shadow: 0 1px 2px rgba(40,30,50,.05), 0 6px 16px rgba(40,30,50,.07) !important; }
+  :is(.d13, .d14, .d15) .badge { background: var(--ud) !important; color: #fff !important; }
+  :is(.d13, .d14, .d15) .av { background: var(--up) !important; color: var(--ud) !important; font-weight: 500 !important; }
+  :is(.d13, .d14, .d15) .field { background: rgba(255,255,255,.9) !important; border: 1px solid color-mix(in srgb, var(--uc) 30%, #fff) !important; }
+  :is(.d13, .d14, .d15) .tile:is(:has(.ic-steps), :has(.ic-pin), :has(.ic-bolt), :has(.ic-bowl), :has(.ic-moon), :has(.ic-drop))::after { content: ''; position: absolute; left: 20px; right: 20px; bottom: 11px; height: 3px; border-radius: 2px; background: linear-gradient(90deg, var(--uc) var(--jw), color-mix(in srgb, var(--uc) 20%, transparent) var(--jw)); }
+  :is(.d13, .d14, .d15) .hero:has(.ic-steps)::after { height: 4px; bottom: 13px; left: 24px; right: 24px; }
+  /* d=13 Pearl: pearl ground, white tiles lifted by layered shadows, a soft dusty glow in the top tile, a tinted circle behind each icon. */
+  .d13 .ground { background: linear-gradient(175deg, #F6F4F1 0%, #F0EEEA 100%) !important; }
+  .d13 .tile, .d13 .switch, .d13 .round:not(.plusb) { background: #fff !important; border: 1px solid rgba(60,50,70,.04) !important; backdrop-filter: none !important;
+    box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(60,50,70,.04), 0 12px 32px -8px rgba(60,50,70,.10) !important; }
+  .d13 .hero { background: radial-gradient(85% 75% at 100% 0%, color-mix(in srgb, var(--uc) 26%, #fff) 0%, rgba(255,255,255,0) 72%), #fff !important; }
+  .d13 .switch { background: #EAE7E2 !important; border: 0 !important; box-shadow: inset 0 1px 2px rgba(60,50,70,.05) !important; }
+  .d13 .label .ic { background: var(--up); border-radius: 50%; padding: 5px; width: 28px !important; height: 28px !important; margin: -9px 7px -9px -2px !important; }
+  /* d=14 Champagne: warm ivory paper, each tile a whisper of its colour edged with a champagne line, serif numbers. */
+  .d14 .ground { background: linear-gradient(175deg, #F8F4EC 0%, #F2ECE1 100%) !important; }
+  .d14 .tile { background: color-mix(in srgb, var(--up) 70%, #FFFDF9) !important; border: 1px solid #E8DDC8 !important; backdrop-filter: none !important; box-shadow: inset 0 1px 0 rgba(255,255,255,.8), 0 10px 26px -10px rgba(110,90,50,.12) !important; }
+  .d14 .switch, .d14 .round:not(.plusb) { background: #FFFDF9 !important; border: 1px solid #E8DDC8 !important; backdrop-filter: none !important; box-shadow: none !important; }
+  .d14 .hero { background: linear-gradient(160deg, color-mix(in srgb, var(--uc) 22%, #FFFDF9) 0%, #FFFDF9 75%) !important; border-color: #DCCBA6 !important; }
+  .d14 .big, .d14 .num, .d14 .mid { font-family: 'Instrument Serif' !important; font-weight: 400 !important; letter-spacing: 0 !important; }
+  .d14 .big { font-size: 88px !important; line-height: 70px !important; margin: 6px 0 4px; }
+  .d14 .num { font-size: 36px; line-height: 32px; } .d14 .mid { font-size: 26px; line-height: 25px; }
+  .d14 .tile .btn:not(.white), .d14 .tile .av { background: #FFFDF9 !important; }
+  /* d=15 Mist glass: a dusty sage, blush and lilac mist behind deep frosted glass. */
+  .d15 .ground { background: radial-gradient(60% 40% at 90% 5%, #E3D3CF 0%, rgba(227,211,207,0) 100%), radial-gradient(60% 40% at 0% 45%, #DCD9EA 0%, rgba(220,217,234,0) 100%),
+    radial-gradient(70% 45% at 100% 95%, #D3E3DA 0%, rgba(211,227,218,0) 100%), #EFEDEA !important; }
+  .d15 .tile, .d15 .switch, .d15 .round:not(.plusb) { background: linear-gradient(160deg, rgba(255,255,255,.78) 0%, rgba(255,255,255,.58) 100%) !important; border: 1px solid rgba(255,255,255,.95) !important;
+    box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(60,50,70,.03), 0 14px 34px -10px rgba(60,50,70,.12) !important; backdrop-filter: blur(30px) saturate(130%) !important; }
+  .d15 .hero { background: linear-gradient(160deg, color-mix(in srgb, var(--uc) 24%, rgba(255,255,255,.85)) 0%, rgba(255,255,255,.7) 80%) !important; }
+  .d15 .label .ic { background: rgba(255,255,255,.9); border-radius: 50%; padding: 5px; width: 28px !important; height: 28px !important; margin: -9px 7px -9px -2px !important; }
+  /* d=16..18 (owner 18 Nov 2026: "too many colours, losing premium; tracking bars; are you following design principles?").
+     Back to the agreed rules: no bars; numbers and words in ink and one grey, never coloured; at most two soft colours,
+     on surfaces only (top tile tint, selected pill, main buttons, second tiles, avatars, badges); icons in the main colour.
+     Pearl finish kept: fine grain, white tiles on layered shadows, rounder corners. */
+  :is(.d16, .d17, .d18) { --a1: #5E7E6F; --a1t: #E7EFEA; --a2: #FFFFFF; --a2t: #F4F3F1; --a2d: #5E7E6F; --text: #2F2D33; --muted: #66626C; }
+  .d17 { --a2: #C9A47C; --a2t: #F5EDE3; --a2d: #A4825C; }
+  .d18 { --a2: #D2A093; --a2t: #F8ECE8; --a2d: #B07A6C; }
+  :is(.d16, .d17, .d18) .blob { display: none; }
+  :is(.d16, .d17, .d18) .ground { background: linear-gradient(175deg, #F6F4F1 0%, #F0EEEA 100%) !important; }
+  :is(.d16, .d17, .d18) .ground::after { content: ''; position: absolute; inset: 0; opacity: .5; mix-blend-mode: multiply; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .47 0 0 0 0 .45 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  :is(.d16, .d17, .d18) .tile, :is(.d16, .d17, .d18) .round:not(.plusb) { border-radius: 30px; background: #fff !important; border: 1px solid rgba(60,50,70,.04) !important; backdrop-filter: none !important;
+    box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(60,50,70,.04), 0 12px 32px -8px rgba(60,50,70,.10) !important; }
+  :is(.d16, .d17, .d18) .switch { border-radius: 30px; padding: 4px; background: #EAE7E2 !important; border: 0 !important; backdrop-filter: none !important; box-shadow: inset 0 1px 2px rgba(60,50,70,.05) !important; }
+  :is(.d16, .d17, .d18) .switch .on { background: var(--a1) !important; color: #fff !important; box-shadow: 0 4px 12px rgba(60,80,70,.18) !important; }
+  :is(.d16, .d17, .d18) .switch span:not(.on) { color: #7A7680 !important; }
+  /* Words and numbers: ink and one grey only. */
+  :is(.d16, .d17, .d18) :is(.big, .num, .mid) { color: var(--text) !important; }
+  :is(.d16, .d17, .d18) .big { font-weight: 300 !important; letter-spacing: -3px !important; }
+  :is(.d16, .d17, .d18) .label { color: var(--muted) !important; font-weight: 500 !important; letter-spacing: 2.2px !important; }
+  :is(.d16, .d17, .d18) .ic { stroke: var(--a1) !important; stroke-width: 1.7 !important; }
+  /* Surfaces carry the colour. */
+  :is(.d16, .d17, .d18) .hero { background: linear-gradient(160deg, var(--a1t) 0%, #fff 78%) !important; }
+  :is(.d17, .d18) .second { background: var(--a2t) !important; }
+  :is(.d16, .d17, .d18) .btn { background: #fff !important; color: var(--text) !important; border: 1px solid #E4E1DC !important; }
+  :is(.d16, .d17, .d18) .btn.white, :is(.d16, .d17, .d18) .plusb { background: var(--a1) !important; color: #fff !important; border-color: transparent !important; box-shadow: 0 6px 14px rgba(60,80,70,.18) !important; }
+  :is(.d16, .d17, .d18) .screen > .row:not(.tile) .btn.white { background: #fff !important; color: var(--text) !important; border: 1px solid #E4E1DC !important; box-shadow: 0 6px 16px rgba(40,30,50,.06) !important; }
+  :is(.d16, .d17, .d18) .badge { background: var(--a1) !important; color: #fff !important; }
+  :is(.d16, .d17, .d18) .av { background: var(--a2t) !important; color: var(--text) !important; font-weight: 500 !important; }
+  .d16 .av { background: var(--a1t) !important; }
+  :is(.d16, .d17, .d18) .field { background: #fff !important; border: 1px solid #E4E1DC !important; }
+  :is(.d16, .d17, .d18) .tile::after { display: none !important; }
+  /* d=19..21 (owner 18 Nov 2026: "Bluish tones premium and gentle"): same rules as d=16..18 (no bars, ink numbers,
+     one grey for words, one or two soft colours on surfaces only, pearl finish) in a cool pearl with gentle blues. */
+  :is(.d19, .d20, .d21) { --a1: #5B7896; --a1t: #E6EDF4; --a2: #FFFFFF; --a2t: #F2F3F6; --text: #2C2F36; --muted: #646A75; }
+  .d20 { --a2t: #F4EEE6; }
+  .d21 { --a1: #4E6684; --a1t: #E3EAF2; --a2t: #EAF0F6; }
+  :is(.d19, .d20, .d21) .blob { display: none; }
+  :is(.d19, .d20, .d21) .ground { background: linear-gradient(175deg, #F4F5F7 0%, #EDEFF2 100%) !important; }
+  :is(.d19, .d20, .d21) .ground::after { content: ''; position: absolute; inset: 0; opacity: .5; mix-blend-mode: multiply; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .47 0 0 0 0 .45 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  :is(.d19, .d20, .d21) .tile, :is(.d19, .d20, .d21) .round:not(.plusb) { border-radius: 30px; background: #fff !important; border: 1px solid rgba(60,50,70,.04) !important; backdrop-filter: none !important;
+    box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(60,50,70,.04), 0 12px 32px -8px rgba(60,50,70,.10) !important; }
+  :is(.d19, .d20, .d21) .switch { border-radius: 30px; padding: 4px; background: #E5E8ED !important; border: 0 !important; backdrop-filter: none !important; box-shadow: inset 0 1px 2px rgba(60,50,70,.05) !important; }
+  :is(.d19, .d20, .d21) .switch .on { background: var(--a1) !important; color: #fff !important; box-shadow: 0 4px 12px rgba(50,70,100,.18) !important; }
+  :is(.d19, .d20, .d21) .switch span:not(.on) { color: #767B86 !important; }
+  :is(.d19, .d20, .d21) :is(.big, .num, .mid) { color: var(--text) !important; }
+  :is(.d19, .d20, .d21) .big { font-weight: 300 !important; letter-spacing: -3px !important; }
+  :is(.d19, .d20, .d21) .label { color: var(--muted) !important; font-weight: 500 !important; letter-spacing: 2.2px !important; }
+  :is(.d19, .d20, .d21) .ic { stroke: var(--a1) !important; stroke-width: 1.7 !important; }
+  :is(.d19, .d20, .d21) .hero { background: linear-gradient(160deg, var(--a1t) 0%, #fff 78%) !important; }
+  :is(.d20, .d21) .second { background: var(--a2t) !important; }
+  :is(.d19, .d20, .d21) .btn { background: #fff !important; color: var(--text) !important; border: 1px solid #DFE3E9 !important; }
+  :is(.d19, .d20, .d21) .btn.white, :is(.d19, .d20, .d21) .plusb { background: var(--a1) !important; color: #fff !important; border-color: transparent !important; box-shadow: 0 6px 14px rgba(50,70,100,.18) !important; }
+  :is(.d19, .d20, .d21) .screen > .row:not(.tile) .btn.white { background: #fff !important; color: var(--text) !important; border: 1px solid #DFE3E9 !important; box-shadow: 0 6px 16px rgba(40,30,50,.06) !important; }
+  :is(.d19, .d20, .d21) .badge { background: var(--a1) !important; color: #fff !important; }
+  :is(.d19, .d20, .d21) .av { background: var(--a2t) !important; color: var(--text) !important; font-weight: 500 !important; }
+  :is(.d19, .d20, .d21) .field { background: #fff !important; border: 1px solid #DFE3E9 !important; }
+  :is(.d19, .d20, .d21) .tile::after { display: none !important; }
+  .d19 .av { background: var(--a1t) !important; }
+  /* d=22..24 (owner 18 Nov 2026: "Use ivory, green and vermillion and show premium designs"). Same rules: no bars,
+     numbers in warm ink and words in one warm grey, colour on surfaces only. Ivory ground, warm white tiles,
+     deep green and vermillion shared out three ways. */
+  :is(.d22, .d23, .d24) { --g: #2F5D4A; --gt: #E6EEE8; --v: #D9533B; --vt: #FBEAE4; --text: #2B2A26; --muted: #6A665D; --line: #E8E1D3; }
+  :is(.d22, .d23, .d24) .blob { display: none; }
+  :is(.d22, .d23, .d24) .ground { background: linear-gradient(175deg, #FAF6EC 0%, #F3EDE0 100%) !important; }
+  :is(.d22, .d23, .d24) .ground::after { content: ''; position: absolute; inset: 0; opacity: .55; mix-blend-mode: multiply; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .45 0 0 0 0 .38 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  :is(.d22, .d23, .d24) .tile, :is(.d22, .d23, .d24) .round:not(.plusb) { border-radius: 30px; background: #FFFDF8 !important; border: 1px solid rgba(120,100,60,.06) !important; backdrop-filter: none !important;
+    box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(90,70,40,.04), 0 12px 32px -8px rgba(90,70,40,.11) !important; }
+  :is(.d22, .d23, .d24) .switch { border-radius: 30px; padding: 4px; background: #EDE6D8 !important; border: 0 !important; backdrop-filter: none !important; box-shadow: inset 0 1px 2px rgba(90,70,40,.06) !important; }
+  :is(.d22, .d23, .d24) .switch span:not(.on) { color: #7A7469 !important; }
+  :is(.d22, .d23, .d24) :is(.big, .num, .mid) { color: var(--text) !important; }
+  :is(.d22, .d23, .d24) .big { font-weight: 300 !important; letter-spacing: -3px !important; }
+  :is(.d22, .d23, .d24) .label { color: var(--muted) !important; font-weight: 500 !important; letter-spacing: 2.2px !important; }
+  :is(.d22, .d23, .d24) .ic { stroke: var(--g) !important; stroke-width: 1.7 !important; }
+  :is(.d22, .d23, .d24) .hero { background: linear-gradient(160deg, var(--gt) 0%, #FFFDF8 78%) !important; }
+  :is(.d22, .d23, .d24) .btn { background: #FFFDF8 !important; color: var(--text) !important; border: 1px solid var(--line) !important; }
+  :is(.d22, .d23, .d24) .screen > .row:not(.tile) .btn.white { background: #FFFDF8 !important; color: var(--text) !important; border: 1px solid var(--line) !important; box-shadow: 0 6px 16px rgba(90,70,40,.07) !important; }
+  :is(.d22, .d23, .d24) .field { background: #FFFDF8 !important; border: 1px solid var(--line) !important; }
+  :is(.d22, .d23, .d24) .tile::after { display: none !important; }
+  :is(.d22, .d23, .d24) .av { color: var(--text) !important; font-weight: 500 !important; }
+
+  /* S · Green, vermillion spark: green leads (tab, buttons, icons, top tile); vermillion only marks what is new (badges). */
+  .d22 .switch .on, .d22 .btn.white:not(.screen > .row:not(.tile) .btn), .d22 .plusb { background: var(--g) !important; color: #FFFDF8 !important; border-color: transparent !important; box-shadow: 0 6px 14px rgba(47,93,74,.20) !important; }
+  .d22 .badge { background: var(--v) !important; color: #fff !important; }
+  .d22 .av { background: var(--gt) !important; }
+
+  /* T · Green and vermillion: green leads; the second tiles and avatars carry a pale vermillion, badges vermillion. */
+  .d23 .switch .on, .d23 .btn.white:not(.screen > .row:not(.tile) .btn), .d23 .plusb { background: var(--g) !important; color: #FFFDF8 !important; border-color: transparent !important; box-shadow: 0 6px 14px rgba(47,93,74,.20) !important; }
+  .d23 .second { background: var(--vt) !important; }
+  .d23 .badge { background: var(--v) !important; color: #fff !important; }
+  .d23 .av { background: var(--vt) !important; }
+
+  /* U · Vermillion leads: the tab and main buttons in vermillion; green stays in the icons and the top tile. */
+  .d24 .switch .on, .d24 .btn.white:not(.screen > .row:not(.tile) .btn), .d24 .plusb { background: var(--v) !important; color: #fff !important; border-color: transparent !important; box-shadow: 0 6px 14px rgba(217,83,59,.22) !important; }
+  .d24 .second { background: var(--gt) !important; }
+  .d24 .badge { background: var(--g) !important; color: #FFFDF8 !important; }
+  .d24 .av { background: var(--gt) !important; }
+  /* d=25..27 (owner 18 Nov 2026: "White Black vermillion"). Same rules: no bars, numbers in black and words in one grey,
+     colour on surfaces only. Soft white ground, white tiles, black and vermillion shared out three ways. */
+  :is(.d25, .d26, .d27) { --k: #18181A; --v: #E04A32; --vt: #FCEAE6; --text: #18181A; --muted: #6B6B6E; --line: #E6E6E6; }
+  :is(.d25, .d26, .d27) .blob { display: none; }
+  :is(.d25, .d26, .d27) .ground { background: linear-gradient(175deg, #F7F7F6 0%, #EFEFEE 100%) !important; }
+  :is(.d25, .d26, .d27) .ground::after { content: ''; position: absolute; inset: 0; opacity: .45; mix-blend-mode: multiply; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  :is(.d25, .d26, .d27) .tile, :is(.d25, .d26, .d27) .round:not(.plusb) { border-radius: 30px; background: #fff !important; border: 1px solid rgba(0,0,0,.04) !important; backdrop-filter: none !important;
+    box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(0,0,0,.04), 0 12px 32px -8px rgba(0,0,0,.10) !important; }
+  :is(.d25, .d26, .d27) .switch { border-radius: 30px; padding: 4px; background: #E8E8E7 !important; border: 0 !important; backdrop-filter: none !important; box-shadow: inset 0 1px 2px rgba(0,0,0,.05) !important; }
+  :is(.d25, .d26, .d27) .switch .on { background: var(--k) !important; color: #fff !important; box-shadow: 0 4px 12px rgba(0,0,0,.18) !important; }
+  :is(.d25, .d26, .d27) .switch span:not(.on) { color: #77777A !important; }
+  :is(.d25, .d26, .d27) :is(.big, .num, .mid) { color: var(--text) !important; }
+  :is(.d25, .d26, .d27) .big { font-weight: 300 !important; letter-spacing: -3px !important; }
+  :is(.d25, .d26, .d27) .label { color: var(--muted) !important; font-weight: 500 !important; letter-spacing: 2.2px !important; }
+  :is(.d25, .d26, .d27) .btn { background: #fff !important; color: var(--text) !important; border: 1px solid var(--line) !important; }
+  :is(.d25, .d26, .d27) .screen > .row:not(.tile) .btn.white { background: #fff !important; color: var(--text) !important; border: 1px solid var(--line) !important; box-shadow: 0 6px 16px rgba(0,0,0,.06) !important; }
+  :is(.d25, .d26, .d27) .field { background: #fff !important; border: 1px solid var(--line) !important; }
+  :is(.d25, .d26, .d27) .tile::after { display: none !important; }
+  :is(.d25, .d26, .d27) .av { background: #F1F1F0 !important; color: var(--text) !important; font-weight: 500 !important; }
+  :is(.d25, .d26, .d27) .hero { background: #fff !important; }
+
+  /* V · Black, vermillion spark: black tab and main buttons; vermillion only in the icons and the unread counts. */
+  .d25 .ic { stroke: var(--v) !important; stroke-width: 1.7 !important; }
+  .d25 .btn.white:not(.screen > .row:not(.tile) .btn), .d25 .plusb { background: var(--k) !important; color: #fff !important; border-color: transparent !important; box-shadow: 0 6px 14px rgba(0,0,0,.18) !important; }
+  .d25 .badge { background: var(--v) !important; color: #fff !important; }
+
+  /* W · Vermillion buttons: black tab and icons; the main buttons and unread counts in vermillion. */
+  .d26 .ic { stroke: var(--k) !important; stroke-width: 1.6 !important; }
+  .d26 .btn.white:not(.screen > .row:not(.tile) .btn), .d26 .plusb { background: var(--v) !important; color: #fff !important; border-color: transparent !important; box-shadow: 0 6px 14px rgba(224,74,50,.22) !important; }
+  .d26 .badge { background: var(--v) !important; color: #fff !important; }
+
+  /* X · Black top tile: the one main tile on each screen in soft black with white words; vermillion for buttons and counts. */
+  .d27 .ic { stroke: var(--k) !important; stroke-width: 1.6 !important; }
+  .d27 .hero { background: radial-gradient(110% 80% at 100% 0%, #2A2A2D 0%, #161618 65%) !important; border: 0 !important; }
+  .d27 .hero :is(.big, .num, .mid, b, span, div) { color: #fff !important; }
+  .d27 .hero :is(.note, small, .label) { color: rgba(255,255,255,.72) !important; }
+  .d27 .hero .ic { stroke: var(--v) !important; }
+  .d27 .hero .av { background: rgba(255,255,255,.1) !important; color: #fff !important; }
+  .d27 .btn.white:not(.screen > .row:not(.tile) .btn), .d27 .plusb { background: var(--v) !important; color: #fff !important; border-color: transparent !important; box-shadow: 0 6px 14px rgba(224,74,50,.22) !important; }
+  .d27 .badge { background: var(--v) !important; color: #fff !important; }
+  /* d=28..30 (owner 18 Nov 2026: "White grey vermillion"). No black anywhere: graphite ink for numbers, one soft grey for
+     words, grey and vermillion on surfaces only. No bars. Soft white ground with grain, white tiles. */
+  :is(.d28, .d29, .d30) { --gr: #707075; --grt: #EEEEEC; --v: #E04A32; --text: #3A3A3E; --muted: #7A7A7F; --line: #E6E6E4; }
+  :is(.d28, .d29, .d30) .blob { display: none; }
+  :is(.d28, .d29, .d30) .ground { background: linear-gradient(175deg, #F8F8F7 0%, #F0F0EF 100%) !important; }
+  :is(.d28, .d29, .d30) .ground::after { content: ''; position: absolute; inset: 0; opacity: .45; mix-blend-mode: multiply; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  :is(.d28, .d29, .d30) .tile, :is(.d28, .d29, .d30) .round:not(.plusb) { border-radius: 30px; background: #fff !important; border: 1px solid rgba(0,0,0,.04) !important; backdrop-filter: none !important;
+    box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(0,0,0,.035), 0 12px 32px -8px rgba(0,0,0,.09) !important; }
+  :is(.d28, .d29, .d30) .switch { border-radius: 30px; padding: 4px; background: #E9E9E7 !important; border: 0 !important; backdrop-filter: none !important; box-shadow: inset 0 1px 2px rgba(0,0,0,.04) !important; }
+  :is(.d28, .d29, .d30) .switch span:not(.on) { color: #808085 !important; }
+  :is(.d28, .d29, .d30) :is(.big, .num, .mid) { color: var(--text) !important; }
+  :is(.d28, .d29, .d30) .big { font-weight: 300 !important; letter-spacing: -3px !important; }
+  :is(.d28, .d29, .d30) .label { color: var(--muted) !important; font-weight: 500 !important; letter-spacing: 2.2px !important; }
+  :is(.d28, .d29, .d30) .ic { stroke: var(--gr) !important; stroke-width: 1.6 !important; }
+  :is(.d28, .d29, .d30) .btn { background: #fff !important; color: var(--text) !important; border: 1px solid var(--line) !important; }
+  :is(.d28, .d29, .d30) .screen > .row:not(.tile) .btn.white { background: #fff !important; color: var(--text) !important; border: 1px solid var(--line) !important; box-shadow: 0 6px 16px rgba(0,0,0,.05) !important; }
+  :is(.d28, .d29, .d30) .field { background: #fff !important; border: 1px solid var(--line) !important; }
+  :is(.d28, .d29, .d30) .tile::after { display: none !important; }
+  :is(.d28, .d29, .d30) .av { background: var(--grt) !important; color: var(--text) !important; font-weight: 500 !important; }
+  :is(.d28, .d29, .d30) .hero { background: #fff !important; }
+  :is(.d28, .d29, .d30) .badge { background: var(--v) !important; color: #fff !important; }
+
+  /* Y · Grey and vermillion: grey selected tab; the main buttons and + in vermillion; grey icons. */
+  .d28 .switch .on { background: var(--gr) !important; color: #fff !important; box-shadow: 0 4px 12px rgba(0,0,0,.12) !important; }
+  .d28 .btn.white:not(.screen > .row:not(.tile) .btn), .d28 .plusb { background: var(--v) !important; color: #fff !important; border-color: transparent !important; box-shadow: 0 6px 14px rgba(224,74,50,.22) !important; }
+
+  /* Z · Vermillion tab: the selected tab in vermillion; the main buttons and + in soft grey. */
+  .d29 .switch .on { background: var(--v) !important; color: #fff !important; box-shadow: 0 4px 12px rgba(224,74,50,.22) !important; }
+  .d29 .btn.white:not(.screen > .row:not(.tile) .btn), .d29 .plusb { background: var(--gr) !important; color: #fff !important; border-color: transparent !important; box-shadow: 0 6px 14px rgba(0,0,0,.12) !important; }
+
+  /* AA · Grey top tile: the one main tile on each screen in soft mid grey with white words; grey tab, vermillion buttons. */
+  .d30 .switch .on { background: var(--gr) !important; color: #fff !important; box-shadow: 0 4px 12px rgba(0,0,0,.12) !important; }
+  .d30 .hero { background: radial-gradient(110% 80% at 100% 0%, #85858A 0%, #6A6A6F 70%) !important; border: 0 !important; }
+  .d30 .hero :is(.big, .num, .mid, b, span, div) { color: #fff !important; }
+  .d30 .hero :is(.note, small, .label) { color: rgba(255,255,255,.82) !important; }
+  .d30 .hero .ic { stroke: #fff !important; }
+  .d30 .hero .av { background: rgba(255,255,255,.16) !important; color: #fff !important; }
+  .d30 .btn.white:not(.screen > .row:not(.tile) .btn), .d30 .plusb { background: var(--v) !important; color: #fff !important; border-color: transparent !important; box-shadow: 0 6px 14px rgba(224,74,50,.22) !important; }
+  /* d=31..33 (owner 18 Nov 2026: white grey vermillion, then "Add lavender color"). Grey stays the neutral; lavender and
+     vermillion are the two colours, on surfaces only. Graphite numbers, one grey for words, no bars, no black. */
+  :is(.d31, .d32, .d33) { --gr: #707075; --l: #7D6EB4; --lt: #F0ECF8; --v: #E04A32; --text: #3A3A3E; --muted: #7A7A7F; --line: #E6E6E4; }
+  :is(.d31, .d32, .d33) .blob { display: none; }
+  :is(.d31, .d32, .d33) .ground { background: linear-gradient(175deg, #F8F8F7 0%, #F0F0EF 100%) !important; }
+  :is(.d31, .d32, .d33) .ground::after { content: ''; position: absolute; inset: 0; opacity: .45; mix-blend-mode: multiply; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  :is(.d31, .d32, .d33) .tile, :is(.d31, .d32, .d33) .round:not(.plusb) { border-radius: 30px; background: #fff !important; border: 1px solid rgba(0,0,0,.04) !important; backdrop-filter: none !important;
+    box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(0,0,0,.035), 0 12px 32px -8px rgba(0,0,0,.09) !important; }
+  :is(.d31, .d32, .d33) .switch { border-radius: 30px; padding: 4px; background: #E9E9E7 !important; border: 0 !important; backdrop-filter: none !important; box-shadow: inset 0 1px 2px rgba(0,0,0,.04) !important; }
+  :is(.d31, .d32, .d33) .switch span:not(.on) { color: #808085 !important; }
+  :is(.d31, .d32, .d33) :is(.big, .num, .mid) { color: var(--text) !important; }
+  :is(.d31, .d32, .d33) .big { font-weight: 300 !important; letter-spacing: -3px !important; }
+  :is(.d31, .d32, .d33) .label { color: var(--muted) !important; font-weight: 500 !important; letter-spacing: 2.2px !important; }
+  :is(.d31, .d32, .d33) .ic { stroke: var(--gr) !important; stroke-width: 1.6 !important; }
+  :is(.d31, .d32, .d33) .btn { background: #fff !important; color: var(--text) !important; border: 1px solid var(--line) !important; }
+  :is(.d31, .d32, .d33) .screen > .row:not(.tile) .btn.white { background: #fff !important; color: var(--text) !important; border: 1px solid var(--line) !important; box-shadow: 0 6px 16px rgba(0,0,0,.05) !important; }
+  :is(.d31, .d32, .d33) .field { background: #fff !important; border: 1px solid var(--line) !important; }
+  :is(.d31, .d32, .d33) .tile::after { display: none !important; }
+  :is(.d31, .d32, .d33) .av { background: var(--lt) !important; color: var(--text) !important; font-weight: 500 !important; }
+  :is(.d31, .d32, .d33) .hero { background: #fff !important; }
+  :is(.d31, .d32, .d33) .badge { background: var(--v) !important; color: #fff !important; }
+  :is(.d31, .d32, .d33) .switch .on { background: var(--gr) !important; color: #fff !important; box-shadow: 0 4px 12px rgba(0,0,0,.12) !important; }
+  :is(.d31, .d32, .d33) .btn.white:not(.screen > .row:not(.tile) .btn), :is(.d31, .d32, .d33) .plusb { background: var(--v) !important; color: #fff !important; border-color: transparent !important; box-shadow: 0 6px 14px rgba(224,74,50,.22) !important; }
+
+  /* AB · Lavender tab: the selected tab in lavender, lavender icons and avatars; vermillion buttons. */
+  .d31 .switch .on { background: var(--l) !important; box-shadow: 0 4px 12px rgba(125,110,180,.25) !important; }
+  .d31 .ic { stroke: var(--l) !important; stroke-width: 1.7 !important; }
+
+  /* AC · Lavender top tile: the main tile on each screen washed in pale lavender; grey tab, vermillion buttons. */
+  .d32 .hero { background: linear-gradient(160deg, #E9E3F6 0%, #F6F3FB 55%, #fff 100%) !important; }
+  .d32 .hero .ic { stroke: var(--l) !important; stroke-width: 1.7 !important; }
+
+  /* AD · Lavender leads: lavender tab, buttons and top-tile wash; vermillion only on the unread counts. */
+  .d33 .switch .on { background: var(--l) !important; box-shadow: 0 4px 12px rgba(125,110,180,.25) !important; }
+  .d33 .btn.white:not(.screen > .row:not(.tile) .btn), .d33 .plusb { background: var(--l) !important; box-shadow: 0 6px 14px rgba(125,110,180,.25) !important; }
+  .d33 .hero { background: linear-gradient(160deg, #EDE8F7 0%, #F8F6FC 60%, #fff 100%) !important; }
+  .d33 .ic { stroke: var(--l) !important; stroke-width: 1.7 !important; }
+  /* d32/d33 fix: avatars inside the lavender top tile vanished; give them white. */
+  :is(.d32, .d33) .hero .av { background: #fff !important; box-shadow: 0 1px 3px rgba(80,70,120,.08) !important; }
+  /* d=34..36 (owner 18 Nov 2026: "Use super white"). AB/AC/AD on a pure white page: no grey ground, no grain.
+     Tiles stay white and separate by a faint hairline and a soft, wide shadow. Lavender + vermillion on surfaces only. */
+  :is(.d34, .d35, .d36) { --gr: #707075; --l: #7D6EB4; --lt: #F2EFF9; --v: #E04A32; --text: #3A3A3E; --muted: #7A7A7F; --line: #ECECEE; }
+  :is(.d34, .d35, .d36) .blob { display: none; }
+  :is(.d34, .d35, .d36) .ground { background: #FFFFFF !important; }
+  :is(.d34, .d35, .d36) .ground::after { display: none !important; }
+  :is(.d34, .d35, .d36) .tile, :is(.d34, .d35, .d36) .round:not(.plusb) { border-radius: 30px; background: #fff !important; border: 1px solid #EFEFF1 !important; backdrop-filter: none !important;
+    box-shadow: 0 1px 2px rgba(40,40,60,.03), 0 10px 30px -10px rgba(40,40,60,.10) !important; }
+  :is(.d34, .d35, .d36) .switch { border-radius: 30px; padding: 4px; background: #F3F3F5 !important; border: 0 !important; backdrop-filter: none !important; box-shadow: none !important; }
+  :is(.d34, .d35, .d36) .switch span:not(.on) { color: #808085 !important; }
+  :is(.d34, .d35, .d36) :is(.big, .num, .mid) { color: var(--text) !important; }
+  :is(.d34, .d35, .d36) .big { font-weight: 300 !important; letter-spacing: -3px !important; }
+  :is(.d34, .d35, .d36) .label { color: var(--muted) !important; font-weight: 500 !important; letter-spacing: 2.2px !important; }
+  :is(.d34, .d35, .d36) .ic { stroke: var(--gr) !important; stroke-width: 1.6 !important; }
+  :is(.d34, .d35, .d36) .btn { background: #fff !important; color: var(--text) !important; border: 1px solid var(--line) !important; }
+  :is(.d34, .d35, .d36) .screen > .row:not(.tile) .btn.white { background: #fff !important; color: var(--text) !important; border: 1px solid var(--line) !important; box-shadow: 0 6px 16px rgba(40,40,60,.06) !important; }
+  :is(.d34, .d35, .d36) .field { background: #FAFAFB !important; border: 1px solid var(--line) !important; }
+  :is(.d34, .d35, .d36) .tile::after { display: none !important; }
+  :is(.d34, .d35, .d36) .av { background: var(--lt) !important; color: var(--text) !important; font-weight: 500 !important; }
+  :is(.d34, .d35, .d36) .hero { background: #fff !important; }
+  :is(.d34, .d35, .d36) .badge { background: var(--v) !important; color: #fff !important; }
+  :is(.d34, .d35, .d36) .switch .on { background: var(--gr) !important; color: #fff !important; box-shadow: 0 4px 12px rgba(0,0,0,.10) !important; }
+  :is(.d34, .d35, .d36) .btn.white:not(.screen > .row:not(.tile) .btn), :is(.d34, .d35, .d36) .plusb { background: var(--v) !important; color: #fff !important; border-color: transparent !important; box-shadow: 0 6px 14px rgba(224,74,50,.20) !important; }
+
+  /* AB on super white: lavender tab, icons and avatars; vermillion buttons. */
+  .d34 .switch .on { background: var(--l) !important; box-shadow: 0 4px 12px rgba(125,110,180,.22) !important; }
+  .d34 .ic { stroke: var(--l) !important; stroke-width: 1.7 !important; }
+
+  /* AC on super white: pale lavender wash on the main tile; grey tab, vermillion buttons. */
+  .d35 .hero { background: linear-gradient(160deg, #ECE7F7 0%, #F7F5FC 55%, #fff 100%) !important; border-color: #ECE8F5 !important; }
+  .d35 .hero .ic { stroke: var(--l) !important; stroke-width: 1.7 !important; }
+
+  /* AD on super white: lavender tab, buttons, icons and top-tile wash; vermillion only on unread counts. */
+  .d36 .switch .on { background: var(--l) !important; box-shadow: 0 4px 12px rgba(125,110,180,.22) !important; }
+  .d36 .btn.white:not(.screen > .row:not(.tile) .btn), .d36 .plusb { background: var(--l) !important; box-shadow: 0 6px 14px rgba(125,110,180,.22) !important; }
+  .d36 .hero { background: linear-gradient(160deg, #EFEBF8 0%, #F9F7FD 60%, #fff 100%) !important; border-color: #ECE8F5 !important; }
+  .d36 .ic { stroke: var(--l) !important; stroke-width: 1.7 !important; }
+  :is(.d35, .d36) .hero .av { background: #fff !important; box-shadow: 0 1px 3px rgba(80,70,120,.08) !important; }
+  /* d=37 (owner 18 Nov 2026: "Fix all violations against the rules and give in sage sand"). The finalised sage + sand look
+     (17 Nov, k=1 ic=1 icx=1) with every break fixed: frosted glass tiles on the soft grey ground (no flat white), numbers in ink
+     and words in grey (never coloured), sage only on the selected pill, main buttons and the top-tile tint, sand only on second
+     tiles, chips, avatars and badges, each icon its own soft colour by kind, a balanced steps number, no bars, gentle motion. */
+  .d37 { --c1: #5E7E6F; --c2: #C9A47C; --c2t: #F2E9DE; --c2d: #9C7A55; }
+  .d37 .switch .on { background: var(--c1); color: #fff; box-shadow: 0 3px 10px rgba(60,90,75,.18); }
+  .d37 .hero { background: color-mix(in srgb, var(--c1) 18%, rgba(255,255,255,.72)); border-color: color-mix(in srgb, var(--c1) 20%, #fff); overflow: hidden; }
+  .d37 .second { background: color-mix(in srgb, var(--c2) 20%, rgba(255,255,255,.72)); border-color: color-mix(in srgb, var(--c2) 22%, #fff); }
+  .d37 .btn { background: var(--c2t); }
+  .d37 .second .btn:not(.white) { background: rgba(255,255,255,.85); }
+  .d37 .btn.white, .d37 .plusb { background: var(--c1) !important; color: #fff !important; border-color: var(--c1) !important; }
+  .d37 .screen > .row:not(.tile) .btn.white { background: rgba(255,255,255,.85) !important; color: var(--text) !important; border: 1px solid #E4E4E7 !important; }
+  .d37 .badge { background: var(--c2d); color: #fff; }
+  .d37 .av { background: var(--c2t); }
+  /* Balance: the steps number one step down from 124 px so the tile no longer shouts. */
+  .d37 .hero .big { font-size: 88px !important; line-height: 90px !important; letter-spacing: -3px !important; margin-top: 16px !important; }
+  /* Icons by kind, in dusty versions of their colours so they stay calm. */
+  .d37.icx .ic-steps, .d37.icx .ic-walk, .d37.icx .ic-plus { stroke: #4F8F6E !important; }
+  .d37.icx .ic-pin { stroke: #C26E5E !important; }
+  .d37.icx .ic-bolt { stroke: #C99A4A !important; }
+  .d37.icx .ic-bowl, .d37.icx .ic-flame { stroke: #CF8150 !important; }
+  .d37.icx .ic-moon { stroke: #6F70B8 !important; }
+  .d37.icx .ic-drop { stroke: #4C8DBF !important; }
+  .d37.icx .ic-list { stroke: #6A7584 !important; }
+  .d37.icx .ic-leaf { stroke: #5E9A62 !important; }
+  .d37.icx .ic-chat { stroke: #5584BD !important; }
+  .d37.icx .ic-useradd { stroke: #4A9690 !important; }
+  .d37.icx .ic-search { stroke: #557796 !important; }
+  .d37.icx .ic-people { stroke: #8577BE !important; }
+  .d37.icx .ic-card { stroke: #A88658 !important; }
+  .d37.icx .ic-spark { stroke: #BFA055 !important; }
+  /* Gentle, continuous movement: soft light drifts behind the glass; a slow sheen crosses the top tile now and then. */
+  .d37 .blob { animation: d37drift 16s ease-in-out infinite alternate; }
+  .d37 .blob:nth-child(2) { animation-duration: 19s; animation-delay: -6s; }
+  .d37 .blob:nth-child(3) { animation-duration: 22s; animation-delay: -11s; }
+  @keyframes d37drift { 0% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-38px, 26px) scale(1.08); } 100% { transform: translate(24px, -20px) scale(.96); } }
+  .d37 .hero::after { content: ''; position: absolute; top: 0; bottom: 0; left: -60%; width: 45%; pointer-events: none;
+    background: linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.45) 50%, rgba(255,255,255,0) 100%);
+    transform: skewX(-12deg); animation: d37sheen 7s ease-in-out infinite; }
+  @keyframes d37sheen { 0% { left: -60%; } 35% { left: 130%; } 100% { left: 130%; } }
+  @media (prefers-reduced-motion: reduce) { .d37 .blob, .d37 .hero::after { animation: none; } .d37 .hero::after { display: none; } }
+  /* d37 fix 2: the 88 px number is for the steps tile only (Calories keeps 64 px); the sheen passes behind the words. */
+  .d37:not(.roomy) .hero .big { font-size: 64px !important; line-height: 66px !important; margin-top: 0 !important; letter-spacing: -2px !important; }
+  .d37 .hero > * { position: relative; z-index: 1; }
+  .d37 .hero::after { z-index: 0; background: linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.55) 50%, rgba(255,255,255,0) 100%); }
+  /* d37 fix 3 (owner: "there are more violations"). One sage pill per screen: the Today/Week switch selects in white.
+     The calendar icon follows the icons-by-kind rule (sage). Fit checks: sm=1 small phone, lg=1 larger text. */
+  .d37 .spread .switch .on { background: #fff; color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .d37.icx .top .round svg { stroke: #4F8F6E; }
+  .phone.sm:not(.d38) { width: 360px; height: 800px; }
+  .phone.sm:not(.d38) .screen { padding: 28px 14px 0; gap: 8px; }
+  .phone.sm:not(.d38) .switch span { padding: 0 8px; }
+  .phone.sm:not(.d38) .switch { font-size: 10.5px; letter-spacing: 1.2px; }
+  .phone.sm:not(.d38).roomy .hero .big { font-size: 76px !important; line-height: 78px !important; margin-top: 10px !important; }
+  .phone.sm:not(.d38) .tile { padding: 13px 16px; }
+  .phone.lg { zoom: 1; }
+  .phone.lg .label { font-size: 14px !important; } .phone.lg .note, .phone.lg .sub { font-size: 17px !important; }
+  .phone.lg .num small, .phone.lg .mid small { font-size: 18px !important; } .phone.lg .num { font-size: 46px !important; } .phone.lg .mid { font-size: 28px !important; }
+  .phone.lg .btn { font-size: 16px !important; } .phone.lg .switch { font-size: 13px !important; }
+  /* d37 fix 4 (fit any phone, large text): tiles never squash, chips wrap, a unit never drops a lone letter. */
+  .d37 .tile, .d37 .screen > * { flex-shrink: 0; }
+  .d37 .tile > .row:has(.btn) { flex-wrap: wrap; }
+  .d37 .num small, .d37 .mid small { white-space: nowrap; display: inline-block; }
+  .d37 .cols > * { padding-right: 6px; }
+  /* d37 fix 5 (from the rule checker): sage a hair deeper so white words on it read (4.5:1+), badges deeper sand,
+     tab words never under 11 px, and the Find walkers heading stays on one line with large text. */
+  .d37 { --c1: #567565; --c2d: #876644; }
+  .d37 .spread .switch { font-size: 11.5px !important; }
+  .phone.sm:not(.d38) .switch { font-size: 11px !important; letter-spacing: .9px !important; }
+  .phone.sm:not(.d38) .switch span { padding: 0 7px !important; }
+  .d37 .pair .mid { white-space: nowrap; }
+  .phone.lg .pair .mid { font-size: 23px !important; }
+  /* d37 fix 6: with large text the "of …" under macro numbers drops below every number in the row, so the row stays even. */
+  .phone.lg .d37 .cols .mid small, .d37.phone.lg .cols .mid small.of { display: block; margin-left: 0; }
+
+  /* d38 (18 Nov 2026): the approved base look (k=1&ic=1&icx=1&f=4&b=1&h=1) with ONLY the changes .claude/rules/visual-design.md
+     forces. Icons, tints, spacing and type otherwise exactly as approved.
+     Contrast: solid sage #567565 under white words (4.5:1), badge #876644. One sage pill per screen. Text never under 11 dp.
+     Steps number on the approved scale (96/100). No shine (the sheen is gone; only the ground light drifts).
+     Small phone = the same design at 360/411 (the app's scaled()), with an 11 dp floor for text. Fit fixes. */
+  .d38 .switch .on, .d38 .plusb, .d38 .btn.white { background: #567565 !important; color: #fff !important; border-color: #567565 !important; }
+  .d38 .spread .switch { font-size: 11.5px !important; }
+  .d38 .spread .switch .on { background: #fff !important; color: var(--text) !important; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .d38 .badge { background: #876644 !important; color: #fff !important; }
+  .d38.roomy .hero .big { font-size: 96px !important; line-height: 100px !important; letter-spacing: -2px !important; }
+  .d38 .tile, .d38 .screen > * { flex-shrink: 0; }
+  .d38.phone.lg .tile > .row:has(.btn) { flex-wrap: wrap; }
+  .d38 .num small, .d38 .mid small { white-space: nowrap; display: inline-block; }
+  .d38 .pair .mid { white-space: nowrap; }
+  /* Buttons in side-by-side tiles share one line: each sits at its tile's foot, 12 below the words at least. */
+  .d38 .pair > .tile { display: flex; flex-direction: column; }
+  .d38 .pair > .tile > .row:last-child { margin-top: auto !important; padding-top: 12px; }
+  .d38 .cols > * { padding-right: 6px; }
+  .d38.phone.lg .cols .mid small.of { display: block; margin-left: 0; }
+  .d38.phone.lg .pair .mid { font-size: 23px !important; }
+  .d38 .blob { animation: d37drift 16s ease-in-out infinite alternate; }
+  .d38 .blob:nth-child(2) { animation-duration: 19s; animation-delay: -6s; }
+  .d38 .blob:nth-child(3) { animation-duration: 22s; animation-delay: -11s; }
+  @media (prefers-reduced-motion: reduce) { .d38 .blob { animation: none; } }
+  .phone.sm.d38 { width: 411px; height: 913px; zoom: .8759; }
+  .phone.sm.d38 .label, .phone.sm.d38 .switch, .phone.sm.d38 .badge, .phone.sm.d38 .sync { font-size: 12.56px !important; }
+  /* Ad space (owner, 18 Nov 2026): empty room between tiles mid-Today, the height of a standard 320 x 50 banner. admark=1 outlines it in the mock only. */
+  .adslot { display: none; }
+  .d38 .adslot { display: flex; height: 50px; flex-shrink: 0; align-items: center; justify-content: center; }
+  .d38 .adslot span { display: none; }
+  /* The banner keeps its real 50 dp on every phone (57.1 px before the small phone's 0.8759 zoom). To make room, Today takes the 9 tile gap the other two screens use, so it never scrolls and keeps 12+ dp above the phone's bottom edge. */
+  .phone.sm.d38 .adslot { height: 57.1px; }
+  .d38 .screen:has(> .adslot) { gap: 9px !important; }
+  /* Small phone only: Today's tiles take the spec's standard padding 14 x 18 (as on Nutrition and Meet) so 12+ dp stays free above the bottom edge. */
+  .phone.sm.d38 .screen:has(> .adslot) > .tile, .phone.sm.d38 .screen:has(> .adslot) > .pair > .tile { padding: 14px 18px !important; }
+  .admark .d38 .adslot, .admark .adslot { border: 1.5px dashed rgba(60,60,67,.28); border-radius: 24px; }
+  .admark .d38 .adslot span { display: inline; font: 400 12px/1 Figtree, sans-serif; color: #6E6E73; letter-spacing: .2px; }
 </style>
 </head>
 <body>
@@ -237,23 +877,31 @@ function shell(on, body, cap) {
 }
 
 /* ---------- Activity ---------- */
+// h=1 (owner 18 Nov 2026): the steps tile big, "Updated" moved into it, no footer line.
+const HB = new URLSearchParams(location.search).get('h') === '1';
 const activity = shell('ACTIVITY', `
     <div class="sub"><b>Mon, 17 Nov</b> · 24°C clear · Your pace, your path.</div>
-    <div class="tile hero" style="padding-top:16px;padding-bottom:18px">
+    ${HB ? `<div class="tile hero" style="padding-top:18px;padding-bottom:20px">
+      <div class="spread"><span class="label">${ic('steps')}Steps today</span><span class="label">06:00 – 15:45</span></div>
+      <div class="big" style="font-size:124px;line-height:122px;letter-spacing:-4px;margin-top:22px">6,240</div>
+      <div class="spread" style="margin-top:14px;align-items:baseline"><span class="mid" style="white-space:nowrap">78%<small>of 8,000</small></span><span class="note" style="font-size:14px;margin:0">1,760 to go</span></div>
+      <div class="note" style="margin-top:6px">Updated 2 min ago</div>
+    </div>` : `<div class="tile hero" style="padding-top:16px;padding-bottom:18px">
       <div class="spread"><span class="label">${ic('steps')}Steps today</span><span class="label">06:00 – 15:45</span></div>
       <div class="spread" style="align-items:flex-end;margin-top:6px">
         <div class="big">6,240</div>
         <div style="text-align:right;padding-bottom:10px"><div class="mid">78%</div><div class="note">of 8,000</div></div>
       </div>
       <div class="note" style="font-size:14px;margin-top:4px">1,760 to go</div>
-    </div>
+    </div>`}
     <div class="pair">
       <div class="tile"><div class="label">${ic('pin')}Distance</div><div class="num">4.6<small>km</small></div><div class="note">of 5.9 km</div></div>
       <div class="tile"><div class="label">${ic('bolt')}Active</div><div class="num">52<small>min</small></div><div class="note">goal 30 min</div></div>
     </div>
+    <div class="adslot" aria-hidden="true"><span>Ad space · kept empty</span></div>
     <div class="pair">
-      <div class="tile"><div class="label">${ic('bowl')}Food</div><div class="num">1,280<small>kcal</small></div><div class="note">of 1,900 kcal</div></div>
-      <div class="tile"><div class="label">${ic('moon')}Sleep</div><div class="num">6h 50m</div><div class="note">last night</div></div>
+      <div class="tile"><div class="label">${ic('bowl')}Food</div><div class="num">1,240<small>kcal</small></div><div class="note">of 2,000 kcal</div></div>
+      <div class="tile"><div class="label">${ic('moon')}Sleep</div><div class="num">6<small style="margin:0 6px 0 2px">h</small>50<small style="margin-left:2px">m</small></div><div class="note">last night</div></div>
     </div>
     <div class="tile row">
       <div style="flex:1"><div class="label">${ic('drop')}Water</div><div class="num">5<small>of 8 glasses</small></div></div>
@@ -264,13 +912,13 @@ const activity = shell('ACTIVITY', `
       <div class="num">2.3<small>km</small></div>
       <div class="note">7:10 am · 32 min · 3,120 steps</div>
     </div>
-    <div class="sync">Updated 2 min ago</div>`, 'ACTIVITY');
+    ${HB ? '<div style="margin-top:auto"></div>' : '<div class="sync">Updated 2 min ago</div>'}`, 'ACTIVITY');
 
 /* ---------- Nutrition ---------- */
 const food = (n, w, k) => `<div class="spread" style="padding:8px 0;align-items:center">
   <div><div style="font:500 15px/19px Figtree">${n}</div><div class="note" style="margin-top:1px">${w}</div></div>
   <div class="mid">${k}<small>kcal</small></div></div>`;
-const cell = (l, v, s) => `<div><div class="note" style="margin:0">${l}</div><div class="mid" style="margin-top:2px">${v}${s ? `<small>${s}</small>` : ''}</div></div>`;
+const cell = (l, v, s) => `<div><div class="note" style="margin:0">${l}</div><div class="mid" style="margin-top:2px">${v}${s ? `<small${/^of /.test(s) ? ' class="of"' : ''}>${s}</small>` : ''}</div></div>`;
 const nutrition = shell('NUTRITION', `
     <div class="spread" style="align-items:center"><div class="sub"><b>Food</b> · Mon, 17 Nov</div>
       <div class="switch" style="height:32px;font-size:10px"><span class="on" style="padding:0 10px">TODAY</span><span style="padding:0 10px">WEEK</span></div></div>
@@ -341,6 +989,16 @@ document.body.innerHTML = s === 'n' ? nutrition : s === 'a' ? activity : s === '
 if (s) { document.body.style.padding = '0'; document.body.style.background = 'none'; }
 const F = new URLSearchParams(location.search).get('f');
 if (F) document.querySelectorAll('.phone').forEach(p => p.classList.add('f' + F));
+if (new URLSearchParams(location.search).get('b') === '1') document.querySelectorAll('.phone').forEach(p => p.classList.add('bold'));
+// sm=1: a small phone (360 x 800); lg=1: the phone's text size turned up (about 1.3x) — fit checks.
+if (new URLSearchParams(location.search).get('admark') === '1') document.body.classList.add('admark');
+if (new URLSearchParams(location.search).get('sm') === '1') document.querySelectorAll('.phone').forEach(p => p.classList.add('sm'));
+if (new URLSearchParams(location.search).get('lg') === '1') document.querySelectorAll('.phone').forEach(p => p.classList.add('lg'));
+const D = new URLSearchParams(location.search).get('d');
+if (D) document.querySelectorAll('.phone').forEach(p => p.classList.add('d' + D));
+// check=1: run the saved design rules against this screen and print what breaks (rulecheck.js).
+if (new URLSearchParams(location.search).get('check') === '1') { const rc = document.createElement('script'); rc.src = 'rulecheck.js'; document.body.append(rc); }
+if (new URLSearchParams(location.search).get('dump') === '1') { const ms = document.createElement('script'); ms.src = 'measure.js'; document.body.append(ms); }
 </script>
 </body>
 </html>
