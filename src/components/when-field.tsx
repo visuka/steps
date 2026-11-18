@@ -6,7 +6,8 @@ import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
 import { Notice } from '@/components/ui/notice';
-import { Radius, Spacing, TouchTarget } from '@/constants/theme';
+import { Spacing, TouchTarget } from '@/constants/theme';
+import { PLAIN_FIELD } from '@/constants/themes/plain';
 import { useClockStyle } from '@/hooks/use-clock-style';
 import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
@@ -66,11 +67,9 @@ export function WhenField({ label = 'When', value, onChange }: WhenFieldProps) {
           accessibilityHint="Opens the date, then the time"
           android_ripple={{ color: theme.outlineVariant }}
           style={({ pressed }) => [
+            PLAIN_FIELD,
             styles.value,
-            {
-              backgroundColor: pressed ? theme.surfaceContainerHigh : theme.surfaceContainerHighest,
-              borderBottomColor: theme.onSurfaceVariant,
-            },
+            pressed ? { backgroundColor: theme.surfaceContainerLow } : null,
           ]}>
           <ThemedText type="bodyLarge" style={styles.valueText}>
             {text}
@@ -107,10 +106,7 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
     minHeight: TouchTarget,
     paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.three - 4,
-    borderTopLeftRadius: Radius.xs,
-    borderTopRightRadius: Radius.xs,
-    borderBottomWidth: 1,
+    paddingHorizontal: Spacing.three,
     overflow: 'hidden',
   },
   valueText: { flex: 1, fontVariant: ['tabular-nums'] },

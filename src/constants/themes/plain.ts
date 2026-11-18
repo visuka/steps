@@ -44,6 +44,8 @@ export const PLAIN = {
   hairline: '#E4E4E7',
   /** Pressed ripples. */
   ripple: '#2C2C2E14',
+  /** Warnings only: over a limit, a wrong walker ID, Delete. */
+  warn: '#B3261E',
 } as const;
 
 /**

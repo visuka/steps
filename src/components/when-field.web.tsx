@@ -3,7 +3,8 @@ import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Notice } from '@/components/ui/notice';
-import { Fonts, Radius, Spacing, TouchTarget } from '@/constants/theme';
+import { Fonts, Spacing, TouchTarget } from '@/constants/theme';
+import { PLAIN_FIELD } from '@/constants/themes/plain';
 import { useClockStyle } from '@/hooks/use-clock-style';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNow } from '@/hooks/use-now';
@@ -62,13 +63,12 @@ export function WhenField({ label = 'When', value, onChange }: WhenFieldProps) {
             minHeight: TouchTarget,
             boxSizing: 'border-box',
             color: theme.onSurface,
-            backgroundColor: theme.surfaceContainerHighest,
+            backgroundColor: PLAIN_FIELD.backgroundColor,
             accentColor: theme.primary,
             colorScheme: scheme,
-            border: 'none',
-            borderBottom: `1px solid ${theme.onSurfaceVariant}`,
-            borderRadius: `${Radius.xs}px ${Radius.xs}px 0 0`,
-            padding: `${Spacing.two}px ${Spacing.three - 4}px`,
+            border: `1px solid ${PLAIN_FIELD.borderColor}`,
+            borderRadius: PLAIN_FIELD.borderRadius,
+            padding: `${Spacing.two}px ${Spacing.three}px`,
           }}
         />
       </View>

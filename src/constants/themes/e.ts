@@ -40,7 +40,7 @@ const light: SchemeRoles = {
   tertiaryContainer: PLAIN.second,
   onTertiaryContainer: PLAIN.text,
   // The "High" sodium badge and over-the-limit marks.
-  error: '#B3261E',
+  error: PLAIN.warn,
   onError: '#FFFFFF',
   errorContainer: '#FBE9E7',
   onErrorContainer: '#8C1D18',
@@ -91,7 +91,7 @@ const light: SchemeRoles = {
   onNear: '#FFFFFF',
   nearContainer: PLAIN.ground.mid,
   onNearContainer: PLAIN.text,
-  over: '#B3261E',
+  over: PLAIN.warn,
   onOver: '#FFFFFF',
 
   // A track's empty part: shows on the tiles and on the grey ground.

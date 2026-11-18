@@ -4,7 +4,7 @@ import { DEFAULT_THEME_ID, themeById } from '../themes';
 
 // app.json can't hold comments: this test keeps its launch colours on the tokens.
 // The native splash is drawn before any theme loads: it takes the look's own
-// ground (Calm and large's parchment). The icon and notification accent are the
+// ground (the plain look's soft grey). The icon and notification accent are the
 // brand's green, kept from the first look (Park) when the looks were archived.
 const BRAND = { surface: '#F4F6F0', steps: '#2B7A36' };
 const Default = themeById(DEFAULT_THEME_ID).colors;

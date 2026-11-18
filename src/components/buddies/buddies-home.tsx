@@ -89,7 +89,7 @@ function JoinForm({ onJoined }: { onJoined: (me: SocialMe) => void }) {
         <View style={{ marginTop: S(10) }}>
           <TextField label="Walker ID" value={handle} onChangeText={setHandle} placeholder="@your_id" maxLength={21} plain />
         </View>
-        <Note color={problem ? '#B3261E' : PLAIN.muted}>{problem ?? '3–20 letters, numbers or _. You can change it once a month.'}</Note>
+        <Note color={problem ? PLAIN.warn : PLAIN.muted}>{problem ?? '3–20 letters, numbers or _. You can change it once a month.'}</Note>
         <View style={{ marginTop: S(12) }}>
           <TextField label="Name buddies see" value={name} onChangeText={setName} placeholder="Your name" maxLength={40} />
         </View>
