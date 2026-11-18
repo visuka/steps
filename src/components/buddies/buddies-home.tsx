@@ -171,7 +171,7 @@ function Joined({ me, refreshMe }: { me: Extract<SocialMe, { joined: true }>; re
           <Num value={String(reqCount)} unit="new" />
           <Note lines={2}>{first ? `${displayName(first.walker)} wants to walk` : 'Asked you, and who you asked'}</Note>
           {first && !later ? (
-            <View style={[ps.row, { gap: S(6), marginTop: S(12) }]}>
+            <View style={[ps.footRow, { gap: S(6) }]}>
               <Btn text="Accept" kind="main" onPress={() => accept(first.walker.pid, first.walker.handle)} label={`Accept ${displayName(first.walker)}`} />
               <Btn text="Later" kind="onSecond" onPress={() => setLater(true)} />
             </View>
@@ -181,7 +181,7 @@ function Joined({ me, refreshMe }: { me: Extract<SocialMe, { joined: true }>; re
           <Label icon="search" text="Find walkers" />
           <Mid value="By walker ID" style={{ marginTop: S(8) }} fit />
           <Note lines={2}>Ask a friend for theirs</Note>
-          <View style={[ps.row, { marginTop: S(12) }]}>
+          <View style={ps.footRow}>
             <Btn text="Find" kind="main" onPress={find} label="Find walkers" />
           </View>
         </Tile>

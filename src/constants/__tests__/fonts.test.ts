@@ -31,8 +31,8 @@ describe('fontFor', () => {
       PLAIN_FONT.regular,
       PLAIN_FONT.medium,
       PLAIN_FONT.semibold,
-      PLAIN_FONT.thin,
-      PLAIN_FONT.light,
+      PLAIN_FONT.figure,
+      PLAIN_FONT.mid,
       PLAIN_FONT.caps,
     ];
     for (const name of names) {

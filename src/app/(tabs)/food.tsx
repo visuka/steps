@@ -147,8 +147,9 @@ function FoodScreen({ focusKey }: { focusKey?: string }) {
             value={tab}
             onChange={setTab}
             height={32}
-            font={10}
+            font={11.5}
             pad={10}
+            quiet
             spoken={(t) => (t === 'day' ? 'Today' : 'This week')}
           />
         </Sub>

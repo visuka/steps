@@ -17,7 +17,6 @@ import { useTodayExtras } from '@/components/today/use-today-extras';
 import type { TodayFrameLook, TodayView } from '@/components/today/view';
 import { WalkingCard } from '@/components/today/walking-card';
 import { Spacing } from '@/constants/theme';
-import { scaled } from '@/constants/ui-scale';
 import type { LogEntry } from '@/data/types';
 import { addDaysToKey } from '@/lib/dates';
 import { formatSteps, minutesAgo } from '@/lib/format';
@@ -33,9 +32,8 @@ import { type AddedGlass, useWaterToday } from '@/state/use-water';
 import { useClock } from '@/hooks/use-clock';
 
 const WEATHER_PROMPT_KEY = 'weatherPromptDismissed';
-/** How far Today squeezes to fit a short screen (today-calm.tsx: 6 off the gaps, then 4 off each tile's padding), and about how many gaps there are. */
-const MAX_SQUEEZE = 10;
-const TODAY_GAPS = 8;
+/** How far Today squeezes to fit a short screen (today-calm.tsx: 1 = standard tile padding, 2–4 = the 9 between tiles down to 6). */
+const MAX_SQUEEZE = 4;
 
 /**
  * Today: the Calm and large Today (components/today/today-calm.tsx),
@@ -69,8 +67,8 @@ export default function TodayScreen() {
   const [contentH, setContentH] = useState(0);
   const overflows = contentH > viewH + 1;
   // Fit any phone without scrolling (360 x 800 with a tall status bar): when the tiles run past
-  // the screen, the 12 dp between them shrinks to 6, then the tiles' padding by up to 4, until they fit.
-  // A new screen size starts again.
+  // the screen, they first take the standard padding 14 x 18 (d38's small phone), then, only if a
+  // phone is shorter still, the 9 dp between them shrinks to 6. A new screen size starts again.
   const [gapCut, setGapCut] = useState(0);
   const [cutFor, setCutFor] = useState(viewH);
   // The height each step was worked out from: one step per new measurement, so a render before
@@ -82,7 +80,7 @@ export default function TodayScreen() {
     setCutAt(0);
   } else if (viewH > 0 && overflows && gapCut < MAX_SQUEEZE && contentH !== cutAt) {
     setCutAt(contentH);
-    setGapCut(Math.min(MAX_SQUEEZE, gapCut + Math.max(1, Math.ceil((contentH - viewH) / (TODAY_GAPS * scaled(1))))));
+    setGapCut(Math.min(MAX_SQUEEZE, gapCut + 1));
   }
 
   useFocusEffect(

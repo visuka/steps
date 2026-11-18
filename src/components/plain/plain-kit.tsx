@@ -17,6 +17,8 @@ import { PlainCalendar, PlainIcon } from './plain-icons';
 import { PLAIN, PLAIN_FONT, PLAIN_SIZE, type PlainIconName } from './plain-theme';
 
 const S = scaled;
+/** A text size through scaled(), never under 11 dp (small phones shrink the layout to 0.85). */
+const T = (size: number) => Math.max(PLAIN_SIZE.minText, S(size));
 
 /** The page behind everything: a 170° grey wash and the mockup's three soft glows. */
 export function PlainGround() {
@@ -111,14 +113,14 @@ export function Words({
       adjustsFontSizeToFit={fit}
       minimumFontScale={fit ? 0.75 : undefined}
       maxFontSizeMultiplier={MaxTextScale}
-      style={[{ fontFamily: family, fontSize: S(size), lineHeight: S(line ?? Math.round(size * 1.2)), color, includeFontPadding: false }, style]}>
+      style={[{ fontFamily: family, fontSize: T(size), lineHeight: Math.max(T(size), S(line ?? Math.round(size * 1.2))), color, includeFontPadding: false }, style]}>
       {children}
     </Text>
   );
 }
 
-/** A small note: 13 grey, 2 under what it follows. */
-export function Note({ children, style, color = PLAIN.muted, size = 13, lines }: { children: ReactNode; style?: TextStyle | TextStyle[]; color?: string; size?: number; lines?: number }) {
+/** A small note: 14 grey, 2 under what it follows. */
+export function Note({ children, style, color = PLAIN.muted, size = 14, lines }: { children: ReactNode; style?: TextStyle | TextStyle[]; color?: string; size?: number; lines?: number }) {
   return (
     <Words size={size} color={color} lines={lines} style={[{ marginTop: S(2) }, ...(Array.isArray(style) ? style : style ? [style] : [])]}>
       {children}
@@ -140,19 +142,19 @@ export function Label({ icon, text, style }: { icon?: PlainIconName; text: strin
   );
 }
 
-/** Outfit 500 capitals, 10.5 grey, tracked 2: "STEPS TODAY", "06:00 – 15:45". */
-export function Caps({ text, color = PLAIN.muted }: { text: string; color?: string }) {
+/** Outfit 500 capitals, 11.5 label grey, tracked 2: "STEPS TODAY", "06:00 – 15:45". */
+export function Caps({ text, color = PLAIN.label }: { text: string; color?: string }) {
   return (
     <Text
       numberOfLines={1}
       maxFontSizeMultiplier={MaxTextScale}
-      style={{ fontFamily: PLAIN_FONT.caps, fontSize: S(10.5), lineHeight: S(15), letterSpacing: S(2), color, includeFontPadding: false }}>
+      style={{ fontFamily: PLAIN_FONT.caps, fontSize: T(11.5), lineHeight: Math.max(S(15), T(11.5) + 3), letterSpacing: S(2), color, includeFontPadding: false }}>
       {text.toUpperCase()}
     </Text>
   );
 }
 
-/** A big thin figure, Outfit 200 tracked −2: 96/100 on Activity, 64/66 on Nutrition. */
+/** A big figure, Outfit 300 tracked −2: 96/100 on Activity, 64/66 on Nutrition. */
 export function Big({ text, size, line }: { text: string; size: number; line: number }) {
   return (
     <Text
@@ -160,13 +162,13 @@ export function Big({ text, size, line }: { text: string; size: number; line: nu
       adjustsFontSizeToFit
       minimumFontScale={0.6}
       maxFontSizeMultiplier={MaxTextScale}
-      style={{ fontFamily: PLAIN_FONT.thin, fontSize: S(size), lineHeight: S(line), letterSpacing: -S(2), color: PLAIN.text, includeFontPadding: false, flexShrink: 1 }}>
+      style={{ fontFamily: PLAIN_FONT.figure, fontSize: S(size), lineHeight: S(line), letterSpacing: -S(2), color: PLAIN.text, includeFontPadding: false, flexShrink: 1 }}>
       {text}
     </Text>
   );
 }
 
-/** A tile's figure, Outfit 200 34/38 (38/46 roomy: Outfit is wider), with its unit small and grey: "4.6 km". */
+/** A tile's figure, Outfit 300 34/38 (38/46 roomy: Outfit is wider), with its unit 15 grey: "4.6 km". */
 export function Num({ value, unit, roomy, style }: { value: string; unit?: string; roomy?: boolean; style?: TextStyle }) {
   const size = roomy ? 38 : 34;
   const line = roomy ? 46 : 38;
@@ -176,14 +178,14 @@ export function Num({ value, unit, roomy, style }: { value: string; unit?: strin
       adjustsFontSizeToFit
       minimumFontScale={0.7}
       maxFontSizeMultiplier={MaxTextScale}
-      style={[{ fontFamily: PLAIN_FONT.thin, fontSize: S(size), lineHeight: S(line), color: PLAIN.text, includeFontPadding: false, marginTop: S(4) }, style]}>
+      style={[{ fontFamily: PLAIN_FONT.figure, fontSize: S(size), lineHeight: S(line), color: PLAIN.text, includeFontPadding: false, marginTop: S(4) }, style]}>
       {value}
       {unit ? <Text style={styles.unit}>{` ${unit}`}</Text> : null}
     </Text>
   );
 }
 
-/** A middle figure, Outfit 300 22/26: "78%", "320", "By walker ID". */
+/** A middle figure, Outfit 400 22/26: "78%", "320", "By walker ID". */
 export function Mid({ value, unit, style, fit }: { value: string; unit?: string; style?: TextStyle; fit?: boolean }) {
   return (
     <Text
@@ -191,7 +193,7 @@ export function Mid({ value, unit, style, fit }: { value: string; unit?: string;
       adjustsFontSizeToFit={fit}
       minimumFontScale={fit ? 0.75 : undefined}
       maxFontSizeMultiplier={MaxTextScale}
-      style={[{ fontFamily: PLAIN_FONT.light, fontSize: S(22), lineHeight: S(26), color: PLAIN.text, includeFontPadding: false }, style]}>
+      style={[{ fontFamily: PLAIN_FONT.mid, fontSize: S(22), lineHeight: S(26), color: PLAIN.text, includeFontPadding: false }, style]}>
       {value}
       {unit ? <Text style={styles.unit}>{` ${unit}`}</Text> : null}
     </Text>
@@ -272,7 +274,10 @@ export function Round({ onPress, label, main, children }: { onPress: () => void;
   );
 }
 
-/** A segmented switch on glass: mono capitals, the chosen part in sage. */
+/**
+ * A segmented switch on glass: Outfit capitals, the chosen part in sage. `quiet` (a second switch on the
+ * same screen, Today / Week): the chosen part is a white pill with ink words, so each screen has one sage pill.
+ */
 export function Segments<T extends string>({
   parts,
   value,
@@ -281,6 +286,7 @@ export function Segments<T extends string>({
   font = 11.5,
   pad = 11,
   spoken,
+  quiet,
 }: {
   parts: { value: T; text: string }[];
   value: T;
@@ -289,7 +295,10 @@ export function Segments<T extends string>({
   font?: number;
   pad?: number;
   spoken?: (v: T) => string;
+  quiet?: boolean;
 }) {
+  const onFill = quiet ? styles.quietOn : { backgroundColor: PLAIN.main };
+  const onInk = quiet ? PLAIN.text : PLAIN.onMain;
   return (
     <View accessibilityRole="tablist" style={[styles.switch, { height: S(height), borderRadius: S(height / 2) }]}>
       {parts.map((p) => {
@@ -301,11 +310,11 @@ export function Segments<T extends string>({
             accessibilityRole="tab"
             accessibilityState={{ selected: on }}
             accessibilityLabel={spoken ? spoken(p.value) : p.text}
-            style={[styles.part, { paddingHorizontal: S(pad), borderRadius: S(height / 2 - 3) }, on ? { backgroundColor: PLAIN.main } : null]}>
+            style={[styles.part, { paddingHorizontal: S(pad), borderRadius: S(height / 2 - 3) }, on ? onFill : null]}>
             <Text
               numberOfLines={1}
               maxFontSizeMultiplier={MaxTextScale}
-              style={{ fontFamily: PLAIN_FONT.caps, fontSize: S(font), letterSpacing: S(1.6), color: on ? PLAIN.onMain : PLAIN.muted, includeFontPadding: false }}>
+              style={{ fontFamily: PLAIN_FONT.caps, fontSize: T(font), letterSpacing: S(1.6), color: on ? onInk : PLAIN.muted, includeFontPadding: false }}>
               {p.text}
             </Text>
           </Pressable>
@@ -377,7 +386,7 @@ export function SyncLine({ text, bottom = 24 }: { text: string; bottom?: number 
   );
 }
 
-/** Two tiles side by side, 10 apart. */
+/** Two tiles side by side, 10 apart, the same height (a button row with `footRow` sits at each tile's foot, on one line). */
 export function Pair({ children }: { children: ReactNode }) {
   return <View style={styles.pair}>{children}</View>;
 }
@@ -388,7 +397,14 @@ export const plainStyles = StyleSheet.create({
   cols: { flexDirection: 'row' },
   col: { flex: 1, minWidth: 0 },
   half: { flex: 1, minWidth: 0 },
+  /** A tile's last row of buttons, pushed to its foot so paired tiles' buttons line up (d38): 12 under the words at least. */
+  footRow: { flexDirection: 'row', alignItems: 'center', gap: S(12), marginTop: 'auto', paddingTop: S(12) },
 });
+
+/** The empty ad space mid-Today: 50 dp on every phone (not scaled), nothing drawn, hidden from screen readers. */
+export function AdSpace() {
+  return <View accessible={false} importantForAccessibility="no-hide-descendants" style={{ height: PLAIN_SIZE.adSpace }} />;
+}
 
 const styles = StyleSheet.create({
   tile: {
@@ -397,7 +413,7 @@ const styles = StyleSheet.create({
     boxShadow: '0px 8px 24px rgba(40, 40, 50, 0.06)',
   },
   label: { flexDirection: 'row', alignItems: 'center', minWidth: 0, flexShrink: 1 },
-  unit: { fontFamily: PLAIN_FONT.regular, fontWeight: '400', fontSize: S(14), color: PLAIN.muted, letterSpacing: 0 },
+  unit: { fontFamily: PLAIN_FONT.regular, fontWeight: '400', fontSize: S(15), color: PLAIN.muted, letterSpacing: 0 },
   field: {
     height: S(42),
     borderRadius: S(21),
@@ -431,6 +447,7 @@ const styles = StyleSheet.create({
     boxShadow: '0px 8px 24px rgba(40, 40, 50, 0.06)',
   },
   part: { alignItems: 'center', justifyContent: 'center' },
+  quietOn: { backgroundColor: PLAIN.quietOn, boxShadow: '0px 1px 4px rgba(0, 0, 0, 0.08)' },
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   subRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: S(10) },
   sub: { fontFamily: PLAIN_FONT.regular, fontSize: S(15), lineHeight: S(19), color: PLAIN.muted, includeFontPadding: false },

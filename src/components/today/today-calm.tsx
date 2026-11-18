@@ -1,16 +1,17 @@
 /**
  * Today, the Activity part, in the plain sage-and-sand look (owner, 17 Nov
- * 2026: "I need the app exactly as in the mock.. pixel to pixel"; the mock is
- * plain.html?s=a&k=1&ic=1&icx=1). Top row: calendar, the Nutrition · Activity
- * · Meet switch and the avatar. Then the date line, Steps today in the sage
- * tile, Distance and Active, Food and Sleep, Water with its plus, the walk in
- * the sand tile, and the sync line. Every tap, figure and slot is as before;
+ * 2026: "I need the app exactly as in the mock.. pixel to pixel"), as mock d38
+ * (owner approved 18 Nov 2026; plain.html?s=a&k=1&ic=1&icx=1&f=4&b=1&h=1&d=38).
+ * Top row: calendar, the Nutrition · Activity · Meet switch and the avatar.
+ * Then the date line, Steps today in the sage tile (with the sync line inside
+ * it), Distance and Active, the empty ad space, Food and Sleep, Water with its
+ * plus, and the walk in the sand tile. Every tap, figure and slot is as before;
  * News and Log food left Today with the three-part switch (Nutrition opens Food).
  */
 
 import { StyleSheet, View } from 'react-native';
 
-import { Big, Caps, Label, Mid, Note, Num, Pair, plainStyles as ps, Round, Sub, SyncLine, Tile, TopRow, Words } from '@/components/plain/plain-kit';
+import { AdSpace, Big, Caps, Label, Mid, Note, Num, Pair, plainStyles as ps, Round, Sub, Tile, TopRow, Words } from '@/components/plain/plain-kit';
 import { PLAIN, PLAIN_SIZE } from '@/components/plain/plain-theme';
 import { MaxContentWidth } from '@/constants/theme';
 import { scaled } from '@/constants/ui-scale';
@@ -79,9 +80,9 @@ function DateLine({ v }: { v: TodayView }) {
 }
 
 /**
- * `squeeze` (0–10, index.tsx) fits a short screen without scrolling: up to 6 dp off the 12 between
- * tiles, then up to 4 off each tile's top and bottom padding. The sync line stays clear of the
- * gesture bar (`bottomInset`).
+ * `squeeze` (0–4, index.tsx) fits a short screen without scrolling. 1: the tiles take the standard
+ * padding 14 × 18 (d38's small phone). 2–4: a last resort for a phone shorter than 360 × 800, the 9 dp
+ * between tiles shrinks to 6. The last tile stays clear of the gesture bar (`bottomInset`).
  */
 export function TodayCalm({
   v,
@@ -95,9 +96,10 @@ export function TodayCalm({
   squeeze?: number;
   bottomInset?: number;
 }) {
-  const gapCut = Math.min(6, squeeze);
-  const padCut = Math.max(0, squeeze - 6);
-  const pad = { paddingVertical: S(PLAIN_SIZE.padRoomy.v - padCut) };
+  const tight = squeeze > 0;
+  const gapCut = Math.max(0, Math.min(3, squeeze - 1));
+  const box = tight ? PLAIN_SIZE.pad : PLAIN_SIZE.padRoomy;
+  const pad = { paddingVertical: S(box.v), paddingHorizontal: S(box.h) };
   const m = modelsOf(v);
   const L = m.locked;
   const d = distanceText(v);
@@ -114,25 +116,34 @@ export function TodayCalm({
   const tail = v.details ? v.slots.below : v.slots.locked;
 
   return (
-    <View style={[styles.column, { gap: S(PLAIN_SIZE.gapRoomy - gapCut) }]}>
+    <View style={[styles.column, { gap: S(PLAIN_SIZE.gap - gapCut) }]}>
       <TopRow part="activity" initial={v.initial} onCalendar={() => v.on.calendar()} />
       <DateLine v={v} />
 
-      <Tile kind="hero" roomy onPress={v.on.steps} label={v.stepsSpoken} style={{ paddingTop: S(16 - padCut), paddingBottom: S(18 - padCut) }}>
+      <Tile
+        kind="hero"
+        roomy
+        onPress={v.on.steps}
+        label={v.stepsSpoken}
+        style={tight ? pad : { paddingTop: S(18), paddingBottom: S(20), paddingHorizontal: S(PLAIN_SIZE.padRoomy.h) }}>
         <View style={ps.spread}>
           <Label icon="steps" text="Steps today" />
           {range ? <Caps text={range.replace('NOW', time)} /> : null}
         </View>
-        <View style={[ps.spread, { alignItems: 'flex-end', marginTop: S(6) }]}>
+        <View style={{ marginTop: S(22) }}>
           <Big text={formatSteps(steps)} size={96} line={100} />
-          <View style={{ alignItems: 'flex-end', paddingBottom: S(10) }}>
-            <Mid value={`${v.pct}%`} />
-            <Note>of {formatSteps(v.goal)}</Note>
-          </View>
         </View>
-        <Note size={14} style={{ marginTop: S(4) }}>
-          {past > 0 ? `${formatSteps(past)} past your goal` : `${formatSteps(toGo)} to go`}
-        </Note>
+        <View style={[ps.spread, { alignItems: 'baseline', marginTop: S(14) }]}>
+          <Mid value={`${v.pct}%`} unit={`of ${formatSteps(v.goal)}`} />
+          <Note lines={1} style={{ marginTop: 0, flexShrink: 1, textAlign: 'right' }}>
+            {past > 0 ? `${formatSteps(past)} past your goal` : `${formatSteps(toGo)} to go`}
+          </Note>
+        </View>
+        {sync ? (
+          <Note lines={1} style={{ marginTop: S(6) }}>
+            {sync}
+          </Note>
+        ) : null}
       </Tile>
 
       {v.slots.walking}
@@ -149,6 +160,8 @@ export function TodayCalm({
           <Note lines={1}>goal {ACTIVE_GOAL_MIN} min</Note>
         </Tile>
       </Pair>
+
+      <AdSpace />
 
       <Pair>
         <Tile roomy onPress={tapFor(v, 'food')} label={m.food.spoken} style={[ps.half, pad]}>
@@ -200,7 +213,8 @@ export function TodayCalm({
 
       {tail ? <View style={{ gap: S(10) }}>{tail}</View> : null}
 
-      {sync ? <SyncLine text={sync} bottom={Math.max(24 - 2 * gapCut, bottomInset / S(1) + 6)} /> : null}
+      {/* The foot: at least 12 dp under the last tile, and clear of the gesture bar. The sync line is in the steps tile (d38). */}
+      <View style={{ height: Math.max(S(12) - S(PLAIN_SIZE.gap - gapCut), bottomInset + S(6) - S(PLAIN_SIZE.gap - gapCut), 0) }} />
     </View>
   );
 }

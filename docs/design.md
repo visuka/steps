@@ -28,7 +28,7 @@ Size rule: the mockup phone screen is **360 px wide; 1 mockup px = 1 dp**. Text 
 - **Mockup:** `docs/design/plain-sage-sand/plain.html?s=a|n|m&k=1&ic=1&icx=1&f=4&b=1&h=1&d=38` (Activity, Nutrition, Meet).
   - Add `&sm=1` for the small phone (360 × 800), `&lg=1` for large text, `&admark=1` to outline the ad space, `&check=1` to run the rule check (`rulecheck.js`), `&dump=1` to list the drawn values (`measure.js`).
 - **Pictures:** `d38-activity.png`, `d38-nutrition.png`, `d38-meet.png` and `d38-small-*.png` in the same folder.
-- **Code:** `src/components/plain/` (`plain-theme.ts` holds every value). **The code still has the 17 Nov values until d38 is built.**
+- **Code:** `src/components/plain/` (`plain-theme.ts` holds every value). Built into the app on 18 Nov 2026.
 
 Size rule for this look: the mockup phone is **411 px wide; 1 mockup px = 1 dp**, through `scaled()`. On small phones `scaled()` shrinks everything (down to 0.85), but **no text is drawn below 11 dp**: labels, switches, badges and the sync line take `max(11, scaled(size))`.
 
@@ -85,7 +85,7 @@ Size rule for this look: the mockup phone is **411 px wide; 1 mockup px = 1 dp**
 | Switch | Outfit 500, tracked 1.6 | 11.5 in 40 high; 11.5 in 32 high (Today / Week) |
 | Badge | Figtree 600 | 11 |
 
-- Fonts: Figtree 400/500/600 and Outfit 200/300/400/500 are bundled. Outfit ("Outfit thin", owner 18 Nov 2026) replaced the phone's condensed and mono faces; its files and licence are in `assets/fonts/`. **Outfit 400 (middle figures) is new for d38 and not bundled yet** (`assets/fonts/` has 200, 300 and 500). Same family and licence; download only with the owner's OK.
+- Fonts: Figtree 400/500/600 and Outfit 300/400/500 are bundled. Outfit ("Outfit thin", owner 18 Nov 2026) replaced the phone's condensed and mono faces; its files and licence are in `assets/fonts/`. Outfit 400 (middle figures) was added for d38 with the owner's OK (from `@expo-google-fonts/outfit` 0.4.3, the same version 1.100); Outfit 200 is no longer used.
 - Units never wrap on their own. With large text, a unit moves under its figure only as a whole ("of 250 g").
 
 ### Spacing

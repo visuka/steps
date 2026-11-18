@@ -43,7 +43,7 @@ export const CLEAN_FONT_FILES: Record<string, number> = {
   Figtree_500Medium,
   Figtree_600SemiBold,
   // Its figures, labels and switch: Outfit (SIL OFL 1.1, assets/fonts/OFL-Outfit.txt).
-  Outfit_200ExtraLight: require('@/assets/fonts/Outfit_200ExtraLight.ttf'),
   Outfit_300Light: require('@/assets/fonts/Outfit_300Light.ttf'),
+  Outfit_400Regular: require('@/assets/fonts/Outfit_400Regular.ttf'),
   Outfit_500Medium: require('@/assets/fonts/Outfit_500Medium.ttf'),
 };

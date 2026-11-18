@@ -1,7 +1,8 @@
 /**
  * The plain look, sage and sand (owner, 17 Nov 2026: "Let us finalise on sage
- * plus sand"; "I need the app exactly as in the mock.. pixel to pixel").
- * Every value is the mockup's (glass-mockups/plain.html?k=1&ic=1&icx=1),
+ * plus sand"; "I need the app exactly as in the mock.. pixel to pixel"), as
+ * mock d38 (owner approved 18 Nov 2026; docs/design.md and
+ * docs/design/plain-sage-sand/plain.html?k=1&ic=1&icx=1&f=4&b=1&h=1&d=38),
  * 1 mockup px = 1 dp at 411 dp wide. Colours were read off the mockup's
  * screenshots, so a tile drawn here matches the glass over the grey ground.
  *
@@ -13,26 +14,30 @@
 export const PLAIN = {
   /** Words and numbers. */
   text: '#2C2C2E',
-  /** Labels, notes, units. */
-  muted: '#8E8E93',
+  /** Notes, units, the date line, times: dark enough for 4.5:1 on every tile (d38). */
+  muted: '#5E5E63',
+  /** Labels in tracked capitals (d38). */
+  label: '#55555A',
   /** The page: a soft grey wash at 170°, with two white glows and one grey (the mockup's blurred blobs). */
   ground: { top: '#F5F5F6', mid: '#ECECEE', bottom: '#F3F3F4', glow: '#FFFFFF', shade: '#DADADE' },
   /** A plain tile: frosted white on the grey. */
   tile: '#F8F8F9',
   tileEdge: '#FFFFFF',
-  /** Sage: the main colour. */
-  main: '#5E7E6F',
+  /** Sage: the main colour, deep enough for white words at 4.5:1 (d38). */
+  main: '#567565',
   onMain: '#FFFFFF',
   /** The top tile on each screen, faintly sage. */
   hero: '#DEE4E2',
   heroEdge: '#D3DDD8',
-  /** Sand: the second colour, as a tile, a badge and a soft chip. */
-  sand: '#C9A47C',
+  /** Sand: the second colour, as a tile, a badge and a soft chip. The badge's deep sand carries white at 4.5:1 (d38). */
+  sand: '#876644',
   second: '#F2EAE1',
   secondEdge: '#EFE3D6',
   chip: '#F2E9DE',
   /** A chip inside the sand tile. */
   chipOnSecond: '#FCFBF9',
+  /** The selected side of a second switch on a screen (Today / Week): white, so only one pill per screen is sage (d38). */
+  quietOn: '#FFFFFF',
   /** The search field and the white round buttons. */
   field: '#FFFFFF',
   fieldEdge: '#E8E8EB',
@@ -68,12 +73,16 @@ export type PlainIconName = keyof typeof PLAIN_ICON_COLOR;
 /** Sizes in dp, as the mockup (before scaled()). */
 export const PLAIN_SIZE = {
   gutter: 18,
-  /** Space between tiles: 9 on Nutrition and Meet, 12 on Activity ("roomy"). */
+  /** Space between tiles: 9 on every screen. Today gave its 12 to the ad space (d38). */
   gap: 9,
-  gapRoomy: 12,
   radius: 24,
   pad: { v: 14, h: 18 },
+  /** Today's tiles; on a short screen they take `pad` (d38). */
   padRoomy: { v: 18, h: 20 },
+  /** The empty ad space mid-Today: a standard 50 dp banner, never scaled (owner, 18 Nov 2026). */
+  adSpace: 50,
+  /** No text is drawn smaller than this, even on a small phone (rule: smallest text 11 dp). */
+  minText: 11,
   round: 40,
   switchH: 40,
   /** The status bar's height on the mockup's phone: the top row sits 6 dp under it. */
@@ -89,10 +98,10 @@ export const PLAIN_FONT = {
   regular: 'Figtree_400Regular',
   medium: 'Figtree_500Medium',
   semibold: 'Figtree_600SemiBold',
-  /** Big and tile figures: Outfit 200. */
-  thin: 'Outfit_200ExtraLight',
-  /** Middle figures ("78%", "320"): Outfit 300. */
-  light: 'Outfit_300Light',
+  /** Big and tile figures: Outfit 300 (d38, owner: "a little bolder"). */
+  figure: 'Outfit_300Light',
+  /** Middle figures ("78%", "320"): Outfit 400 (d38). */
+  mid: 'Outfit_400Regular',
   /** Labels in tracked capitals and the switch: Outfit 500. */
   caps: 'Outfit_500Medium',
 } as const;
