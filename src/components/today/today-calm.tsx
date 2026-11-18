@@ -124,7 +124,7 @@ export function TodayCalm({
           {range ? <Caps text={range.replace('NOW', time)} /> : null}
         </View>
         <View style={[ps.spread, { alignItems: 'flex-end', marginTop: S(6) }]}>
-          <Big text={formatSteps(steps)} size={104} line={104} />
+          <Big text={formatSteps(steps)} size={96} line={100} />
           <View style={{ alignItems: 'flex-end', paddingBottom: S(10) }}>
             <Mid value={`${v.pct}%`} />
             <Note>of {formatSteps(v.goal)}</Note>

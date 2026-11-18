@@ -140,19 +140,19 @@ export function Label({ icon, text, style }: { icon?: PlainIconName; text: strin
   );
 }
 
-/** Mono capitals, 11 grey, tracked 1.6: "STEPS TODAY", "06:00 – 15:45". */
+/** Outfit 500 capitals, 10.5 grey, tracked 2: "STEPS TODAY", "06:00 – 15:45". */
 export function Caps({ text, color = PLAIN.muted }: { text: string; color?: string }) {
   return (
     <Text
       numberOfLines={1}
       maxFontSizeMultiplier={MaxTextScale}
-      style={{ fontFamily: PLAIN_FONT.mono, fontSize: S(11), lineHeight: S(15), letterSpacing: S(1.6), color, includeFontPadding: false }}>
+      style={{ fontFamily: PLAIN_FONT.caps, fontSize: S(10.5), lineHeight: S(15), letterSpacing: S(2), color, includeFontPadding: false }}>
       {text.toUpperCase()}
     </Text>
   );
 }
 
-/** A big light figure in the condensed face: 76/78 (104/104 roomy, 64/66 on Nutrition). */
+/** A big thin figure, Outfit 200 tracked −2: 96/100 on Activity, 64/66 on Nutrition. */
 export function Big({ text, size, line }: { text: string; size: number; line: number }) {
   return (
     <Text
@@ -160,30 +160,30 @@ export function Big({ text, size, line }: { text: string; size: number; line: nu
       adjustsFontSizeToFit
       minimumFontScale={0.6}
       maxFontSizeMultiplier={MaxTextScale}
-      style={{ fontFamily: PLAIN_FONT.condensedLight, fontSize: S(size), lineHeight: S(line), letterSpacing: -1, color: PLAIN.text, includeFontPadding: false, flexShrink: 1 }}>
+      style={{ fontFamily: PLAIN_FONT.thin, fontSize: S(size), lineHeight: S(line), letterSpacing: -S(2), color: PLAIN.text, includeFontPadding: false, flexShrink: 1 }}>
       {text}
     </Text>
   );
 }
 
-/** A tile's figure, light condensed 34/38 (44/48 roomy), with its unit small and grey: "4.6 km". */
+/** A tile's figure, Outfit 200 34/38 (38/46 roomy: Outfit is wider), with its unit small and grey: "4.6 km". */
 export function Num({ value, unit, roomy, style }: { value: string; unit?: string; roomy?: boolean; style?: TextStyle }) {
-  const size = roomy ? 44 : 34;
-  const line = roomy ? 48 : 38;
+  const size = roomy ? 38 : 34;
+  const line = roomy ? 46 : 38;
   return (
     <Text
       numberOfLines={1}
       adjustsFontSizeToFit
       minimumFontScale={0.7}
       maxFontSizeMultiplier={MaxTextScale}
-      style={[{ fontFamily: PLAIN_FONT.condensedLight, fontSize: S(size), lineHeight: S(line), color: PLAIN.text, includeFontPadding: false, marginTop: S(4) }, style]}>
+      style={[{ fontFamily: PLAIN_FONT.thin, fontSize: S(size), lineHeight: S(line), color: PLAIN.text, includeFontPadding: false, marginTop: S(4) }, style]}>
       {value}
       {unit ? <Text style={styles.unit}>{` ${unit}`}</Text> : null}
     </Text>
   );
 }
 
-/** A middle figure, condensed 22/26: "78%", "320", "By walker ID". */
+/** A middle figure, Outfit 300 22/26: "78%", "320", "By walker ID". */
 export function Mid({ value, unit, style, fit }: { value: string; unit?: string; style?: TextStyle; fit?: boolean }) {
   return (
     <Text
@@ -191,7 +191,7 @@ export function Mid({ value, unit, style, fit }: { value: string; unit?: string;
       adjustsFontSizeToFit={fit}
       minimumFontScale={fit ? 0.75 : undefined}
       maxFontSizeMultiplier={MaxTextScale}
-      style={[{ fontFamily: PLAIN_FONT.condensed, fontSize: S(22), lineHeight: S(26), color: PLAIN.text, includeFontPadding: false }, style]}>
+      style={[{ fontFamily: PLAIN_FONT.light, fontSize: S(22), lineHeight: S(26), color: PLAIN.text, includeFontPadding: false }, style]}>
       {value}
       {unit ? <Text style={styles.unit}>{` ${unit}`}</Text> : null}
     </Text>
@@ -305,7 +305,7 @@ export function Segments<T extends string>({
             <Text
               numberOfLines={1}
               maxFontSizeMultiplier={MaxTextScale}
-              style={{ fontFamily: PLAIN_FONT.mono, fontWeight: '500', fontSize: S(font), letterSpacing: S(1.2), color: on ? PLAIN.onMain : PLAIN.muted, includeFontPadding: false }}>
+              style={{ fontFamily: PLAIN_FONT.caps, fontSize: S(font), letterSpacing: S(1.6), color: on ? PLAIN.onMain : PLAIN.muted, includeFontPadding: false }}>
               {p.text}
             </Text>
           </Pressable>

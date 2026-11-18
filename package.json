@@ -95,6 +95,7 @@
     },
     "moduleNameMapper": {
       "^@expo-google-fonts/.*$": "<rootDir>/scripts/jest-font-stub.js",
+      "\\.ttf$": "<rootDir>/scripts/jest-font-stub.js",
       "^@/assets/(.*)$": "<rootDir>/assets/$1",
       "^@/(.*)$": "<rootDir>/src/$1"
     },

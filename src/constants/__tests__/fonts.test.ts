@@ -22,8 +22,19 @@ describe('fontFor', () => {
   });
 
   it('loads a file for every family name the spec uses', () => {
-    // The plain look's Figtree faces are loaded too (its condensed and mono faces are the phone's own).
-    const names = [fontFor(300), fontFor(400), fontFor(500), TELUGU_FONT, PLAIN_FONT.regular, PLAIN_FONT.medium, PLAIN_FONT.semibold];
+    // The plain look's Figtree and Outfit faces are loaded too.
+    const names = [
+      fontFor(300),
+      fontFor(400),
+      fontFor(500),
+      TELUGU_FONT,
+      PLAIN_FONT.regular,
+      PLAIN_FONT.medium,
+      PLAIN_FONT.semibold,
+      PLAIN_FONT.thin,
+      PLAIN_FONT.light,
+      PLAIN_FONT.caps,
+    ];
     for (const name of names) {
       expect(CLEAN_FONT_FILES[name]).toBeDefined();
     }

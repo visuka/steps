@@ -80,13 +80,19 @@ export const PLAIN_SIZE = {
   topUnderStatus: 6,
 } as const;
 
-/** Faces: Figtree for words, the phone's condensed Roboto for figures, monospace for labels. */
+/**
+ * Faces: Figtree for words; Outfit for figures, labels and the switch ("Outfit thin", owner 18 Nov 2026,
+ * mock plain.html f=4). Each weight is its own family on Android (a fontWeight on a custom face falls
+ * back to the system font), loaded from assets/fonts (constants/themes/fonts.ts).
+ */
 export const PLAIN_FONT = {
   regular: 'Figtree_400Regular',
   medium: 'Figtree_500Medium',
   semibold: 'Figtree_600SemiBold',
-  /** Light condensed (the big figures): Android names the 300 face on its own; a weight on the family drew it heavy (CI run 44137089959). */
-  condensedLight: 'sans-serif-condensed-light',
-  condensed: 'sans-serif-condensed',
-  mono: 'monospace',
+  /** Big and tile figures: Outfit 200. */
+  thin: 'Outfit_200ExtraLight',
+  /** Middle figures ("78%", "320"): Outfit 300. */
+  light: 'Outfit_300Light',
+  /** Labels in tracked capitals and the switch: Outfit 500. */
+  caps: 'Outfit_500Medium',
 } as const;

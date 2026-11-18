@@ -55,15 +55,15 @@ Colour sits on surfaces only; words stay black and grey. Each label icon has its
 
 | Element | Face | Size / line |
 |---|---|---|
-| Label (STEPS TODAY) | monospace, tracked 1.6, capitals | 11 / 15 |
-| Big figure | condensed light, tracking −1 | 104/104 Activity, 64/66 Nutrition |
-| Tile figure | condensed light | 44/48 Activity, 34/38 elsewhere; unit Figtree 14 grey |
-| Middle figure | condensed regular | 22 / 26 |
+| Label (STEPS TODAY) | Outfit 500, tracked 2, capitals | 10.5 / 15 |
+| Big figure | Outfit 200, tracking −2 | 96/100 Activity, 64/66 Nutrition |
+| Tile figure | Outfit 200 | 38/46 Activity, 34/38 elsewhere; unit Figtree 14 grey |
+| Middle figure | Outfit 300 | 22 / 26 |
 | Note | Figtree 400 grey | 13 |
 | Button | Figtree 600 | 13, padding 8 × 16, radius 18 |
-| Switch | monospace 500, tracked 1.2 | 11.5 in 40 high; 10 in 32 high (Today / Week) |
+| Switch | Outfit 500, tracked 1.6 | 11.5 in 40 high; 10 in 32 high (Today / Week) |
 
-Figtree 400/500/600 are bundled; the condensed and mono faces are the phone's own (`sans-serif-condensed`, `monospace`). The mockup's Roboto Mono differs slightly from the phone's monospace.
+Figtree 400/500/600 and Outfit 200/300/500 are bundled. Outfit ("Outfit thin", owner 18 Nov 2026; mockup `plain.html?f=4`) replaced the phone's condensed and mono faces; its files and licence are in `assets/fonts/`.
 
 ### Spacing
 

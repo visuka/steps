@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Steps plain tiles</title>
-<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Roboto+Condensed:wght@300;400&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600&family=Instrument+Serif&family=Outfit:wght@200;300;400;500&family=Inter+Tight:wght@200;300;400;600&family=DM+Mono:wght@300;400&family=Roboto+Condensed:wght@300;400&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   /* White and grey only. Tiles are frosted white glass on a soft grey ground; no bars, dots or lines. */
   :root { --text: #2C2C2E; --muted: #8E8E93; --faint: #B9B9BE; --chip: #EDEDF0; }
@@ -179,6 +179,26 @@
   .icx .cap { display: none; }
   .bgc .tile, .bgc .switch { background: rgba(255,255,255,.80); border-color: rgba(255,255,255,.95); box-shadow: 0 10px 30px rgba(20,30,30,.10); }
   .cap { position: absolute; bottom: 4px; left: 0; right: 0; text-align: center; font: 600 11px 'Roboto Mono'; letter-spacing: 1px; color: var(--faint); }
+  /* Font and number styles (param f=2..5); f=1 or none is the built app. */
+  .f2 .big, .f2 .num, .f2 .mid { font-family: Figtree; font-weight: 300; font-variant-numeric: tabular-nums; }
+  .f2 .big { letter-spacing: -3px; } .f2.roomy .big { font-size: 92px; line-height: 96px; }
+  .f2 .label { font: 600 10.5px Figtree; letter-spacing: 1.6px; }
+  .f2 .switch { font: 600 11px Figtree; letter-spacing: 1.4px; }
+  .f3 .big, .f3 .num, .f3 .mid { font-family: 'Instrument Serif'; font-weight: 400; letter-spacing: 0; }
+  .f3.roomy .big { font-size: 112px; line-height: 104px; } .f3.roomy .num { font-size: 48px; } .f3 .mid { font-size: 26px; }
+  .f3 .label { font: 600 10.5px Figtree; letter-spacing: 1.6px; }
+  .f3 .switch { font: 600 11px Figtree; letter-spacing: 1.4px; }
+  .f4 .big { font-family: Outfit; font-weight: 200; letter-spacing: -2px; } .f4.roomy .big { font-size: 96px; line-height: 100px; }
+  .f4 .num { font-family: Outfit; font-weight: 200; } .f4 .mid { font-family: Outfit; font-weight: 300; }
+  .f4 .label { font: 500 10.5px Outfit; letter-spacing: 2px; }
+  .f4 .switch { font: 500 11.5px Outfit; letter-spacing: 1.6px; }
+  .f5 .big, .f5 .num, .f5 .mid { font-family: 'Inter Tight'; font-variant-numeric: tabular-nums; }
+  .f5 .big { font-weight: 200; letter-spacing: -4px; } .f5.roomy .big { font-size: 96px; line-height: 100px; }
+  .f5 .num { font-weight: 300; letter-spacing: -1px; } .f5 .mid { font-weight: 400; }
+  .f5 .label { font: 300 10.5px 'DM Mono'; letter-spacing: 1.4px; }
+  .f5 .switch { font: 400 11px 'DM Mono'; letter-spacing: 1.2px; }
+  .f2 .num, .f4 .num, .f5 .num { white-space: nowrap; }
+  .f2.roomy .num, .f4.roomy .num, .f5.roomy .num { font-size: 38px; line-height: 46px; }
 </style>
 </head>
 <body>
@@ -319,6 +339,8 @@ const meet = shell('MEET', `
 const s = new URLSearchParams(location.search).get('s');
 document.body.innerHTML = s === 'n' ? nutrition : s === 'a' ? activity : s === 'm' ? meet : nutrition + activity + meet;
 if (s) { document.body.style.padding = '0'; document.body.style.background = 'none'; }
+const F = new URLSearchParams(location.search).get('f');
+if (F) document.querySelectorAll('.phone').forEach(p => p.classList.add('f' + F));
 </script>
 </body>
 </html>
