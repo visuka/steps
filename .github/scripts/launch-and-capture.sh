@@ -120,6 +120,8 @@ adb shell settings put system font_scale 1.0
 adb shell wm density 480
 adb shell settings put system font_scale 1.2
 capture e today smoke/calm-today-360dp.png '&part=noon' noon
+# How Today fitted: the screen's height, its content's and the squeeze step (index.tsx).
+adb logcat -d -s ReactNativeJS:V | grep "today fit" > smoke/today-fit-360dp.txt || true
 for screen in food foodtab plus activity; do
   capture e "$screen" "smoke/calm-$screen-360dp.png"
 done

@@ -1,6 +1,6 @@
 import { type Href, useFocusEffect, useRouter } from 'expo-router';
 import { type ComponentRef, useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Dimensions, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PremiumCard } from '@/components/premium-gate';
@@ -12,6 +12,7 @@ import { PlainGround } from '@/components/plain/plain-kit';
 import { PLAIN, PLAIN_SIZE } from '@/components/plain/plain-theme';
 import { TodayCalm } from '@/components/today/today-calm';
 import { TODAY_LAYOUT } from '@/components/today/today-layout';
+import { previewLaunch } from '@/design-preview/launch';
 import { useActiveWalk } from '@/components/today/use-active-walk';
 import { useTodayExtras } from '@/components/today/use-today-extras';
 import type { TodayFrameLook, TodayView } from '@/components/today/view';
@@ -82,6 +83,12 @@ export default function TodayScreen() {
     setCutAt(contentH);
     setGapCut(Math.min(MAX_SQUEEZE, gapCut + 1));
   }
+  // CI reads this in the preview run to see how Today fitted (launch-and-capture.sh, today-fit-360dp.txt).
+  useEffect(() => {
+    if (!previewLaunch()) return;
+    const win = Dimensions.get('window').height;
+    console.log(`today fit: view ${Math.round(viewH)} content ${Math.round(contentH)} squeeze ${gapCut} window ${Math.round(win)} insets ${Math.round(insets.top)}/${Math.round(insets.bottom)}`);
+  }, [viewH, contentH, gapCut, insets.top, insets.bottom]);
 
   useFocusEffect(
     useCallback(() => {
