@@ -28,6 +28,7 @@ import { pendingDelete } from '@/auth/session-storage';
 import { createAccountWithPasskey, type SignInResult, signInWithPasskey } from '@/auth/sign-in';
 import { SIGN_IN_MODE, STEPS_API_URL } from '@/constants/app';
 import { useLock } from '@/state/app-lock';
+import { flushBackup } from '@/sync/backup';
 
 import { BlockStore } from '../../modules/blockstore';
 import { Passkeys } from '../../modules/passkeys';
@@ -176,7 +177,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return result;
   }, []);
 
-  const signOut = useCallback(() => session.signOut(), []);
+  // What is waiting goes to the cloud backup first, for a few seconds at most (docs/backup.md).
+  const signOut = useCallback(async () => {
+    await flushBackup();
+    await session.signOut();
+  }, []);
 
   const removeAccount = useCallback(async (wipePhone: () => Promise<void>) => {
     // Set first, so the sign-in screen that replaces this one already says it.

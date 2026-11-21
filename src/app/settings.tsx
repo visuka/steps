@@ -51,8 +51,8 @@ const COUNTER_WHY =
   'The app counts steps itself and shows them in a silent notification. If counts stop, allow this app to run in the background in battery settings.';
 const KEEP_WHY =
   SIGN_IN_MODE === 'phone'
-    ? 'To sign you in, our server keeps only a random account number and your email, used just to get your account back if you change phones: no name, no fingerprint. Everything else stays on this phone and in your health app: steps, walks and their routes, moods, food, sleep, health readings and the weather.'
-    : 'To sign you in, our server keeps only your passkey’s public key and a random account number: no email, no name, no fingerprint. Everything else stays on this phone and in your health app: steps, walks and their routes, moods, food, sleep, health readings and the weather.';
+    ? 'To sign you in, our server keeps a random account number and your email, used just to get your account back if you change phones: no fingerprint. A copy of what you record is kept in your account on our server in India, so it comes back after a reinstall, a reset or on a new phone: steps, walks and their routes, saved places, moods, food, sleep, health readings, the weather and your settings. Your name stays on this phone. Deleting your account deletes the copy.'
+    : 'To sign you in, our server keeps your passkey’s public key and a random account number: no email, no fingerprint. A copy of what you record is kept in your account on our server in India, so it comes back after a reinstall, a reset or on a new phone: steps, walks and their routes, saved places, moods, food, sleep, health readings, the weather and your settings. Your name stays on this phone. Deleting your account deletes the copy.';
 const FOOD_WHY =
   "When you look up a food or enter a recipe, what you type and your country (from your phone's time zone, or as set under Country) are sent to our server and an AI service to work out what's in it, the way it's usually made where you are. When you log a dish as dine-in or ordered in, its name is sent the same way to get restaurant values. If you say it was from a restaurant, that goes too, with the restaurant's name if you gave one. It's kept without your name, so the same food is quicker for everyone next time.";
 
@@ -379,7 +379,7 @@ export default function SettingsScreen() {
       <Surface level={1} style={styles.list}>
         <ListRow
           icon="phone-portrait-outline"
-          title="Kept on this phone"
+          title="On this phone, backed up"
           supporting="Steps, walks, food, sleep and readings"
           trailing={<Why title="What we keep" label="(i)" text={KEEP_WHY} />}
         />

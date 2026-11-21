@@ -35,7 +35,7 @@ export function ConnectHealth({ what }: { what: string }) {
         />
         <Why
           title={`Connect ${vitals.label}`}
-          text={`If your watch's app saves to ${vitals.label}, this app can read your ${what} from there. Nothing leaves your phone.`}
+          text={`If your watch's app saves to ${vitals.label}, this app can read your ${what} from there. A copy is kept in your account’s backup on our server, so it comes back on a new phone.`}
         />
       </View>
       {refused ? <Notice text={`Nothing was allowed. You can change it in ${vitals.label}'s app permissions.`} /> : null}

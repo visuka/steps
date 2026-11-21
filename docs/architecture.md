@@ -6,10 +6,11 @@ Important decisions for the Steps app and its server. Add new ones at the end of
 
 - **Stack:** Expo SDK 58, React Native, expo-router (file routes in `src/app/`). Android first; iOS code paths exist but are not shipped.
 - **Builds:** GitHub Actions `.github/workflows/android.yml` with jobs check (tsc + jest) → build-apk → smoke-test (API 35 emulator, `.github/scripts/launch-and-capture.sh`) → publish. Releases are named `android-<N>`.
-- **Local data:** SQLite on the phone (`src/data/`: entries, food rows, walk rows, migrations). What a person ate and where stays on the phone; only day totals go to the server.
+- **Local data:** SQLite on the phone (`src/data/`: entries, food rows, walk rows, migrations). What a person ate and where stays on the phone; only day totals go to the server. **Replaced (21 Nov 2026): see Cloud backup below.**
 - **Step and health data:** chosen per platform in `src/health/select-source*.ts`: Health Connect, the phone's step sensor, and Google's step recorder for accuracy. No new permissions without the owner's OK.
 - **Themes:** one token set per look in `src/constants/themes/`; the chosen look is read synchronously at start from `expo-sqlite/kv-store` (key `appearance.theme`); changing it restarts the app with `reloadAppAsync()`. A look designed as light stays light when the phone is in dark mode.
 - **Design check:** `src/app/design-preview.tsx` opens a fixed sample day by deep link (`neutcraftssteps://design-preview?theme=…&screen=…`) so CI can photograph real screens for comparison with the mockup.
+- **Cloud backup (21 Nov 2026, owner: "if someone has to reset or reinstall they should get their data back"):** every row of the phone's tables (and the allow-listed kv settings) is copied to the person's own partition on steps-data and restored after a reinstall, a reset or on a new phone. Tracked by SQLite triggers into `sync_queue`, uploaded and restored by `src/sync/backup.ts`; last writer wins per record. The name is never uploaded. Details: `docs/backup.md`.
 
 ## Sign-in and security
 

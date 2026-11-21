@@ -145,6 +145,8 @@ async function fillDailyTotals(repo: Repository, source: StepSource, profile: Pr
   for (const t of totals) {
     if (t.steps <= 0) continue;
     const existing = await repo.getDay(t.date);
+    // Same total from the same source (a day brought back from the cloud backup, say): keep its hourly detail.
+    if (existing && existing.steps === t.steps && existing.source === source.id) continue;
     // A total only: clear the day's hourly bars too, so they can't disagree with it.
     await repo.upsertDay(
       {

@@ -28,6 +28,7 @@ import { LockProvider, useLock } from '@/state/app-lock';
 import { AppProvider, useApp } from '@/state/app-state';
 import { usePendingFoods } from '@/state/use-pending-foods';
 import { PremiumProvider, usePremium } from '@/state/use-premium';
+import { setBackupAccount } from '@/sync/backup';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -195,6 +196,13 @@ function Gate({ fontsReady, surface }: { fontsReady: boolean; surface: string })
       cancelled = true;
     };
   }, [repo, userId, resetAll]);
+
+  // The cloud backup follows whoever owns the data on this phone, once that's settled, and waits while
+  // the email step is open: that account may be a throwaway one the email swaps for the old one (docs/backup.md).
+  const owner = userId && claimedFor === userId && !auth.confirmingEmail ? userId : null;
+  useEffect(() => {
+    setBackupAccount(repo, owner);
+  }, [repo, owner]);
 
   if (!ready) return null;
 

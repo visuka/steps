@@ -10,7 +10,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Button, Card, IconButton, type IconName, Notice, Surface, ToggleRow, Why } from '@/components/ui';
 import { APP_NAME } from '@/constants/app';
 import { Radius, Spacing, TouchTarget } from '@/constants/theme';
-import { DEFAULT_PROFILE } from '@/data/profile';
+import { mergePatches, mergeProfile, type ProfilePatch } from '@/data/profile';
 import type { Profile, Sex } from '@/data/types';
 import { requestMotionPermission } from '@/health/live';
 import { setupSource } from '@/health/select-source';
@@ -38,14 +38,17 @@ const ACCESS = Platform.select({
 });
 
 export function Onboarding() {
-  const { finishOnboarding } = useApp();
+  const { finishOnboarding, profile: saved } = useApp();
   const theme = useTheme();
   const [step, setStep] = useState<Step>('welcome');
-  const [profile, setProfile] = useState<Profile>(DEFAULT_PROFILE);
+  // Only what's entered here, shown over what's saved: a profile brought back from the cloud backup
+  // (docs/backup.md) fills the steps in whenever it lands, and Finish saves just these answers over it.
+  const [answers, setAnswers] = useState<ProfilePatch>({});
+  const profile = mergeProfile(saved, answers);
   const [source, setSource] = useState<StepSource | null>(null);
   const [busy, setBusy] = useState(false);
   const units = profile.units;
-  const set = (patch: Partial<Profile>) => setProfile((p) => ({ ...p, ...patch }));
+  const set = (patch: ProfilePatch) => setAnswers((a) => mergePatches(a, patch));
   const next = () => setStep(STEPS[Math.min(STEPS.length - 1, STEPS.indexOf(step) + 1)]);
   const at = STEPS.indexOf(step);
   const back = () => setStep(STEPS[Math.max(0, at - 1)]);
@@ -74,7 +77,7 @@ export function Onboarding() {
     setBusy(true);
     try {
       const chosen = source ?? (await setupSource());
-      await finishOnboarding(profile, chosen);
+      await finishOnboarding(answers, chosen);
     } finally {
       setBusy(false);
     }
@@ -113,12 +116,12 @@ export function Onboarding() {
                 <Surface level={1} style={styles.points}>
                   <Point icon="walk-outline" text="Counts your steps by itself" />
                   <Point icon="flag-outline" text="A daily goal to aim for" />
-                  <Point icon="lock-closed-outline" text="Your walking data stays on your phone" />
+                  <Point icon="lock-closed-outline" text="Backed up to your own account" />
                 </Surface>
                 <Why
                   title={`Welcome to ${APP_NAME}`}
                   label="Tell me more"
-                  text={`It counts your steps automatically, with no start button. A daily goal keeps you moving; ${APP_NAME} Premium adds streaks, badges and more. Your walking data stays on this phone and in your health app.`}
+                  text={`It counts your steps automatically, with no start button. A daily goal keeps you moving; ${APP_NAME} Premium adds streaks, badges and more. What you record is kept on this phone, with a copy in your account on our server, so it comes back after a reinstall or on a new phone.`}
                 />
                 <Button label="Get started" onPress={next} />
               </>
@@ -218,7 +221,7 @@ export function Onboarding() {
                     value={profile.reminders.enabled}
                     onValueChange={async (enabled) => {
                       const ok = !enabled || (await requestNotificationPermission());
-                      set({ reminders: { ...profile.reminders, enabled: enabled && ok } });
+                      set({ reminders: { enabled: enabled && ok } });
                     }}
                   />
                 </Surface>
@@ -237,7 +240,7 @@ export function Onboarding() {
 }
 
 /** What they eat and how much water a day: both can be skipped and changed later in You. */
-function FoodStep({ profile, set, onNext }: { profile: Profile; set: (p: Partial<Profile>) => void; onNext: () => void }) {
+function FoodStep({ profile, set, onNext }: { profile: Profile; set: (p: ProfilePatch) => void; onNext: () => void }) {
   const units = profile.units;
   const suggested = suggestWaterMl(profile.weightSet ? profile.weightKg : null);
   const range = stepperRange(false);
@@ -249,13 +252,13 @@ function FoodStep({ profile, set, onNext }: { profile: Profile; set: (p: Partial
         <ThemedText type="labelLarge" themeColor="onSurfaceVariant">
           What do you eat?
         </ThemedText>
-        <DietChips value={profile.nutrition.diet} onChange={(diet) => set({ nutrition: { ...profile.nutrition, diet } })} />
+        <DietChips value={profile.nutrition.diet} onChange={(diet) => set({ nutrition: { diet } })} />
         <ThemedText type="labelLarge" themeColor="onSurfaceVariant">
           Water a day
         </ThemedText>
         <Stepper
           value={ml}
-          onChange={(targetMl) => set({ water: { ...profile.water, targetMl } })}
+          onChange={(targetMl) => set({ water: { targetMl } })}
           step={range.step}
           min={range.min}
           max={range.max}
@@ -268,7 +271,7 @@ function FoodStep({ profile, set, onNext }: { profile: Profile; set: (p: Partial
       <Button
         label="Continue"
         onPress={() => {
-          set({ water: { ...profile.water, targetMl: ml } });
+          set({ water: { targetMl: ml } });
           onNext();
         }}
       />

@@ -2,7 +2,7 @@ import { createContext, type ReactNode, use, useCallback, useEffect, useRef, use
 import { AppState } from 'react-native';
 
 import { openRepository } from '@/data/db';
-import { DEFAULT_PROFILE, loadProfile, mergeProfile, type ProfilePatch, saveProfile } from '@/data/profile';
+import { DEFAULT_PROFILE, loadProfile, type ProfilePatch } from '@/data/profile';
 import type { DaySummary, Profile, Repository, SourceId } from '@/data/types';
 import { watchLiveSteps } from '@/health/live';
 import { getSource, onAppStart } from '@/health/select-source';
@@ -10,6 +10,7 @@ import type { StepSource } from '@/health/types';
 import { setChosenCountry } from '@/lib/country-detect';
 import { addDays, dayKey, startOfDay } from '@/lib/dates';
 import { addSample, type LiveSample, liveStepsSince, type Shown, stepsToShow } from '@/lib/live-steps';
+import { onBackupRestored, saveProfileChange } from '@/sync/backup';
 import { registerBackgroundSync, SOURCE_KEY } from '@/sync/background';
 import { resetBackfill } from '@/sync/engine';
 import { LAST_SYNC_KEY, runSync, syncIdle } from '@/sync/run';
@@ -36,7 +37,8 @@ export interface AppContextValue {
   refresh(): Promise<void>;
   /** Nested settings (reminders, water, nutrition…) merge field by field. */
   updateProfile(patch: ProfilePatch): Promise<void>;
-  finishOnboarding(profile: Profile, source: StepSource): Promise<void>;
+  /** What was entered in onboarding, over the stored profile (one restored from the backup included). */
+  finishOnboarding(patch: ProfilePatch, source: StepSource): Promise<void>;
   switchSource(source: StepSource): Promise<void>;
   touch(): void;
   resetAll(): Promise<void>;
@@ -114,6 +116,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, [applyToday]);
+
+  // The cloud backup came back (src/sync/backup.ts): read the profile and today again, and every screen re-reads.
+  useEffect(() => {
+    if (!repo) return;
+    return onBackupRestored(() => {
+      (async () => {
+        const p = await loadProfile(repo);
+        setChosenCountry(p.country);
+        setProfile(p);
+        applyToday(await repo.getDay(dayKey(new Date())));
+        setDataVersion((v) => v + 1);
+      })().catch(() => undefined);
+    });
+  }, [repo, applyToday]);
 
   const doRefresh = useCallback(
     async (r: Repository, p: Profile, s: StepSource) => {
@@ -216,20 +232,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateProfile = useCallback(
     async (patch: ProfilePatch) => {
       if (!repo) return;
-      const next = mergeProfile(profile, patch);
-      await saveProfile(repo, next);
+      // Over the profile as stored (a restore may have just brought it back), kept for the restore if one is due.
+      const next = await saveProfileChange(repo, patch);
       setChosenCountry(next.country);
       setProfile(next);
     },
-    [repo, profile],
+    [repo],
   );
 
   const finishOnboarding = useCallback(
-    async (p: Profile, s: StepSource) => {
+    async (patch: ProfilePatch, s: StepSource) => {
       if (!repo) return;
-      const next = { ...p, onboarded: true };
       await repo.setKv(SOURCE_KEY, s.id);
-      await saveProfile(repo, next);
+      // Only what was entered in onboarding, over the stored profile: never a default over a restored answer.
+      const next = await saveProfileChange(repo, patch, { onboarded: true });
       setSource(s);
       setChosenCountry(next.country);
       setProfile(next);

@@ -7,9 +7,11 @@ import type { WalkPoint } from '@/lib/walk';
 import { applyChoice } from '@/lib/walk-totals';
 import { recentRestaurants, whereOf } from '@/nutrition/place';
 import type { FoodItem, OwnFood } from '@/nutrition/types';
+import { syncKvAllowList } from '@/sync/backup-core';
 
 import { type FoodRow, toFood } from './food-rows';
 import { MIGRATIONS } from './migrations';
+import { gateDatabase } from './sql-gate';
 import { type PlaceRow, toPart, toPlace, toWalk, type WalkPartRow, type WalkRow } from './walk-rows';
 import type {
   BloodPressureEntry,
@@ -24,6 +26,8 @@ import type {
   SleepEntry,
   SleepStages,
   SourceId,
+  SqlStore,
+  SqlValue,
   VitalSource,
   Walk,
   WalkPart,
@@ -174,9 +178,45 @@ async function migrate(db: SQLite.SQLiteDatabase) {
 }
 
 export async function openRepository(): Promise<Repository> {
-  const db = await SQLite.openDatabaseAsync('steps.db');
-  await db.execAsync('PRAGMA journal_mode = WAL');
-  await migrate(db);
+  const raw = await SQLite.openDatabaseAsync('steps.db');
+  await raw.execAsync('PRAGMA journal_mode = WAL');
+  await migrate(raw);
+  // Everything below goes through the gate; the backup's paused writes and
+  // clearAll use `raw` inside `exclusive`, so nothing else can run between a
+  // failed exec and its rollback (src/data/sql-gate.ts).
+  const { db, exclusive } = gateDatabase(raw, () => raw.isInTransactionSync());
+
+  // The cloud backup's way in (src/sync/backup-core.ts). `clears` goes up when
+  // clearAll starts and when it ends, so an upload that read rows meanwhile
+  // stops before it can send a cleared row as a delete.
+  let clears = 0;
+  const sql: SqlStore = {
+    all<T>(source: string, ...params: SqlValue[]) {
+      return db.getAllAsync<T>(source, params);
+    },
+    async run(source, ...params) {
+      await db.runAsync(source, params);
+    },
+    pausedExec(statements) {
+      // The gate first lets the app's own transactions end, so a rollback of one can't take these writes
+      // with it, then holds every other call until this exec, or its rollback, is done.
+      return exclusive(async () => {
+        try {
+          await raw.execAsync(
+            `SAVEPOINT backup_paused; INSERT OR REPLACE INTO sync_pause (id) VALUES (1);\n${statements.join(';\n')};\nDELETE FROM sync_pause; RELEASE backup_paused;`,
+          );
+        } catch (e) {
+          await raw.execAsync('ROLLBACK TO backup_paused; RELEASE backup_paused;').catch(() => undefined);
+          await raw.execAsync('DELETE FROM sync_pause').catch(() => undefined);
+          throw e;
+        }
+      });
+    },
+    clears: () => clears,
+  };
+  // A pause left by a crash would stop all change tracking.
+  await db.execAsync('DELETE FROM sync_pause');
+  await syncKvAllowList(sql);
 
   const insertSleep = (s: SleepEntry) =>
     db.runAsync(
@@ -779,12 +819,32 @@ export async function openRepository(): Promise<Repository> {
     },
 
     async clearAll() {
-      await db.execAsync(
-        `DELETE FROM kv; DELETE FROM day_summary; DELETE FROM hour_steps; DELETE FROM weight_log; DELETE FROM water_log;
-         DELETE FROM achievement; DELETE FROM mood_log; DELETE FROM day_weather; DELETE FROM food_log;
-         DELETE FROM walk_point; DELETE FROM walk_part; DELETE FROM walk; DELETE FROM place; DELETE FROM own_food; DELETE FROM sleep_log; DELETE FROM heart_day;
-         DELETE FROM bp_log; DELETE FROM saved_food;`,
-      );
+      // Paused, in one exec: the deletes are never queued, so the cloud backup
+      // stays (it comes back with the restore that kv's wiped flag asks for).
+      clears++;
+      try {
+        // Through the gate, like the backup's paused writes: nothing else runs before the rollback.
+        await exclusive(async () => {
+          try {
+            await raw.execAsync(
+              `SAVEPOINT clear_all; INSERT OR REPLACE INTO sync_pause (id) VALUES (1);
+           DELETE FROM kv; DELETE FROM day_summary; DELETE FROM hour_steps; DELETE FROM weight_log; DELETE FROM water_log;
+           DELETE FROM achievement; DELETE FROM mood_log; DELETE FROM day_weather; DELETE FROM food_log;
+           DELETE FROM walk_point; DELETE FROM walk_part; DELETE FROM walk; DELETE FROM place; DELETE FROM own_food; DELETE FROM sleep_log; DELETE FROM heart_day;
+           DELETE FROM bp_log; DELETE FROM saved_food;
+           DELETE FROM sync_queue; DELETE FROM sync_chunks; DELETE FROM sync_pause; RELEASE clear_all;`,
+            );
+          } catch (e) {
+            await raw.execAsync('ROLLBACK TO clear_all; RELEASE clear_all;').catch(() => undefined);
+            await raw.execAsync('DELETE FROM sync_pause').catch(() => undefined);
+            throw e;
+          }
+        });
+      } finally {
+        clears++;
+      }
     },
+
+    sql,
   };
 }

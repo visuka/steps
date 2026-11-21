@@ -69,6 +69,17 @@ export function mergeProfile(base: Profile, patch: ProfilePatch | null | undefin
   };
 }
 
+const NESTED = ['reminders', 'moodCheckIn', 'water', 'nutrition'] as const;
+
+/** Two changes as one: `b` over `a`, nested settings field by field. */
+export function mergePatches(a: ProfilePatch | null | undefined, b: ProfilePatch): ProfilePatch {
+  const out: ProfilePatch = { ...a, ...b };
+  for (const key of NESTED) {
+    if (a?.[key] || b[key]) Object.assign(out, { [key]: { ...a?.[key], ...b[key] } });
+  }
+  return out;
+}
+
 /** The longest name kept. */
 export const NAME_MAX = 40;
 

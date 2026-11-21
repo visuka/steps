@@ -16,6 +16,8 @@ import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useLock } from '@/state/app-lock';
 import { useApp } from '@/state/app-state';
+import { useBackupStatus } from '@/sync/backup';
+import { backupLine } from '@/sync/backup-line';
 
 const phone = SIGN_IN_MODE === 'phone';
 
@@ -57,6 +59,7 @@ export function AccountCard() {
     <Card title="Account">
       {phone ? <AccountEmail /> : <Line icon="key-outline" title="Signed in with a passkey" />}
       <Line icon="id-card-outline" title={accountCode(userId)} supporting="Account code" />
+      <BackupLine />
 
       {lock.support === 'ready' || lock.enabled ? (
         <View style={styles.bleed}>
@@ -94,6 +97,12 @@ export function AccountCard() {
       />
     </Card>
   );
+}
+
+/** When the cloud backup last finished, or what it's doing (docs/backup.md); wraps at large font sizes. */
+function BackupLine() {
+  const line = backupLine(useBackupStatus());
+  return line ? <Notice text={line} /> : null;
 }
 
 /** A plain line of the account: an icon, the value, and what it is. */

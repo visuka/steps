@@ -1,4 +1,119 @@
 /**
+ * The tables the backup migration put triggers on, as they were then:
+ * [record type t, table, key column]. Frozen with it; a table added later
+ * gets its triggers in a migration of its own.
+ */
+const BACKUP_V1: readonly (readonly [string, string, string])[] = [
+  ['day_summary', 'day_summary', 'date'],
+  ['hour_steps', 'hour_steps', 'date'],
+  ['weight_log', 'weight_log', 'id'],
+  ['water_log', 'water_log', 'id'],
+  ['food_log', 'food_log', 'id'],
+  ['bp_log', 'bp_log', 'id'],
+  ['sleep_log', 'sleep_log', 'id'],
+  ['achievement', 'achievement', 'id'],
+  ['mood_log', 'mood_log', 'date'],
+  ['day_weather', 'day_weather', 'date'],
+  ['heart_day', 'heart_day', 'date'],
+  ['own_food', 'own_food', 'id'],
+  ['saved_food', 'saved_food', 'id'],
+  ['place', 'place', 'id'],
+  ['walk', 'walk', 'id'],
+  ['walk_part', 'walk_part', 'walk_id'],
+  ['walk_point', 'walk_point', 'walk_id'],
+  ['kv', 'kv', 'key'],
+];
+
+/** Now, in ms since 1970, inside SQLite. */
+const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)";
+
+/**
+ * The next seq, and the change's time: now, but never earlier than the last
+ * change stamped (sync_seq.ms), so a clock put back can't make a later change
+ * look older than one the server already holds (it keeps the newest u).
+ */
+const NEXT_STAMP = `UPDATE sync_seq SET n = n + 1, ms = MAX(${NOW_MS}, ms + 1);`;
+
+/**
+ * Queues (t, key) with the seq and time NEXT_STAMP just took. DELETE then a
+ * plain INSERT, never INSERT OR REPLACE: a trigger takes the conflict rule of
+ * the statement that fired it, so under an INSERT OR IGNORE the newer change
+ * would be dropped and the older seq kept.
+ */
+function queueRow(t: string, key: string, when = '') {
+  return `
+    DELETE FROM sync_queue WHERE t = '${t}' AND k = ${key}${when ? ` AND ${when}` : ''};
+    INSERT INTO sync_queue (t, k, changed_ms, seq) SELECT '${t}', ${key}, ms, n FROM sync_seq${when ? ` WHERE ${when}` : ''};`;
+}
+
+/**
+ * When a row queued by the first backup last changed, as far as the phone can
+ * tell: its own updated_at; a walk's parts and points the walk's, a day's
+ * hours the day's; 0 where nothing says (a change tracked anywhere is newer).
+ * So an older copy on a second phone can't beat a newer one already in the
+ * backup.
+ */
+const SEEDED_AT: Readonly<Record<string, string>> = {
+  hour_steps: 'COALESCE((SELECT d.updated_at FROM day_summary d WHERE d.date = hour_steps.date), 0)',
+  walk_part: 'COALESCE((SELECT w.updated_at FROM walk w WHERE w.id = walk_part.walk_id), 0)',
+  walk_point: 'COALESCE((SELECT w.updated_at FROM walk w WHERE w.id = walk_point.walk_id), 0)',
+  day_summary: 'updated_at',
+  day_weather: 'updated_at',
+  walk: 'updated_at',
+  own_food: 'updated_at',
+  sleep_log: 'updated_at',
+  heart_day: 'updated_at',
+  bp_log: 'updated_at',
+  saved_food: 'updated_at',
+  place: 'updated_at',
+};
+
+function backupTriggers(t: string, table: string, key: string): string {
+  const free = 'NOT EXISTS (SELECT 1 FROM sync_pause)';
+  const kv = table === 'kv';
+  const allowed = (row: string) => (kv ? `${row}.key IN (SELECT key FROM sync_kv_allow)` : '');
+  const onlyIf = (row: string) => (kv ? ` AND ${allowed(row)}` : '');
+  return `
+  CREATE TRIGGER backup_${table}_insert AFTER INSERT ON ${table} WHEN ${free}${onlyIf('NEW')}
+  BEGIN
+    ${NEXT_STAMP}${queueRow(t, `NEW.${key}`)}
+  END;
+  CREATE TRIGGER backup_${table}_update AFTER UPDATE ON ${table}
+    WHEN ${free}${kv ? ` AND (${allowed('NEW')} OR ${allowed('OLD')})` : ''}
+  BEGIN
+    ${NEXT_STAMP}${queueRow(t, `NEW.${key}`, allowed('NEW'))}${queueRow(
+      t,
+      `OLD.${key}`,
+      `OLD.${key} IS NOT NEW.${key}${onlyIf('OLD')}`,
+    )}
+  END;
+  CREATE TRIGGER backup_${table}_delete AFTER DELETE ON ${table} WHEN ${free}${onlyIf('OLD')}
+  BEGIN
+    ${NEXT_STAMP}${queueRow(t, `OLD.${key}`)}
+  END;`;
+}
+
+function backupMigration(): string {
+  const first = BACKUP_V1.filter(([, table]) => table !== 'kv')
+    .map(
+      ([t, table, key]) =>
+        `INSERT INTO sync_queue (t, k, changed_ms, seq) SELECT '${t}', ${key}, MAX(${SEEDED_AT[table] ?? '0'}), 0 FROM ${table} GROUP BY ${key};`,
+    )
+    .join('\n  ');
+  return `
+  CREATE TABLE sync_queue (t TEXT NOT NULL, k TEXT NOT NULL, changed_ms INTEGER NOT NULL, seq INTEGER NOT NULL, PRIMARY KEY (t, k));
+  CREATE INDEX sync_queue_seq ON sync_queue (seq);
+  CREATE TABLE sync_pause (id INTEGER PRIMARY KEY NOT NULL);
+  CREATE TABLE sync_seq (n INTEGER NOT NULL, ms INTEGER NOT NULL);
+  INSERT INTO sync_seq (n, ms) VALUES (0, ${NOW_MS});
+  CREATE TABLE sync_kv_allow (key TEXT PRIMARY KEY NOT NULL);
+  CREATE TABLE sync_chunks (walk_id TEXT PRIMARY KEY NOT NULL, n INTEGER NOT NULL);
+  ${BACKUP_V1.map(([t, table, key]) => backupTriggers(t, table, key)).join('\n')}
+  ${first}
+  `;
+}
+
+/**
  * The phone's SQLite schema, as steps. Each entry runs once, in order; PRAGMA
  * user_version records how many have run. Plain SQL in its own file, so tests
  * can run it against an in-memory database.
@@ -188,4 +303,11 @@ export const MIGRATIONS = [
     updated_at INTEGER NOT NULL
   );
   `,
+  // Cloud backup (docs/backup.md): triggers queue every changed record in
+  // sync_queue, one row per record, and the uploader (src/sync/backup-core.ts)
+  // sends them. Nothing is queued while sync_pause has a row (a restore, a
+  // reset). Every row that exists already is queued here: the first backup.
+  // kv rows are queued only for keys in sync_kv_allow, which the app fills
+  // from src/sync/kv-keys.ts on every open (and queues those rows then).
+  backupMigration(),
 ];

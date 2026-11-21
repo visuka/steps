@@ -434,8 +434,30 @@ export interface Repository {
   getAchievements(): Promise<Achievement[]>;
   addAchievements(list: Achievement[]): Promise<void>;
 
-  /** Everything, walks, parts and pinned places included. */
+  /**
+   * Everything, walks, parts and pinned places included. Never queues a
+   * delete for the cloud backup: the backup stays (docs/backup.md).
+   */
   clearAll(): Promise<void>;
+
+  /** Plain SQL for the cloud backup (src/sync/backup-core.ts); absent on web, which has no backup. */
+  readonly sql?: SqlStore;
+}
+
+export type SqlValue = string | number | null;
+
+/** The phone's database as the cloud backup uses it. */
+export interface SqlStore {
+  all<T>(sql: string, ...params: SqlValue[]): Promise<T[]>;
+  run(sql: string, ...params: SqlValue[]): Promise<void>;
+  /**
+   * Runs the statements (values written into them) in one call, all or
+   * nothing, with sync_pause set: their writes aren't queued for upload, and
+   * nothing else the app writes can land in between.
+   */
+  pausedExec(statements: string[]): Promise<void>;
+  /** Goes up by one when clearAll starts and again when it ends: odd while it runs. */
+  clears(): number;
 }
 
 export function newId(): string {

@@ -31,6 +31,8 @@ import { useTodayKcal } from '@/state/use-calories';
 import { useGoodNews } from '@/state/use-good-news';
 import { usePremium } from '@/state/use-premium';
 import { type AddedGlass, useWaterToday } from '@/state/use-water';
+import { useBackupStatus } from '@/sync/backup';
+import { RESTORING_LINE } from '@/sync/backup-line';
 import { useClock } from '@/hooks/use-clock';
 
 const WEATHER_PROMPT_KEY = 'weatherPromptDismissed';
@@ -66,6 +68,7 @@ export default function TodayScreen() {
   const activeWalk = useActiveWalk(visits);
   const news = useGoodNews();
   const prompts = useTodayPrompts(todayKey);
+  const backup = useBackupStatus();
   // The first screen doesn't move: it scrolls only when its content can't fit (very large text).
   const [viewH, setViewH] = useState(0);
   const [contentH, setContentH] = useState(0);
@@ -117,7 +120,11 @@ export default function TodayScreen() {
   const ws = water.status;
   const glasses = ws?.progress?.glasses ?? Math.floor(((ws?.waterMl ?? 0) + (ws?.drinksMl ?? 0)) / profile.water.glassMl);
   const glassesOf = ws?.progress && !ws.target?.limit ? ws.progress.glassesTarget : null;
-  const syncLine = `${lastSyncAt ? `Updated ${minutesAgo(lastSyncAt)}` : 'Not synced yet'} · ${source.label}`;
+  // While the cloud backup comes back, the steps tile's sync line says so (docs/backup.md).
+  const syncLine =
+    backup.phase === 'restoring'
+      ? RESTORING_LINE
+      : `${lastSyncAt ? `Updated ${minutesAgo(lastSyncAt)}` : 'Not synced yet'} · ${source.label}`;
 
   // A tap on a tile or the hero: its detail screen (the Walk tile: its walk). The Water plus circle adds a glass (addGlass).
   const open = (kind: DetailKind) => {
@@ -280,7 +287,7 @@ function useTodayPrompts(weatherDay: string) {
 }
 
 const WEATHER_WHY =
-  'With your approximate location, the app notes the weather each day you open it, so Insights can show how heat and rain change your walking. Your location stays on this phone.';
+  'With your approximate location, the app notes the weather each day you open it, so Insights can show how heat and rain change your walking. Your location itself stays on this phone; the day’s weather and the name of the area are kept in your account’s backup.';
 
 /** Beside the date when there's no weather yet: "Add weather" opens the offer. */
 function WeatherOffer({ onAllow, onDismiss }: { onAllow: () => void; onDismiss: () => void }) {

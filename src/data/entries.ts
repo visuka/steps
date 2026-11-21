@@ -2,7 +2,8 @@
  * Changing and deleting journal entries. Day totals (food, water) are added
  * up from the entries each time they're shown, so an entry moved to another
  * day leaves the old day's total and joins the new one's at once. Journal
- * entries stay on the phone; nothing is sent to our server.
+ * entries are kept on the phone, with a copy in the account's cloud backup
+ * (docs/backup.md).
  *
  * The phone's copy is always saved first. The copy written to Health Connect /
  * Apple Health follows, and when that fails the phone's edit is kept.
