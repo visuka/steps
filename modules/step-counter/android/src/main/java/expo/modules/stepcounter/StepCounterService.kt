@@ -241,9 +241,14 @@ class StepCounterService : Service(), SensorEventListener2 {
     val start = startOfToday()
     val now = System.currentTimeMillis()
     val since = store.getState(StepStore.RECORDER_SINCE, 0)
-    val counted = { show(store.sum(start, now) + untimedToday(start, now)) }
+    // Riding the app took out of today at its last sync (T18c); new riding is taken out at the next one.
+    // The counter has every minute; the recorder's total only what it has saved, so only that part comes off it.
+    val today = store.getState(StepStore.REMOVED_DAY, 0) == start
+    val removed = if (today) store.getState(StepStore.REMOVED_STEPS, 0) else 0L
+    val removedRecorded = if (today) store.getState(StepStore.REMOVED_RECORDED, 0) else 0L
+    val counted = { show(maxOf(0L, store.sum(start, now) + untimedToday(start, now) - removed)) }
     if (since in 1..start && StepRecorder.status(this) == "ready") {
-      StepRecorder.total(this, start, now, onResult = { show(it) }, onError = { counted() })
+      StepRecorder.total(this, start, now, onResult = { show(maxOf(0L, it - removedRecorded)) }, onError = { counted() })
     } else {
       counted()
     }

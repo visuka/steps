@@ -8,7 +8,8 @@
 import type { StepBucket } from '@/lib/metrics';
 import { DEFAULT_HOUR_WEIGHTS, untimedForDay, untimedShare } from '@/lib/untimed';
 
-import type { MinuteBucket } from '../../modules/step-counter';
+import type { ActivityTransition, MinuteBucket, MinuteFeature } from '../../modules/step-counter';
+import { ACTIVITY_LOOKBACK_MS, filterRiding, type RemovedMinute } from './step-filter';
 
 const MINUTE = 60_000;
 
@@ -18,6 +19,9 @@ export interface PhoneCounter {
   getUntimed(startMs: number, endMs: number): Promise<{ from: number; to: number; steps: number }[]>;
   recorderSince(): number | null;
   getRecorderBuckets(startMs: number, endMs: number): Promise<MinuteBucket[]>;
+  /** What the riding filter reads (step-filter.ts); without them nothing is filtered (an older build). */
+  getMinuteFeatures?(startMs: number, endMs: number): Promise<MinuteFeature[]>;
+  getActivityTransitions?(startMs: number, endMs: number): Promise<ActivityTransition[]>;
 }
 
 /** Groups minute buckets into `bucketMinutes`-long buckets aligned to `start`. */
@@ -51,6 +55,11 @@ export interface PhoneWindow {
   minutes: MinuteBucket[];
   /** Steps with no known time that count for the window (stretches that began in it). */
   untimed: number;
+  /** Minutes taken out as riding, not walking (step-filter.ts); not in `minutes`. */
+  removed: RemovedMinute[];
+  /** Minutes in [recorderFrom, recorderUntil) came from Google's recorder; the rest from the app's counter. */
+  recorderFrom: number;
+  recorderUntil: number;
 }
 
 /**
@@ -62,6 +71,8 @@ export async function phoneWindow(counter: PhoneCounter, startMs: number, endMs:
   const split = phoneSplit(counter, now);
   const minutes: MinuteBucket[] = [];
   let counterUntil = Math.min(endMs, split);
+  let recorderFrom = endMs;
+  let recorderUntil = endMs;
   if (startMs < split) {
     const counted = await counter.getBuckets(startMs, counterUntil);
     // The counter rounds its range out to whole minutes; the minute from the split on is the recorder's.
@@ -77,6 +88,8 @@ export async function phoneWindow(counter: PhoneCounter, startMs: number, endMs:
       // minute; once the recorder catches up, those minutes are its again, so nothing counts twice.
       const lastSaved = recorded.reduce((last, m) => Math.max(last, m.start), -Infinity);
       const tailFrom = lastSaved === -Infinity ? from : lastSaved + MINUTE;
+      recorderFrom = from;
+      recorderUntil = Math.min(tailFrom, endMs);
       if (tailFrom < endMs) {
         minutes.push(...(await counter.getBuckets(tailFrom, endMs)).filter((m) => m.start >= tailFrom));
       }
@@ -86,7 +99,23 @@ export async function phoneWindow(counter: PhoneCounter, startMs: number, endMs:
       counterUntil = endMs;
     }
   }
-  return { minutes, untimed: await counterUntimed(counter, startMs, endMs, counterUntil) };
+  const { kept, removed } = await withoutRiding(counter, minutes, startMs, endMs);
+  const untimed = await counterUntimed(counter, startMs, endMs, counterUntil);
+  return { minutes: kept, untimed, removed, recorderFrom, recorderUntil };
+}
+
+/** Takes out the minutes that came from riding. A failed read removes nothing: steps are never lost to an error. */
+async function withoutRiding(counter: PhoneCounter, minutes: MinuteBucket[], startMs: number, endMs: number) {
+  if (!minutes.length || !counter.getMinuteFeatures || !counter.getActivityTransitions) return { kept: minutes, removed: [] };
+  try {
+    const [features, transitions] = await Promise.all([
+      counter.getMinuteFeatures(startMs, endMs),
+      counter.getActivityTransitions(startMs - ACTIVITY_LOOKBACK_MS, endMs),
+    ]);
+    return filterRiding(minutes, features, transitions);
+  } catch {
+    return { kept: minutes, removed: [] };
+  }
 }
 
 async function counterUntimed(counter: PhoneCounter, dayStart: number, dayEnd: number, until: number): Promise<number> {

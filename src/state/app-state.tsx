@@ -69,6 +69,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // What the number on Today is made of; kept in refs so live events can recompute it.
   const todayRef = useRef<DaySummary | null>(null);
   const coveredUntil = useRef(startOfDay(new Date()).getTime());
+  // Today's steps the source took out as riding: when it grows, the live number may come down.
+  const removedToday = useRef(0);
   const samples = useRef<LiveSample[]>([]);
   const lastSyncRef = useRef(0);
 
@@ -77,14 +79,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const row = todayRef.current?.date === date ? todayRef.current : null;
     const since = Math.max(row ? coveredUntil.current : 0, startOfDay(new Date()).getTime());
     setShown((previous) =>
-      stepsToShow({ date, synced: row?.steps ?? 0, coveredUntil: since, samples: samples.current, previous }),
+      stepsToShow({
+        date,
+        synced: row?.steps ?? 0,
+        coveredUntil: since,
+        samples: samples.current,
+        previous,
+        removed: row ? removedToday.current : 0,
+      }),
     );
   }, []);
 
   const applyToday = useCallback(
-    (row: DaySummary | null, covered?: number) => {
+    (row: DaySummary | null, covered?: number, removed?: number) => {
       todayRef.current = row;
       if (covered !== undefined) coveredUntil.current = covered;
+      if (removed !== undefined) removedToday.current = removed;
       setToday(row && row.date === dayKey(new Date()) ? row : null);
       recompute();
     },
@@ -137,7 +147,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         const result = await runSync(r, p, s);
         lastSyncRef.current = Date.now();
-        applyToday(result.today, result.coveredUntil);
+        applyToday(result.today, result.coveredUntil, result.removedToday);
         setLastSyncAt(Date.now());
         setDataVersion((v) => v + 1);
       } catch (e) {

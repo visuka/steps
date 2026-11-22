@@ -47,7 +47,7 @@ class StepStore(context: Context) :
     runCatching { ensureMovementTables(db) }
   }
 
-  /** What T18a records all day: a burst's figures per minute, and Android's activity changes. Both kept 10 days. */
+  /** What T18a records all day: a burst's figures per minute, and Android's activity changes. Both kept 40 days (the riding filter re-reads days the app missed). */
   private fun ensureMovementTables(db: SQLiteDatabase) {
     if (db.isReadOnly) return
     db.execSQL(
@@ -105,7 +105,7 @@ class StepStore(context: Context) :
     return result
   }
 
-  /** Saves a result's changes in one transaction and drops what is over 10 days old. */
+  /** Saves a result's changes in one transaction and drops what is over 40 days old. */
   fun addActivityTransitions(rows: List<Transition>) {
     val db = writableDatabase
     db.beginTransaction()
@@ -623,6 +623,11 @@ class StepStore(context: Context) :
     const val WALK_ID = "walkId"
     /** When Google's step recorder first started recording for this app (epoch ms); 0 when not in use. */
     const val RECORDER_SINCE = "recorderSince"
+    /** T18c: steps the app took out of a day as riding (REMOVED_STEPS), and that day's start (REMOVED_DAY). */
+    const val REMOVED_DAY = "removedDay"
+    const val REMOVED_STEPS = "removedSteps"
+    /** The part of REMOVED_STEPS that Google's recorder had saved (the notification's recorder total holds only those). */
+    const val REMOVED_RECORDED = "removedRecorded"
     private const val INSTALL = "install"
 
     /** The recording: 1 = ride, 0 = walk. */
@@ -644,8 +649,8 @@ class StepStore(context: Context) :
     private val WALK_TABLES = listOf("walk_steps", "walk_pressure", "walk_activity", "walk_mode")
     private val MOVEMENT_TABLES = listOf("movement_minutes", "activity_transitions")
 
-    /** The movement figures and activity changes are kept 10 days. */
-    private const val KEEP_MINUTES = 10L * 24 * 60
+    /** The movement figures and activity changes are kept 40 days: a day re-read later is filtered the same way. */
+    private const val KEEP_MINUTES = 40L * 24 * 60
 
     @Volatile private var instance: StepStore? = null
 

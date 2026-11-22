@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 
+import { startOfDay } from '@/lib/dates';
+
 import { StepCounter } from '../../modules/step-counter';
 import { hourStart, loadHourMinutes, type MinuteRow } from './minute-detail';
+import { phoneWindow } from './phone-steps';
 
 export interface HourMinutes {
   rows: MinuteRow[];
@@ -19,7 +22,13 @@ export function useHourMinutes(hour: number | null, refreshKey: unknown): HourMi
   useEffect(() => {
     if (hour === null || !StepCounter) return;
     let live = true;
-    loadHourMinutes(StepCounter, hourStart(hour))
+    const counter = StepCounter;
+    // Marked as the day was filtered, so a minute near the hour's edge reads the same as in the day's total.
+    const dayRemoved = () => {
+      const now = Date.now();
+      return phoneWindow(counter, startOfDay(new Date(now)).getTime(), now, now).then((w) => w.removed);
+    };
+    loadHourMinutes(counter, hourStart(hour), dayRemoved)
       .then((rows) => live && setState({ rows, loading: false, hour }))
       .catch(() => live && setState({ rows: [], loading: false, hour }));
     return () => {

@@ -49,6 +49,17 @@ class StepCounterModule : Module() {
       runCatching { StepStore.get(context).activityTransitions(startMs.toLong(), endMs.toLong()) }.getOrDefault(emptyList())
     }
 
+    // T18c: the app takes riding out of today; the notification subtracts the same steps.
+    AsyncFunction("setRemovedSteps") { dayStartMs: Double, steps: Double, recorded: Double ->
+      runCatching {
+        val store = StepStore.get(context)
+        store.setState(StepStore.REMOVED_STEPS, maxOf(0L, steps.toLong()))
+        store.setState(StepStore.REMOVED_RECORDED, maxOf(0L, recorded.toLong()))
+        store.setState(StepStore.REMOVED_DAY, dayStartMs.toLong())
+      }
+      Unit
+    }
+
     AsyncFunction("getLog") { limit: Int -> StepStore.get(context).logEntries(limit) }
 
     AsyncFunction("clear") { StepStore.get(context).clear() }

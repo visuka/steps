@@ -108,10 +108,15 @@ interface StepCounterNative {
   getBuckets(startMs: number, endMs: number): Promise<MinuteBucket[]>;
   /** The app's own counter: untimed stretches overlapping [startMs, endMs). */
   getUntimed(startMs: number, endMs: number): Promise<UntimedSteps[]>;
-  /** Minute figures from the accelerometer bursts, for the minutes that start in [startMs, endMs). Kept 10 days. */
+  /** Minute figures from the accelerometer bursts, for the minutes that start in [startMs, endMs). Kept 40 days. */
   getMinuteFeatures(startMs: number, endMs: number): Promise<MinuteFeature[]>;
-  /** Android's activity changes in [startMs, endMs], oldest first. Kept 10 days. */
+  /** Android's activity changes in [startMs, endMs], oldest first. Kept 40 days. */
   getActivityTransitions(startMs: number, endMs: number): Promise<ActivityTransition[]>;
+  /**
+   * Steps the app took out of the day starting at dayStartMs as riding, and the part of them from Google's
+   * recorder; the notification subtracts them. Missing on older builds.
+   */
+  setRemovedSteps?(dayStartMs: number, steps: number, recorded: number): Promise<void>;
   /** What the counter and recorder did lately, newest first (for the Step check screen). */
   getLog(limit: number): Promise<CounterLogEntry[]>;
   clear(): Promise<void>;

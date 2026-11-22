@@ -35,6 +35,8 @@ export interface StepSource {
    * steps before it are already counted.
    */
   lastRecordedAt?(start: Date, end: Date): Promise<number | null>;
+  /** Steps the source took out of the window as riding, not walking (step-filter.ts). */
+  removedSteps?(start: Date, end: Date): Promise<number>;
   /** Platform-measured distance; null when the platform has none (the app then uses stride). */
   getDistanceM(start: Date, end: Date): Promise<number | null>;
   getFloors(start: Date, end: Date): Promise<number | null>;

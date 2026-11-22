@@ -1,6 +1,6 @@
 import { PermissionsAndroid, Platform } from 'react-native';
 
-import { addDays, dayKey, parseDayKey } from '@/lib/dates';
+import { addDays, dayKey, parseDayKey, startOfDay } from '@/lib/dates';
 
 import { StepCounter } from '../../modules/step-counter';
 import { type PhoneWindow, phoneWindow, rebucket } from './phone-steps';
@@ -12,12 +12,22 @@ const MINUTE = 60_000;
 let lastRead: { key: string; at: number; result: Promise<PhoneWindow> } | null = null;
 
 function windowSteps(startMs: number, endMs: number): Promise<PhoneWindow> {
-  if (!StepCounter) return Promise.resolve({ minutes: [], untimed: 0 });
+  if (!StepCounter) return Promise.resolve({ minutes: [], untimed: 0, removed: [], recorderFrom: endMs, recorderUntil: endMs });
   const key = `${startMs}|${endMs}`;
   const now = Date.now();
   if (lastRead?.key === key && now - lastRead.at < 10_000) return lastRead.result;
   const result = phoneWindow(StepCounter, startMs, endMs, now);
   lastRead = { key, at: now, result };
+  // The notification counts on its own; it takes out what the app took out of today.
+  if (startMs === startOfDay(new Date(now)).getTime()) {
+    result
+      .then((w) => {
+        const sum = (ms: typeof w.removed) => ms.reduce((s, m) => s + m.steps, 0);
+        const recorded = w.removed.filter((m) => m.start >= w.recorderFrom && m.start < w.recorderUntil);
+        return StepCounter?.setRemovedSteps?.(startMs, sum(w.removed), sum(recorded));
+      })
+      .catch(() => undefined);
+  }
   result.catch(() => {
     if (lastRead?.result === result) lastRead = null;
   });
@@ -67,6 +77,16 @@ export const deviceSensorSource: StepSource = {
 
   async getUntimedSteps(start, end) {
     return (await windowSteps(start.getTime(), end.getTime())).untimed;
+  },
+
+  async lastRecordedAt(start, end) {
+    // Riding minutes are counted (as nothing), so the live number mustn't add them back while the app is open.
+    const last = (await windowSteps(start.getTime(), end.getTime())).removed.reduce((t, m) => Math.max(t, m.start), -Infinity);
+    return last === -Infinity ? null : Math.min(last + MINUTE, end.getTime());
+  },
+
+  async removedSteps(start, end) {
+    return (await windowSteps(start.getTime(), end.getTime())).removed.reduce((s, m) => s + m.steps, 0);
   },
 
   async getDistanceM() {

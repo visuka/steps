@@ -29,6 +29,8 @@ export interface SyncResult {
    * minute with steps, or the start of the day. Live steps after it aren't in `today` yet.
    */
   coveredUntil: number;
+  /** Steps the source took out of today as riding (step-filter.ts). */
+  removedToday: number;
   stepsLastWindow: number;
   achievements: Achievement[];
 }
@@ -39,16 +41,17 @@ async function syncDay(
   profile: Profile,
   day: Date,
   now: Date,
-): Promise<{ summary: DaySummary; buckets: { start: number; steps: number }[]; coveredUntil: number }> {
+): Promise<{ summary: DaySummary; buckets: { start: number; steps: number }[]; coveredUntil: number; removed: number }> {
   const start = startOfDay(day);
   const end = new Date(Math.min(addDays(start, 1).getTime(), now.getTime()));
   const key = dayKey(start);
   const isToday = key === dayKey(now);
 
-  const [buckets, untimed, lastRecordAt, platformDistance, floors, existing] = await Promise.all([
+  const [buckets, untimed, lastRecordAt, removed, platformDistance, floors, existing] = await Promise.all([
     source.getStepBuckets(start, end, 1),
     source.getUntimedSteps?.(start, end) ?? 0,
     source.lastRecordedAt?.(start, end) ?? null,
+    source.removedSteps?.(start, end) ?? 0,
     source.getDistanceM(start, end),
     source.getFloors(start, end),
     repo.getDay(key),
@@ -60,7 +63,7 @@ async function syncDay(
   // A source that has nothing for a day (it only started recording since, say)
   // doesn't wipe out what another source counted for it.
   if (metrics.steps === 0 && existing && existing.steps > 0 && existing.source !== source.id) {
-    return { summary: existing, buckets, coveredUntil };
+    return { summary: existing, buckets, coveredUntil, removed };
   }
 
   const summary: DaySummary = {
@@ -80,7 +83,7 @@ async function syncDay(
     updatedAt: now.getTime(),
   };
   await repo.upsertDay(summary, metrics.hourly);
-  return { summary, buckets, coveredUntil };
+  return { summary, buckets, coveredUntil, removed };
 }
 
 /**
@@ -186,6 +189,7 @@ export async function syncRecent(
 ): Promise<SyncResult> {
   let today: DaySummary | null = null;
   let coveredUntil = startOfDay(now).getTime();
+  let removedToday = 0;
   let stepsLastWindow = 0;
   const windowStart = now.getTime() - REMINDER_WINDOW_MIN * 60_000;
   for (let i = days - 1; i >= 0; i--) {
@@ -193,12 +197,13 @@ export async function syncRecent(
     if (i === 0) {
       today = day.summary;
       coveredUntil = day.coveredUntil;
+      removedToday = day.removed;
       stepsLastWindow = day.buckets.filter((b) => b.start >= windowStart).reduce((sum, b) => sum + b.steps, 0);
     }
   }
 
   const achievements = await awardAchievements(repo, now);
-  return { today: today!, coveredUntil, stepsLastWindow, achievements };
+  return { today: today!, coveredUntil, removedToday, stepsLastWindow, achievements };
 }
 
 async function awardAchievements(repo: Repository, now: Date): Promise<Achievement[]> {

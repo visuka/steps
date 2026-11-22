@@ -8,8 +8,8 @@ import { ThemedText } from '@/components/themed-text';
 import { Button, Card, Screen, SectionHeader, Surface } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
-import { activityLabel, featuresText, type MinuteRow, minuteTime } from '@/health/minute-detail';
-import { phoneSplit } from '@/health/phone-steps';
+import { activityLabel, featuresText, type MinuteRow, minuteTime, removedText } from '@/health/minute-detail';
+import { phoneSplit, phoneWindow } from '@/health/phone-steps';
 import { useHourMinutes } from '@/health/use-hour-minutes';
 import { useTheme } from '@/hooks/use-theme';
 import { addDays, startOfDay } from '@/lib/dates';
@@ -28,7 +28,7 @@ const RECORDER_TEXT: Record<RecorderStatus, string> = {
 };
 
 const BY_HOUR_WHY =
-  'Google’s recorder keeps the time of every step. The app’s own counter only knows them while it runs; steps from while it was stopped are listed under "No known time" instead. Tap an hour to see its minutes: both counters, how regular the steps were, forward push and braking, speed gained and buzz from a short movement reading, and what Android thought you were doing. Nothing is removed from any count.';
+  'Google’s recorder keeps the time of every step. The app’s own counter only knows them while it runs; steps from while it was stopped are listed under "No known time" instead. Tap an hour to see its minutes: both counters, how regular the steps were, forward push and braking, speed gained and buzz from a short movement reading, and what Android thought you were doing. Minutes that look like riding a bike, scooter, car or bus are taken out of the day and marked "Taken out".';
 
 interface Check {
   recorder: RecorderStatus | null;
@@ -40,20 +40,23 @@ interface Check {
   /** Where Google's recorder takes over: the counter's gaps after it are in the recorder, with times. */
   split: number;
   log: CounterLogEntry[];
+  /** Today's steps taken out as riding (step-filter.ts). */
+  removed: number;
 }
 
 async function readCheck(): Promise<Check> {
   if (!StepCounter) {
-    return { recorder: null, recorderSince: null, counterRunning: null, hours: [], untimed: [], split: Infinity, log: [] };
+    return { recorder: null, recorderSince: null, counterRunning: null, hours: [], untimed: [], split: Infinity, log: [], removed: 0 };
   }
   const now = Date.now();
   const dayStart = startOfDay(new Date()).getTime();
   const recorder = StepCounter.recorderStatus();
-  const [counted, recorded, untimed, log] = await Promise.all([
+  const [counted, recorded, untimed, log, window] = await Promise.all([
     StepCounter.getBuckets(dayStart, now),
     recorder === 'ready' ? StepCounter.getRecorderBuckets(dayStart, now).catch(() => []) : Promise.resolve([]),
     StepCounter.getUntimed(addDays(new Date(dayStart), -1).getTime(), now),
     StepCounter.getLog(40),
+    phoneWindow(StepCounter, dayStart, now, now).catch(() => null),
   ]);
   const byHour = new Map<number, [number, number]>();
   for (const m of recorded) {
@@ -72,6 +75,7 @@ async function readCheck(): Promise<Check> {
     untimed,
     split: phoneSplit(StepCounter, now),
     log,
+    removed: window?.removed.reduce((s, m) => s + m.steps, 0) ?? 0,
   };
 }
 
@@ -113,6 +117,9 @@ export default function StepCheckScreen() {
           <Line label="Shown on Today" value={formatSteps(displaySteps)} strong />
           <Line label="Saved at the last sync" value={formatSteps(today?.steps ?? 0)} />
           <Line label="With no known time" value={formatSteps(today?.untimedSteps ?? 0)} />
+          {check && StepCounter ? (
+            <Line label="On a bike or vehicle, taken out" value={formatSteps(check.removed)} />
+          ) : null}
           <Line label="Last sync" value={lastSyncAt ? time(lastSyncAt) : 'Not yet'} />
           <Line label="Source" value={source.label} />
           {check?.recorder ? <Line label="Google's step recorder" value={RECORDER_TEXT[check.recorder]} /> : null}
@@ -232,7 +239,7 @@ function Minutes({ rows, loading }: { rows: MinuteRow[]; loading: boolean }) {
           key={m.start}
           style={[styles.minute, { borderTopColor: theme.outlineVariant }]}
           accessible
-          accessibilityLabel={`${minuteTime(m.start)}. Recorder ${m.recorder ?? 'none'}, counter ${m.counter}. Android: ${activityLabel(m.activity)}. ${featuresText(m.features)}`}>
+          accessibilityLabel={`${minuteTime(m.start)}. Recorder ${m.recorder ?? 'none'}, counter ${m.counter}. ${removedText(m.removed) ?? 'Counted'}. Android: ${activityLabel(m.activity)}. ${featuresText(m.features)}`}>
           <View style={styles.minuteTop}>
             <ThemedText type="labelLarge" style={styles.hour}>
               {minuteTime(m.start)}
@@ -245,6 +252,7 @@ function Minutes({ rows, loading }: { rows: MinuteRow[]; loading: boolean }) {
             </ThemedText>
             <View style={styles.chevronSpace} />
           </View>
+          {m.removed ? <ThemedText type="labelMedium">{removedText(m.removed)}</ThemedText> : null}
           <ThemedText type="bodySmall" themeColor="onSurfaceVariant">
             Android: {activityLabel(m.activity)}
           </ThemedText>

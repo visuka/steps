@@ -41,6 +41,8 @@ export interface Shown {
   steps: number;
   /** The synced part of `steps` when it was shown. */
   synced: number;
+  /** Steps the source had taken out of the day as riding (step-filter.ts), when it was shown. */
+  removed?: number;
 }
 
 /**
@@ -58,10 +60,16 @@ export function stepsToShow(opts: {
   coveredUntil: number;
   samples: LiveSample[];
   previous: Shown | null;
+  /** Steps the source has taken out of the day as riding. */
+  removed?: number;
 }): Shown {
   const steps = opts.synced + liveStepsSince(opts.samples, opts.coveredUntil);
   const prev = opts.previous?.date === opts.date ? opts.previous : null;
   const corrected = prev !== null && opts.synced < prev.synced - HOLD_BACK_STEPS;
-  const held = prev !== null && steps < prev.steps && !corrected;
-  return { date: opts.date, synced: opts.synced, steps: held ? prev.steps : steps };
+  // The source took more out as riding since (step-filter.ts): live steps the sensor added were bumps, so the lower number is right.
+  const leftOut = prev !== null && (opts.removed ?? 0) > (prev.removed ?? 0);
+  const held = prev !== null && steps < prev.steps && !corrected && !leftOut;
+  const shown: Shown = { date: opts.date, synced: opts.synced, steps: held ? prev.steps : steps };
+  if (opts.removed) shown.removed = opts.removed;
+  return shown;
 }

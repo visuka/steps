@@ -2,15 +2,17 @@
  * One hour of today minute by minute, for the Step check screen (T18a):
  * the steps each counter saw, what the accelerometer burst of that minute
  * gave (movement-features.ts) and what Android said the person was doing.
- * Nothing here removes a step. Plain functions over the native calls, so
- * tests can pass a fake; the hook is use-hour-minutes.ts.
+ * Each minute also says whether the riding filter (step-filter.ts) took it
+ * out of the day. Plain functions over the native calls, so tests can pass a
+ * fake; the hook is use-hour-minutes.ts.
  */
 import type { ActivityTransition, MinuteBucket, MinuteFeature, RecorderStatus } from '../../modules/step-counter';
+import { ACTIVITY_LOOKBACK_MS, activityAt, filterRiding, type RemovedMinute, RIDE_TEXT, type RideKind } from './step-filter';
+
+export { activityAt };
 
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
-/** Android's last change can be hours old, so the activity is looked up this far back. */
-const ACTIVITY_LOOKBACK_MS = 6 * HOUR;
 
 /** The native calls this needs; a fake in tests. */
 export interface HourSource {
@@ -32,22 +34,13 @@ export interface MinuteRow {
   features: MinuteFeature | null;
   /** What Android said (walking, running, bicycle, vehicle, still), or null when it said nothing yet. */
   activity: string | null;
+  /** Taken out of the day as riding, and which kind; null when the steps count. */
+  removed: RideKind | null;
 }
 
 /** Start (epoch ms) of an hour of the day on the day of `day`. */
 export function hourStart(hour: number, day: Date = new Date()): number {
   return new Date(day.getFullYear(), day.getMonth(), day.getDate(), hour).getTime();
-}
-
-/** What Android said the person was doing at `at`: the last activity entered and not left since. */
-export function activityAt(transitions: ActivityTransition[], at: number): string | null {
-  let current: string | null = null;
-  for (const tr of [...transitions].sort((a, b) => a.t - b.t)) {
-    if (tr.t > at) break;
-    if (tr.enter) current = tr.activity;
-    else if (current === tr.activity) current = null;
-  }
-  return current;
 }
 
 const ACTIVITY_TEXT: Record<string, string> = {
@@ -70,6 +63,8 @@ export function buildMinuteRows(
   recorded: MinuteBucket[] | null,
   features: MinuteFeature[],
   transitions: ActivityTransition[],
+  /** What the day's filter took out (phoneWindow over the whole day); without it the hour is filtered on its own. */
+  dayRemoved?: RemovedMinute[],
 ): MinuteRow[] {
   const end = hourStartMs + HOUR;
   const inHour = (ms: number) => ms >= hourStartMs && ms < end;
@@ -92,15 +87,23 @@ export function buildMinuteRows(
     burst.set(f.start, f);
     starts.add(f.start);
   }
-  return [...starts]
-    .sort((a, b) => a - b)
-    .map((start) => ({
-      start,
-      recorder: recorded ? (recorder.get(start) ?? 0) : null,
-      counter: counter.get(start) ?? 0,
-      features: burst.get(start) ?? null,
-      activity: activityAt(transitions, start + MINUTE / 2),
-    }));
+  const sorted = [...starts].sort((a, b) => a - b);
+  // The day counts the recorder's steps where it has them, as phone-steps.ts does.
+  const dayMinutes = sorted.map((start) => ({ start, steps: recorded ? (recorder.get(start) ?? counter.get(start) ?? 0) : (counter.get(start) ?? 0) }));
+  const out = new Map((dayRemoved ?? filterRiding(dayMinutes, features, transitions).removed).map((m) => [m.start, m.kind]));
+  return sorted.map((start) => ({
+    start,
+    recorder: recorded ? (recorder.get(start) ?? 0) : null,
+    counter: counter.get(start) ?? 0,
+    features: burst.get(start) ?? null,
+    activity: activityAt(transitions, start + MINUTE / 2),
+    removed: out.get(start) ?? null,
+  }));
+}
+
+/** "Taken out: in a vehicle", or null when the minute counts. */
+export function removedText(removed: RideKind | null): string | null {
+  return removed ? `Taken out: ${RIDE_TEXT[removed].toLowerCase()}` : null;
 }
 
 /** A call that may be missing (an older build) or fail: no rows then, never an error. */
@@ -112,17 +115,22 @@ async function orEmpty<T>(call: () => Promise<T[]>): Promise<T[]> {
   }
 }
 
-/** Reads one hour from the native counters. */
-export async function loadHourMinutes(source: HourSource, hourStartMs: number): Promise<MinuteRow[]> {
+/** Reads one hour from the native counters; `dayRemoved` gives what the day's filter took out, when it can be read. */
+export async function loadHourMinutes(
+  source: HourSource,
+  hourStartMs: number,
+  dayRemoved?: () => Promise<RemovedMinute[]>,
+): Promise<MinuteRow[]> {
   const end = hourStartMs + HOUR;
   const hasRecorder = source.recorderStatus() === 'ready';
-  const [counted, recorded, features, transitions] = await Promise.all([
+  const [counted, recorded, features, transitions, removed] = await Promise.all([
     orEmpty(() => source.getBuckets(hourStartMs, end)),
     hasRecorder ? orEmpty(() => source.getRecorderBuckets(hourStartMs, end)) : Promise.resolve(null),
     orEmpty(() => source.getMinuteFeatures(hourStartMs, end)),
     orEmpty(() => source.getActivityTransitions(hourStartMs - ACTIVITY_LOOKBACK_MS, end)),
+    dayRemoved ? dayRemoved().catch(() => undefined) : Promise.resolve(undefined),
   ]);
-  return buildMinuteRows(hourStartMs, counted, recorded, features, transitions);
+  return buildMinuteRows(hourStartMs, counted, recorded, features, transitions, removed);
 }
 
 // ── words for the rows ──────────────────────────────────────────────────
