@@ -479,7 +479,7 @@ Applied to: messages, handles, display names, club name, area and about, family 
 ### 5.6 Legal contacts (IT Rules 2021, Apple 1.2, Google)
 
 - A Grievance Officer: name and email on `neutcrafts.in/steps/grievance` and in the app (Buddies settings → "Complaints"). Values in `src/constants/app.ts` as `GRIEVANCE = { name, email, url }` (owner question 3).
-- Grievance Officer (owner, 15 Nov 2026): the company director, or the owner; either may be named because Steps is not a "significant" intermediary (that needs 50 lakh+ users in India). Use a role email `grievance@neutcrafts.in` so the person can change later without an app update.
+- Grievance Officer (owner, 15 Nov 2026): the company director, or the owner; either may be named because Steps is not a "significant" intermediary (that needs 50 lakh+ users in India). Email `support@neutcrafts.in` (owner, 23 Nov 2026), a shared address, so the person can change later without an app update.
 - Complaint times, IT Rules 2021 as amended by G.S.R. 120(E), in force 20 Feb 2026 (checked 15 Nov 2026 against law-firm summaries and the MeitY FAQ; the lawyer confirms the gazette text):
   - acknowledge a complaint within 24 h (automatic, 5.1);
   - complaints asking to remove prohibited content: act within 36 h (was 72 h);
@@ -856,7 +856,7 @@ Order: T16a (code) → T16b → T16c → T16d → T16e → T16f → T16g → T16
 
 - **No names, only handles.** Nobody sees another person's name anywhere (buddies, clubs, chat, plans, family, pushes). The `name` field is dropped; people are shown by handle (`pid` inside the app).
 - **Anything that risks privacy is left out** of the test build; the rest is built.
-- **Grievance Officer: Sathyavathi Katuri** (email `grievance@neutcrafts.in`). Other legal work waits until after testing.
+- **Grievance Officer: Sathyavathi Katuri** (email `support@neutcrafts.in`, owner 23 Nov 2026). Other legal work waits until after testing.
 - **A banned person can still see their own data** and can still ask to join other groups.
 - **Nearby walkers and Walker family are kept**, each turned on only with the person's own consent (owner: consent removes the privacy risk).
 - **A ban means removed from that one club only**; the person keeps everything else.
