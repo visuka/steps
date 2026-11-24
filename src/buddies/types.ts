@@ -109,6 +109,8 @@ export interface ClubCard {
   goals: boolean;
   /** The captain (the server's owner), for display; null when the server didn't say. */
   captain: Walker | null;
+  /** My role, when the server says it on a card (GET /clubs/mine); left out otherwise. */
+  myRole?: ClubRole | null;
 }
 
 export interface Club extends ClubCard {

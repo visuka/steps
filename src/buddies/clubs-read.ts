@@ -41,14 +41,18 @@ export function readClubCard(v: unknown): ClubCard {
   const clubId = str(v.clubId, 40);
   const name = str(v.name, 80);
   if (!clubId || !CLUB_ID.test(clubId) || !name) bad();
+  const myState = STATES.includes(v.myState as ClubState) ? (v.myState as ClubState) : 'none';
+  // My role only for a member, and only when the server said a known one.
+  const myRole = myState === 'member' ? role(v.myRole) : null;
   return {
     clubId,
     name,
     area: str(v.area, 80) ?? '',
     memberCount: Math.max(0, Math.round(num(v.memberCount))),
-    myState: STATES.includes(v.myState as ClubState) ? (v.myState as ClubState) : 'none',
+    myState,
     goals: v.goals === true,
     captain: walkerOrNull(v.captain),
+    ...(myRole ? { myRole } : {}),
   };
 }
 

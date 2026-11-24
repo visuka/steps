@@ -364,7 +364,13 @@ export const SAMPLE_SOCIAL_API: SocialApi = {
   report: ok,
 
   searchClubs: async () => [cardOf(KBR), cardOf(NRS), { ...cardOf(JHE), myState: 'asked' }],
-  myClubs: async () => [cardOf(KBR), { ...cardOf(JHE), myState: 'member' }, cardOf(HPW), cardOf(SRN)],
+  // GET /clubs/mine with my role on each card: Captain (KBR), Vice-captain (JHE), Member (HPW, SRN).
+  myClubs: async () => [
+    { ...cardOf(KBR), myRole: 'owner' },
+    { ...cardOf(JHE), myState: 'member', myRole: 'admin' },
+    { ...cardOf(HPW), myRole: 'member' },
+    { ...cardOf(SRN), myRole: 'member' },
+  ],
   club: async (id) =>
     id === SAMPLE_GOALS_CLUB_ID
       ? { club: NRS, members: [] }

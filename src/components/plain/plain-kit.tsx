@@ -251,6 +251,9 @@ const BTN: Record<BtnKind, { bg: string; ink: string }> = {
 };
 
 /** A small pill button: 13 semibold, 8 × 16 padding, radius 18. */
+/** The pill is about 32 tall (27 on the smallest scale); 11 above and below keeps the tap area at 48 or more. */
+const BTN_SLOP = { top: 11, bottom: 11, left: 6, right: 6 };
+
 export function Btn({ text, kind = 'chip', onPress, label }: { text: string; kind?: BtnKind; onPress: () => void; label?: string }) {
   const b = BTN[kind];
   return (
@@ -258,7 +261,7 @@ export function Btn({ text, kind = 'chip', onPress, label }: { text: string; kin
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label ?? text}
-      hitSlop={6}
+      hitSlop={BTN_SLOP}
       android_ripple={{ color: PLAIN.ripple, foreground: true }}
       style={[styles.btn, { backgroundColor: b.bg }]}>
       <Words size={13} weight={600} color={b.ink} line={16} lines={1}>

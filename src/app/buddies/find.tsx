@@ -162,6 +162,7 @@ export default function FindWalkers() {
       <Screen title="Find walkers" onBack={back} overlay={<Snackbar message={snack} onDismiss={dismiss} />}>
         <TextField label="Walker ID" value={q} onChangeText={setQ} placeholder="Walker ID, e.g. ravi_walks" maxLength={24} plain onSubmit={search} returnKeyType="search" />
         <Button label="Search" icon="search-outline" onPress={search} loading={busy} disabled={!q.trim() || busy} style={styles.gap} />
+        <Button label="Scan a QR code" icon="qr-code-outline" variant="secondary" onPress={() => router.push('/buddies/scan' as never)} style={styles.gap} accessibilityLabel="Scan a friend's QR code" />
         {found ? (
           <Surface level={1} style={styles.list}>
             <PersonRow walker={found} trailing={action(found)} last />

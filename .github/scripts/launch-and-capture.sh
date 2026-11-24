@@ -169,11 +169,18 @@ for seg in chat walks goals board; do
 done
 capture e club-admin smoke/clean-club-admin.png '&id=KBR000000001' && more smoke/clean-club-admin
 capture e club-join smoke/clean-club-join.png '&id=NRS000000002' && more smoke/clean-club-join
+# A club as a visitor (Ask to join) and as someone invited (Join, Decline), and Edit club.
+capture e club smoke/clean-club-visitor.png '&id=NRS000000002' && more smoke/clean-club-visitor
+capture e club smoke/clean-club-invited.png '&id=JHE000000003' && more smoke/clean-club-invited
+capture e club-new smoke/clean-club-edit.png '&id=KBR000000001' && more smoke/clean-club-edit
 # Walk plans (T16e): a walk I planned, one I'm invited to, Plan a walk, and its safety tips.
 capture e plan smoke/clean-plan.png '&id=PLN000000001' && more smoke/clean-plan
 capture e plan smoke/clean-plan-invited.png '&id=PLN000000002' && more smoke/clean-plan-invited
 capture e plan-new smoke/clean-plan-new.png && more smoke/clean-plan-new
 capture e plan-new smoke/clean-plan-tips.png '&tips=1' tips
+# Change a walk I planned, and Plan a walk opened from a club (a club walk).
+capture e plan-new smoke/clean-plan-change.png '&id=PLN000000001' && more smoke/clean-plan-change
+capture e plan-new smoke/clean-plan-club.png '&club=KBR000000001' && more smoke/clean-plan-club
 # QR invites: My QR over Buddies, the scanner's camera ask, a club's card from its code,
 # the Club QR in running a club, and the goals consent for a club found by its code.
 capture e buddies-qr smoke/clean-buddies-qr.png
@@ -212,6 +219,9 @@ capture e goal smoke/clean-goal-360dp.png '&id=KBR000000001&goalId=GL0000000001'
 capture e goal-new smoke/clean-goal-new-360dp.png '&id=KBR000000001' && more smoke/clean-goal-new-360dp
 capture e goal-new smoke/clean-goal-edit-360dp.png '&id=KBR000000001&goal=GL0000000003' && more smoke/clean-goal-edit-360dp
 capture e my-goals smoke/clean-my-goals-360dp.png && more smoke/clean-my-goals-360dp
+capture e club smoke/clean-club-visitor-360dp.png '&id=NRS000000002' && more smoke/clean-club-visitor-360dp
+capture e find smoke/clean-find-360dp.png && more smoke/clean-find-360dp
+capture e requests smoke/clean-requests-360dp.png && more smoke/clean-requests-360dp
 adb shell settings put system font_scale 1.0
 adb shell wm density 420
 # The long screens CI already photographs, the rest of the way down.

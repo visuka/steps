@@ -41,6 +41,14 @@ describe('club cards', () => {
     expect(c.area).toBe('');
   });
 
+  it("reads my role on a card only for a member and a known role (GET /clubs/mine)", () => {
+    expect(readClubCard({ ...card, myRole: 'admin' }).myRole).toBe('admin');
+    expect(readClubCard({ ...card, myRole: 'boss' })).not.toHaveProperty('myRole');
+    expect(readClubCard({ ...card, myState: 'asked', myRole: 'owner' })).not.toHaveProperty('myRole');
+    expect(readClubCard(card)).not.toHaveProperty('myRole');
+    expect(readClubs({ clubs: [{ ...card, myRole: 'owner' }] })[0].myRole).toBe('owner');
+  });
+
   it('refuses a card without an id or a name, or a bad id', () => {
     expect(() => readClubCard({ name: 'KBR' })).toThrow();
     expect(() => readClubCard({ clubId: 'KBR000000001' })).toThrow();

@@ -115,6 +115,24 @@ export function stateWord(c: Pick<ClubCard, 'myState'>): string {
   }
 }
 
+/**
+ * My role on a club card: what the server said (GET /clubs/mine may send myRole), else
+ * Captain when the card's captain is me; null when it is not known or I am not a member.
+ */
+export function cardRole(c: Pick<ClubCard, 'myState' | 'myRole' | 'captain'>): ClubRole | null {
+  if (c.myState !== 'member') return null;
+  if (c.myRole) return c.myRole;
+  return c.captain?.relation === 'self' ? 'owner' : null;
+}
+
+/** Buddies home, a club row's right side: Captain, Vice-captain or Member, or Asked / Invited; '' when not known. */
+export function standWordOf(c: Pick<ClubCard, 'myState' | 'myRole' | 'captain'>): string {
+  if (c.myState === 'asked') return 'Asked';
+  if (c.myState === 'invited') return 'Invited';
+  const r = cardRole(c);
+  return r ? ROLE_WORD[r] : '';
+}
+
 export const NAME_MIN = 3;
 export const NAME_MAX = 40;
 export const AREA_MAX = 40;

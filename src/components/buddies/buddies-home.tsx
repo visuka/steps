@@ -3,7 +3,9 @@
  * mock is plain.html?s=m&k=1&ic=1&icx=1). Not joined yet → the sign-up form
  * (walker ID, the name buddies see, 18+ and the rules). Joined → Chats in the
  * sage tile, Requests (sand) and Find walkers, Buddies, your walker ID with
- * Share, My QR and Scan, and what comes next. Every chat, buddy and request opens as before.
+ * Share, My QR and Scan, Clubs (my role and one goal line each), Planned walks
+ * (the next walks first, and Plan a walk), and My goals once a club counts
+ * mine. Every chat, buddy and request opens as before.
  */
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -19,7 +21,7 @@ import { displayName } from '@/buddies/read';
 import type { BuddyRow, ChatRow, SocialMe } from '@/buddies/types';
 import { attempt, useLoad, useSocialApi, useSocialMe } from '@/buddies/use-buddies';
 import { useMyClubs, useStepsShare } from '@/buddies/use-clubs';
-import { digestWords } from '@/buddies/goals';
+import { clubGoalWords, digestWords } from '@/buddies/goals';
 import { useGoalsAuto, useGoalsDigest } from '@/buddies/use-goals';
 import { upcoming } from '@/buddies/plans';
 import { usePlans } from '@/buddies/use-plans';
@@ -133,6 +135,8 @@ function Joined({ me, refreshMe, openQr }: { me: Extract<SocialMe, { joined: tru
   useGoalsAuto();
   const goals = useGoalsDigest(clubs.data);
   const goalsLine = digestWords(goals.digest, goals.clubs);
+  const goalLines: Record<string, string | null> = {};
+  for (const [id, g] of Object.entries(goals.byClub ?? {})) goalLines[id] = clubGoalWords(g, goals.today);
   const { snack, show, dismiss } = useSnack();
   const [later, setLater] = useState(false);
   // When the chats last came in, for "Updated 2 min ago" (set as they arrive, not in an effect).
@@ -144,6 +148,7 @@ function Joined({ me, refreshMe, openQr }: { me: Extract<SocialMe, { joined: tru
   }
 
   const refresh = async () => {
+    goals.refresh();
     await Promise.all([refreshMe(), chats.refresh(), buddies.refresh(), requests.refresh(), clubs.refresh(), plans.refresh()]);
   };
 
@@ -243,6 +248,7 @@ function Joined({ me, refreshMe, openQr }: { me: Extract<SocialMe, { joined: tru
         clubs={clubs.data}
         error={clubs.error}
         asking={me.counts.clubRequests}
+        goalLines={goalLines}
         onOpen={(c) => router.push({ pathname: '/buddies/club/[id]', params: { id: c.clubId } } as never)}
         onFind={() => router.push('/buddies/clubs' as never)}
         onStart={() => router.push('/buddies/club/new' as never)}
@@ -256,12 +262,15 @@ function Joined({ me, refreshMe, openQr }: { me: Extract<SocialMe, { joined: tru
         onPlan={() => router.push('/buddies/plan/new' as never)}
       />
 
-      <Tile style={[ps.spread, { paddingTop: S(12), paddingBottom: S(12) }]} onPress={() => router.push('/buddies/goals' as never)} label={`My goals, ${goalsLine}`}>
-        <Label icon="check" text="My goals" />
-        <Note style={{ marginTop: 0 }} lines={1}>
-          {goalsLine}
-        </Note>
-      </Tile>
+      {/* My goals, once a club counts my goals (I said yes to goal tracking there). */}
+      {goals.tracked ? (
+        <Tile style={[ps.spread, { paddingTop: S(12), paddingBottom: S(12) }]} onPress={() => router.push('/buddies/goals' as never)} label={`My goals, ${goalsLine}`}>
+          <Label icon="check" text="My goals" />
+          <Note style={{ marginTop: 0 }} lines={1}>
+            {goalsLine}
+          </Note>
+        </Tile>
+      ) : null}
 
       <SyncLine text={loadedAt ? `Updated ${minutesAgo(loadedAt)}` : 'Updating…'} />
     </PlainPage>

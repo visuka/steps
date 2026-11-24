@@ -4,6 +4,7 @@ import {
   boardRows,
   can,
   canRemove,
+  cardRole,
   clubErrorText,
   clubLine,
   clubProblem,
@@ -13,6 +14,7 @@ import {
   roleChange,
   searchReady,
   sortMembers,
+  standWordOf,
   stateWord,
 } from '../clubs';
 import { SocialError } from '../read';
@@ -35,6 +37,19 @@ describe('roles', () => {
     expect(can('admin', 'setRole')).toBe(false);
     expect(can('member', 'leave')).toBe(true);
     expect(can(null, 'leave')).toBe(false);
+  });
+
+  it("shows my role on a home club row: the server's, else Captain when the captain is me", () => {
+    const base = { myState: 'member' as const, captain: w('1', 'ravi', 'Ravi', 'buddy') };
+    expect(cardRole({ ...base, myRole: 'admin' })).toBe('admin');
+    expect(standWordOf({ ...base, myRole: 'admin' })).toBe('Vice-captain');
+    expect(standWordOf({ ...base, myRole: 'member' })).toBe('Member');
+    expect(standWordOf({ ...base, captain: w('9', 'me', 'Me', 'self') })).toBe('Captain');
+    expect(cardRole(base)).toBeNull();
+    expect(standWordOf(base)).toBe('');
+    expect(standWordOf({ ...base, myState: 'asked', myRole: 'owner' })).toBe('Asked');
+    expect(standWordOf({ ...base, myState: 'invited' })).toBe('Invited');
+    expect(cardRole({ ...base, myState: 'none', myRole: 'owner' })).toBeNull();
   });
 
   it('sorts captain, vice-captains, then members by name', () => {

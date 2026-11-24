@@ -328,3 +328,13 @@ Not committed. No server or AWS change. Nothing is removed from any count.
 - New icons `pill` and `check` with their colours (docs/design.md). Wording stays neutral ("Not marked yet"), with no red.
 - Preview screens: goal, goal-new, my-goals, and club `&seg=goals` for HPW000000004 (member) and SRN000000005 (tracking off). The sample data now has these two clubs in My clubs. CI shots `smoke/clean-club-goals-*.png`, `clean-goal*.png` and `clean-my-goals*.png` include 360 dp shots with large text.
 - Checks: tsc, eslint and the whole jest suite. The emulator shots have not been reviewed yet, and the server is not deployed.
+
+## 24 Nov 2026 — Buddies home, last stage (clubs, walks, goals, QR)
+
+- Buddies home: the "Coming next" row was already the My goals tile (goals stage); nothing else moved. The Clubs tile now shows my role on each club (Captain, Vice-captain, Member; Asked / Invited as before) and, for a club with shared goals, one goal line ("1 of 3 goals done today", "No goals today", "Goal tracking is off"). Find a club and Start a club stay. Planned walks stays as the next-walk tile (soonest first, Plan a walk).
+- The My goals tile shows once a club counts my goals (I said yes to goal tracking). Pull to refresh reloads the goal lines.
+- Role on a club card: `GET /clubs/mine` may send `myRole` (read when present, tested); without it the app shows Captain only where the card's captain is me, and no word otherwise. Code: `cardRole`, `standWordOf` (clubs.ts), `clubGoalWords`, `trackedCount` (goals.ts), `useGoalsDigest` (byClub, tracked, refresh).
+- Find walkers: a "Scan a QR code" button under Search opens `/buddies/scan`. The walker ID tile already had My QR and Scan.
+- Plain `Btn` tap area is 48 dp or more (hitSlop 11 above and below); the look is unchanged.
+- Preview: new CI capture lines for the club as a visitor and as invited, Edit club, Change a walk, a club walk form, and 360 dp large-text shots of a club as a visitor, Find walkers and Requests. docs/walk-buddies.md section 10 marks T16e, T16f, QR and goals as built (app), and the new section 13 holds the goals and club QR contract, screens, retention and every preview link.
+- Checks: tsc, eslint and the whole jest suite. The emulator shots have not been reviewed yet (nothing pushed), and the server is not deployed.

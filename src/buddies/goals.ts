@@ -285,6 +285,24 @@ export function goalsDigest(list: { goals: { goals: Goal[]; tracked: boolean; mi
   return { done, due };
 }
 
+/**
+ * Buddies home, one club's goal line: "1 of 3 goals done today", "No goals today", or
+ * "Goal tracking is off" when I have not said yes in that club. Null while loading or
+ * when the club's goals could not be read (the row then shows no goal line).
+ */
+export function clubGoalWords(g: { goals: Goal[]; tracked: boolean; mine: GoalMark[] } | null | undefined, day: string): string | null {
+  if (!g) return null;
+  if (!g.tracked) return 'Goal tracking is off';
+  const { done, due } = goalsDigest([{ goals: g }], day);
+  if (!due) return 'No goals today';
+  return `${done} of ${due} ${due === 1 ? 'goal' : 'goals'} done today`;
+}
+
+/** How many of these clubs count my goals (I said yes to goal tracking there). */
+export function trackedCount(list: { goals: { tracked: boolean } | null }[]): number {
+  return list.filter((x) => x.goals?.tracked).length;
+}
+
 /** "2 of 5 done today", "No goals today", or what the tile says before any club has goals. */
 export function digestWords(d: { done: number; due: number } | null, clubs: number): string {
   if (!clubs) return 'Shared goals from your clubs';

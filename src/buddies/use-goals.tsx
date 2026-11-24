@@ -15,7 +15,7 @@ import { useApp } from '@/state/app-state';
 
 import { isStaff } from './clubs';
 import { applyMarks, autoMarks, type PhoneToday, readPhoneToday, runGoalsAuto } from './goals-auto';
-import { goalErrorText, goalsDigest, remindTargets } from './goals';
+import { goalErrorText, goalsDigest, remindTargets, trackedCount } from './goals';
 import type { GoalPatch } from './goals-api';
 import { notifyOf } from './read';
 import type { Club, ClubCard, ClubGoals, Goal, GoalForm, GoalSummaryRow, SocialMe } from './types';
@@ -326,22 +326,44 @@ export function useGoalsAuto() {
   );
 }
 
-/** The Buddies home tile's line: today's goals done across my clubs (from the clubs already loaded). */
+/**
+ * Buddies home: today's goals done across my clubs (from the clubs already loaded), each
+ * club's goals for its row's goal line, and how many clubs count my goals (the My goals
+ * tile shows only then). `refresh` reads them again (pull to refresh).
+ */
 export function useGoalsDigest(cards: Pick<ClubCard, 'clubId' | 'goals' | 'myState'>[] | null) {
   const api = useSocialApi();
   const today = useClock().today;
   const ids = (cards ?? []).filter((c) => c.goals && c.myState === 'member').map((c) => c.clubId);
   const key = ids.join(',');
-  const [digest, setDigest] = useState<{ done: number; due: number } | null>(null);
+  const [read, setRead] = useState<{ key: string; byClub: Record<string, ClubGoals | null> } | null>(null);
+  const [round, setRound] = useState(0);
   useEffect(() => {
     if (!key) return;
     let live = true;
-    Promise.all(key.split(',').map((id) => api.clubGoals(id, today).then((goals) => ({ goals }), () => ({ goals: null }))))
-      .then((list) => live && setDigest(goalsDigest(list, today)))
+    const list = key.split(',');
+    Promise.all(list.map((id) => api.clubGoals(id, today).then((goals) => goals, () => null)))
+      .then((got) => {
+        if (!live) return;
+        const byClub: Record<string, ClubGoals | null> = {};
+        list.forEach((id, i) => (byClub[id] = got[i]));
+        setRead({ key, byClub });
+      })
       .catch(() => undefined);
     return () => {
       live = false;
     };
-  }, [api, key, today]);
-  return { clubs: ids.length, digest: key ? digest : null };
+  }, [api, key, today, round]);
+  const byClub = read && read.key === key ? read.byClub : null;
+  const list = byClub ? Object.values(byClub).map((goals) => ({ goals })) : null;
+  const refresh = useCallback(() => setRound((r) => r + 1), []);
+  return {
+    clubs: ids.length,
+    digest: key && list ? goalsDigest(list, today) : null,
+    /** Each goals club's goals for today; null while loading, a club's null when it could not be read. */
+    byClub: key ? byClub : {},
+    tracked: list ? trackedCount(list) : 0,
+    today,
+    refresh,
+  };
 }

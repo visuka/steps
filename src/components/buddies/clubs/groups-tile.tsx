@@ -1,6 +1,7 @@
 /**
- * Buddies home, Groups (spec T16f): the clubs I am in, Find a club and
- * Start a club, in the plain tiles look. Planned walks is its own tile
+ * Buddies home, Groups (spec T16f): the clubs I am in (my role on the right,
+ * and for a club with shared goals one goal line), Find a club and Start a
+ * club, in the plain tiles look. Planned walks is its own tile
  * under it (plans/planned-walks-tile.tsx). Colours and sizes come from the
  * plain tokens and scaled() only.
  */
@@ -8,7 +9,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Btn, Caps, Label, Note, plainStyles as ps, Tile, Words } from '@/components/plain/plain-kit';
 import { PLAIN } from '@/components/plain/plain-theme';
-import { clubLine } from '@/buddies/clubs';
+import { clubLine, standWordOf } from '@/buddies/clubs';
 import type { ClubCard } from '@/buddies/types';
 import { scaled } from '@/constants/ui-scale';
 
@@ -18,6 +19,7 @@ export function GroupsTile({
   clubs,
   error,
   asking,
+  goalLines,
   onOpen,
   onFind,
   onStart,
@@ -27,6 +29,8 @@ export function GroupsTile({
   error: string | null;
   /** Walkers asking to join the clubs I run. */
   asking: number;
+  /** A club's goal line by clubId ("1 of 3 goals done today"); missing or null shows none. */
+  goalLines?: Record<string, string | null>;
   onOpen: (c: ClubCard) => void;
   onFind: () => void;
   onStart: () => void;
@@ -40,7 +44,7 @@ export function GroupsTile({
       {clubs && clubs.length === 0 ? (
         <Note style={{ marginTop: S(8) }}>Walk with a group. Find a club near you, or start your own.</Note>
       ) : (
-        (clubs ?? []).map((c) => <ClubLine key={c.clubId} c={c} onPress={() => onOpen(c)} />)
+        (clubs ?? []).map((c) => <ClubLine key={c.clubId} c={c} goal={goalLines?.[c.clubId] ?? null} onPress={() => onOpen(c)} />)
       )}
       {!clubs && !error ? <Note style={{ marginTop: S(8) }}>—</Note> : null}
       {error ? <Note style={{ marginTop: S(8) }}>{error}</Note> : null}
@@ -52,14 +56,15 @@ export function GroupsTile({
   );
 }
 
-/** One club: the initial, the name over "area · members", and where I stand. */
-function ClubLine({ c, onPress }: { c: ClubCard; onPress: () => void }) {
+/** One club: the initial, the name over "area · members" and its goal line, and my role or where I stand. */
+function ClubLine({ c, goal, onPress }: { c: ClubCard; goal: string | null; onPress: () => void }) {
   const line = clubLine(c);
+  const stand = standWordOf(c);
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${c.name}, ${line}`}
+      accessibilityLabel={[c.name, line, goal, stand].filter(Boolean).join(', ')}
       android_ripple={{ color: PLAIN.ripple }}
       style={[ps.row, styles.line]}>
       <View style={styles.av}>
@@ -72,8 +77,9 @@ function ClubLine({ c, onPress }: { c: ClubCard; onPress: () => void }) {
           {c.name}
         </Words>
         <Note lines={1}>{line}</Note>
+        {goal ? <Note lines={1}>{goal}</Note> : null}
       </View>
-      {c.myState !== 'member' ? <Note style={{ marginTop: 0 }}>{c.myState === 'asked' ? 'Asked' : 'Invited'}</Note> : null}
+      {stand ? <Note style={{ marginTop: 0 }}>{stand}</Note> : null}
     </Pressable>
   );
 }

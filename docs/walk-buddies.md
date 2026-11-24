@@ -810,8 +810,11 @@ All tasks: `npx tsc --noEmit` and `npx jest` pass (app); `python -m unittest dis
 | **T16b — app: start, find, requests, block, report** | Sonnet | `src/buddies/{types,api-read,api,errors,handle,geohash,area,report,source,kv,sign-out,flows}.ts(x)` (types, readers and calls for `/me` (GET, PATCH, DELETE), `/join`, `/me/area`, `/walkers`, `/nearby`, `/requests*`, `/buddies` (GET, DELETE), `/blocks*`, `/reports`), `use-buddies.ts`, `script-style.ts`, `SpecIconButton`, `SpecSegmented` (move from walk detail), looks Start, Home (Buddies segment), Find, Requests, Walker (without walks), Report sheet, Buddies settings (without notifications), You-tab row, `auth-state.tsx` sign-out hook (kv part), spec additions 7.2 in `spec.md` §10.8 and `clean-spec.ts`, premium feature key and route list, preview screens `buddies-start`, `buddies` (seg buddies), `find`, `requests`, `walker`, capture lines | Tests 9.2 for these files pass, with `api-read.test.ts` cases for the readers it added; preview shots render with sample data; no `fetch`/`repo` in views. |
 | **T16c — app: chat and push** | Sonnet | `chat-merge.ts`, `poll.ts`, `text.ts`, `push.ts`, `flows.ts` (`sendWithRetry`), `use-chat.ts`, calls for `/chats*` and `/me/push`, Chat look, Bubble, Composer, Home Chats segment, notification switches, `channels.ts`, `taps.ts`, `_layout.tsx` wiring, `sign-out.ts` push part, new `app.config.ts` (4.1; `app.json` unchanged), `.gitignore`, the Android workflow step that writes `google-services.json` from the secret (skip when the secret is empty), preview `chat`, `buddies` (seg chats) | Tests pass, with `api-read.test.ts` cases for its readers; preview shots; listed for the owner on a real phone: a push test (needs 4.1) and the composer staying visible while typing. |
 | **T16d — app: share a walk, buddies' walks** | Sonnet | `share-walk.ts`, calls for `/posts*` and `/buddies/{pid}/walks`, Share sheet, `walk-detail-look.tsx` `share` prop and `walk/[id].tsx` wiring through a hook (move its repo loading into `src/walks/use-walk-detail.ts` while there), Walker look walks list, preview `shared` param (7.5) | Tests pass, with `api-read.test.ts` cases for its readers; `walk` preview shot unchanged when not joined; new shot `smoke/clean-walk-shared.png` (`&shared=1`). |
-| **T16e — app: Plan a walk** | Sonnet | `plans.ts`, `flows.ts` (`answerPlan`), calls for `/plans*`, `use-plans.ts`, Plan form and Plan looks, Groups "Planned walks", safety tips sheet, local reminders, `chip.selected` spec addition | Tests pass, with `api-read.test.ts` cases for its readers; `plan` preview shot. |
-| **T16f — app: clubs** | Sonnet | `clubs.ts`, calls for `/clubs*`, `use-clubs.ts`, Club search, form, Club (Chat/Walks/Board), Club admin, `steps-share.ts` (board part) | Tests pass, with `api-read.test.ts` cases for its readers; `club` (seg board) and `club-admin` shots. |
+| **T16e — app: Plan a walk** | Sonnet | `plans.ts`, `flows.ts` (`answerPlan`), calls for `/plans*`, `use-plans.ts`, Plan form and Plan looks, Groups "Planned walks", safety tips sheet, local reminders, `chip.selected` spec addition | Tests pass, with `api-read.test.ts` cases for its readers; `plan` preview shot. **Built (app), 24 Nov 2026, commit 66db055 on `combined` (not pushed). The server routes are written in stepsinfra but not deployed; the deploy waits for the owner's OK.** |
+| **T16f — app: clubs** | Sonnet | `clubs.ts`, calls for `/clubs*`, `use-clubs.ts`, Club search, form, Club (Chat/Walks/Board), Club admin, `steps-share.ts` (board part) | Tests pass, with `api-read.test.ts` cases for its readers; `club` (seg board) and `club-admin` shots. **Built (app), 24 Nov 2026, commit e030148 on `combined` (not pushed). The server routes are written in stepsinfra but not deployed; the deploy waits for the owner's OK.** |
+| **QR — app: walker and club QR codes** | Opus | `src/buddies/qr/{encode,draw,links,club-code}.ts`, `use-qr.tsx`, `src/components/buddies/qr/*`, `/buddies/scan`, `app/w/[handle].tsx`, `app/c/[code].tsx`, the Club QR in Club admin, calls for `POST /clubs/{id}/code` and `POST /clubs/code` (section 13) | Tests pass, with reader and API tests; `buddies-qr`, `qr-scan` and `club-admin &qr=1` shots. **Built (app), 24 Nov 2026, commit 213502d on `combined` (not pushed). The server routes are written in stepsinfra but not deployed; the deploy waits for the owner's OK.** |
+| **Goals — app: shared club goals** | Opus | `src/buddies/{goals,goals-api,goals-read,goals-auto}.ts`, `use-goals.tsx`, `src/components/buddies/goals/*`, the club Goals tab, `/buddies/club/[id]/goal/[goalId]`, `/buddies/club/[id]/goal/new`, `/buddies/goals`, calls for every goals route (section 13) | Tests pass, with reader and API tests; `goal`, `goal-new`, `my-goals` and club `&seg=goals` shots. **Built (app), 24 Nov 2026, commit a1283d4 on `combined` (not pushed). The server routes are written in stepsinfra but not deployed; the deploy waits for the owner's OK.** |
+| **Buddies home — app: the last stage** | Opus | `buddies-home.tsx`, `clubs/groups-tile.tsx` (my role and one goal line per club), the My goals tile only once a club counts my goals, Scan a QR code on Find walkers, 48 dp tap area on the plain `Btn` | Tests pass; every Buddies screen has a preview screen and a CI capture line (section 13.4). **Built (app), 24 Nov 2026, on `combined` (not pushed).** |
 | **T16g — app: family** | Sonnet | `family.ts`, `flows.ts` (`turnSharingOn`), calls for `/family*` and `/me/steps`, `use-family.ts`, Family, code and join sheets, Family settings, `steps-share.ts` (family part) | Tests pass, with `api-read.test.ts` cases for its readers; `family` shot. |
 | **T16 check** | Opus | — | Shots against 7.3; safety review: report, block (5.4 table), area only, no coordinates in any request (grep + test), deletion cascade test, Data safety list. |
 
@@ -862,3 +865,64 @@ Order: T16a (code) → T16b → T16c → T16d → T16e → T16f → T16g → T16
 - **A ban means removed from that one club only**; the person keeps everything else.
 - **Walk routes are included in backup** (docs/data-sync.md).
 - Push notifications wait until the owner has created the Firebase project.
+
+## 13. Shared goals and club QR (24 Nov 2026)
+
+Numbered 13 because section 12 already holds the owner's decisions. The app is built against this contract (branch `combined`, not pushed). The server side is in `stepsinfra` (`steps/social/goals.py`, `clubs.py`) and is **not deployed**: the deploy waits for the owner's OK.
+
+### 13.1 Contract (all under `/v1/social`, JSON; errors `{"error": code, "why"?}`; premium like the other club routes)
+
+- **Clubs:** `Club` and `ClubCard` carry `goals` (the club has shared goals) and `captain` (a Walker, the owner, for display). `POST /clubs` and `PATCH /clubs/{id}` take `goals`; the captain (owner) or a vice-captain (admin) may change it. `GET /clubs/mine` may also send `myRole` on each card (the app reads it when present; without it the app shows Captain only where the captain is me).
+- **Roles:** the server keeps owner / admin / member; the app says Captain / Vice-captain / Member. `PATCH /clubs/{id}/members/{pid}` `{"role": "admin"|"member"}`, captain only, at most 2 vice-captains.
+- **Consent:** joining a club with goals (`POST /clubs/{id}/join`, accepting a club invite, or joining by code) needs `{"goalsConsent": true}`, else 409 `goals_consent`. The server stores `goalsConsentOn` (YYYY-MM-DD) on the member item. When goals are turned on later, members without it are not tracked (left out of reports, marks refused with 409 `goals_consent`) until `PUT /clubs/{id}/goals/consent {"on": true}`; `{"on": false}` stops tracking and deletes their marks.
+- **Goal:** `goalId`, `title` (1–40, text filter), `kind` (steps, walk, water, sleep, medicine, other), `target` (steps 500–50,000; walk 5–240 min; water 1–20 glasses; sleep 180–720 min), `byTime` (HH:MM, optional), `days` (0–6, Monday is 0, not empty), `counted` (`auto` only for steps, walk, water, sleep; else `tap`), `paused`, `createdBy`, `createdAt`. At most 10 a club.
+- **Routes:**
+  - `GET /clubs/{id}/goals?day=` (member; the phone's local day): `{goals, tracked, mine: [{goalId, done, at?, value?}]}`.
+  - `POST /clubs/{id}/goals` (captain, vice-captain) → 201 `{goal}`; `PATCH /clubs/{id}/goals/{goalId}` (title, target, byTime, days, paused) → `{goal}`; `DELETE` → 204, its marks deleted.
+  - `PUT /clubs/{id}/goals/{goalId}/marks/{day}` (self, tracked) `{done, value?}` → `{mark}`; the day must be within today −1 … +1 of server UTC; `value` is stored only for steps (the step total, rounded down to 100 by the app).
+  - `GET /clubs/{id}/goals/{goalId}/report?day=` (captain, vice-captain): `{day, goal, members, doneToday, neverDone, rows: [{walker, role, today, week: {done, of}, everDone}]}`, not done today first, then by name.
+  - `GET /clubs/{id}/goals/summary?day=` (captain, vice-captain): `{goals: [{goalId, doneToday, members}]}`.
+  - `POST /clubs/{id}/goals/{goalId}/remind {"pids": [...]}` → 204: the push "A reminder from <club>: <title>" goes only to tracked members whose `notify.goals` is on (default on), once per goal per day (429 `daily_limit` after).
+- **Club code:** `POST /clubs/{id}/code` (captain, vice-captain) → `{code, codeExpiresAt}`: 8 characters of Crockford base32, 48 hours, replaces the last one. `POST /clubs/code {"code"}` → `{club: ClubCard}` (works for hidden clubs; 404 `bad_code`; 10 tries a day). Then `POST /clubs/{id}/join {"code"?, "goalsConsent"?}`; the captain or a vice-captain still approves every request.
+- **QR contents (app only):** a walker is `neutcraftssteps://w/<handle>`, a club is `neutcraftssteps://c/<CODE>`. Never a location, steps, names or tokens.
+
+### 13.2 Retention
+
+- Marks keep 180 days (TTL). They are deleted when the member leaves or is removed, withdraws consent, the goal or the club is deleted, or the account is erased (part of the erase cascade, 6.3). Very large deletes finish in the sweep job.
+- Reads ignore at once the marks of anyone who is no longer a tracked member.
+- Only "done", the time it was marked and, for steps goals, the step total are stored. No doses, no medicine names beyond the goal's own title, no location.
+- A club code lives 48 hours. The last code made on the phone is kept locally (`buddies.clubCodes`, wiped on sign-out).
+
+### 13.3 Screens
+
+- **Buddies home** (the BUDDIES part, `(tabs)/plus.tsx`): Chats, Requests, Find walkers, Buddies, Your walker ID with Share, My QR and Scan, **Clubs** (each club with "area · members", one goal line such as "1 of 3 goals done today" or "Goal tracking is off", and my role on the right: Captain, Vice-captain or Member; Find a club and Start a club), **Planned walks** (the next walks first, and Plan a walk), and **My goals** once a club counts my goals. The "Coming next" row is gone: everything it promised is built.
+- **Find a club** (`/buddies/clubs`), **Start a club / Edit club** (`/buddies/club/new`, `?id=`), **Club** (`/buddies/club/[id]`: Chat · Walks · Goals · Board; visitor and invited states), **Members and requests** (`/buddies/club/[id]/admin`, with the Club QR), **Goals consent** (`/buddies/club/[id]/join`, `?code=`).
+- **Plan a walk** (`/buddies/plan/new`, `?club=`, `?id=`) and the **Plan** screen (`/buddies/plan/[id]`).
+- **Scan a QR code** (`/buddies/scan`, also from Find walkers), the **My QR** sheet, and the links `/w/[handle]` and `/c/[code]`.
+- **Goal** (`/buddies/club/[id]/goal/[goalId]`), **New goal / Change goal** (`/buddies/club/[id]/goal/new`, `?goal=`), **My goals** (`/buddies/goals`, with the goal reminders switch).
+
+### 13.4 Design preview and CI shots
+
+`neutcraftssteps://design-preview?theme=e&screen=<screen><params>`; each has a capture line in `.github/scripts/launch-and-capture.sh`:
+
+| Screen | Params | Shot |
+|---|---|---|
+| buddies | — | `all-buddies*.png`, `clean-buddies-360dp*.png` |
+| buddies-qr | — | `clean-buddies-qr.png`, `-360dp` |
+| find | — | `all-find*.png`, `clean-find-360dp*.png` |
+| requests | — | `all-requests*.png`, `clean-requests-360dp*.png` |
+| clubs | — | `clean-clubs*.png` |
+| club-new | — / `&id=KBR000000001` | `clean-club-new*.png`, `clean-club-edit*.png` |
+| club | `&id=KBR000000001&seg=chat\|walks\|goals\|board` | `clean-club-<seg>.png` |
+| club | `&id=NRS000000002` / `&id=JHE000000003` | `clean-club-visitor*.png`, `clean-club-invited*.png` |
+| club | `&id=KBR…`, `HPW000000004`, `SRN000000005` with `&seg=goals` | `clean-club-goals-captain\|member\|consent*.png` |
+| club-admin | `&id=KBR000000001` (`&qr=1`) | `clean-club-admin*.png`, `clean-club-qr*.png` |
+| club-join | `&id=NRS000000002` (`&code=K7QM2XPA`) | `clean-club-join*.png`, `clean-club-join-code*.png` |
+| plan | `&id=PLN000000001` / `PLN000000002` | `clean-plan*.png`, `clean-plan-invited*.png` |
+| plan-new | — / `&tips=1` / `&id=PLN000000001` / `&club=KBR000000001` | `clean-plan-new*.png`, `-tips`, `-change`, `-club` |
+| qr-scan | — / `&code=K7QM2XPA` | `clean-qr-scan*.png`, `clean-qr-club*.png` |
+| goal | `&id=KBR000000001&goalId=GL0000000001` | `clean-goal*.png` |
+| goal-new | `&id=KBR000000001` (`&goal=GL0000000003`) | `clean-goal-new*.png`, `clean-goal-edit*.png` |
+| my-goals | — | `clean-my-goals*.png` |
+
+Shots marked 360 dp are taken at 480 dpi with font scale 1.3.

@@ -3,6 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import {
   byTimeWords,
   canAuto,
+  clubGoalWords,
   daysWord,
   digestWords,
   dueOn,
@@ -18,6 +19,7 @@ import {
   stepTarget,
   summaryLine,
   targetWords,
+  trackedCount,
   weekdayOf,
   weekLine,
   withKind,
@@ -151,6 +153,19 @@ describe('reminders and the home tile', () => {
     expect(digestWords({ done: 1, due: 3 }, 2)).toBe('1 of 3 done today');
     expect(digestWords({ done: 0, due: 0 }, 1)).toBe('No goals today');
     expect(digestWords(null, 0)).toBe('Shared goals from your clubs');
+  });
+
+  it("says one line per club, and counts the clubs that track my goals", () => {
+    const done = { goalId: 'GL0000000001', done: true, at: 1, value: null };
+    const two = { goals: [goal(), goal({ goalId: 'GL0000000002' })], tracked: true, mine: [done] };
+    expect(clubGoalWords(two, '2026-11-24')).toBe('1 of 2 goals done today');
+    expect(clubGoalWords({ goals: [goal()], tracked: true, mine: [done] }, '2026-11-24')).toBe('1 of 1 goal done today');
+    expect(clubGoalWords({ goals: [goal({ paused: true })], tracked: true, mine: [] }, '2026-11-24')).toBe('No goals today');
+    expect(clubGoalWords({ goals: [goal()], tracked: false, mine: [] }, '2026-11-24')).toBe('Goal tracking is off');
+    expect(clubGoalWords(null, '2026-11-24')).toBeNull();
+    expect(clubGoalWords(undefined, '2026-11-24')).toBeNull();
+    expect(trackedCount([{ goals: two }, { goals: { tracked: false } }, { goals: null }])).toBe(1);
+    expect(trackedCount([])).toBe(0);
   });
 });
 
