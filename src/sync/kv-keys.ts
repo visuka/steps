@@ -59,6 +59,7 @@ export const LOCAL_ONLY_KV: Readonly<Record<string, string>> = {
   'buddies.stepsSent': 'Sync state: the last steps sent for the club boards from this phone.',
   'buddies.planReminders': "Device-only: the ids of this phone's walk plan reminders (local notifications).",
   'buddies.tipsSeen': 'Device-only: the walk safety tips were shown on this phone.',
+  'buddies.clubCodes': 'Cache: the club join codes this phone made last (the server keeps the real code).',
   previewSeeded: 'Web design preview only.',
   previewSeededVitals: 'Web design preview only.',
   backupRestoredFor: 'Sync state: the account whose backup came back to this phone (reset wipes it).',

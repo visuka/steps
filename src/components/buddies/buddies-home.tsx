@@ -3,7 +3,7 @@
  * mock is plain.html?s=m&k=1&ic=1&icx=1). Not joined yet → the sign-up form
  * (walker ID, the name buddies see, 18+ and the rules). Joined → Chats in the
  * sage tile, Requests (sand) and Find walkers, Buddies, your walker ID with
- * Share, and what comes next. Every chat, buddy and request opens as before.
+ * Share, My QR and Scan, and what comes next. Every chat, buddy and request opens as before.
  */
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -29,6 +29,7 @@ import { useApp } from '@/state/app-state';
 
 import { GroupsTile } from './clubs/groups-tile';
 import { PlannedWalksTile } from './plans/planned-walks-tile';
+import { MyQrSheet } from './qr/qr-sheets';
 import { useSnack } from './parts';
 
 const S = scaled;
@@ -38,7 +39,7 @@ const COMING = 'Clubs · Walk plans · QR invite';
 
 export type Segment = 'chats' | 'buddies';
 
-export function BuddiesHome(_: { initialSegment?: Segment } = {}) {
+export function BuddiesHome({ openQr }: { initialSegment?: Segment; /** Design preview: open My QR. */ openQr?: boolean } = {}) {
   const { me, setMe, error, loading, refresh } = useSocialMe();
   if (!me) {
     return (
@@ -61,7 +62,7 @@ export function BuddiesHome(_: { initialSegment?: Segment } = {}) {
     );
   }
   if (!me.joined) return <JoinForm onJoined={setMe} />;
-  return <Joined me={me} refreshMe={refresh} />;
+  return <Joined me={me} refreshMe={refresh} openQr={openQr} />;
 }
 
 function JoinForm({ onJoined }: { onJoined: (me: SocialMe) => void }) {
@@ -116,8 +117,9 @@ function JoinForm({ onJoined }: { onJoined: (me: SocialMe) => void }) {
   );
 }
 
-function Joined({ me, refreshMe }: { me: Extract<SocialMe, { joined: true }>; refreshMe: () => Promise<void> }) {
+function Joined({ me, refreshMe, openQr }: { me: Extract<SocialMe, { joined: true }>; refreshMe: () => Promise<void>; openQr?: boolean }) {
   const router = useRouter();
+  const [qr, setQr] = useState(!!openQr);
   const api = useSocialApi();
   const chats = useLoad(api.chats);
   const buddies = useLoad(api.buddies);
@@ -218,14 +220,21 @@ function Joined({ me, refreshMe }: { me: Extract<SocialMe, { joined: true }>; re
         {buddies.error ? <Note>{buddies.error}</Note> : null}
       </Tile>
 
-      <Tile style={ps.row}>
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Label icon="card" text="Your walker ID" />
-          <Mid value={`@${me.handle}`} style={{ marginTop: S(6) }} fit />
-          <Note lines={1}>Share it so friends can add you</Note>
+      <Tile>
+        <View style={ps.row}>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Label icon="card" text="Your walker ID" />
+            <Mid value={`@${me.handle}`} style={{ marginTop: S(6) }} fit />
+            <Note lines={1}>Share it so friends can add you</Note>
+          </View>
+          <Btn text="Share" kind="main" onPress={() => Share.share({ message: `Walk with me on Steps. My walker ID is @${me.handle}` })} label="Share your walker ID" />
         </View>
-        <Btn text="Share" kind="main" onPress={() => Share.share({ message: `Walk with me on Steps. My walker ID is @${me.handle}` })} label="Share your walker ID" />
+        <View style={ps.footRow}>
+          <Btn text="My QR" onPress={() => setQr(true)} label="Show my QR code" />
+          <Btn text="Scan" onPress={() => router.push('/buddies/scan' as never)} label="Scan a friend's or a club's QR code" />
+        </View>
       </Tile>
+      <MyQrSheet visible={qr} onClose={() => setQr(false)} handle={me.handle} />
 
       <GroupsTile
         clubs={clubs.data}

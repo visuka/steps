@@ -305,3 +305,14 @@ Not committed. No server or AWS change. Nothing is removed from any count.
 - The safety tips sheet (docs/walk-buddies.md 6.4) shows once before the first plan and once the first time I'm in a club. The kv keys `buddies.planReminders` and `buddies.tipsSeen` are local only. The selected-chip colour is added to docs/design.md.
 - Preview screens: plan (`&id=PLN000000001` mine, `PLN000000002` invited) and plan-new (`&tips=1`). CI shots `smoke/clean-plan*.png` include 360 dp shots with large text.
 - Checks: tsc, eslint and the whole jest suite. The emulator shots have not been reviewed yet.
+
+## 24 Nov 2026 — QR invites, app side
+
+- Our own QR encoder, `src/buddies/qr/encode.ts`: byte mode, level M, versions 1 to 6, the mask with the lowest penalty. No new package. Tests check Reed–Solomon, the format bits, the finders and timing, and read every code back with a real decoder (zxing-wasm, already in node_modules for expo-camera's web scanner, used in tests only).
+- The QR view (`src/components/buddies/qr/qr-code.tsx`, react-native-svg): ink on a white tile with a quiet zone of 4 modules. The token `PLAIN_QR` is in `themes/plain.ts`, and its row is in docs/design.md.
+- My QR: the walker ID tile on Buddies home keeps Share and gains My QR and Scan. The sheet shows the QR of `neutcraftssteps://w/<handle>`, the walker ID, "Friends scan this to add you", Share ("Add me on Steps: @handle") and Done.
+- Scan (`/buddies/scan`): expo-camera reads QR codes only, after the same plain camera ask as food scan, with "Enter walker ID instead". A walker's code opens Find with the ID looked up, then Ask. A club's code calls POST /clubs/code and opens the club's card (name, members, Captain, "This club has shared goals"). From there it is Ask to join, or the goals consent first (join with `code`, which works for hidden clubs). Any other code gets a plain message. "Enter a club code" takes a typed code.
+- Club QR in Club admin for the captain and vice-captains: POST /clubs/{id}/code, the QR of `neutcraftssteps://c/<code>`, the code, "Works for 48 hours. You approve every member.", Share and New code. The last code made on this phone is kept (kv `buddies.clubCodes`, local only, wiped on sign-out) so reopening doesn't replace a code already shared.
+- Links: `app/w/[handle].tsx` goes to Find and `app/c/[code].tsx` goes to the club's card. The parsers are in `src/buddies/qr/links.ts` and tested.
+- Preview screens: buddies-qr, qr-scan (`&code=K7QM2XPA`), club-admin `&qr=1` and club-join `&code=`. CI shots `smoke/clean-buddies-qr*.png`, `clean-qr-*.png`, `clean-club-qr*.png` and `clean-club-join-code*.png` include 360 dp shots with large text. "Coming next" is unchanged.
+- Checks: tsc, eslint and the whole jest suite. The emulator shots have not been reviewed yet, and the server is not deployed.

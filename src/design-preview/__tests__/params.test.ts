@@ -53,6 +53,11 @@ describe('parsePreviewParams', () => {
     expect(parsePreviewUrl(previewUrl(SCHEME, p))).toEqual(p);
   });
 
+  it('has the QR screens, which read their own code and qr params', () => {
+    for (const screen of ['buddies-qr', 'qr-scan']) expect(PREVIEW_SCREENS).toContain(screen);
+    expect(parsePreviewParams({ theme: 'e', screen: 'qr-scan', code: 'K7QM2XPA' })).toEqual({ theme: 'e', screen: 'qr-scan' });
+  });
+
   it('has the plan screens, and opens Plan a walk with the safety tips on tips=1', () => {
     for (const screen of ['plan', 'plan-new']) expect(PREVIEW_SCREENS).toContain(screen);
     expect(parsePreviewParams({ theme: 'e', screen: 'plan-new', tips: '1' })).toEqual({ theme: 'e', screen: 'plan-new', tips: true });

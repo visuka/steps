@@ -1,5 +1,5 @@
-import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Keyboard, StyleSheet, View } from 'react-native';
 
 import { PersonRow, SectionTitle, useSnack } from '@/components/buddies/parts';
@@ -9,6 +9,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Button, Dialog, Screen, Snackbar, Surface } from '@/components/ui';
 import { currentArea } from '@/buddies/area';
 import { handleProblem, searchHandle } from '@/buddies/chat-logic';
+import { linkHandle } from '@/buddies/qr/links';
 import { SocialError } from '@/buddies/read';
 import type { Nearby, Walker } from '@/buddies/types';
 import { attempt, useSocialApi, useSocialMe } from '@/buddies/use-buddies';
@@ -16,8 +17,13 @@ import { Spacing } from '@/constants/theme';
 import { useClock } from '@/hooks/use-clock';
 import { SCREEN_FEATURES } from '@/premium/premium';
 
-/** Find a walker by their ID, then ask them to be buddies. */
+/**
+ * Find a walker by their ID, then ask them to be buddies. `handle` (a scanned
+ * walker QR or a walker link) fills the ID and looks it up once.
+ */
 export default function FindWalkers() {
+  const { handle: handleParam } = useLocalSearchParams<{ handle?: string }>();
+  const linked = linkHandle(handleParam);
   const router = useRouter();
   const api = useSocialApi();
   const { me, refresh: refreshMe } = useSocialMe();
@@ -25,7 +31,7 @@ export default function FindWalkers() {
   const [near, setNear] = useState<Nearby | null>(null);
   const [nearBusy, setNearBusy] = useState(false);
   const [explain, setExplain] = useState(false);
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState(linked ?? '');
   const [found, setFound] = useState<Walker | null>(null);
   const [missing, setMissing] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -81,8 +87,10 @@ export default function FindWalkers() {
     setNearBusy(false);
   };
 
-  const search = async () => {
-    const h = searchHandle(q);
+  const search = () => lookUp(q);
+
+  const lookUp = async (text: string) => {
+    const h = searchHandle(text);
     // The keyboard would hide the message below.
     Keyboard.dismiss();
     const problem = handleProblem(h);
@@ -104,6 +112,14 @@ export default function FindWalkers() {
       setBusy(false);
     }
   };
+
+  // A scanned or linked walker ID: look it up once, after my own ID is known (so my own code says so).
+  const looked = useRef(false);
+  useEffect(() => {
+    if (!linked || !me || looked.current) return;
+    looked.current = true;
+    void lookUp(linked);
+  });
 
   const ask = async (w: Walker) => {
     const box: { state: 'requested' | 'buddies' } = { state: 'requested' };

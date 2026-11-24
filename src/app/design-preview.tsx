@@ -26,6 +26,7 @@ import ClubAdminScreen from '@/app/buddies/club/[id]/admin';
 import ClubJoinScreen from '@/app/buddies/club/[id]/join';
 import PlanScreen from '@/app/buddies/plan/[id]';
 import PlanFormScreen from '@/app/buddies/plan/new';
+import ScanQr from '@/app/buddies/scan';
 import { AuthScreen } from '@/components/auth/auth-screen';
 import { BuddiesHome } from '@/components/buddies/buddies-home';
 import { ScanScreen } from '@/components/food/scan-screen';
@@ -54,13 +55,20 @@ const TAB_OF: Partial<Record<PreviewScreen, string>> = {
   walk: 'activity',
   plus: 'plus',
   buddies: 'plus',
+  'buddies-qr': 'plus',
   activity: 'activity',
   you: 'you',
   foodtab: 'none',
 };
 
 /** The part bar's selection on the previews of the three parts. */
-const PART_OF: Partial<Record<PreviewScreen, Part>> = { today: 'activity', foodtab: 'nutrition', plus: 'buddies', buddies: 'buddies' };
+const PART_OF: Partial<Record<PreviewScreen, Part>> = {
+  today: 'activity',
+  foodtab: 'nutrition',
+  plus: 'buddies',
+  buddies: 'buddies',
+  'buddies-qr': 'buddies',
+};
 
 /**
  * The real Today, Food result, Walk and hourly detail screens over the mockups'
@@ -205,6 +213,9 @@ function StackScreen({ screen }: { screen: PreviewScreen }) {
       return <PlanScreen />;
     case 'plan-new':
       return <PlanFormScreen />;
+    case 'qr-scan':
+      // No camera on the preview: the camera ask; &code=K7QM2XPA opens that club's card instead.
+      return <ScanQr />;
     case 'signin':
       return <AuthScreen />;
     case 'welcome':
@@ -259,6 +270,13 @@ function PreviewScreenBody({ screen, edit, mine }: { screen: PreviewScreen; edit
       return (
         <BuddiesSource api={SAMPLE_SOCIAL_API}>
           <BuddiesHome initialSegment="buddies" />
+        </BuddiesSource>
+      );
+    case 'buddies-qr':
+      // Buddies with My QR open over it (the sample walker ID, @you_walk).
+      return (
+        <BuddiesSource api={SAMPLE_SOCIAL_API}>
+          <BuddiesHome initialSegment="buddies" openQr />
         </BuddiesSource>
       );
     case 'activity':

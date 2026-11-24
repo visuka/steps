@@ -174,6 +174,13 @@ capture e plan smoke/clean-plan.png '&id=PLN000000001' && more smoke/clean-plan
 capture e plan smoke/clean-plan-invited.png '&id=PLN000000002' && more smoke/clean-plan-invited
 capture e plan-new smoke/clean-plan-new.png && more smoke/clean-plan-new
 capture e plan-new smoke/clean-plan-tips.png '&tips=1' tips
+# QR invites: My QR over Buddies, the scanner's camera ask, a club's card from its code,
+# the Club QR in running a club, and the goals consent for a club found by its code.
+capture e buddies-qr smoke/clean-buddies-qr.png
+capture e qr-scan smoke/clean-qr-scan.png
+capture e qr-scan smoke/clean-qr-club.png '&code=K7QM2XPA'
+capture e club-admin smoke/clean-club-qr.png '&id=KBR000000001&qr=1'
+capture e club-join smoke/clean-club-join-code.png '&id=NRS000000002&code=K7QM2XPA' && more smoke/clean-club-join-code
 # The same on a small phone (360 dp) with large text: everything must still fit.
 adb shell wm density 480
 adb shell settings put system font_scale 1.3
@@ -185,6 +192,10 @@ capture e plan smoke/clean-plan-360dp.png '&id=PLN000000001' && more smoke/clean
 capture e plan smoke/clean-plan-invited-360dp.png '&id=PLN000000002' && more smoke/clean-plan-invited-360dp
 capture e plan-new smoke/clean-plan-new-360dp.png && more smoke/clean-plan-new-360dp
 capture e plan-new smoke/clean-plan-tips-360dp.png '&tips=1' tips
+capture e buddies-qr smoke/clean-buddies-qr-360dp.png
+capture e qr-scan smoke/clean-qr-scan-360dp.png && more smoke/clean-qr-scan-360dp
+capture e qr-scan smoke/clean-qr-club-360dp.png '&code=K7QM2XPA'
+capture e club-admin smoke/clean-club-qr-360dp.png '&id=KBR000000001&qr=1'
 adb shell settings put system font_scale 1.0
 adb shell wm density 420
 # The long screens CI already photographs, the rest of the way down.

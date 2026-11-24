@@ -54,6 +54,13 @@ export const PLAIN = {
  */
 export const PLAIN_FIELD = { backgroundColor: PLAIN.field, borderWidth: 1, borderColor: PLAIN.fieldEdge, borderRadius: 21 } as const;
 
+/**
+ * A QR code (Buddies: My QR, Club QR): charcoal modules on a white tile, with
+ * the standard quiet zone of 4 light modules all round, at most 240 dp across.
+ * Ink, not black (no black solids); it scans like black.
+ */
+export const PLAIN_QR = { dark: PLAIN.text, light: PLAIN.field, quiet: 4, maxSide: 240, radius: 16 } as const;
+
 /** The soft lift under every tile, round button and switch. */
 export const PLAIN_SHADOW = '0px 8px 24px rgba(40, 40, 50, 0.06)';
 

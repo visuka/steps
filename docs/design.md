@@ -64,6 +64,7 @@ Size rule for this look: the mockup phone is **411 px wide; 1 mockup px = 1 dp**
 | Secondary button (Later) | white 80 %, ink text |
 | Search field | white, edge #E8E8EB |
 | Today / Week switch, selected side | white pill, ink text, shadow 0 1 4 rgba(0,0,0,.08) (only one sage pill per screen) |
+| QR code (My QR, Club QR) | ink #2C2C2E modules on a white tile, quiet zone of 4 modules, radius 16, at most 240 dp across (`PLAIN_QR`) |
 
 - Colour sits on surfaces only; words stay ink and grey.
 - Every text colour passes contrast: 4.5:1 for small text, 3:1 for large.

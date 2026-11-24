@@ -5,7 +5,7 @@ import { ActivityIndicator, AppState, Linking, StyleSheet, View } from 'react-na
 
 import { TextField } from '@/components/controls';
 import { ThemedText } from '@/components/themed-text';
-import { Button, Card, IconButton, Notice } from '@/components/ui';
+import { Button, Card, IconButton, type IconName, Notice } from '@/components/ui';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { createScanGate, manualHint, manualState } from '@/nutrition/barcode';
@@ -22,9 +22,24 @@ export function buzz(kind: 'success' | 'warning') {
 /**
  * The camera, once the person has said yes. First a short word on why, with
  * "Allow camera"; when the phone won't ask again, Open Settings. Typing the
- * number is always there instead.
+ * number is always there instead. Other scanners (Buddies QR) pass their own
+ * words for the blocked note and the way round the camera.
  */
-export function CameraPermission({ why, onManual, children }: { why: string; onManual: () => void; children: ReactNode }) {
+export function CameraPermission({
+  why,
+  onManual,
+  children,
+  blockedWhy = 'To scan, turn on the camera for Steps in your phone’s settings. Or type the number under the barcode.',
+  manualLabel = 'Type the number',
+  manualIcon = 'keypad-outline',
+}: {
+  why: string;
+  onManual: () => void;
+  children: ReactNode;
+  blockedWhy?: string;
+  manualLabel?: string;
+  manualIcon?: IconName;
+}) {
   const theme = useTheme();
   const [permission, requestPermission, getPermission] = useCameraPermissions();
   const [asking, setAsking] = useState(false);
@@ -53,7 +68,7 @@ export function CameraPermission({ why, onManual, children }: { why: string; onM
   return (
     <Card title={blocked ? 'Camera is off for Steps' : 'Use the camera'}>
       <ThemedText type="bodyMedium">
-        {blocked ? 'To scan, turn on the camera for Steps in your phone’s settings. Or type the number under the barcode.' : why}
+        {blocked ? blockedWhy : why}
       </ThemedText>
       {blocked ? (
         <Button label="Open Settings" icon="settings-outline" onPress={() => Linking.openSettings().catch(() => undefined)} />
@@ -68,7 +83,7 @@ export function CameraPermission({ why, onManual, children }: { why: string; onM
           }}
         />
       )}
-      <Button variant="tonal" label="Type the number" icon="keypad-outline" onPress={onManual} />
+      <Button variant="tonal" label={manualLabel} icon={manualIcon} onPress={onManual} />
     </Card>
   );
 }

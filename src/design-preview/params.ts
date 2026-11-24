@@ -20,6 +20,9 @@
  * screens their id=<clubId> (design-preview/buddies-sample.ts), read by the screen itself.
  * The plan screen takes id=<planId> (PLN000000001: mine; PLN000000002: I'm invited), and
  * plan-new takes tips=1: the form with the safety tips sheet open over it (T16e).
+ * QR invites: buddies-qr is Buddies with My QR open; qr-scan is the scanner (&code=K7QM2XPA:
+ * a club's card, without the camera); club-admin takes qr=1 (the Club QR open) and club-join
+ * code=<code> (the goals consent for a club found by its code). Those screens read them themselves.
  * Every screen also takes part=dawn|noon|dusk: Today and the bar in that part's colours
  * instead of the clock's (T18).
  * Plain string work only: React Native's URLSearchParams has no get().
@@ -66,6 +69,9 @@ export const PREVIEW_SCREENS = [
   // Walk plans (T16e): a plan (&id=), and Plan a walk (&tips=1 with the safety tips).
   'plan',
   'plan-new',
+  // QR invites: Buddies with My QR open, and the scanner (&code= opens a club's card without the camera).
+  'buddies-qr',
+  'qr-scan',
 ] as const;
 export type PreviewScreen = (typeof PREVIEW_SCREENS)[number];
 

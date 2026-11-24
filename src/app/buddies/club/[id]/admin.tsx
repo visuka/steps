@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { PersonRow, SectionTitle, useSnack } from '@/components/buddies/parts';
+import { ClubQrSheet } from '@/components/buddies/qr/qr-sheets';
 import { PremiumGate } from '@/components/premium-gate';
 import { ThemedText } from '@/components/themed-text';
 import { Button, Dialog, ListRow, Screen, Sheet, Snackbar, Surface } from '@/components/ui';
@@ -16,13 +17,15 @@ import { SCREEN_FEATURES } from '@/premium/premium';
 /**
  * Running a club (captain and vice-captains): who is asking to join
  * (Approve / Decline), the members with their roles (Make vice-captain,
- * Remove), Invite a buddy, and reports from the club chat.
+ * Remove), Invite a buddy, the Club QR code (a join code that works for 48
+ * hours; every member is still approved here) and reports from the club chat.
  */
 export default function ClubAdminScreen() {
-  const { id, invite } = useLocalSearchParams<{ id: string; invite?: string }>();
+  const { id, invite, qr } = useLocalSearchParams<{ id: string; invite?: string; qr?: string }>();
   const router = useRouter();
   const a = useClubAdmin(id);
   const [inviting, setInviting] = useState(invite === '1');
+  const [showQr, setShowQr] = useState(qr === '1');
   const [picked, setPicked] = useState<ClubMember | null>(null);
   const [removing, setRemoving] = useState<ClubMember | null>(null);
   const { snack, show, dismiss } = useSnack();
@@ -43,6 +46,7 @@ export default function ClubAdminScreen() {
       <Screen title="Members" subtitle={a.club?.name} onBack={back} onRefresh={a.refresh} refreshing={false} overlay={<Snackbar message={snack} onDismiss={dismiss} />}>
         {a.error ? <ThemedText themeColor="error">{a.error}</ThemedText> : null}
         {can(role, 'invite') ? <Button label="Invite a buddy" icon="person-add-outline" variant="tonal" onPress={() => setInviting(true)} /> : null}
+        {can(role, 'code') ? <Button label="Club QR code" icon="qr-code-outline" variant="tonal" onPress={() => setShowQr(true)} /> : null}
 
         <SectionTitle>Asking to join</SectionTitle>
         {a.requests.length ? (
@@ -111,6 +115,8 @@ export default function ClubAdminScreen() {
           </>
         ) : null}
       </Screen>
+
+      {a.club && can(role, 'code') ? <ClubQrSheet visible={showQr} onClose={() => setShowQr(false)} clubId={a.club.clubId} clubName={a.club.name} /> : null}
 
       <Sheet visible={!!picked} onClose={() => setPicked(null)} title={picked ? displayName(picked.walker) : ''}>
         {picked && change ? (
