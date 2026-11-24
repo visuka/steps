@@ -1,0 +1,246 @@
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
+import { KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { ClubBoardTab, ClubChatTab, ClubGoalsTab, ClubWalksTab, CLUB_TABS, isClubTab, type ClubTab } from '@/components/buddies/clubs/club-tabs';
+import { useSnack } from '@/components/buddies/parts';
+import { ReportSheet } from '@/components/buddies/report-sheet';
+import { PlainGround, Segments } from '@/components/plain/plain-kit';
+import { PremiumGate } from '@/components/premium-gate';
+import { ThemedText } from '@/components/themed-text';
+import { Button, Dialog, IconButton, ListRow, Sheet, Snackbar } from '@/components/ui';
+import { can, clubLine, isStaff } from '@/buddies/clubs';
+import type { Club } from '@/buddies/types';
+import { attempt, useSocialApi } from '@/buddies/use-buddies';
+import { useClub, useStepsShare } from '@/buddies/use-clubs';
+import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { SCREEN_FEATURES } from '@/premium/premium';
+
+/**
+ * A club (spec T16f): Chat · Walks · Goals · Board for members; for anyone
+ * else the club's line, what it is about and Ask to join (or the invite).
+ * The menu: members and requests (captain, vice-captains), Invite a buddy,
+ * Edit club, Delete club (captain), Report club and Leave club.
+ */
+export default function ClubScreen() {
+  const { id, seg } = useLocalSearchParams<{ id: string; seg?: string }>();
+  const router = useRouter();
+  const theme = useTheme();
+  const insets = useSafeAreaInsets();
+  const api = useSocialApi();
+  const c = useClub(id);
+  useStepsShare();
+  const [tab, setTab] = useState<ClubTab>(isClubTab(seg) ? seg : 'chat');
+  const [menu, setMenu] = useState(false);
+  const [ask, setAsk] = useState<'leave' | 'delete' | null>(null);
+  const [report, setReport] = useState<{ kind: 'club' | 'message'; ref: string; label: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const { snack, show, dismiss } = useSnack();
+  const back = () => (router.canGoBack() ? router.back() : router.replace('/plus'));
+  const club = c.club;
+  const role = club?.myRole ?? null;
+  const name = club?.name ?? 'Club';
+
+  const join = async () => {
+    if (!club) return;
+    if (club.goals) {
+      router.push({ pathname: '/buddies/club/[id]/join', params: { id: club.clubId } });
+      return;
+    }
+    setBusy(true);
+    const r = await c.join();
+    setBusy(false);
+    show(r.err ?? (r.state === 'member' ? `You're in ${club.name}.` : 'Asked. The captain or a vice-captain will let you in.'));
+  };
+
+  const run = async (action: () => Promise<string | null>, done: string | null) => {
+    setBusy(true);
+    const err = await action();
+    setBusy(false);
+    show(err ?? done);
+    return err;
+  };
+
+  const go = (pathname: '/buddies/club/[id]/admin' | '/buddies/club/new', params: Record<string, string>) => {
+    setMenu(false);
+    router.push({ pathname, params } as never);
+  };
+
+  return (
+    <PremiumGate feature={SCREEN_FEATURES.buddies} title={name} onBack={back}>
+      <KeyboardAvoidingView behavior="padding" style={[styles.fill, { backgroundColor: theme.background }]}>
+        <PlainGround />
+        <View style={[styles.top, { paddingTop: insets.top + Spacing.one }]}>
+          <IconButton icon="arrow-back" accessibilityLabel="Back" onPress={back} />
+          <ThemedText type="titleMedium" numberOfLines={1} style={styles.grow} maxFontSizeMultiplier={1.3}>
+            {name}
+          </ThemedText>
+          {club ? <IconButton icon="ellipsis-vertical" accessibilityLabel="Club menu" onPress={() => setMenu(true)} /> : null}
+        </View>
+
+        {!club ? (
+          <View style={styles.pad}>
+            {c.error ? (
+              <>
+                <ThemedText themeColor="error">{c.error}</ThemedText>
+                <Button label="Try again" variant="text" compact onPress={c.refresh} style={styles.start} />
+              </>
+            ) : (
+              <ThemedText themeColor="onSurfaceVariant">—</ThemedText>
+            )}
+          </View>
+        ) : club.myState !== 'member' ? (
+          <Visitor club={club} busy={busy} onJoin={join} onCancel={() => run(c.cancelJoin, 'Request cancelled.')} onDecline={() => run(c.declineInvite, null).then((e) => !e && back())} />
+        ) : (
+          <>
+            <View style={styles.head}>
+              <ThemedText type="bodySmall" themeColor="onSurfaceVariant" numberOfLines={2} maxFontSizeMultiplier={1.3}>
+                {headLine(club)}
+              </ThemedText>
+              <Segments parts={CLUB_TABS} value={tab} onChange={setTab} stretch spoken={(v) => `${CLUB_TABS.find((t) => t.value === v)?.text} tab`} />
+            </View>
+            {tab === 'chat' ? (
+              <ClubChatTab club={club} show={show} onReportMessage={(ref) => setReport({ kind: 'message', ref, label: 'message' })} />
+            ) : tab === 'walks' ? (
+              <ClubWalksTab />
+            ) : tab === 'goals' ? (
+              <ClubGoalsTab club={club} />
+            ) : (
+              <ClubBoardTab
+                club={club}
+                onBoard={async (on) => show((await c.setBoard(on)) ?? (on ? 'Your steps are on the board.' : 'Your steps are off the board.'))}
+              />
+            )}
+          </>
+        )}
+        <Snackbar message={snack} onDismiss={dismiss} />
+      </KeyboardAvoidingView>
+
+      <Sheet visible={menu} onClose={() => setMenu(false)} title={name}>
+        {club && isStaff(role) ? (
+          <ListRow title="Members and requests" icon="people-outline" chevron onPress={() => go('/buddies/club/[id]/admin', { id: club.clubId })} />
+        ) : null}
+        {club && can(role, 'invite') ? (
+          <ListRow title="Invite a buddy" icon="person-add-outline" onPress={() => go('/buddies/club/[id]/admin', { id: club.clubId, invite: '1' })} />
+        ) : null}
+        {club && can(role, 'edit') ? <ListRow title="Edit club" icon="create-outline" onPress={() => go('/buddies/club/new', { id: club.clubId })} /> : null}
+        {club && can(role, 'delete') ? <ListRow title="Delete club" icon="trash-outline" onPress={() => (setMenu(false), setAsk('delete'))} /> : null}
+        {club ? <ListRow title="Report club" icon="flag-outline" onPress={() => (setMenu(false), setReport({ kind: 'club', ref: club.clubId, label: 'club' }))} /> : null}
+        {club && can(role, 'leave') && role !== 'owner' ? (
+          <ListRow title="Leave club" icon="exit-outline" onPress={() => (setMenu(false), setAsk('leave'))} />
+        ) : null}
+      </Sheet>
+
+      <Dialog
+        visible={ask === 'leave'}
+        title={`Leave ${name}?`}
+        message="You leave the club chat and the board. If the club has shared goals, your goal history here is deleted."
+        confirmLabel="Leave"
+        danger
+        onCancel={() => setAsk(null)}
+        onConfirm={async () => {
+          setAsk(null);
+          const err = await run(c.leave, `You left ${name}.`);
+          if (!err) back();
+        }}
+      />
+      <Dialog
+        visible={ask === 'delete'}
+        title={`Delete ${name}?`}
+        message="The club, its chat and its board are deleted for every member. This can't be undone."
+        confirmLabel="Delete"
+        danger
+        onCancel={() => setAsk(null)}
+        onConfirm={async () => {
+          setAsk(null);
+          const err = await run(c.remove, `Deleted ${name}.`);
+          if (!err) back();
+        }}
+      />
+
+      <ReportSheet
+        visible={!!report}
+        label={report?.label ?? ''}
+        canBlock={false}
+        onClose={() => setReport(null)}
+        onSend={async (reason, note) => {
+          const r = report;
+          setReport(null);
+          if (!r) return;
+          const err =
+            r.kind === 'club' ? await c.report(reason, note) : await attempt(() => api.report({ kind: 'message', ref: r.ref, reason, note: note || undefined }));
+          show(err ?? 'Thanks. Steps reviews every report, urgent ones within 24 hours.');
+        }}
+      />
+    </PremiumGate>
+  );
+}
+
+/** "Banjara Hills · 48 members · Captain @you_walk". */
+function headLine(club: Club): string {
+  const cap = club.captain ? `Captain ${club.captain.relation === 'self' ? 'you' : `@${club.captain.handle}`}` : null;
+  return [clubLine(club), cap].filter(Boolean).join(' · ');
+}
+
+/** Not a member yet: what the club is, and Ask to join, Cancel, or the invite's Join and Decline. */
+function Visitor({
+  club,
+  busy,
+  onJoin,
+  onCancel,
+  onDecline,
+}: {
+  club: Club;
+  busy: boolean;
+  onJoin: () => void;
+  onCancel: () => void;
+  onDecline: () => void;
+}) {
+  const insets = useSafeAreaInsets();
+  return (
+    <ScrollView contentContainerStyle={[styles.pad, { paddingBottom: insets.bottom + Spacing.four }]}>
+      <ThemedText type="titleLarge" maxFontSizeMultiplier={1.3}>
+        {club.name}
+      </ThemedText>
+      <ThemedText themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
+        {headLine(club)}
+      </ThemedText>
+      {club.about ? <ThemedText maxFontSizeMultiplier={1.3}>{club.about}</ThemedText> : null}
+      {club.goals ? (
+        <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
+          {"This club has shared goals. You'll see what the captain sees before you join."}
+        </ThemedText>
+      ) : null}
+      {club.myState === 'asked' ? (
+        <>
+          <ThemedText maxFontSizeMultiplier={1.3}>Asked. The captain or a vice-captain will let you in.</ThemedText>
+          <Button label="Cancel request" variant="outlined" onPress={onCancel} disabled={busy} />
+        </>
+      ) : club.myState === 'invited' ? (
+        <>
+          <ThemedText maxFontSizeMultiplier={1.3}>{"You're invited to this club."}</ThemedText>
+          <Button label="Join" onPress={onJoin} loading={busy} disabled={busy} />
+          <Button label="Decline" variant="text" onPress={onDecline} disabled={busy} />
+        </>
+      ) : (
+        <>
+          <Button label="Ask to join" onPress={onJoin} loading={busy} disabled={busy} />
+          <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
+            The captain or a vice-captain approves each request. Members see your walker ID.
+          </ThemedText>
+        </>
+      )}
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  fill: { flex: 1 },
+  grow: { flex: 1 },
+  top: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one, paddingHorizontal: Spacing.two, paddingBottom: Spacing.one },
+  head: { paddingHorizontal: Spacing.four, gap: Spacing.two, paddingBottom: Spacing.two, width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },
+  pad: { paddingHorizontal: Spacing.four, paddingTop: Spacing.two, gap: Spacing.three, width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },
+  start: { alignSelf: 'flex-start' },
+});

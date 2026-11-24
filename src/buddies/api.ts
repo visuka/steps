@@ -9,6 +9,8 @@ import { tokenError } from '@/api/food-read';
 import { STEPS_API_URL } from '@/constants/app';
 import { premiumRequired } from '@/premium/premium';
 
+import { makeClubsApi } from './clubs-api';
+import { readClubInvites } from './clubs-read';
 import {
   readBuddies,
   readChats,
@@ -102,7 +104,10 @@ export const socialApi = {
     await call('DELETE', '/me/area');
   },
   nearby: async (): Promise<Nearby> => readNearby(await call('GET', '/nearby')),
-  requests: async (): Promise<Requests> => readRequests(await call('GET', '/requests')),
+  requests: async (): Promise<Requests> => {
+    const r = await call('GET', '/requests');
+    return { ...readRequests(r), clubInvites: readClubInvites(r) };
+  },
   ask: async (pid: string): Promise<'requested' | 'buddies'> => {
     const r = (await call('POST', '/requests', { pid })) as { state?: unknown } | null;
     return r?.state === 'buddies' ? 'buddies' : 'requested';
@@ -141,9 +146,12 @@ export const socialApi = {
   block: async (pid: string): Promise<void> => {
     await call('POST', '/blocks', { pid });
   },
-  report: async (r: { kind: 'walker' | 'message'; pid?: string; ref?: string; reason: ReportReason; note?: string }) => {
+  report: async (r: { kind: 'walker' | 'message' | 'club'; pid?: string; ref?: string; reason: ReportReason; note?: string }) => {
     await call('POST', '/reports', r);
   },
+
+  // Clubs (clubs-api.ts).
+  ...makeClubsApi((method, path, body) => call(method, path, body)),
 };
 
 export type SocialApi = typeof socialApi;

@@ -19,6 +19,11 @@ import FindWalkers from '@/app/buddies/find';
 import Requests from '@/app/buddies/requests';
 import ChatScreen from '@/app/buddies/chat/[key]';
 import WalkerScreen from '@/app/buddies/walker/[pid]';
+import ClubSearch from '@/app/buddies/clubs';
+import ClubFormScreen from '@/app/buddies/club/new';
+import ClubScreen from '@/app/buddies/club/[id]';
+import ClubAdminScreen from '@/app/buddies/club/[id]/admin';
+import ClubJoinScreen from '@/app/buddies/club/[id]/join';
 import { AuthScreen } from '@/components/auth/auth-screen';
 import { BuddiesHome } from '@/components/buddies/buddies-home';
 import { ScanScreen } from '@/components/food/scan-screen';
@@ -80,7 +85,7 @@ export default function DesignPreviewRoute() {
 function DesignPreviewScreens() {
   const raw = useLocalSearchParams();
   const params = parsePreviewParams(raw);
-  const shown = params && params.theme === ActiveTheme.id ? `${params.theme} ${params.screen}${params.edit ? ' edit' : ''}${params.mine ? ' mine' : ''}${params.part ? ` ${params.part}` : ''}` : 'refused';
+  const shown = params && params.theme === ActiveTheme.id ? `${params.theme} ${params.screen}${params.edit ? ' edit' : ''}${params.mine ? ' mine' : ''}${params.seg ? ` ${params.seg}` : ''}${params.part ? ` ${params.part}` : ''}` : 'refused';
 
   // CI waits for this line in logcat before photographing (.github/scripts/launch-and-capture.sh).
   useEffect(() => {
@@ -175,6 +180,18 @@ function StackScreen({ screen }: { screen: PreviewScreen }) {
       return <ChatScreen />;
     case 'walker':
       return <WalkerScreen />;
+    case 'clubs':
+      return <ClubSearch />;
+    case 'club-new':
+      return <ClubFormScreen />;
+    case 'club':
+      // Reads &id= and &seg= from the link (KBR000000001: I am its captain).
+      return <ClubScreen />;
+    case 'club-admin':
+      return <ClubAdminScreen />;
+    case 'club-join':
+      // &id=NRS000000002: a club with shared goals I am not in yet.
+      return <ClubJoinScreen />;
     case 'signin':
       return <AuthScreen />;
     case 'welcome':

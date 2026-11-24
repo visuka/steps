@@ -1,0 +1,191 @@
+/**
+ * Walk buddies clubs, pure rules: the role words the owner chose (Captain,
+ * Vice-captain, Member), who may do what, the member list order, the board's
+ * ranks, the club form's checks and the plain words for club errors. Tested
+ * in __tests__/clubs.test.ts.
+ */
+import { displayName, SocialError } from './read';
+import type { BoardRow, ClubCard, ClubForm, ClubMember, ClubRole } from './types';
+
+/** The owner's words (18 Nov 2026); the server keeps owner / admin / member. */
+export const ROLE_WORD: Record<ClubRole, string> = { owner: 'Captain', admin: 'Vice-captain', member: 'Member' };
+
+/** At most two vice-captains per club (contract). */
+export const VICE_MAX = 2;
+
+export type ClubAction =
+  | 'edit'
+  | 'delete'
+  | 'approve'
+  | 'invite'
+  | 'setRole'
+  | 'removeMember'
+  | 'removeVice'
+  | 'reports'
+  | 'code'
+  | 'leave'
+  | 'board'
+  | 'chat';
+
+/** Who may do what (server clubs.py: _staff_mem, set_role, remove_member, delete). */
+const CAN: Record<ClubAction, readonly ClubRole[]> = {
+  edit: ['owner', 'admin'],
+  delete: ['owner'],
+  approve: ['owner', 'admin'],
+  invite: ['owner', 'admin'],
+  setRole: ['owner'],
+  removeMember: ['owner', 'admin'],
+  removeVice: ['owner'],
+  reports: ['owner', 'admin'],
+  code: ['owner', 'admin'],
+  leave: ['owner', 'admin', 'member'],
+  board: ['owner', 'admin', 'member'],
+  chat: ['owner', 'admin', 'member'],
+};
+
+export function can(role: ClubRole | null | undefined, action: ClubAction): boolean {
+  return !!role && CAN[action].includes(role);
+}
+
+export const isStaff = (role: ClubRole | null | undefined) => role === 'owner' || role === 'admin';
+
+const ROLE_ORDER: Record<ClubRole, number> = { owner: 0, admin: 1, member: 2 };
+
+/** Captain first, then vice-captains, then members; by name within each. */
+export function sortMembers(members: ClubMember[]): ClubMember[] {
+  return [...members].sort(
+    (a, b) => ROLE_ORDER[a.role] - ROLE_ORDER[b.role] || displayName(a.walker).localeCompare(displayName(b.walker)),
+  );
+}
+
+export const viceCount = (members: ClubMember[]) => members.filter((m) => m.role === 'admin').length;
+
+/** What the captain may do to a member's role, or null (the captain themself, or the vice-captain seats are full). */
+export function roleChange(target: ClubMember, members: ClubMember[]): { to: 'admin' | 'member'; label: string } | null {
+  if (target.role === 'owner') return null;
+  if (target.role === 'admin') return { to: 'member', label: 'Make member' };
+  if (viceCount(members) >= VICE_MAX) return null;
+  return { to: 'admin', label: 'Make vice-captain' };
+}
+
+/** Whether I (in `myRole`) may remove this member: never the captain; a vice-captain only by the captain; never myself (that is Leave). */
+export function canRemove(myRole: ClubRole | null, target: ClubMember, myPid: string | null): boolean {
+  if (!myRole || target.role === 'owner' || target.walker.pid === myPid || target.walker.relation === 'self') return false;
+  if (target.role === 'admin') return can(myRole, 'removeVice');
+  return can(myRole, 'removeMember');
+}
+
+export interface RankedRow extends BoardRow {
+  /** 1, 2, 3…; equal steps share a rank. */
+  rank: number;
+}
+
+/** The board, high first, with ranks (equal steps share one). */
+export function boardRows(rows: BoardRow[]): RankedRow[] {
+  const sorted = [...rows].sort((a, b) => b.weekSteps - a.weekSteps || displayName(a.walker).localeCompare(displayName(b.walker)));
+  let rank = 0;
+  let last = -1;
+  return sorted.map((r, i) => {
+    if (r.weekSteps !== last) {
+      rank = i + 1;
+      last = r.weekSteps;
+    }
+    return { ...r, rank };
+  });
+}
+
+const count = (n: number, one: string, many: string) => `${n.toLocaleString('en-IN')} ${n === 1 ? one : many}`;
+
+/** "Banjara Hills · 48 members". */
+export function clubLine(c: Pick<ClubCard, 'area' | 'memberCount'>): string {
+  return [c.area.trim(), count(c.memberCount, 'member', 'members')].filter(Boolean).join(' · ');
+}
+
+/** The search row's right side: what I can do, or where I stand. */
+export function stateWord(c: Pick<ClubCard, 'myState'>): string {
+  switch (c.myState) {
+    case 'member':
+      return 'Member';
+    case 'asked':
+      return 'Asked';
+    case 'invited':
+      return 'Invited';
+    default:
+      return 'Ask to join';
+  }
+}
+
+export const NAME_MIN = 3;
+export const NAME_MAX = 40;
+export const AREA_MAX = 40;
+export const ABOUT_MAX = 200;
+
+/** A plain reason the club form can't be sent, or null (same limits as the server's clubs.py). */
+export function clubProblem(f: Pick<ClubForm, 'name' | 'area' | 'about'>): string | null {
+  const name = f.name.trim().replace(/\s+/g, ' ');
+  if (name.length < NAME_MIN) return 'Give the club a name of at least 3 letters.';
+  if (name.length > NAME_MAX) return 'The name can be at most 40 characters.';
+  if (f.area.trim().length > AREA_MAX) return 'The area can be at most 40 characters.';
+  if (f.about.trim().length > ABOUT_MAX) return 'About can be at most 200 characters.';
+  return null;
+}
+
+/** A search the server takes: 2–40 characters. */
+export function searchReady(q: string): boolean {
+  const t = q.trim();
+  return t.length >= 2 && t.length <= 40;
+}
+
+/** Joining this club first shows the goals consent screen. */
+export const needsConsent = (c: Pick<ClubCard, 'goals'>) => c.goals;
+
+/** Plain words for a club error, by the server's `why` when it gave one. */
+export function clubErrorText(e: unknown): string {
+  if (!(e instanceof SocialError)) return 'Something went wrong. Try again.';
+  switch (e.why ?? e.code) {
+    case 'club_full':
+      return 'This club is full (200 members).';
+    case 'club_limit':
+      return 'You can be in 10 clubs and start 3.';
+    case 'goals_consent':
+      return 'This club has shared goals. Agree to them to join.';
+    case 'join_limit':
+      return 'You can ask to join 5 clubs at a time.';
+    case 'declined_recently':
+      return 'This club said no recently. You can ask again after 30 days.';
+    case 'bad_code':
+      return 'That code is wrong or has run out. Ask for a new one.';
+    case 'admin_limit':
+    case 'vice_limit':
+      return 'A club can have 2 vice-captains.';
+    case 'already':
+      return 'Already done.';
+    case 'daily_limit':
+      return "You've reached today's limit. Try again tomorrow.";
+  }
+  return e.message;
+}
+
+export interface JoinCalls {
+  joinClub: (id: string, o?: { goalsConsent?: boolean; code?: string }) => Promise<'asked' | 'member'>;
+  acceptClubInvite: (id: string, o?: { goalsConsent?: boolean; code?: string }) => Promise<unknown>;
+}
+
+/**
+ * Join a club the right way: an invite is accepted (I'm in at once), anything
+ * else asks the captain and vice-captains. A club with shared goals is joined
+ * only with the person's consent (the consent screen), so without it nothing is sent.
+ */
+export async function joinOrAccept(
+  api: JoinCalls,
+  club: Pick<ClubCard, 'clubId' | 'myState' | 'goals'>,
+  o: { consent?: boolean; code?: string } = {},
+): Promise<'asked' | 'member' | 'needs_consent'> {
+  if (club.goals && !o.consent) return 'needs_consent';
+  const body = { ...(club.goals ? { goalsConsent: true } : {}), ...(o.code ? { code: o.code } : {}) };
+  if (club.myState === 'invited') {
+    await api.acceptClubInvite(club.clubId, body);
+    return 'member';
+  }
+  return api.joinClub(club.clubId, body);
+}

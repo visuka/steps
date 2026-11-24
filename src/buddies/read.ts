@@ -108,13 +108,13 @@ export function socialErrorFor(status: number | null, code?: string, why?: strin
 
 // ── reading ──────────────────────────────────────────────────────────────
 
-type Obj = Record<string, unknown>;
-const isObj = (v: unknown): v is Obj => typeof v === 'object' && v !== null && !Array.isArray(v);
-const str = (v: unknown, max = 600): string | null => (typeof v === 'string' && v.length <= max ? v : null);
-const num = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
+export type Obj = Record<string, unknown>;
+export const isObj = (v: unknown): v is Obj => typeof v === 'object' && v !== null && !Array.isArray(v);
+export const str = (v: unknown, max = 600): string | null => (typeof v === 'string' && v.length <= max ? v : null);
+export const num = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
 const RELATIONS: readonly Relation[] = ['none', 'buddy', 'requested', 'asked_me', 'self'];
 
-function bad(): never {
+export function bad(): never {
   throw new SocialError('other', 'bad_answer');
 }
 

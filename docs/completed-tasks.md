@@ -281,3 +281,17 @@ Not committed. No server or AWS change. Nothing is removed from any count.
 - New `src/components/plain/` (theme, icons, kit, page). Today rebuilt as Activity, Food as Nutrition, Walk buddies as Meet; three-part switch in the top row; bottom bar removed (screens all still routed). Figtree bundled.
 - Kept, though not on the mockup: food Previous/Next day, edit and delete (long-press too), every nutrient behind the sand tile, week view, setup and gap notes, all Meet features.
 - Checks: tsc, eslint on changed files, jest 1,580 passing. Mockup and pictures in `docs/design/plain-sage-sand/`.
+
+## 24 Nov 2026 — Clubs (T16f), app side
+
+- Calls, readers and tests for `/clubs*`. They cover search, mine, get, create and edit (with the shared-goals flag), delete, join and cancel, invites, requests, members and roles, remove, leave, the board, reports, the club code, and `PUT /me/steps`. Code: `src/buddies/clubs-api.ts`, `clubs-read.ts` and `clubs.ts`. Role words are Captain, Vice-captain and Member.
+- Board steps are sent only while one of my boards is on: on focus, at most every 30 minutes, five fields only (`steps-share.ts`). The kv keys `buddies.boards` and `buddies.stepsSent` are local only.
+- Screens:
+  - Groups on Buddies home: Clubs, Find a club, Start a club, and a Planned walks slot. "Coming next" is unchanged.
+  - Find a club and Start a club. The Start form has "Hide from search" and "Shared goals" switches.
+  - The club screen, with tabs Chat · Walks · Goals · Board. Each tab is its own part, and Chat reuses the buddy chat body (`chat-body.tsx`).
+  - Members and requests: Approve, Decline, Make vice-captain, Remove, Invite a buddy and reports.
+  - The goals consent, shown before joining a club with shared goals. It sends `goalsConsent: true`.
+  - Club invites on Requests.
+- Preview screens: clubs, club-new, club (`&seg=`), club-admin and club-join. CI shots `smoke/clean-club*.png` include 360 dp shots with large text.
+- Checks: tsc, eslint and the whole jest suite. The emulator shots have not been reviewed yet.

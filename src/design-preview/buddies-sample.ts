@@ -1,6 +1,6 @@
 /** Sample Walk buddies data for the design preview: no network. */
 import type { SocialApi } from '@/buddies/api';
-import type { ChatRow, Message, Walker } from '@/buddies/types';
+import type { Club, ClubCard, ClubMember, ChatRow, Message, Walker } from '@/buddies/types';
 
 const NOW = Date.now();
 const MIN = 60_000;
@@ -8,6 +8,85 @@ const MIN = 60_000;
 const ravi: Walker = { pid: 'p1', handle: 'ravi_walks', name: 'Ravi', relation: 'buddy' };
 const meera: Walker = { pid: 'p2', handle: 'meera.k', name: 'Meera', relation: 'buddy' };
 const asha: Walker = { pid: 'p3', handle: 'asha_runs', name: 'Asha', relation: 'asked_me' };
+const me: Walker = { pid: 'me', handle: 'you_walk', name: 'You', relation: 'self' };
+// Club people (docs/walk-buddies.md 7.5): one Telugu name, so the shot checks the font.
+const lakshmi: Walker = { pid: 'p4', handle: 'lakshmi_k', name: 'లక్ష్మి', relation: 'buddy' };
+const arjun: Walker = { pid: 'p5', handle: 'arjun22', name: null, relation: 'none' };
+const meena: Walker = { pid: 'p6', handle: 'meena_walks', name: null, relation: 'none' };
+const kiran: Walker = { pid: 'p7', handle: 'kiran_steps', name: null, relation: 'none' };
+const sita: Walker = { pid: 'p8', handle: 'sita_walks', name: null, relation: 'none' };
+
+/** The club the preview's club screens open (&id=KBR000000001): I am its captain, it has shared goals. */
+export const SAMPLE_CLUB_ID = 'KBR000000001';
+/** A club with shared goals I am not in yet: the goals consent screen (&id=NRS000000002). */
+export const SAMPLE_GOALS_CLUB_ID = 'NRS000000002';
+
+const KBR: Club = {
+  clubId: SAMPLE_CLUB_ID,
+  name: 'KBR Morning Walkers',
+  area: 'Banjara Hills',
+  memberCount: 48,
+  myState: 'member',
+  goals: true,
+  captain: me,
+  about: 'We walk the KBR Park loop at 6 every morning. All paces welcome.',
+  hidden: false,
+  myRole: 'owner',
+  myBoard: true,
+};
+
+const NRS: Club = {
+  clubId: SAMPLE_GOALS_CLUB_ID,
+  name: 'Necklace Road Striders',
+  area: 'Hussain Sagar',
+  memberCount: 23,
+  myState: 'none',
+  goals: true,
+  captain: lakshmi,
+  about: 'Evening walks by the lake, 7 pm. Weekly step goals.',
+  hidden: false,
+  myRole: null,
+  myBoard: false,
+};
+
+const JHE: Club = {
+  clubId: 'JHE000000003',
+  name: 'Jubilee Hills Evening Walk',
+  area: 'Jubilee Hills',
+  memberCount: 12,
+  myState: 'invited',
+  goals: false,
+  captain: ravi,
+  about: '',
+  hidden: false,
+  myRole: null,
+  myBoard: false,
+};
+
+const cardOf = ({ clubId, name, area, memberCount, myState, goals, captain }: Club): ClubCard => ({ clubId, name, area, memberCount, myState, goals, captain });
+
+const KBR_MEMBERS: ClubMember[] = [
+  { walker: me, role: 'owner' },
+  { walker: ravi, role: 'admin' },
+  { walker: lakshmi, role: 'member' },
+  { walker: arjun, role: 'member' },
+  { walker: meena, role: 'member' },
+];
+
+const clubMsg = (id: string, from: Walker, text: string, ago: number): Message => ({
+  id,
+  mine: from.pid === 'me',
+  from: { pid: from.pid, handle: from.handle, name: from.name },
+  text,
+  at: NOW - ago * MIN,
+});
+
+const CLUB_MESSAGES: Message[] = [
+  clubMsg('c1', ravi, 'Gate 2 is closed this week, meet at the main gate.', 26 * 60),
+  clubMsg('c2', lakshmi, 'రేపు ఉదయం 6 గంటలకు', 25 * 60),
+  clubMsg('c3', me, 'See you all at 6.', 50),
+  clubMsg('c4', arjun, 'Running 10 minutes late, start without me.', 12),
+];
 
 const CHATS: ChatRow[] = [
   { key: 'b.p1', kind: 'buddy', title: 'Ravi', lastAt: NOW - 8 * MIN, lastText: 'Park at 6:30 tomorrow?', lastMine: false, unread: 2 },
@@ -48,7 +127,11 @@ export const SAMPLE_SOCIAL_API: SocialApi = {
   setArea: ok,
   clearArea: ok,
   nearby: async () => ({ walkers: [], areaSetOn: null }),
-  requests: async () => ({ incoming: [{ walker: asha, at: NOW - 90 * MIN }], outgoing: [] }),
+  requests: async () => ({
+    incoming: [{ walker: asha, at: NOW - 90 * MIN }],
+    outgoing: [],
+    clubInvites: [{ club: cardOf(JHE), by: ravi, at: NOW - 3 * 60 * MIN }],
+  }),
   ask: async () => 'requested',
   accept: ok,
   decline: ok,
@@ -59,10 +142,51 @@ export const SAMPLE_SOCIAL_API: SocialApi = {
   ],
   removeBuddy: ok,
   chats: async () => CHATS,
-  messages: async () => ({ messages: MESSAGES, more: false }),
+  messages: async (key) => ({ messages: key.startsWith('c.') ? CLUB_MESSAGES : MESSAGES, more: false }),
   send: async (_key, text, clientId) => ({ ...msg(clientId, true, text, 0), clientId }),
   read: ok,
   deleteMessage: ok,
   block: ok,
   report: ok,
+
+  searchClubs: async () => [cardOf(KBR), cardOf(NRS), { ...cardOf(JHE), myState: 'asked' }],
+  myClubs: async () => [cardOf(KBR), { ...cardOf(JHE), myState: 'member' }],
+  club: async (id) =>
+    id === SAMPLE_GOALS_CLUB_ID
+      ? { club: NRS, members: [] }
+      : id === JHE.clubId
+        ? { club: JHE, members: [] }
+        : { club: KBR, members: KBR_MEMBERS },
+  createClub: async () => KBR,
+  updateClub: async () => KBR,
+  deleteClub: ok,
+  joinClub: async () => 'asked',
+  cancelJoin: ok,
+  acceptClubInvite: async () => ({ ...JHE, myState: 'member', myRole: 'member' }),
+  declineClubInvite: ok,
+  clubRequests: async () => [
+    { walker: kiran, at: NOW - 40 * MIN },
+    { walker: sita, at: NOW - 5 * 60 * MIN },
+  ],
+  approveRequest: ok,
+  declineRequest: ok,
+  inviteBuddy: ok,
+  setRole: ok,
+  removeMember: ok,
+  leaveClub: ok,
+  setBoard: ok,
+  board: async () => ({
+    weekStart: '2026-11-23',
+    rows: [
+      { walker: ravi, weekSteps: 52340 },
+      { walker: me, weekSteps: 41200 },
+      { walker: lakshmi, weekSteps: 38900 },
+      { walker: meena, weekSteps: 21050 },
+    ],
+  }),
+  clubReports: async () => [{ reportId: 'R1', kind: 'message', reason: 'spam', text: 'Cheap walking shoes, message me for the price', at: NOW - 2 * 60 * MIN }],
+  closeClubReport: ok,
+  newClubCode: async () => ({ code: 'K7QM2XPA', codeExpiresAt: NOW + 48 * 60 * MIN }),
+  clubByCode: async () => cardOf(NRS),
+  putSteps: async () => true,
 };

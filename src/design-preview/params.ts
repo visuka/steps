@@ -16,6 +16,8 @@
  * It also takes edit=1: the result opened for editing its ingredients (T15).
  *
  *   neutcraftssteps://design-preview?theme=e&screen=food&edit=1
+ * The club screen also takes seg=chat|walks|goals|board (the tab it opens on), and the club
+ * screens their id=<clubId> (design-preview/buddies-sample.ts), read by the screen itself.
  * Every screen also takes part=dawn|noon|dusk: Today and the bar in that part's colours
  * instead of the clock's (T18).
  * Plain string work only: React Native's URLSearchParams has no get().
@@ -53,8 +55,18 @@ export const PREVIEW_SCREENS = [
   'walker',
   'signin',
   'welcome',
+  // Clubs (T16f): search, the start form, a club, running it, and the goals consent.
+  'clubs',
+  'club-new',
+  'club',
+  'club-admin',
+  'club-join',
 ] as const;
 export type PreviewScreen = (typeof PREVIEW_SCREENS)[number];
+
+/** The club screen's tabs, for &seg= on screen=club. */
+export const CLUB_SEGS = ['chat', 'walks', 'goals', 'board'] as const;
+export type ClubSeg = (typeof CLUB_SEGS)[number];
 
 export interface PreviewParams {
   theme: ThemeId;
@@ -67,6 +79,8 @@ export interface PreviewParams {
   mine?: boolean;
   /** Today and the bar in this part of the day's colours; the clock's when missing. */
   part?: DayPart;
+  /** The club screen's tab; only set when screen is 'club' and the link names one. */
+  seg?: ClubSeg;
 }
 
 /** Route params as expo-router hands them over (useLocalSearchParams). */
@@ -87,6 +101,8 @@ export function parsePreviewParams(raw: RawParams): PreviewParams | null {
   if (screen === 'detail') return { theme: theme as ThemeId, screen, kind: parseKind(raw.kind) ?? 'steps', ...part };
   if (screen === 'food' && first(raw.mine) === '1') return { theme: theme as ThemeId, screen, mine: true, ...part };
   if (screen === 'food' && first(raw.edit) === '1') return { theme: theme as ThemeId, screen, edit: true, ...part };
+  const seg = first(raw.seg);
+  if (screen === 'club' && (CLUB_SEGS as readonly (string | undefined)[]).includes(seg)) return { theme: theme as ThemeId, screen, seg: seg as ClubSeg, ...part };
   return { theme: theme as ThemeId, screen: screen as PreviewScreen, ...part };
 }
 
@@ -95,7 +111,8 @@ export function previewUrl(scheme: string, p: PreviewParams): string {
   const kind = p.screen === 'detail' && p.kind ? `&kind=${p.kind}` : '';
   const edit = p.screen === 'food' ? (p.mine ? '&mine=1' : p.edit ? '&edit=1' : '') : '';
   const part = p.part ? `&part=${p.part}` : '';
-  return `${scheme}://${PREVIEW_ROUTE}?theme=${p.theme}&screen=${p.screen}${kind}${edit}${part}`;
+  const seg = p.screen === 'club' && p.seg ? `&seg=${p.seg}` : '';
+  return `${scheme}://${PREVIEW_ROUTE}?theme=${p.theme}&screen=${p.screen}${kind}${edit}${seg}${part}`;
 }
 
 function decode(text: string): string {

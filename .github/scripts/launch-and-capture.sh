@@ -160,6 +160,24 @@ for kind in active food; do
 done
 capture e chat smoke/all-chat.png '&key=b.p1&title=Ravi'
 capture e walker smoke/all-walker.png '&pid=p1&name=Ravi&handle=ravi_walks'
+# Clubs (T16f): search, the start form, each tab of a club I captain, running it,
+# and the goals consent of a club I am not in (ids from design-preview/buddies-sample.ts).
+capture e clubs smoke/clean-clubs.png && more smoke/clean-clubs
+capture e club-new smoke/clean-club-new.png && more smoke/clean-club-new
+for seg in chat walks goals board; do
+  capture e club "smoke/clean-club-$seg.png" "&id=KBR000000001&seg=$seg" "$seg"
+done
+capture e club-admin smoke/clean-club-admin.png '&id=KBR000000001' && more smoke/clean-club-admin
+capture e club-join smoke/clean-club-join.png '&id=NRS000000002' && more smoke/clean-club-join
+# The same on a small phone (360 dp) with large text: everything must still fit.
+adb shell wm density 480
+adb shell settings put system font_scale 1.3
+capture e buddies smoke/clean-buddies-360dp.png && more smoke/clean-buddies-360dp
+capture e club smoke/clean-club-board-360dp.png '&id=KBR000000001&seg=board' board
+capture e club-join smoke/clean-club-join-360dp.png '&id=NRS000000002' && more smoke/clean-club-join-360dp
+capture e club-new smoke/clean-club-new-360dp.png && more smoke/clean-club-new-360dp
+adb shell settings put system font_scale 1.0
+adb shell wm density 420
 # The long screens CI already photographs, the rest of the way down.
 for screen in food walk detail activity plus; do
   capture e "$screen" "smoke/all-$screen.png" && more "smoke/all-$screen"

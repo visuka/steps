@@ -41,6 +41,18 @@ describe('parsePreviewParams', () => {
     expect(parsePreviewParams({ theme: 'e', screen: 'today', kind: 'water' })).toEqual({ theme: 'e', screen: 'today' });
   });
 
+  it('has the club screens, and opens the club on the tab the link names', () => {
+    for (const screen of ['clubs', 'club-new', 'club', 'club-admin', 'club-join']) expect(PREVIEW_SCREENS).toContain(screen);
+    for (const seg of ['chat', 'walks', 'goals', 'board']) {
+      expect(parsePreviewParams({ theme: 'e', screen: 'club', seg })).toEqual({ theme: 'e', screen: 'club', seg });
+    }
+    expect(parsePreviewParams({ theme: 'e', screen: 'club', seg: 'Board' })).toEqual({ theme: 'e', screen: 'club' });
+    expect(parsePreviewParams({ theme: 'e', screen: 'club-admin', seg: 'board' })).toEqual({ theme: 'e', screen: 'club-admin' });
+    const p = { theme: 'e', screen: 'club', seg: 'board' } as const;
+    expect(previewUrl(SCHEME, p)).toBe('neutcraftssteps://design-preview?theme=e&screen=club&seg=board');
+    expect(parsePreviewUrl(previewUrl(SCHEME, p))).toEqual(p);
+  });
+
   it('takes the first of repeated params, as expo-router hands them over', () => {
     expect(parsePreviewParams({ theme: ['e', 'd'], screen: ['walk'] })).toEqual({ theme: 'e', screen: 'walk' });
   });

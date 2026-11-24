@@ -49,6 +49,8 @@ export interface RequestRow {
 export interface Requests {
   incoming: RequestRow[];
   outgoing: RequestRow[];
+  /** Clubs a captain or vice-captain invited me to (GET /requests "clubInvites"). */
+  clubInvites?: ClubInviteRow[];
 }
 
 export interface BuddyRow {
@@ -84,6 +86,88 @@ export interface Message {
 export interface MessagePage {
   messages: Message[];
   more: boolean;
+}
+
+// ── clubs (docs/walk-buddies.md 2.5 "Clubs", plus the goals and club-code contract) ──
+
+/** The server's roles; the app says Captain, Vice-captain and Member (clubs.ts ROLE_WORD). */
+export type ClubRole = 'owner' | 'admin' | 'member';
+
+/** Where I stand with a club. */
+export type ClubState = 'none' | 'asked' | 'invited' | 'member';
+
+export interface ClubCard {
+  clubId: string;
+  name: string;
+  /** A typed place name, like "Banjara Hills" (never a position). */
+  area: string;
+  memberCount: number;
+  myState: ClubState;
+  /** The club has shared goals: joining needs the goals consent. */
+  goals: boolean;
+  /** The captain (the server's owner), for display; null when the server didn't say. */
+  captain: Walker | null;
+}
+
+export interface Club extends ClubCard {
+  about: string;
+  hidden: boolean;
+  /** Null when I am not a member. */
+  myRole: ClubRole | null;
+  /** My steps are on this club's weekly board. */
+  myBoard: boolean;
+}
+
+export interface ClubMember {
+  walker: Walker;
+  role: ClubRole;
+}
+
+/** GET /clubs/{id}: the club, and its members when I am one. */
+export interface ClubPage {
+  club: Club;
+  members: ClubMember[];
+}
+
+export interface ClubInviteRow {
+  club: ClubCard;
+  by: Walker;
+  at: number;
+}
+
+export interface BoardRow {
+  walker: Walker;
+  weekSteps: number;
+}
+
+export interface Board {
+  /** The Monday the week starts on, YYYY-MM-DD. */
+  weekStart: string;
+  rows: BoardRow[];
+}
+
+/** A report a club's captain or vice-captain can act on. */
+export interface ClubReport {
+  reportId: string;
+  kind: string;
+  reason: string;
+  /** What was reported, copied at report time (message text, handle…). */
+  text: string;
+  at: number;
+}
+
+export interface ClubCode {
+  code: string;
+  codeExpiresAt: number;
+}
+
+/** POST /clubs and PATCH /clubs/{id}. */
+export interface ClubForm {
+  name: string;
+  area: string;
+  about: string;
+  hidden: boolean;
+  goals: boolean;
 }
 
 export const REPORT_REASONS = [

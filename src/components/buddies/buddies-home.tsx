@@ -18,10 +18,12 @@ import { cleanHandle, handleProblem } from '@/buddies/chat-logic';
 import { displayName } from '@/buddies/read';
 import type { BuddyRow, ChatRow, SocialMe } from '@/buddies/types';
 import { attempt, useLoad, useSocialApi, useSocialMe } from '@/buddies/use-buddies';
+import { useMyClubs, useStepsShare } from '@/buddies/use-clubs';
 import { scaled } from '@/constants/ui-scale';
 import { minutesAgo } from '@/lib/format';
 import { useApp } from '@/state/app-state';
 
+import { GroupsTile, PlannedWalksSlot } from './clubs/groups-tile';
 import { useSnack } from './parts';
 
 const S = scaled;
@@ -115,6 +117,9 @@ function Joined({ me, refreshMe }: { me: Extract<SocialMe, { joined: true }>; re
   const chats = useLoad(api.chats);
   const buddies = useLoad(api.buddies);
   const requests = useLoad(api.requests);
+  const clubs = useMyClubs();
+  // Today's and this week's steps for the club boards, only while a board is on (steps-share.ts).
+  useStepsShare();
   const { snack, show, dismiss } = useSnack();
   const [later, setLater] = useState(false);
   // When the chats last came in, for "Updated 2 min ago" (set as they arrive, not in an effect).
@@ -126,7 +131,7 @@ function Joined({ me, refreshMe }: { me: Extract<SocialMe, { joined: true }>; re
   }
 
   const refresh = async () => {
-    await Promise.all([refreshMe(), chats.refresh(), buddies.refresh(), requests.refresh()]);
+    await Promise.all([refreshMe(), chats.refresh(), buddies.refresh(), requests.refresh(), clubs.refresh()]);
   };
 
   const incoming = requests.data?.incoming ?? [];
@@ -213,6 +218,16 @@ function Joined({ me, refreshMe }: { me: Extract<SocialMe, { joined: true }>; re
         </View>
         <Btn text="Share" kind="main" onPress={() => Share.share({ message: `Walk with me on Steps. My walker ID is @${me.handle}` })} label="Share your walker ID" />
       </Tile>
+
+      <GroupsTile
+        clubs={clubs.data}
+        error={clubs.error}
+        asking={me.counts.clubRequests}
+        onOpen={(c) => router.push({ pathname: '/buddies/club/[id]', params: { id: c.clubId } } as never)}
+        onFind={() => router.push('/buddies/clubs' as never)}
+        onStart={() => router.push('/buddies/club/new' as never)}
+      />
+      <PlannedWalksSlot />
 
       <Tile style={[ps.spread, { paddingTop: S(12), paddingBottom: S(12) }]}>
         <Label icon="spark" text="Coming next" />
