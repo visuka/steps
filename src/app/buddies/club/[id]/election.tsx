@@ -14,6 +14,7 @@ import {
   HOW_IT_WORKS,
   lastElectionWords,
   myPidOf,
+  noOneStandsWords,
   standNote,
   voteDoneWords,
   voteWord,
@@ -28,7 +29,7 @@ import { SCREEN_FEATURES } from '@/premium/premium';
 /**
  * Choosing a new captain (owner, 24 Nov 2026): the captain left, so for 2
  * days members vote. Who acts as captain meanwhile, how it works, Stand for
- * captain, and the people standing with Vote / Your vote / Change. Ballots
+ * captain, and the people standing with Vote / Your vote. Ballots
  * are secret: no counts, only the result once it closes. Neutral words.
  */
 export default function ClubElectionScreen() {
@@ -139,7 +140,7 @@ export default function ClubElectionScreen() {
               <EmptyState
                 icon="people-outline"
                 title="No one is standing yet"
-                hint="Anyone who was a member when voting started can stand. If no one does, the acting captain becomes captain."
+                hint={noOneStandsWords(e, c.members, myPid)}
               />
             )}
             {e.myVote ? (

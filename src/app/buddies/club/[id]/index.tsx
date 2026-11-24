@@ -154,7 +154,7 @@ export default function ClubScreen() {
             <View style={styles.head}>
               {/* Indented under the title past the chevron, like every pushed screen's subtitle. */}
               <ThemedText type="bodySmall" themeColor="onSurfaceVariant" numberOfLines={2} maxFontSizeMultiplier={1.3} style={styles.headLine}>
-                {headLine(club)}
+                {headLine(club, !!result)}
               </ThemedText>
               {/* The vote's result, for 7 days after it closed: plain words, no "won". */}
               {result ? (
@@ -162,7 +162,7 @@ export default function ClubScreen() {
                   {result}
                 </ThemedText>
               ) : null}
-              {election ? <ElectionBanner text={bannerWords(election, now, clock)} button={bannerButton(election)} onPress={openElection} /> : null}
+              {election ? <ElectionBanner {...bannerWords(election, now, clock)} button={bannerButton(election)} onPress={openElection} /> : null}
               <Segments parts={CLUB_TABS} value={tab} onChange={setTab} stretch spoken={(v) => `${CLUB_TABS.find((t) => t.value === v)?.text} tab`} />
             </View>
             {tab === 'chat' ? (
@@ -257,9 +257,12 @@ export default function ClubScreen() {
   );
 }
 
-/** "Banjara Hills · 48 members · Captain @ravi_walks", or "… · You're the captain" (no captain while members vote). */
-function headLine(club: Club): string {
-  return [clubLine(club), captainWords(club)].filter(Boolean).join(' · ');
+/**
+ * "Banjara Hills · 48 members · Captain @ravi_walks", or "… · You're the captain" (no captain while members vote).
+ * While the vote's result line shows, the captain is left out: that line already names them.
+ */
+function headLine(club: Club, hideCaptain = false): string {
+  return [clubLine(club), hideCaptain ? null : captainWords(club)].filter(Boolean).join(' · ');
 }
 
 /** "Captain @ravi_walks", "You're the captain", or nothing. */

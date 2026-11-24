@@ -19,6 +19,7 @@ import {
   lastElectionWords,
   leaveAsk,
   myPidOf,
+  noOneStandsWords,
   powerRole,
   standNote,
   voteDoneWords,
@@ -213,7 +214,7 @@ describe('election words', () => {
   });
 
   it('writes the banner and its button', () => {
-    expect(bannerWords(open, NOW, style)).toBe('Choosing a new captain · ends Thu 6:00 pm');
+    expect(bannerWords(open, NOW, style)).toEqual({ title: 'Choosing a new captain', caption: 'Voting ends Thu 6:00 pm' });
     expect(bannerButton({ canVote: true, myVote: null })).toBe('Vote');
     expect(bannerButton({ canVote: true, myVote: ravi.pid })).toBe('Change vote');
     expect(bannerButton({ canVote: false, myVote: null })).toBe('See who is standing');
@@ -237,7 +238,7 @@ describe('election words', () => {
   it('labels each candidate’s button', () => {
     expect(voteWord(ravi.pid, null)).toBe('Vote');
     expect(voteWord(ravi.pid, ravi.pid)).toBe('Your vote');
-    expect(voteWord(me.pid, ravi.pid)).toBe('Change');
+    expect(voteWord(me.pid, ravi.pid)).toBe('Vote');
   });
 
   it('orders candidates by name, and marks me', () => {
@@ -245,6 +246,15 @@ describe('election words', () => {
     expect(list.map((c) => c.handle)).toEqual(['arjun22', 'you_walk', 'ravi_walks']);
     expect(candidateLine(cand(me, true))).toBe('You · @you_walk');
     expect(candidateLine(cand(ravi))).toBe('@ravi_walks');
+    // No name: the title is the handle already, so no second @handle.
+    expect(candidateLine(cand(arjun))).toBeUndefined();
+    expect(candidateLine(cand({ ...me, name: null }, true))).toBe('You');
+  });
+
+  it('says who becomes captain if no one stands', () => {
+    expect(noOneStandsWords({ ...open, actingPid: me.pid }, members, me.pid)).toBe('If no one stands, you stay on as captain.');
+    expect(noOneStandsWords(open, members, me.pid)).toBe('If no one stands, @ravi_walks becomes captain.');
+    expect(noOneStandsWords({ ...open, actingPid: null }, members, me.pid)).toBe('If no one stands, the acting captain becomes captain.');
   });
 
   it('notes the stand switch', () => {
@@ -271,12 +281,12 @@ describe('election words', () => {
     expect(leaveAsk('owner', 1, 'KBR').message).toBe("You're the only member. Leaving deletes the club.");
     expect(leaveAsk('owner', 48, 'KBR')).toEqual({
       title: 'Leave KBR?',
-      message: "Members will vote for a new captain over the next 2 days. You can't undo this.",
+      message: "Members will vote for a new captain over the next 2 days. You leave the club chat and the board. If the club has shared goals, your goal history here is deleted. You can't undo this.",
       confirm: 'Leave',
     });
     expect(leaveAsk('member', 48, 'KBR').message).toMatch(/club chat and the board/);
     // Your clubs without Premium: the captain's row asks the captain's question too.
-    expect(cardLeaveAsk({ ...card, myState: 'member' as const, name: 'KBR', myRole: 'owner' }).message).toBe("Members will vote for a new captain over the next 2 days. You can't undo this.");
+    expect(cardLeaveAsk({ ...card, myState: 'member' as const, name: 'KBR', myRole: 'owner' }).message).toBe("Members will vote for a new captain over the next 2 days. You leave the club chat and the board. If the club has shared goals, your goal history here is deleted. You can't undo this.");
     expect(cardLeaveAsk({ ...card, myState: 'member' as const, name: 'KBR', captain: me }).confirm).toBe('Leave');
     expect(cardLeaveAsk({ ...card, myState: 'member' as const, name: 'KBR', myRole: 'owner', memberCount: 1 }).confirm).toBe('Leave and delete');
     expect(cardLeaveAsk({ ...card, myState: 'member' as const, name: 'KBR', myRole: 'member' }).message).toMatch(/club chat and the board/);

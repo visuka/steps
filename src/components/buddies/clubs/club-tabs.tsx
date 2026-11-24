@@ -59,13 +59,14 @@ export function ClubWalksTab({ club, canPlan }: { club: Club; canPlan: boolean }
   const list = upcoming((plans.data ?? []).filter((p) => p.club?.clubId === club.clubId), now);
   return (
     <TabScroll onRefresh={plans.refresh}>
+      {/* A member sees who plans walks; with none planned it goes in the empty state instead. */}
       {canPlan ? (
         <Button label="Plan a club walk" onPress={() => router.push({ pathname: '/buddies/plan/new', params: { club: club.clubId } } as never)} />
-      ) : (
+      ) : !(plans.data && !list.length) ? (
         <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
           {STAFF_PLANS_LINE}
         </ThemedText>
-      )}
+      ) : null}
       {plans.error ? (
         <ThemedText themeColor="onSurfaceVariant" style={styles.gap}>
           {plans.error}
@@ -75,7 +76,7 @@ export function ClubWalksTab({ club, canPlan }: { club: Club; canPlan: boolean }
         <EmptyState
           icon="walk-outline"
           title="No walks planned"
-          hint={canPlan ? "Pick a time and a meeting place. Everyone in the club can see it and say if they're going." : "When one is planned, it shows here and you can say if you're going."}
+          hint={canPlan ? "Pick a time and a meeting place. Everyone in the club can see it and say if they're going." : `${STAFF_PLANS_LINE} When one is planned, you can say if you're going.`}
         />
       ) : null}
       {list.length ? (

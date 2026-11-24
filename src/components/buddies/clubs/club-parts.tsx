@@ -150,16 +150,20 @@ const styles = StyleSheet.create({
 
 /**
  * While members choose a new captain: one frosted tile under the club's line,
- * "Choosing a new captain · ends Thu 6:00 pm" and Vote (the election screen).
- * The words wrap at large text; the button moves under them rather than squeeze.
+ * "Choosing a new captain" over a muted "Voting ends Thu 6:00 pm", and Vote
+ * (the election screen). Two lines so large text breaks between them; the
+ * button moves under them rather than squeeze.
  */
-export function ElectionBanner({ text, button, onPress }: { text: string; button: string; onPress: () => void }) {
+export function ElectionBanner({ title, caption, button, onPress }: { title: string; caption: string; button: string; onPress: () => void }) {
   return (
     <Surface level={1} style={bannerStyles.tile}>
-      <ThemedText style={bannerStyles.text} maxFontSizeMultiplier={1.3}>
-        {text}
-      </ThemedText>
-      <Button label={button} variant="tonal" compact onPress={onPress} accessibilityLabel={`${button}. ${text}`} />
+      <View style={bannerStyles.text}>
+        <ThemedText maxFontSizeMultiplier={1.3}>{title}</ThemedText>
+        <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
+          {caption}
+        </ThemedText>
+      </View>
+      <Button label={button} variant="tonal" compact onPress={onPress} accessibilityLabel={`${button}. ${title}. ${caption}.`} />
     </Surface>
   );
 }

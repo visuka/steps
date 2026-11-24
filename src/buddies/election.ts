@@ -73,9 +73,13 @@ export function endsWords(endsAt: number, now: number, style: ClockStyle): strin
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-/** The club screen's banner: "Choosing a new captain · ends Thu 6:00 pm". */
-export function bannerWords(e: Pick<ClubElection, 'endsAt'>, now: number, style: ClockStyle): string {
-  return `Choosing a new captain · ends ${endsWords(e.endsAt, now, style)}`;
+/**
+ * The club screen's banner, a title and a muted caption so a large font
+ * breaks between them, never mid-phrase: "Choosing a new captain" /
+ * "Voting ends Thu 6:00 pm".
+ */
+export function bannerWords(e: Pick<ClubElection, 'endsAt'>, now: number, style: ClockStyle): { title: string; caption: string } {
+  return { title: 'Choosing a new captain', caption: `Voting ends ${endsWords(e.endsAt, now, style)}` };
 }
 
 /** The banner's button: Vote for someone who can vote and hasn't, else a look at who is standing. */
@@ -88,7 +92,7 @@ export function bannerButton(e: Pick<ClubElection, 'canVote' | 'myVote'>): strin
 export const HOW_IT_WORKS = [
   'Anyone who was a member when voting started can stand and vote.',
   'Your vote is secret. No one sees who voted for whom.',
-  'The most votes makes the new captain. A tie goes to whoever joined first.',
+  'Whoever gets the most votes becomes captain. A tie goes to whoever joined first.',
 ] as const;
 
 /** "@ravi_walks is the acting captain until voting ends.", "You're the acting captain…", or null. */
@@ -99,10 +103,9 @@ export function actingWords(e: Pick<ClubElection, 'actingPid' | 'candidates'>, m
   return handle ? `@${handle} is the acting captain until voting ends.` : null;
 }
 
-/** A candidate's button: Vote (no vote yet), Your vote (this one), or Change (I voted for someone else). */
-export function voteWord(pid: string, myVote: string | null): 'Vote' | 'Your vote' | 'Change' {
-  if (myVote === pid) return 'Your vote';
-  return myVote ? 'Change' : 'Vote';
+/** A candidate's button: Your vote (this one), else Vote, whether or not I voted for someone else. */
+export function voteWord(pid: string, myVote: string | null): 'Vote' | 'Your vote' {
+  return myVote === pid ? 'Your vote' : 'Vote';
 }
 
 /** The candidates by name, so the order says nothing about how the vote is going. */
@@ -110,9 +113,22 @@ export function candidateOrder(list: ElectionCandidate[]): ElectionCandidate[] {
   return [...list].sort((a, b) => displayName(a).localeCompare(displayName(b)) || a.handle.localeCompare(b.handle));
 }
 
-/** A candidate's second line: "@handle", "You · @handle". */
-export function candidateLine(c: ElectionCandidate): string {
-  return c.isMe ? `You · @${c.handle}` : `@${c.handle}`;
+/**
+ * A candidate's second line: "@handle" or "You · @handle" under a name; with
+ * no name the title is already the handle, so "You" for me and nothing else.
+ */
+export function candidateLine(c: ElectionCandidate): string | undefined {
+  const named = !!c.name?.trim();
+  if (c.isMe) return named ? `You · @${c.handle}` : 'You';
+  return named ? `@${c.handle}` : undefined;
+}
+
+/** The empty Standing list's hint: who becomes captain if no one stands. */
+export function noOneStandsWords(e: Pick<ClubElection, 'actingPid' | 'candidates'>, members: ClubMember[], myPid: string | null): string {
+  if (!e.actingPid) return 'If no one stands, the acting captain becomes captain.';
+  if (e.actingPid === myPid) return 'If no one stands, you stay on as captain.';
+  const handle = members.find((m) => m.walker.pid === e.actingPid)?.walker.handle ?? e.candidates.find((c) => c.pid === e.actingPid)?.handle;
+  return handle ? `If no one stands, @${handle} becomes captain.` : 'If no one stands, the acting captain becomes captain.';
 }
 
 /** The Stand for captain switch's note. */
@@ -132,11 +148,14 @@ export function cardElectionWords(c: Pick<ClubCard, 'electionOpen' | 'myState'>)
   return c.myState === 'member' && c.electionOpen ? 'Voting for captain' : null;
 }
 
+const CAPTAIN_LEAVE =
+  "Members will vote for a new captain over the next 2 days. You leave the club chat and the board. If the club has shared goals, your goal history here is deleted. You can't undo this.";
+
 /** What Leave club asks: the only member deletes the club; the captain's leaving starts a 2-day vote. */
 export function leaveAsk(role: ClubRole | null, memberCount: number, name: string): { title: string; message: string; confirm: string } {
   const title = `Leave ${name}?`;
   if (memberCount <= 1) return { title, message: "You're the only member. Leaving deletes the club.", confirm: 'Leave and delete' };
-  if (role === 'owner') return { title, message: "Members will vote for a new captain over the next 2 days. You can't undo this.", confirm: 'Leave' };
+  if (role === 'owner') return { title, message: CAPTAIN_LEAVE, confirm: 'Leave' };
   return { title, message: "You leave the club chat and the board. If the club has shared goals, your goal history here is deleted.", confirm: 'Leave' };
 }
 
