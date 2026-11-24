@@ -353,9 +353,11 @@ export function shortTime(at: number, now = Date.now()): string {
 export { displayName };
 
 const styles = StyleSheet.create({
-  links: { flexDirection: 'row', gap: S(12), marginTop: S(8) },
+  // Text links are bare words now: 24 apart (their 48 dp targets meet, never overlap), on the switches' text edge.
+  links: { flexDirection: 'row', flexWrap: 'wrap', gap: 24, marginTop: S(8), paddingHorizontal: 16 },
   // Five across fill the tile as on the mock (56 wide, 13.75 apart); more wrap to a new row.
-  people: { flexDirection: 'row', flexWrap: 'wrap', columnGap: S(13.75), rowGap: S(12) },
+  // Pulled back by half of 56 less 48, so the first circle sits on the tile's shared left edge.
+  people: { flexDirection: 'row', flexWrap: 'wrap', columnGap: S(13.75), rowGap: S(12), marginLeft: -S(4) },
   person: { alignItems: 'center', gap: S(6), width: S(56) },
   av: { width: S(48), height: S(48), borderRadius: S(24), backgroundColor: PLAIN.chip, alignItems: 'center', justifyContent: 'center' },
   add: { backgroundColor: PLAIN.field, borderWidth: 1, borderColor: PLAIN.hairline },

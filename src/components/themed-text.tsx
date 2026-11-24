@@ -46,7 +46,16 @@ export function ThemedText({ style, type = 'default', themeColor, maxFontSizeMul
   const numeral = !(type in LEGACY) && !!ActiveTheme.type[type as TypeRole].numeral;
   // The phone's text size enlarges text by at most MaxTextScale, so the design keeps its proportions.
   const maxScale = Math.min(maxFontSizeMultiplier ?? MaxTextScale, MaxTextScale);
-  return <Text style={resolveFont([{ color }, base, style], numeral)} maxFontSizeMultiplier={maxScale} {...rest} />;
+  // Balanced line breaks, so no paragraph ends on one lone word ("… you are / buddies"). A caller may override.
+  return (
+    <Text
+      style={resolveFont([{ color }, base, style], numeral)}
+      maxFontSizeMultiplier={maxScale}
+      textBreakStrategy="balanced"
+      lineBreakStrategyIOS="standard"
+      {...rest}
+    />
+  );
 }
 
 /**

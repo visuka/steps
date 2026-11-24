@@ -27,12 +27,14 @@ export function Why({ title, text, label = 'Why?' }: { title: string; text: stri
         onPress={() => setOpen(true)}
         accessibilityRole="button"
         accessibilityLabel={icon ? `More about ${title}` : `${label} ${title}`}
-        hitSlop={8}
+        // The word keeps a 48 dp target through its slop, so it does not make a title row taller.
+        hitSlop={icon ? 8 : WHY_SLOP}
         style={icon ? styles.info : styles.why}>
         {icon ? (
           <Ionicons name="information-circle-outline" size={24} color={plate ? plate.ink : theme.onSurfaceVariant} />
         ) : (
-          <ThemedText type="labelLarge" themeColor="primary" maxFontSizeMultiplier={1.3} style={styles.underline}>
+          // Words never take colour: grey and underlined marks it as a link.
+          <ThemedText type="labelLarge" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3} style={styles.underline}>
             {label}
           </ThemedText>
         )}
@@ -87,8 +89,8 @@ export function SectionHeader({
           ) : null}
           {why ? <Why title={title} text={why} /> : null}
           {action ? (
-            <Pressable onPress={action.onPress} accessibilityRole="button" hitSlop={8} style={styles.why}>
-              <ThemedText type="labelLarge" themeColor="primary" maxFontSizeMultiplier={1.3}>
+            <Pressable onPress={action.onPress} accessibilityRole="button" hitSlop={WHY_SLOP} style={styles.why}>
+              <ThemedText type="labelLarge" maxFontSizeMultiplier={1.3} style={styles.underline}>
                 {action.label}
               </ThemedText>
             </Pressable>
@@ -99,6 +101,9 @@ export function SectionHeader({
   );
 }
 
+/** About 22 dp of label plus 14 above and below: a 48 dp target. */
+const WHY_SLOP = { top: 14, bottom: 14, left: 12, right: 12 };
+
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', gap: SECTION.gap },
   rowBaseline: { alignItems: 'baseline' },
@@ -108,7 +113,7 @@ const styles = StyleSheet.create({
   titleBeside: { flexShrink: 0, maxWidth: '60%' },
   end: { flexDirection: 'row', flexShrink: 1, gap: SECTION.gap },
   caption: { flexShrink: 1, textAlign: 'right' },
-  why: { minHeight: TouchTarget, justifyContent: 'center', paddingHorizontal: Spacing.one },
+  why: { justifyContent: 'center', paddingHorizontal: Spacing.one },
   info: { width: TouchTarget, height: TouchTarget, alignItems: 'center', justifyContent: 'center' },
   underline: { textDecorationLine: 'underline' },
 });

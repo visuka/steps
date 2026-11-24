@@ -95,8 +95,10 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
+    alignItems: 'center',
     flexWrap: 'wrap',
-    gap: Spacing.two,
+    // Text actions are bare words: 24 apart, so their 48 dp targets meet without overlapping.
+    gap: Spacing.four,
     marginTop: Spacing.two,
     marginRight: -Spacing.two,
   },

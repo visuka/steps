@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { useSnack } from '@/components/buddies/parts';
 import { QrCamera } from '@/components/buddies/qr/qr-camera';
@@ -99,15 +99,16 @@ export default function ScanQr() {
         {camera ? (
           <QrCamera paused={!!club || typing} hint={hint} onText={onText} onManual={findById} />
         ) : (
-          <>
+          <View style={styles.group}>
             <ThemedText themeColor="onSurfaceVariant">{linked ? `Club code ${spacedCode(linked)}` : '—'}</ThemedText>
             <Button label="Scan a QR code" variant="tonal" icon="camera-outline" onPress={() => setCamera(true)} />
-          </>
+          </View>
         )}
-        <Button label="Enter a club code" variant="text" onPress={() => setTyping(true)} style={styles.start} />
+        {/* Spans the row and centres its word under the button above, as "Not now" in the sheets. */}
+        <Button label="Enter a club code" variant="text" onPress={() => setTyping(true)} />
         <Sheet visible={typing} onClose={() => setTyping(false)} title="Enter a club code">
           <ThemedText themeColor="onSurfaceVariant">The 8 letters and numbers the captain shared.</ThemedText>
-          <TextField label="Club code" value={typed} onChangeText={setTyped} placeholder="K7QM 2XPA" maxLength={12} plain autoFocus onSubmit={findTyped} returnKeyType="go" />
+          <TextField label="Club code" value={typed} onChangeText={setTyped} placeholder="K7QM 2XPA" maxLength={12} plain autoFocus showLabel onSubmit={findTyped} returnKeyType="go" />
           <Button label="Find club" onPress={findTyped} disabled={!typedCode} />
           <Button label="Not now" variant="text" onPress={() => setTyping(false)} />
         </Sheet>
@@ -118,5 +119,5 @@ export default function ScanQr() {
 }
 
 const styles = StyleSheet.create({
-  start: { alignSelf: 'flex-start', marginTop: Spacing.two },
+  group: { gap: Spacing.three },
 });

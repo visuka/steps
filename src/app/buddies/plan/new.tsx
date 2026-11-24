@@ -150,86 +150,93 @@ function Form({
           <SafetySheet visible={tips.open} onClose={tips.close} />
         </>
       }>
-      <Heading text="Day" />
-      <View style={styles.chips}>
-        {days.map((d) => (
-          <Chip key={d.day} label={d.label} selected={d.day === day} onPress={() => pickDay(d.day)} />
-        ))}
-        {openPicker ? (
+      {/* Each part is one block: its label 8 above its content; Screen keeps 16 between blocks. */}
+      <View style={styles.section}>
+        <Heading text="Day" />
+        <View style={styles.chips}>
+          {days.map((d) => (
+            <Chip key={d.day} label={d.label} selected={d.day === day} onPress={() => pickDay(d.day)} />
+          ))}
+          {openPicker ? (
+            <Chip
+              label={otherDay ? formatDayLong(day) : 'Other day'}
+              selected={otherDay}
+              trailingIcon="chevron-down"
+              onPress={pickOtherDay}
+              accessibilityLabel={otherDay ? `Day: ${formatDayLong(day)}. Change` : 'Pick another day'}
+            />
+          ) : null}
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Heading text="Time" />
+        <View style={styles.chips}>
           <Chip
-            label={otherDay ? formatDayLong(day) : 'Other day'}
-            selected={otherDay}
+            label={formatClock(form.startsAt, clock)}
+            selected
             trailingIcon="chevron-down"
-            onPress={pickOtherDay}
-            accessibilityLabel={otherDay ? `Day: ${formatDayLong(day)}. Change` : 'Pick another day'}
+            onPress={pickTime}
+            disabled={!openPicker}
+            accessibilityLabel={`Time: ${formatClock(form.startsAt, clock)}. Change`}
           />
-        ) : null}
+        </View>
       </View>
 
-      <Heading text="Time" />
-      <View style={styles.chips}>
-        <Chip
-          label={formatClock(form.startsAt, clock)}
-          selected
-          trailingIcon="chevron-down"
-          onPress={pickTime}
-          disabled={!openPicker}
-          accessibilityLabel={`Time: ${formatClock(form.startsAt, clock)}. Change`}
-        />
-      </View>
-
-      <View style={styles.gap}>
+      <View style={styles.section}>
         <TextField label="Where you'll meet" value={form.place} onChangeText={set('place')} placeholder="e.g. KBR Park main gate" maxLength={PLACE_MAX} />
         <Caption text="Type a place name. No map pin is shared." />
       </View>
-      <View style={styles.gap}>
+      <View style={styles.section}>
         <TextField label="Note (optional)" value={form.note} onChangeText={set('note')} placeholder="Pace, how long, what to bring" maxLength={NOTE_MAX} multiline />
       </View>
 
-      <Heading text="Who" />
-      {editing ? (
-        <Caption text={club ? `Everyone in ${club.name} can see it.` : 'Add buddies below. Everyone invited is told about changes.'} />
-      ) : (
-        <View style={styles.chips}>
-          <Chip label="Buddies" selected={!form.clubId} onPress={() => set('clubId')(null)} />
-          {clubs.map((c) => (
-            <Chip key={c.clubId} label={c.name} selected={form.clubId === c.clubId} onPress={() => set('clubId')(c.clubId)} />
-          ))}
-        </View>
-      )}
-      {form.clubId ? (
-        !editing ? <Caption text={`Everyone in ${club?.name ?? 'the club'} can see it and say if they're going.`} /> : null
-      ) : buddies.length ? (
-        <>
-          <Caption text={`Up to ${INVITE_MAX}. ${picked.size} picked.`} />
-          <Surface level={1} style={[styles.list, styles.gapSmall]}>
-            {buddies.map((b, i) => {
-              const name = displayName(b.walker);
-              const isLocked = locked.has(b.walker.pid);
-              const on = picked.has(b.walker.pid);
-              return (
-                <ListRow
-                  key={b.walker.pid}
-                  title={name}
-                  supporting={isLocked ? 'Invited' : b.walker.name ? `@${b.walker.handle}` : undefined}
-                  onPress={isLocked ? undefined : () => toggle(b.walker.pid, !on)}
-                  trailing={
-                    <MaterialSwitch
-                      value={on}
-                      onValueChange={(v) => toggle(b.walker.pid, v)}
-                      disabled={isLocked}
-                      accessibilityLabel={`Invite ${name}`}
-                    />
-                  }
-                  last={i === buddies.length - 1}
-                />
-              );
-            })}
-          </Surface>
-        </>
-      ) : (
-        <Caption text={clubs.length ? 'Add buddies first, or pick a club.' : 'Add buddies first. Find them by their walker ID.'} />
-      )}
+      <View style={styles.section}>
+        <Heading text="Who" />
+        {editing ? (
+          <Caption text={club ? `Everyone in ${club.name} can see it.` : 'Add buddies below. Everyone invited is told about changes.'} />
+        ) : (
+          <View style={styles.chips}>
+            <Chip label="Buddies" selected={!form.clubId} onPress={() => set('clubId')(null)} />
+            {clubs.map((c) => (
+              <Chip key={c.clubId} label={c.name} selected={form.clubId === c.clubId} onPress={() => set('clubId')(c.clubId)} />
+            ))}
+          </View>
+        )}
+        {form.clubId ? (
+          !editing ? <Caption text={`Everyone in ${club?.name ?? 'the club'} can see it and say if they're going.`} /> : null
+        ) : buddies.length ? (
+          <>
+            <Caption text={`Up to ${INVITE_MAX}. ${picked.size} picked.`} />
+            <Surface level={1} style={styles.list}>
+              {buddies.map((b, i) => {
+                const name = displayName(b.walker);
+                const isLocked = locked.has(b.walker.pid);
+                const on = picked.has(b.walker.pid);
+                return (
+                  <ListRow
+                    key={b.walker.pid}
+                    title={name}
+                    supporting={isLocked ? 'Invited' : b.walker.name ? `@${b.walker.handle}` : undefined}
+                    onPress={isLocked ? undefined : () => toggle(b.walker.pid, !on)}
+                    trailing={
+                      <MaterialSwitch
+                        value={on}
+                        onValueChange={(v) => toggle(b.walker.pid, v)}
+                        disabled={isLocked}
+                        accessibilityLabel={`Invite ${name}`}
+                      />
+                    }
+                    last={i === buddies.length - 1}
+                  />
+                );
+              })}
+            </Surface>
+          </>
+        ) : (
+          <Caption text={clubs.length ? 'Add buddies first, or pick a club.' : 'Add buddies first. Find them by their walker ID.'} />
+        )}
+      </View>
 
       {problem ? (
         <ThemedText type="bodySmall" themeColor="error" style={styles.gap} maxFontSizeMultiplier={1.3}>
@@ -250,7 +257,7 @@ function Form({
 
 function Heading({ text }: { text: string }) {
   return (
-    <ThemedText type="titleSmall" themeColor="onSurfaceVariant" style={styles.heading} maxFontSizeMultiplier={1.3}>
+    <ThemedText type="titleSmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
       {text}
     </ThemedText>
   );
@@ -258,16 +265,15 @@ function Heading({ text }: { text: string }) {
 
 function Caption({ text }: { text: string }) {
   return (
-    <ThemedText type="bodySmall" themeColor="onSurfaceVariant" style={styles.gapSmall} maxFontSizeMultiplier={1.3}>
+    <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
       {text}
     </ThemedText>
   );
 }
 
 const styles = StyleSheet.create({
-  heading: { marginTop: Spacing.four },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two, marginTop: Spacing.two },
+  section: { gap: Spacing.two },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
   gap: { marginTop: Spacing.three },
-  gapSmall: { marginTop: Spacing.two },
   list: { overflow: 'hidden' },
 });

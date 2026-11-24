@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { useSnack } from '@/components/buddies/parts';
@@ -117,18 +117,20 @@ function Form({
 
   return (
     <Screen title={title} onBack={back} overlay={<Snackbar message={snack} onDismiss={dismiss} />}>
-      <Heading text="Kind" first />
-      {editing ? (
-        <Caption text={`${KIND_WORD[form.kind]}. The kind and how it is counted stay as made.`} />
-      ) : (
-        <View style={styles.chips}>
-          {KIND_ORDER.map((k) => (
-            <Chip key={k} label={KIND_WORD[k]} selected={form.kind === k} onPress={() => setForm((x) => withKind(x, k))} />
-          ))}
-        </View>
-      )}
+      {/* Each part is one block: its label 8 above its content; Screen keeps 16 between blocks. */}
+      <Field label="Kind">
+        {editing ? (
+          <Caption text={`${KIND_WORD[form.kind]}. The kind and how it is counted stay as made.`} />
+        ) : (
+          <View style={styles.chips}>
+            {KIND_ORDER.map((k) => (
+              <Chip key={k} label={KIND_WORD[k]} selected={form.kind === k} onPress={() => setForm((x) => withKind(x, k))} />
+            ))}
+          </View>
+        )}
+      </Field>
 
-      <View style={styles.gap}>
+      <Field label="Name">
         <TextField
           label="Name"
           value={form.title}
@@ -136,11 +138,10 @@ function Form({
           placeholder="e.g. Morning walk"
           maxLength={GOAL_TITLE_MAX}
         />
-      </View>
+      </Field>
 
       {range ? (
-        <>
-          <Heading text="Target" />
+        <Field label="Target">
           <Surface level={1} style={styles.stepper}>
             <IconButton
               icon="remove"
@@ -158,69 +159,72 @@ function Form({
               disabled={(form.target ?? range.start) >= range.max}
             />
           </Surface>
-        </>
+        </Field>
       ) : (
         <Caption text="No target: members tap Mark done." />
       )}
 
-      <Heading text="Counted" />
-      {editing ? (
-        <Caption text={form.counted === 'auto' ? 'By the phone, from its own numbers.' : 'By tapping Mark done.'} />
-      ) : (
-        <>
-          <View style={styles.chips}>
-            <Chip
-              label="By the phone"
-              selected={form.counted === 'auto'}
-              disabled={!canAuto(form.kind)}
-              onPress={() => setForm((x) => ({ ...x, counted: 'auto', target: x.target ?? TARGETS[x.kind]?.start ?? null }))}
+      <Field label="Counted">
+        {editing ? (
+          <Caption text={form.counted === 'auto' ? 'By the phone, from its own numbers.' : 'By tapping Mark done.'} />
+        ) : (
+          <>
+            <View style={styles.chips}>
+              <Chip
+                label="By the phone"
+                selected={form.counted === 'auto'}
+                disabled={!canAuto(form.kind)}
+                onPress={() => setForm((x) => ({ ...x, counted: 'auto', target: x.target ?? TARGETS[x.kind]?.start ?? null }))}
+              />
+              <Chip label="By tapping" selected={form.counted === 'tap'} onPress={() => setForm((x) => ({ ...x, counted: 'tap' }))} />
+            </View>
+            <Caption
+              text={
+                canAuto(form.kind)
+                  ? form.counted === 'auto'
+                    ? 'Marked done when the phone counts the target.'
+                    : 'Members tap Mark done.'
+                  : 'Only steps, walks, water and sleep can be counted by the phone.'
+              }
             />
-            <Chip label="By tapping" selected={form.counted === 'tap'} onPress={() => setForm((x) => ({ ...x, counted: 'tap' }))} />
-          </View>
-          <Caption
-            text={
-              canAuto(form.kind)
-                ? form.counted === 'auto'
-                  ? 'Marked done when the phone counts the target.'
-                  : 'Members tap Mark done.'
-                : 'Only steps, walks, water and sleep can be counted by the phone.'
-            }
+          </>
+        )}
+      </Field>
+
+      <Field label="Days">
+        <View style={styles.chips}>
+          <Chip label="Every day" selected={days === 'every'} onPress={() => pickDays('every')} />
+          <Chip label="Weekdays" selected={days === 'weekdays'} onPress={() => pickDays('weekdays')} />
+          <Chip label="Pick days" selected={days === 'pick'} onPress={() => pickDays('pick')} />
+        </View>
+        {days === 'pick' ? (
+          <>
+            <View style={styles.chips}>
+              {DAY_SHORT.map((d, i) => (
+                <Chip key={d} label={d} selected={form.days.includes(i)} onPress={() => toggleDay(i)} />
+              ))}
+            </View>
+            <Caption text={form.days.length ? daysWord(form.days) : 'Pick at least one day.'} />
+          </>
+        ) : null}
+      </Field>
+
+      <Field label="By a time (optional)">
+        <View style={styles.chips}>
+          <Chip label="No time" selected={!form.byTime} onPress={() => setForm((x) => ({ ...x, byTime: null }))} />
+          <Chip
+            label={form.byTime ? `By ${byTimeWords(form.byTime, clock)}` : 'Pick a time'}
+            selected={!!form.byTime}
+            trailingIcon="chevron-down"
+            onPress={pickTime}
+            disabled={!openPicker}
+            accessibilityLabel={form.byTime ? `By ${byTimeWords(form.byTime, clock)}. Change` : 'Pick a time'}
           />
-        </>
-      )}
-
-      <Heading text="Days" />
-      <View style={styles.chips}>
-        <Chip label="Every day" selected={days === 'every'} onPress={() => pickDays('every')} />
-        <Chip label="Weekdays" selected={days === 'weekdays'} onPress={() => pickDays('weekdays')} />
-        <Chip label="Pick days" selected={days === 'pick'} onPress={() => pickDays('pick')} />
-      </View>
-      {days === 'pick' ? (
-        <>
-          <View style={styles.chips}>
-            {DAY_SHORT.map((d, i) => (
-              <Chip key={d} label={d} selected={form.days.includes(i)} onPress={() => toggleDay(i)} />
-            ))}
-          </View>
-          <Caption text={form.days.length ? daysWord(form.days) : 'Pick at least one day.'} />
-        </>
-      ) : null}
-
-      <Heading text="By a time (optional)" />
-      <View style={styles.chips}>
-        <Chip label="No time" selected={!form.byTime} onPress={() => setForm((x) => ({ ...x, byTime: null }))} />
-        <Chip
-          label={form.byTime ? `By ${byTimeWords(form.byTime, clock)}` : 'Pick a time'}
-          selected={!!form.byTime}
-          trailingIcon="chevron-down"
-          onPress={pickTime}
-          disabled={!openPicker}
-          accessibilityLabel={form.byTime ? `By ${byTimeWords(form.byTime, clock)}. Change` : 'Pick a time'}
-        />
-      </View>
+        </View>
+      </Field>
 
       {problem ? (
-        <ThemedText style={styles.gap} maxFontSizeMultiplier={1.3}>
+        <ThemedText maxFontSizeMultiplier={1.3}>
           {problem}
         </ThemedText>
       ) : null}
@@ -230,28 +234,30 @@ function Form({
   );
 }
 
-function Heading({ text, first }: { text: string; first?: boolean }) {
+/** A part of the form: its label, then its controls and note, 8 apart. */
+function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <ThemedText type="titleSmall" themeColor="onSurfaceVariant" style={first ? undefined : styles.heading} maxFontSizeMultiplier={1.3}>
-      {text}
-    </ThemedText>
+    <View style={styles.field}>
+      <ThemedText type="titleSmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
+        {label}
+      </ThemedText>
+      {children}
+    </View>
   );
 }
 
 function Caption({ text }: { text: string }) {
   return (
-    <ThemedText type="bodySmall" themeColor="onSurfaceVariant" style={styles.gapSmall} maxFontSizeMultiplier={1.3}>
+    <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
       {text}
     </ThemedText>
   );
 }
 
 const styles = StyleSheet.create({
-  heading: { marginTop: Spacing.four },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two, marginTop: Spacing.two },
-  gap: { marginTop: Spacing.three },
+  field: { gap: Spacing.two },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
   gapLarge: { marginTop: Spacing.four },
-  gapSmall: { marginTop: Spacing.two },
-  stepper: { flexDirection: 'row', alignItems: 'center', minHeight: TouchTarget, marginTop: Spacing.two, paddingHorizontal: Spacing.one },
+  stepper: { flexDirection: 'row', alignItems: 'center', minHeight: TouchTarget, paddingHorizontal: Spacing.one },
   stepValue: { flex: 1, textAlign: 'center' },
 });

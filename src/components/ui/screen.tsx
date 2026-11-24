@@ -1,5 +1,5 @@
-import { Children, type ReactNode, use } from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Children, type ReactNode, useState } from 'react';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useBarBelow } from '@/components/plain/part-bar';
@@ -55,9 +55,12 @@ export function Screen({
   // The part bar takes the bottom inset when it sits under this screen.
   const inTabs = useBarBelow();
   const bottom = bottomOffset(inTabs, insets.bottom);
+  // The page's height, so the status strip can show the same ground as the page behind it.
+  const win = useWindowDimensions();
+  const [height, setHeight] = useState(0);
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.surface }]}>
+    <View style={[styles.container, { backgroundColor: theme.surface }]} onLayout={(e) => setHeight(e.nativeEvent.layout.height)}>
       {/* The same soft grey ground as the three parts. */}
       <PlainGround />
       <ScrollView
@@ -81,16 +84,7 @@ export function Screen({
         <View style={styles.inner}>
           <Rise style={styles.header}>
             <View style={styles.titleRow}>
-              {onBack ? (
-                <Pressable
-                  onPress={onBack}
-                  accessibilityRole="button"
-                  accessibilityLabel="Back"
-                  style={styles.back}
-                  hitSlop={backHitSlop()}>
-                  <SpecIcon name="chevron-left" color={theme.onSurface} size={SCREEN.back.iconSize} />
-                </Pressable>
-              ) : null}
+              {onBack ? <BackButton onPress={onBack} /> : null}
               <ThemedText
                 type="headlineSmall"
                 accessibilityRole="header"
@@ -118,8 +112,15 @@ export function Screen({
           ))}
         </View>
       </ScrollView>
-      {/* The status bar's strip in the page colour: content scrolls under it, never under the clock. */}
-      <View pointerEvents="none" style={[styles.statusInset, { height: insets.top, backgroundColor: theme.surface }]} />
+      {/*
+        The status bar's strip: content scrolls under it, never under the clock. It shows the
+        page's own ground (a clipped copy, as tall as the page), so there is no flat band or seam.
+      */}
+      <View pointerEvents="none" style={[styles.statusInset, { height: insets.top, backgroundColor: theme.surface }]}>
+        <View style={{ height: height || win.height }}>
+          <PlainGround />
+        </View>
+      </View>
       {fab || overlay ? (
         <View pointerEvents="box-none" style={[styles.bottomLayer, { bottom }]}>
           {overlay ? <View style={styles.overlay}>{overlay}</View> : null}
@@ -127,6 +128,16 @@ export function Screen({
         </View>
       ) : null}
     </View>
+  );
+}
+
+/** The back chevron of a pushed screen, also for screens that draw their own top bar (a club). */
+export function BackButton({ onPress }: { onPress: () => void }) {
+  const theme = useTheme();
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel="Back" style={styles.back} hitSlop={backHitSlop()}>
+      <SpecIcon name="chevron-left" color={theme.onSurface} size={SCREEN.back.iconSize} />
+    </Pressable>
   );
 }
 
@@ -143,7 +154,7 @@ function keyOf(child: ReactNode, i: number): string {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  statusInset: { position: 'absolute', top: 0, left: 0, right: 0 },
+  statusInset: { position: 'absolute', top: 0, left: 0, right: 0, overflow: 'hidden' },
   content: { paddingHorizontal: SCREEN.sideMargin, alignItems: 'center' },
   inner: { width: '100%', maxWidth: MaxContentWidth, gap: SCREEN.blockGap },
   // Heights from the spec are minimums: the row grows with large text.

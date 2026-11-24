@@ -161,8 +161,8 @@ export default function FindWalkers() {
     <PremiumGate feature={SCREEN_FEATURES.buddies} title="Find walkers" onBack={back}>
       <Screen title="Find walkers" onBack={back} overlay={<Snackbar message={snack} onDismiss={dismiss} />}>
         <TextField label="Walker ID" value={q} onChangeText={setQ} placeholder="Walker ID, e.g. ravi_walks" maxLength={24} plain onSubmit={search} returnKeyType="search" />
-        <Button label="Search" icon="search-outline" onPress={search} loading={busy} disabled={!q.trim() || busy} style={styles.gap} />
-        <Button label="Scan a QR code" icon="qr-code-outline" variant="secondary" onPress={() => router.push('/buddies/scan' as never)} style={styles.gap} accessibilityLabel="Scan a friend's QR code" />
+        <Button label="Search" icon="search-outline" onPress={search} loading={busy} disabled={!q.trim() || busy} />
+        <Button label="Scan a QR code" icon="qr-code-outline" variant="secondary" onPress={() => router.push('/buddies/scan' as never)} accessibilityLabel="Scan a friend's QR code" />
         {found ? (
           <Surface level={1} style={styles.list}>
             <PersonRow walker={found} trailing={action(found)} last />
@@ -173,11 +173,11 @@ export default function FindWalkers() {
             No walker with that ID. Check the spelling, or ask them to open Walk buddies and read out their ID.
           </ThemedText>
         ) : null}
-        <SectionTitle>Walkers in your area</SectionTitle>
+        <SectionTitle icon="search">Walkers in your area</SectionTitle>
         {!on ? (
           <Surface level={1} style={styles.note}>
             <ThemedText maxFontSizeMultiplier={1.3}>Show yourself to walkers in your area to see them. Only your area (about 5 km) is used.</ThemedText>
-            <Button label="Turn on" variant="text" compact onPress={() => setExplain(true)} loading={nearBusy} disabled={nearBusy || !(me && me.joined)} />
+            <Button label="Turn on" variant="tonal" compact onPress={() => setExplain(true)} loading={nearBusy} disabled={nearBusy || !(me && me.joined)} />
           </Surface>
         ) : (
           <View>
@@ -200,13 +200,13 @@ export default function FindWalkers() {
             <Button label="Stop showing me" variant="text" compact onPress={turnOff} loading={nearBusy} disabled={nearBusy} style={styles.start} />
           </View>
         )}
-        <SectionTitle>Your own ID</SectionTitle>
-        <View>
+        <SectionTitle icon="card">Your own ID</SectionTitle>
+        <Surface level={1} style={styles.note}>
           <ThemedText maxFontSizeMultiplier={1.3}>{me && me.joined ? `@${me.handle}` : '—'}</ThemedText>
           <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
             Share it with people you walk with so they can find you.
           </ThemedText>
-        </View>
+        </Surface>
         <Dialog
           visible={explain}
           title="Show me to walkers nearby"

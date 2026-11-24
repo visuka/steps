@@ -44,7 +44,9 @@ export function Chip({ label, onPress, selected, icon, dot, trailingIcon, disabl
       style={[
         styles.chip,
         trailingIcon ? styles.withTrailing : styles.plain,
-        { backgroundColor: on ? theme.secondaryContainer : theme.surfaceContainer },
+        // Unselected: a white pill with a hairline, so it reads as a chip on the grey ground and on a tile.
+        // The edge is always 1 dp (clear when selected), so choosing a chip never shifts the row.
+        { backgroundColor: on ? theme.secondaryContainer : theme.surfaceBright, borderColor: on ? 'transparent' : theme.surfaceContainerHigh },
         disabled && { opacity: 0.38 },
       ]}>
       {on ? (
@@ -56,7 +58,9 @@ export function Chip({ label, onPress, selected, icon, dot, trailingIcon, disabl
       <ThemedText
         type={Controls.chipType === 'labelLarge' ? 'bodyMedium' : Controls.chipType}
         maxFontSizeMultiplier={1.3}
-        style={[Controls.chipLabel, { color: on ? fg : theme.onSurface }]}>
+        // A long name (a club) wraps inside the chip rather than losing its last word.
+        textBreakStrategy="simple"
+        style={[Controls.chipLabel, styles.label, { color: on ? fg : theme.onSurface }]}>
         {label}
       </ThemedText>
       {trailingIcon ? <SpecIcon name={trailingIcon} color={theme.onSurfaceVariant} /> : null}
@@ -71,8 +75,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: CHIP_STYLE.gap,
     borderRadius: CHIP_STYLE.radius,
+    borderWidth: 1,
     overflow: 'hidden',
   },
+  label: { flexShrink: 1 },
   plain: { paddingLeft: CHIP_STYLE.paddingLeft, paddingRight: CHIP_STYLE.paddingRightPlain },
   withTrailing: { paddingLeft: CHIP_STYLE.paddingLeft, paddingRight: CHIP_STYLE.paddingRight, gap: CHIP_STYLE.gapTrailing },
   dot: { width: CHIP_STYLE.dotSize, height: CHIP_STYLE.dotSize, borderRadius: CHIP_STYLE.dotRadius },

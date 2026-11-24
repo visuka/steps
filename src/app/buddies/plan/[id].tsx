@@ -94,25 +94,28 @@ export default function PlanScreen() {
         onRefresh={p.refresh}
         right={mine && on ? <IconButton icon="ellipsis-vertical" accessibilityLabel="Walk menu" onPress={() => setMenu(true)} /> : undefined}
         overlay={<Snackbar message={snack} onDismiss={dismiss} />}>
-        {!on ? (
-          <View style={styles.start}>
-            <Pill label="Cancelled" variant="tint" />
-          </View>
-        ) : null}
-        <ThemedText type="titleLarge" style={!on ? styles.gapSmall : undefined} maxFontSizeMultiplier={1.3}>
-          {plan.place}
-        </ThemedText>
-        <ThemedText themeColor="onSurfaceVariant" style={styles.gapTiny} maxFontSizeMultiplier={1.3}>
-          {plan.club ? `${when} · ${plan.club.name}` : when}
-        </ThemedText>
-        {plan.note ? (
-          <ThemedText style={styles.gapSmall} maxFontSizeMultiplier={1.3}>
-            {plan.note}
+        {/* The walk's heading lines are one group: Screen's block gap applies once, not between each line. */}
+        <View>
+          {!on ? (
+            <View style={styles.start}>
+              <Pill label="Cancelled" variant="tint" />
+            </View>
+          ) : null}
+          <ThemedText type="titleLarge" style={!on ? styles.gapSmall : undefined} maxFontSizeMultiplier={1.3}>
+            {plan.place}
           </ThemedText>
-        ) : null}
-        <ThemedText type="bodySmall" themeColor="onSurfaceVariant" style={styles.gapSmall} maxFontSizeMultiplier={1.3}>
-          {by}
-        </ThemedText>
+          <ThemedText themeColor="onSurfaceVariant" style={styles.gapTiny} maxFontSizeMultiplier={1.3}>
+            {plan.club ? `${when} · ${plan.club.name}` : when}
+          </ThemedText>
+          {plan.note ? (
+            <ThemedText style={styles.gapSmall} maxFontSizeMultiplier={1.3}>
+              {plan.note}
+            </ThemedText>
+          ) : null}
+          <ThemedText type="bodySmall" themeColor="onSurfaceVariant" style={styles.gapSmall} maxFontSizeMultiplier={1.3}>
+            {by}
+          </ThemedText>
+        </View>
 
         <View style={styles.gap}>
           <AnswerCounts cells={cells} />

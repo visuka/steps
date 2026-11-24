@@ -133,7 +133,7 @@ export function ClubBoardTab({ club, onBoard }: { club: Club; onBoard: (on: bool
                   {String(r.rank)}
                 </ThemedText>
                 <ThemedText numberOfLines={1} style={styles.grow} maxFontSizeMultiplier={1.3}>
-                  {me ? `${name} (you)` : name}
+                  {me ? (name === 'You' ? 'You' : `${name} (you)`) : name}
                 </ThemedText>
                 <ThemedText type="titleSmall" maxFontSizeMultiplier={1.3}>
                   {steps}
@@ -166,5 +166,6 @@ const styles = StyleSheet.create({
   list: { overflow: 'hidden' },
   gap: { marginTop: Spacing.three },
   row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, minHeight: TouchTarget, paddingVertical: Spacing.two, paddingHorizontal: Spacing.three },
-  rank: { minWidth: Spacing.four, textAlign: 'right' },
+  // The rank starts on the row's 16 inset, the same edge as the toggle tile's title.
+  rank: { minWidth: Spacing.three, textAlign: 'left', fontVariant: ['tabular-nums'] },
 });

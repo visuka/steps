@@ -26,7 +26,8 @@ const MIN = 60_000;
 const ravi: Walker = { pid: 'p1', handle: 'ravi_walks', name: 'Ravi', relation: 'buddy' };
 const meera: Walker = { pid: 'p2', handle: 'meera.k', name: 'Meera', relation: 'buddy' };
 const asha: Walker = { pid: 'p3', handle: 'asha_runs', name: 'Asha', relation: 'asked_me' };
-const me: Walker = { pid: 'me', handle: 'you_walk', name: 'You', relation: 'self' };
+// A real first name, so the rows read as a user sees them ("Kavya (you)"), not "You (you)".
+const me: Walker = { pid: 'me', handle: 'you_walk', name: 'Kavya', relation: 'self' };
 // Club people (docs/walk-buddies.md 7.5): one Telugu name, so the shot checks the font.
 const lakshmi: Walker = { pid: 'p4', handle: 'lakshmi_k', name: 'లక్ష్మి', relation: 'buddy' };
 const arjun: Walker = { pid: 'p5', handle: 'arjun22', name: null, relation: 'none' };
@@ -147,7 +148,7 @@ const CHATS: ChatRow[] = [
 const msg = (id: string, mine: boolean, text: string, ago: number): Message => ({
   id,
   mine,
-  from: mine ? { pid: 'me', handle: 'you', name: 'You' } : { pid: 'p1', handle: 'ravi_walks', name: 'Ravi' },
+  from: mine ? { pid: 'me', handle: 'you_walk', name: 'Kavya' } : { pid: 'p1', handle: 'ravi_walks', name: 'Ravi' },
   text,
   at: NOW - ago * MIN,
 });
@@ -319,7 +320,7 @@ const SAMPLE_ME: SocialMe = {
   joined: true,
   pid: 'me',
   handle: 'you_walk',
-  name: 'You',
+  name: 'Kavya',
   handleChangeFrom: 0,
   nearby: false,
   areaSetOn: null,

@@ -69,34 +69,33 @@ function Form({
 
   return (
     <Screen title={title} onBack={back} overlay={<Snackbar message={snack} onDismiss={dismiss} />}>
-      <TextField label="Club name" value={form.name} onChangeText={set('name')} placeholder="e.g. KBR Morning Walkers" maxLength={NAME_MAX} />
+      {/* Screen spaces its blocks 16 apart; each field shows its label above it. */}
+      <TextField label="Club name" value={form.name} onChangeText={set('name')} placeholder="e.g. KBR Morning Walkers" maxLength={NAME_MAX} showLabel />
       {problem ? (
         <ThemedText type="bodySmall" themeColor="error" maxFontSizeMultiplier={1.3}>
           {problem}
         </ThemedText>
       ) : null}
-      <View style={styles.gap}>
-        <TextField label="Area (optional)" value={form.area} onChangeText={set('area')} placeholder="e.g. Banjara Hills" maxLength={AREA_MAX} />
-        <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
+      <View>
+        <TextField label="Area (optional)" value={form.area} onChangeText={set('area')} placeholder="e.g. Banjara Hills" maxLength={AREA_MAX} showLabel />
+        <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3} style={styles.helper}>
           A place name people know. Never your address.
         </ThemedText>
       </View>
-      <View style={styles.gap}>
-        <TextField label="About (optional)" value={form.about} onChangeText={set('about')} placeholder="When and where you walk" maxLength={ABOUT_MAX} multiline />
-      </View>
-      <Surface level={1} style={[styles.list, styles.gap]}>
-        <ToggleRow title="Hide from search" value={form.hidden} onValueChange={set('hidden')} />
-        <ThemedText type="bodySmall" themeColor="onSurfaceVariant" style={styles.caption} maxFontSizeMultiplier={1.3}>
-          Only people you invite can find it.
-        </ThemedText>
-        <ToggleRow title="Shared goals" value={form.goals} onValueChange={set('goals')} />
-        <ThemedText type="bodySmall" themeColor="onSurfaceVariant" style={styles.caption} maxFontSizeMultiplier={1.3}>
-          {"You can set goals for members, like steps or medicines. Members see what you'll see before they join."}
-        </ThemedText>
+      <TextField label="About (optional)" value={form.about} onChangeText={set('about')} placeholder="When and where you walk" maxLength={ABOUT_MAX} multiline showLabel />
+      <Surface level={1} style={styles.list}>
+        {/* Each note sits under its own switch's title, so it is clear which switch it explains. */}
+        <ToggleRow title="Hide from search" supporting="Only people you invite can find it." value={form.hidden} onValueChange={set('hidden')} />
+        <ToggleRow
+          title="Shared goals"
+          supporting={"You can set goals for members, like steps or medicines. Members see what you'll see before they join."}
+          value={form.goals}
+          onValueChange={set('goals')}
+        />
       </Surface>
-      <Button label={id ? 'Save' : 'Start club'} onPress={submit} loading={busy} disabled={!ready} style={styles.gap} />
+      <Button label={id ? 'Save' : 'Start club'} onPress={submit} loading={busy} disabled={!ready} />
       {!id ? (
-        <ThemedText type="bodySmall" themeColor="onSurfaceVariant" style={styles.gap} maxFontSizeMultiplier={1.3}>
+        <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
           {"You'll be the captain. You can make up to 2 members vice-captains."}
         </ThemedText>
       ) : null}
@@ -105,7 +104,7 @@ function Form({
 }
 
 const styles = StyleSheet.create({
-  gap: { marginTop: Spacing.three },
-  list: { overflow: 'hidden', paddingBottom: Spacing.two },
-  caption: { paddingHorizontal: Spacing.three, marginTop: -Spacing.one },
+  list: { overflow: 'hidden' },
+  // On the field's typed-text edge, just under the box.
+  helper: { marginTop: Spacing.one, marginLeft: Spacing.three },
 });

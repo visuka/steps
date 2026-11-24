@@ -28,9 +28,9 @@ export default function ClubSearch() {
     <PremiumGate feature={SCREEN_FEATURES.buddies} title="Find a club" onBack={back}>
       <Screen title="Find a club" onBack={back}>
         <TextField label="Club name or area" value={s.q} onChangeText={s.setQ} placeholder="e.g. KBR or Banjara Hills" maxLength={40} onSubmit={search} returnKeyType="search" />
-        <Button label="Search" icon="search-outline" onPress={search} loading={s.busy} disabled={!s.q.trim() || s.busy} style={styles.gap} />
+        <Button label="Search" icon="search-outline" onPress={search} loading={s.busy} disabled={!s.q.trim() || s.busy} />
         {s.error ? (
-          <ThemedText themeColor="onSurfaceVariant" style={styles.gap}>
+          <ThemedText themeColor="onSurfaceVariant">
             {s.error}
           </ThemedText>
         ) : null}
@@ -38,7 +38,7 @@ export default function ClubSearch() {
           <EmptyState icon="people-outline" title="No clubs found" hint="Try the area's name, or start a club yourself." />
         ) : null}
         {s.found?.length ? (
-          <Surface level={1} style={[styles.list, styles.gap]}>
+          <Surface level={1} style={styles.list}>
             {s.found.map((c) => (
               <ClubRow key={c.clubId} club={c} onPress={() => open(c)} />
             ))}
@@ -47,7 +47,7 @@ export default function ClubSearch() {
 
         {mine.data?.length ? (
           <>
-            <SectionTitle>Your clubs</SectionTitle>
+            <SectionTitle icon="people">Your clubs</SectionTitle>
             <Surface level={1} style={styles.list}>
               {mine.data.map((c) => (
                 <ClubRow key={c.clubId} club={c} onPress={() => open(c)} />
@@ -59,11 +59,14 @@ export default function ClubSearch() {
           </>
         ) : null}
 
-        <SectionTitle>Start your own</SectionTitle>
-        <ThemedText themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
-          {"Start a club for the people you walk with. You'll be the captain."}
-        </ThemedText>
-        <Button label="Start a club" variant="tonal" icon="add-outline" onPress={() => router.push('/buddies/club/new' as never)} style={styles.gap} />
+        {/* One block, as Your clubs: the label sits as close to its text as that label to its tile. */}
+        <>
+          <SectionTitle icon="plus">Start your own</SectionTitle>
+          <ThemedText themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
+            {"Start a club for the people you walk with. You'll be the captain."}
+          </ThemedText>
+          <Button label="Start a club" variant="tonal" icon="add-outline" onPress={() => router.push('/buddies/club/new' as never)} style={styles.gap} />
+        </>
       </Screen>
     </PremiumGate>
   );

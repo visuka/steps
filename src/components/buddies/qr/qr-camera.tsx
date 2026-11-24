@@ -5,7 +5,7 @@
  * what a code means (qr/club-code.ts scanOutcome).
  */
 import { type BarcodeScanningResult, CameraView } from 'expo-camera';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { buzz, CameraPermission } from '@/components/food/scan-camera';
@@ -31,6 +31,8 @@ export function QrCamera({
 }) {
   const theme = useTheme();
   const last = useRef<{ text: string; at: number } | null>(null);
+  // Until the first frame, a soft grey cover: no black block (rule: no black solids).
+  const [ready, setReady] = useState(false);
 
   const onScanned = ({ data }: BarcodeScanningResult) => {
     const now = Date.now();
@@ -48,13 +50,15 @@ export function QrCamera({
       manualLabel="Enter walker ID instead"
       manualIcon="search-outline"
       onManual={onManual}>
-      <View style={[styles.finder, { backgroundColor: theme.inverseSurface }]}>
+      <View style={[styles.finder, { backgroundColor: theme.surfaceContainerHigh }]}>
         <CameraView
           style={StyleSheet.absoluteFill}
           facing="back"
           barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
           onBarcodeScanned={paused ? undefined : onScanned}
+          onCameraReady={() => setReady(true)}
         />
+        {ready ? null : <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: theme.surfaceContainerHigh }]} />}
         <View pointerEvents="none" style={styles.frameWrap}>
           <View style={[styles.frame, { borderColor: theme.surface }]} />
         </View>

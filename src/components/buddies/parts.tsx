@@ -6,6 +6,8 @@
 import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { Label } from '@/components/plain/plain-kit';
+import type { PlainIconName } from '@/components/plain/plain-theme';
 import { ThemedText } from '@/components/themed-text';
 import { ListRow } from '@/components/ui';
 import { displayName } from '@/buddies/read';
@@ -22,10 +24,15 @@ export function Avatar({ label, size = AVATAR }: { label: string; size?: number 
   const letter = label.replace(/^@/, '').trim().charAt(0).toUpperCase() || '?';
   return (
     <View
-      style={[styles.avatar, { width: size, height: size, borderRadius: size / 2, backgroundColor: theme.primaryContainer }]}
+      // Sand, as the hub's avatars (rule: sand for avatars), so a person looks the same on every screen.
+      style={[styles.avatar, { width: size, height: size, borderRadius: size / 2, backgroundColor: theme.secondaryContainer }]}
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants">
-      <ThemedText type="titleSmall" maxFontSizeMultiplier={1.3} style={{ color: theme.onPrimaryContainer }}>
+      {/* The letter grows with the circle (a 72 circle no longer holds a tiny letter). */}
+      <ThemedText
+        type="titleSmall"
+        maxFontSizeMultiplier={1.3}
+        style={{ color: theme.onSecondaryContainer, fontSize: Math.round(size * 0.4), lineHeight: Math.round(size * 0.5), fontWeight: '600' }}>
         {letter}
       </ThemedText>
     </View>
@@ -61,12 +68,9 @@ export function PersonRow({
   );
 }
 
-export function SectionTitle({ children }: { children: string }) {
-  return (
-    <ThemedText type="titleSmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3} style={styles.section}>
-      {children}
-    </ThemedText>
-  );
+/** A section's label: the plain kit's tracked capitals with its icon, as the hub's tile labels. */
+export function SectionTitle({ children, icon }: { children: string; icon?: PlainIconName }) {
+  return <Label icon={icon} text={children} style={styles.section} />;
 }
 
 /** A message for the snackbar, and a way to show one. */

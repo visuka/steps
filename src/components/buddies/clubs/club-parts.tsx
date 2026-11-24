@@ -3,6 +3,7 @@
  * the goals consent (spec T16f, the goals contract). Theme roles and Spacing
  * only; numbers and words, no emoji.
  */
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -10,6 +11,7 @@ import { Button, ListRow, Surface } from '@/components/ui';
 import { clubLine, ROLE_WORD, stateWord } from '@/buddies/clubs';
 import type { ClubCard, ClubRole } from '@/buddies/types';
 import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 import { Avatar } from '../parts';
 
@@ -89,8 +91,8 @@ export function GoalsConsent({
   return (
     <View style={styles.gap}>
       <ThemedText maxFontSizeMultiplier={1.3}>{`${club.name} has shared goals. The captain and vice-captains can set goals for members, like steps or medicines.`}</ThemedText>
-      <List title="What the captain and vice-captains see" rows={CONSENT_SEE} />
-      <List title="What they never see" rows={CONSENT_NEVER} />
+      <ShareList title="What the captain and vice-captains see" rows={CONSENT_SEE} />
+      <ShareList title="What they never see" rows={CONSENT_NEVER} never />
       {[CONSENT_AUTO, CONSENT_REMIND, CONSENT_LEAVE].map((line) => (
         <ThemedText key={line} type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
           {line}
@@ -102,7 +104,13 @@ export function GoalsConsent({
   );
 }
 
-function List({ title, rows }: { title: string; rows: string[] }) {
+/**
+ * What goal tracking shares (or never shares): a grey heading over a tile of
+ * items, each with its own mark (a tick, or a cross for "never"), so a wrapped
+ * item never reads as two. Shared by the consent and the tracking switch.
+ */
+export function ShareList({ title, rows, never }: { title: string; rows: string[]; never?: boolean }) {
+  const theme = useTheme();
   return (
     <View>
       <ThemedText type="titleSmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3} style={styles.title}>
@@ -110,9 +118,19 @@ function List({ title, rows }: { title: string; rows: string[] }) {
       </ThemedText>
       <Surface level={1} style={styles.box}>
         {rows.map((r) => (
-          <ThemedText key={r} maxFontSizeMultiplier={1.3} style={styles.row}>
-            {r}
-          </ThemedText>
+          <View key={r} style={styles.row}>
+            <Ionicons
+              name={never ? 'close' : 'checkmark'}
+              size={18}
+              color={theme.onSurfaceVariant}
+              style={styles.mark}
+              accessibilityElementsHidden
+              importantForAccessibility="no"
+            />
+            <ThemedText maxFontSizeMultiplier={1.3} style={styles.item}>
+              {r}
+            </ThemedText>
+          </View>
         ))}
       </Surface>
     </View>
@@ -123,5 +141,8 @@ const styles = StyleSheet.create({
   gap: { gap: Spacing.three },
   title: { marginBottom: Spacing.one },
   box: { paddingVertical: Spacing.two, paddingHorizontal: Spacing.three },
-  row: { paddingVertical: Spacing.one },
+  row: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.two, paddingVertical: Spacing.one },
+  // The mark sits on the first line of its item.
+  mark: { marginTop: 3 },
+  item: { flex: 1 },
 });

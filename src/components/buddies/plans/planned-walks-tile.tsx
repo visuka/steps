@@ -64,7 +64,9 @@ function PlanLine({ p, line, onPress }: { p: Plan; line: string; onPress: () => 
         <Words size={15} weight={600} line={19} lines={1}>
           {p.place}
         </Words>
-        <Note lines={1}>{p.club ? `${line} · ${p.club.name}` : line}</Note>
+        <Note lines={1}>{line}</Note>
+        {/* The club on its own line, as the Clubs rows' third line, so its name is never cut. */}
+        {p.club ? <Note lines={1}>{p.club.name}</Note> : null}
       </View>
       {stand ? <Note style={{ marginTop: 0 }}>{stand}</Note> : null}
     </Pressable>

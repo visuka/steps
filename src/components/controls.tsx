@@ -7,7 +7,7 @@ import { Button as UiButton, type ButtonVariant } from '@/components/ui/button';
 import { Segments } from '@/components/plain/plain-kit';
 import { PLAIN_FIELD } from '@/constants/themes/plain';
 import { Chip as UiChip } from '@/components/ui/chip';
-import { Controls, NumeralMaxScale, Radius, Spacing, TouchTarget, Type } from '@/constants/theme';
+import { Controls, MaxTextScale, NumeralMaxScale, Spacing, TouchTarget, Type } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 /**
@@ -162,7 +162,8 @@ export function NumberField({
           onBlur={commit}
           keyboardType="decimal-pad"
           placeholder={placeholder}
-          placeholderTextColor={theme.onSurfaceVariant}
+          placeholderTextColor={theme.outline}
+          maxFontSizeMultiplier={MaxTextScale}
           cursorColor={theme.primary}
           selectionColor={theme.primaryContainer}
           style={inputStyle(theme, [styles.input, styles.numberInput])}
@@ -188,11 +189,15 @@ export function TextField({
   plain,
   onSubmit,
   returnKeyType,
+  showLabel,
 }: {
   value: string;
   onChangeText: (t: string) => void;
   placeholder?: string;
+  /** Read by screen readers; drawn above the box too with `showLabel`. */
   label: string;
+  /** Draw `label` above the box (forms with several fields). */
+  showLabel?: boolean;
   multiline?: boolean;
   onEndEditing?: () => void;
   maxLength?: number;
@@ -207,14 +212,15 @@ export function TextField({
   returnKeyType?: 'search' | 'done' | 'go';
 }) {
   const theme = useTheme();
-  return (
+  const input = (
     <TextInput
       value={value}
       onChangeText={onChangeText}
       onEndEditing={onEndEditing}
       onBlur={onEndEditing}
       placeholder={placeholder}
-      placeholderTextColor={theme.onSurfaceVariant}
+      placeholderTextColor={theme.outline}
+      maxFontSizeMultiplier={MaxTextScale}
       cursorColor={theme.primary}
       selectionColor={theme.primaryContainer}
       multiline={multiline}
@@ -229,6 +235,15 @@ export function TextField({
       accessibilityLabel={label}
       style={inputStyle(theme, [styles.input, styles.textField, multiline && styles.multiline])}
     />
+  );
+  if (!showLabel) return input;
+  return (
+    <View>
+      <ThemedText type="labelMedium" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3} style={styles.shownLabel}>
+        {label}
+      </ThemedText>
+      {input}
+    </View>
   );
 }
 
@@ -295,7 +310,8 @@ export function NameField({
         onEndEditing={commit}
         onBlur={commit}
         placeholder={placeholder}
-        placeholderTextColor={theme.onSurfaceVariant}
+        placeholderTextColor={theme.outline}
+        maxFontSizeMultiplier={MaxTextScale}
         cursorColor={theme.primary}
         selectionColor={theme.primaryContainer}
         maxLength={maxLength}
@@ -348,5 +364,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
   },
   textField: { textAlign: 'left', minWidth: 0 },
+  // A field's own label above it, on the typed text's edge.
+  shownLabel: { marginBottom: Spacing.one, marginLeft: Spacing.three },
   multiline: { minHeight: 72, textAlignVertical: 'top', borderRadius: 16 },
 });

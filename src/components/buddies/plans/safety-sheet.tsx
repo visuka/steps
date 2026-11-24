@@ -25,17 +25,17 @@ export function SafetySheet({ visible, onClose }: { visible: boolean; onClose: (
           </View>
         ))}
       </View>
-      <Button label="More safety tips" variant="text" compact onPress={() => Linking.openURL(SAFETY_URL)} style={styles.link} />
-      <Button label="OK" onPress={onClose} style={styles.gap} />
+      <Button label="More safety tips" variant="text" compact onPress={() => Linking.openURL(SAFETY_URL)} />
+      {/* The sheet's own 16 gap spaces the list, the link and OK. */}
+      <Button label="OK" onPress={onClose} />
     </Sheet>
   );
 }
 
 const styles = StyleSheet.create({
   list: { gap: Spacing.two },
-  row: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.three, minHeight: Spacing.five },
-  num: { minWidth: Spacing.three, textAlign: 'right' },
+  // The numbers start on the title's edge and sit on their tip's first line.
+  row: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.three },
+  num: { minWidth: Spacing.three, textAlign: 'left', fontVariant: ['tabular-nums'] },
   grow: { flex: 1 },
-  link: { alignSelf: 'flex-start', marginTop: Spacing.two },
-  gap: { marginTop: Spacing.three },
 });

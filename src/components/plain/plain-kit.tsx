@@ -6,7 +6,7 @@
  */
 
 import { useRouter } from 'expo-router';
-import type { ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, type TextStyle, View, type ViewStyle } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, RadialGradient, Rect, Stop } from 'react-native-svg';
 
@@ -113,6 +113,8 @@ export function Words({
       adjustsFontSizeToFit={fit}
       minimumFontScale={fit ? 0.75 : undefined}
       maxFontSizeMultiplier={MaxTextScale}
+      textBreakStrategy="balanced"
+      lineBreakStrategyIOS="standard"
       style={[{ fontFamily: family, fontSize: T(size), lineHeight: Math.max(T(size), S(line ?? Math.round(size * 1.2))), color, includeFontPadding: false }, style]}>
       {children}
     </Text>
@@ -142,13 +144,20 @@ export function Label({ icon, text, style }: { icon?: PlainIconName; text: strin
   );
 }
 
-/** Outfit 500 capitals, 11.5 label grey, tracked 2: "STEPS TODAY", "06:00 – 15:45". */
+/**
+ * Outfit 500 capitals, 11.5 label grey, tracked 2: "STEPS TODAY", "06:00 – 15:45".
+ * Where a long label would not fit on one line (a half tile at 360 dp), it keeps
+ * its 11 dp size (rule: smallest text 11) and takes a tighter tracking instead, so
+ * it stays inside the tile's padding rather than running into it.
+ */
 export function Caps({ text, color = PLAIN.label }: { text: string; color?: string }) {
+  const [tight, setTight] = useState(false);
   return (
     <Text
-      numberOfLines={1}
+      numberOfLines={tight ? 1 : undefined}
+      onTextLayout={tight ? undefined : (e) => e.nativeEvent.lines.length > 1 && setTight(true)}
       maxFontSizeMultiplier={MaxTextScale}
-      style={{ fontFamily: PLAIN_FONT.caps, fontSize: T(11.5), lineHeight: Math.max(S(15), T(11.5) + 3), letterSpacing: S(2), color, includeFontPadding: false }}>
+      style={{ fontFamily: PLAIN_FONT.caps, fontSize: T(11.5), lineHeight: Math.max(S(15), T(11.5) + 3), letterSpacing: S(tight ? 0.75 : 2), color, includeFontPadding: false, flexShrink: 1 }}>
       {text.toUpperCase()}
     </Text>
   );

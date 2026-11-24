@@ -11,7 +11,8 @@ import { PlainGround, Segments } from '@/components/plain/plain-kit';
 import { LockedClubs } from '@/components/buddies/clubs/locked-clubs';
 import { PremiumCard } from '@/components/premium-gate';
 import { ThemedText } from '@/components/themed-text';
-import { Button, Dialog, IconButton, ListRow, Screen, Sheet, Snackbar } from '@/components/ui';
+import { BackButton, Button, Card, Dialog, IconButton, ListRow, Screen, Sheet, Snackbar } from '@/components/ui';
+import { SCREEN } from '@/components/ui/screen-style';
 import { can, clubLine, isStaff } from '@/buddies/clubs';
 import type { Club, Message } from '@/buddies/types';
 import { attempt, useSocialApi } from '@/buddies/use-buddies';
@@ -92,8 +93,16 @@ export default function ClubScreen() {
       <KeyboardAvoidingView behavior="padding" style={[styles.fill, { backgroundColor: theme.background }]}>
         <PlainGround />
         <View style={[styles.top, { paddingTop: insets.top + Spacing.one }]}>
-          <IconButton icon="arrow-back" accessibilityLabel="Back" onPress={back} />
-          <ThemedText type="titleMedium" numberOfLines={1} style={styles.grow} maxFontSizeMultiplier={1.3}>
+          {/* The same back chevron and title as every pushed screen (Screen). */}
+          <BackButton onPress={back} />
+          <ThemedText
+            type="headlineSmall"
+            accessibilityRole="header"
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.8}
+            style={styles.grow}
+            maxFontSizeMultiplier={1.3}>
             {name}
           </ThemedText>
           {club ? <IconButton icon="ellipsis-vertical" accessibilityLabel="Club menu" onPress={() => setMenu(true)} /> : null}
@@ -209,9 +218,9 @@ export default function ClubScreen() {
   );
 }
 
-/** "Banjara Hills · 48 members · Captain @you_walk". */
+/** "Banjara Hills · 48 members · Captain @ravi_walks", or "… · You're the captain". */
 function headLine(club: Club): string {
-  const cap = club.captain ? `Captain ${club.captain.relation === 'self' ? 'you' : `@${club.captain.handle}`}` : null;
+  const cap = club.captain ? (club.captain.relation === 'self' ? "You're the captain" : `Captain @${club.captain.handle}`) : null;
   return [clubLine(club), cap].filter(Boolean).join(' · ');
 }
 
@@ -232,26 +241,27 @@ function Visitor({
   const insets = useSafeAreaInsets();
   return (
     <ScrollView contentContainerStyle={[styles.pad, { paddingBottom: insets.bottom + Spacing.four }]}>
-      <ThemedText type="titleLarge" maxFontSizeMultiplier={1.3}>
-        {club.name}
-      </ThemedText>
-      <ThemedText themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
-        {headLine(club)}
-      </ThemedText>
-      {club.about ? <ThemedText maxFontSizeMultiplier={1.3}>{club.about}</ThemedText> : null}
-      {club.goals ? (
-        <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
-          {"This club has shared goals. You'll see what the captain sees before you join."}
+      {/* The club in one tile (its name is in the top bar), then the actions under it. */}
+      <Card style={styles.info}>
+        <ThemedText themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
+          {headLine(club)}
         </ThemedText>
-      ) : null}
-      {club.myState === 'asked' ? (
-        <>
+        {club.about ? <ThemedText maxFontSizeMultiplier={1.3}>{club.about}</ThemedText> : null}
+        {club.goals ? (
+          <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
+            {"This club has shared goals. You'll see what the captain sees before you join."}
+          </ThemedText>
+        ) : null}
+        {club.myState === 'asked' ? (
           <ThemedText maxFontSizeMultiplier={1.3}>Asked. The captain or a vice-captain will let you in.</ThemedText>
-          <Button label="Cancel request" variant="outlined" onPress={onCancel} disabled={busy} />
-        </>
+        ) : club.myState === 'invited' ? (
+          <ThemedText maxFontSizeMultiplier={1.3}>{"You're invited to this club."}</ThemedText>
+        ) : null}
+      </Card>
+      {club.myState === 'asked' ? (
+        <Button label="Cancel request" variant="outlined" onPress={onCancel} disabled={busy} />
       ) : club.myState === 'invited' ? (
         <>
-          <ThemedText maxFontSizeMultiplier={1.3}>{"You're invited to this club."}</ThemedText>
           <Button label="Join" onPress={onJoin} loading={busy} disabled={busy} />
           <Button label="Decline" variant="text" onPress={onDecline} disabled={busy} />
         </>
@@ -270,7 +280,17 @@ function Visitor({
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   grow: { flex: 1 },
-  top: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one, paddingHorizontal: Spacing.two, paddingBottom: Spacing.one },
+  // The chevron sits where Screen puts it (24 margin, -4), the title 8 after it.
+  top: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SCREEN.back.titleGap,
+    minHeight: SCREEN.topBarHeight,
+    paddingLeft: SCREEN.sideMargin,
+    paddingRight: Spacing.two,
+    paddingBottom: Spacing.one,
+  },
+  info: { gap: Spacing.two },
   head: { paddingHorizontal: Spacing.four, gap: Spacing.two, paddingBottom: Spacing.two, width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },
   pad: { paddingHorizontal: Spacing.four, paddingTop: Spacing.two, gap: Spacing.three, width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },
   start: { alignSelf: 'flex-start' },

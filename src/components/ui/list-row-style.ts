@@ -1,3 +1,5 @@
+import { createContext } from 'react';
+
 import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
 
 import { pressedColor } from './surface-style';
@@ -16,7 +18,24 @@ export const ROW = {
   legacyHeight: 56,
   legacyHeightSupporting: 72,
   disabledOpacity: 0.38,
+  /** Inside a tile (Surface) a spec row keeps 16 off both sides, so nothing meets the rounded corners. */
+  inset: CLEAN_SPEC.space.s16,
+  /** And 8 above and below its text part, so rows of two or three lines have air at the hairline. */
+  insetVertical: CLEAN_SPEC.space.s8,
 } as const;
+
+/**
+ * Side room a spec row keeps inside the tile it sits in: set by Surface (ROW.inset),
+ * 0 on the bare screen margin and inside a padded Card.
+ */
+export const RowInsetContext = createContext(0);
+
+/**
+ * How far a padded (Material) row reaches out past its container's side padding: a
+ * Sheet sets its body inset less the row's own padding, so a row's icon or avatar
+ * starts on the sheet title's edge. 0 elsewhere.
+ */
+export const RowBleedContext = createContext(0);
 
 export interface RowLook {
   /** The spec layout (24 screen margin applies, hairline under the text part). */

@@ -2,7 +2,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { PersonRow, SectionTitle, useSnack } from '@/components/buddies/parts';
+import { AVATAR, PersonRow, SectionTitle, useSnack } from '@/components/buddies/parts';
+import { Btn } from '@/components/plain/plain-kit';
 import { ClubQrSheet } from '@/components/buddies/qr/qr-sheets';
 import { PremiumGate } from '@/components/premium-gate';
 import { ThemedText } from '@/components/themed-text';
@@ -48,15 +49,15 @@ export default function ClubAdminScreen() {
         {can(role, 'invite') ? <Button label="Invite a buddy" icon="person-add-outline" variant="tonal" onPress={() => setInviting(true)} /> : null}
         {can(role, 'code') ? <Button label="Club QR code" icon="qr-code-outline" variant="tonal" onPress={() => setShowQr(true)} /> : null}
 
-        <SectionTitle>Asking to join</SectionTitle>
+        <SectionTitle icon="useradd">Asking to join</SectionTitle>
         {a.requests.length ? (
           <Surface level={1} style={styles.list}>
             {a.requests.map((r) => (
               <View key={r.walker.pid}>
                 <PersonRow walker={r.walker} />
                 <View style={styles.actions}>
-                  <Button label="Decline" variant="text" compact onPress={() => act(() => a.decline(r.walker.pid), `Declined @${r.walker.handle}.`)} />
-                  <Button label="Approve" variant="text" compact onPress={() => act(() => a.approve(r.walker.pid), `@${r.walker.handle} is in.`)} />
+                  <Btn text="Approve" kind="main" label={`Approve @${r.walker.handle}`} onPress={() => act(() => a.approve(r.walker.pid), `@${r.walker.handle} is in.`)} />
+                  <Btn text="Decline" label={`Decline @${r.walker.handle}`} onPress={() => act(() => a.decline(r.walker.pid), `Declined @${r.walker.handle}.`)} />
                 </View>
               </View>
             ))}
@@ -67,7 +68,7 @@ export default function ClubAdminScreen() {
           </ThemedText>
         )}
 
-        <SectionTitle>{`Members · ${members.length}`}</SectionTitle>
+        <SectionTitle icon="people">{`Members · ${members.length}`}</SectionTitle>
         <Surface level={1} style={styles.list}>
           {members.map((m) => {
             const me = m.walker.relation === 'self';
@@ -89,7 +90,7 @@ export default function ClubAdminScreen() {
 
         {can(role, 'reports') ? (
           <>
-            <SectionTitle>Reports</SectionTitle>
+            <SectionTitle icon="list">Reports</SectionTitle>
             {a.reports.length ? (
               <Surface level={1} style={styles.list}>
                 {a.reports.map((r) => (
@@ -168,8 +169,10 @@ export default function ClubAdminScreen() {
 
 const styles = StyleSheet.create({
   list: { overflow: 'hidden' },
-  actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: Spacing.one, paddingHorizontal: Spacing.two, paddingBottom: Spacing.two, marginTop: -Spacing.two },
-  actionsFlat: { flexDirection: 'row', justifyContent: 'flex-end', gap: Spacing.one },
+  // Under the handle, on the row's text column (16 padding, the avatar, 16 gap), as the pills on Requests.
+  actions: { flexDirection: 'row', justifyContent: 'flex-start', gap: Spacing.two, paddingLeft: Spacing.three * 2 + AVATAR, paddingRight: Spacing.three, paddingBottom: Spacing.three, marginTop: -Spacing.one },
+  // Under the report, on its text's left edge.
+  actionsFlat: { flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', flexWrap: 'wrap', gap: Spacing.four },
   note: { marginTop: Spacing.two },
-  report: { paddingHorizontal: Spacing.three, paddingTop: Spacing.three, gap: Spacing.one },
+  report: { paddingHorizontal: Spacing.three, paddingTop: Spacing.three, paddingBottom: Spacing.two, gap: Spacing.one },
 });

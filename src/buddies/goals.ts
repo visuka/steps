@@ -140,12 +140,17 @@ export function byTimeOf(d: Date): string {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
+/** "by 7:00 am" with no-break spaces, so a line never wraps inside it ("by 7:00 / am"). */
+export function byWords(byTime: string, style: ClockStyle): string {
+  return `by ${byTimeWords(byTime, style)}`.replace(/ /g, ' ');
+}
+
 /** The second line of a goal: "8,000 steps · Every day · by 7:00 am". */
 export function goalLine(goal: Pick<Goal, 'kind' | 'target' | 'days' | 'byTime' | 'paused'>, style: ClockStyle): string {
   const parts: string[] = [];
   if (goal.target !== null) parts.push(targetWords(goal.kind, goal.target));
   parts.push(daysWord(goal.days));
-  if (goal.byTime) parts.push(`by ${byTimeWords(goal.byTime, style)}`);
+  if (goal.byTime) parts.push(byWords(goal.byTime, style));
   if (goal.paused) parts.push('Paused');
   return parts.join(' · ');
 }

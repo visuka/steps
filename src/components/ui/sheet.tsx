@@ -7,6 +7,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Motion, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
+import { RowBleedContext } from './list-row-style';
 import { decelerateEasing, useReducedMotion } from './motion';
 import { PlainGround } from './tone-surface';
 
@@ -57,7 +58,8 @@ export function Sheet({ visible, onClose, title, children }: SheetProps) {
               </ThemedText>
             ) : null}
             <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-              {children}
+              {/* A padded row reaches out by its own padding, so its icon or avatar starts on the title's edge. */}
+              <RowBleedContext value={Spacing.three}>{children}</RowBleedContext>
             </ScrollView>
           </Animated.View>
         </View>

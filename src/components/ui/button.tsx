@@ -34,8 +34,8 @@ export interface ButtonProps {
 /**
  * Common button, at least 48 dp tall so it is easy to hit (spec 5.8: 48, radius 16,
  * label 15/22 medium). The theme sets its corners, height and label case
- * (Controls, themes/build.ts). Disabled is the same colours at 0.4 opacity and
- * pressed is a ripple only (spec 10.3).
+ * (Controls, themes/build.ts). Disabled is a soft grey pill with a readable grey
+ * label (BUTTON_STYLE.disabled) and pressed is a ripple only (spec 10.3).
  */
 export function Button({
   label,
@@ -53,25 +53,41 @@ export function Button({
   const theme = useTheme();
   const plate = useToneInk();
   const off = disabled || loading;
+  // Words never take colour (rule: colour on surfaces only): sage stays on the filled
+  // button's surface, every other label is charcoal ink. A danger action carries its
+  // warning on a soft warn surface (a pale pill or a warn edge), not on its letters.
   const look = {
     filled: { bg: danger ? theme.error : theme.primary, fg: danger ? theme.onError : theme.onPrimary, border: undefined },
     tonal: {
       bg: danger ? theme.errorContainer : theme.secondaryContainer,
-      fg: danger ? theme.onErrorContainer : theme.onSecondaryContainer,
+      fg: danger ? theme.onSurface : theme.onSecondaryContainer,
       border: undefined,
     },
+    // A white pill with a hairline: it reads as a button on the grey ground and on a tile.
     secondary: {
-      bg: danger ? theme.errorContainer : theme.surfaceContainer,
-      fg: danger ? theme.onErrorContainer : theme.onSurface,
-      border: undefined,
+      bg: danger ? theme.errorContainer : theme.surfaceBright,
+      fg: theme.onSurface,
+      border: danger ? undefined : theme.surfaceContainerHigh,
     },
-    outlined: { bg: 'transparent', fg: danger ? theme.error : theme.primary, border: theme.outline },
-    text: { bg: 'transparent', fg: danger ? theme.error : theme.primary, border: undefined },
-  }[variant];
+    outlined: { bg: 'transparent', fg: theme.onSurface, border: danger ? theme.error : theme.outline },
+    text: { bg: danger ? theme.errorContainer : 'transparent', fg: theme.onSurface, border: undefined },
+  }[variant] as { bg: string; fg: string; border: string | undefined };
   // On a tone plate (a filled tile) a tonal button is a ground-coloured pill with the plate's ink,
   // and text and outlined buttons take the ink too.
   if (plate && !danger && (variant === 'tonal' || variant === 'secondary')) Object.assign(look, { bg: plate.lane, fg: plate.ink });
   else if (plate && !danger && variant !== 'filled') Object.assign(look, { fg: plate.ink });
+  // Disabled: a soft grey pill (or a grey word) that stays readable, never a faded colour.
+  if (off) {
+    const d = BUTTON_STYLE.disabled;
+    const boxed = variant === 'filled' || variant === 'tonal' || variant === 'secondary' || (variant === 'text' && danger);
+    Object.assign(look, {
+      bg: boxed ? theme[d.bg] : 'transparent',
+      fg: theme[d.fg],
+      border: variant === 'outlined' ? theme[d.border] : undefined,
+    });
+  }
+  // A compact text button is a link in the text column: no box, the word on the column's edge.
+  const inline = variant === 'text' && compact && !danger;
   const bg = look.bg;
   const fg = look.fg;
   const ripple = rippleKind(variant) === 'onAccent' ? pressedColorOnAccent(look.fg) : pressedColor(theme.onSurface);
@@ -85,13 +101,13 @@ export function Button({
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: !!off, busy: !!loading }}
       android_ripple={{ color: ripple, foreground: true }}
+      hitSlop={inline ? BUTTON_STYLE.inline.hitSlop : undefined}
       style={[
         styles.button,
-        variant === 'text' && styles.textButton,
+        variant === 'text' && (inline ? styles.inline : styles.textButton),
         compact && styles.compact,
         { backgroundColor: bg },
         look.border ? { borderWidth: 1, borderColor: look.border } : null,
-        off && { opacity: BUTTON_STYLE.disabledOpacity },
         style,
       ]}>
       {loading ? (
@@ -102,7 +118,7 @@ export function Button({
           <ThemedText
             type="labelLarge"
             maxFontSizeMultiplier={1.3}
-            style={[styles.label, Controls.buttonLabel, { color: fg }]}
+            style={[styles.label, Controls.buttonLabel, { color: fg }, variant === 'text' && !danger && styles.underline, inline && styles.inlineLabel]}
             numberOfLines={2}>
             {label}
           </ThemedText>
@@ -160,6 +176,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   textButton: { paddingHorizontal: Spacing.three },
+  // No box of its own: the 48 dp target comes from the hit slop (BUTTON_STYLE.inline).
+  inline: { minHeight: 0, paddingHorizontal: 0, paddingVertical: BUTTON_STYLE.inline.paddingVertical, overflow: 'visible' },
+  inlineLabel: { textAlign: 'left' },
+  // A charcoal text button is marked as an action by its weight and an underline, not by colour.
+  underline: { textDecorationLine: 'underline' },
   compact: { alignSelf: 'flex-start' },
   inner: { flexDirection: 'row', alignItems: 'center', gap: BUTTON_STYLE.iconGap },
   label: { textAlign: 'center', flexShrink: 1 },

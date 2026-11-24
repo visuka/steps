@@ -2,7 +2,8 @@ import { useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
 import { ClubRow } from '@/components/buddies/clubs/club-parts';
-import { PersonRow, SectionTitle, useSnack } from '@/components/buddies/parts';
+import { AVATAR, PersonRow, SectionTitle, useSnack } from '@/components/buddies/parts';
+import { Btn } from '@/components/plain/plain-kit';
 import { PremiumGate } from '@/components/premium-gate';
 import { ThemedText } from '@/components/themed-text';
 import { Button, EmptyState, Screen, Snackbar, Surface } from '@/components/ui';
@@ -60,15 +61,15 @@ export default function Requests() {
         {data && !incoming.length && !outgoing.length && !clubInvites.length ? <EmptyState icon="notifications-outline" title="No requests" hint="When someone asks to be your buddy, it shows here." /> : null}
         {incoming.length ? (
           <>
-            <SectionTitle>Asked you</SectionTitle>
+            <SectionTitle icon="useradd">Asked you</SectionTitle>
             <Surface level={1} style={styles.list}>
               {incoming.map((r, i) => (
                 // The buttons sit under the name, so a long walker ID stays on one line.
                 <View key={r.walker.pid}>
                   <PersonRow walker={r.walker} last={i === incoming.length - 1} />
                   <View style={styles.actions}>
-                    <Button label="Decline" variant="text" compact onPress={() => act(() => api.decline(r.walker.pid))} />
-                    <Button label="Accept" variant="text" compact onPress={() => act(() => api.accept(r.walker.pid), `You and @${r.walker.handle} are now buddies.`)} />
+                    <Btn text="Accept" kind="main" onPress={() => act(() => api.accept(r.walker.pid), `You and @${r.walker.handle} are now buddies.`)} label={`Accept @${r.walker.handle}`} />
+                    <Btn text="Decline" onPress={() => act(() => api.decline(r.walker.pid))} label={`Decline @${r.walker.handle}`} />
                   </View>
                 </View>
               ))}
@@ -77,7 +78,7 @@ export default function Requests() {
         ) : null}
         {outgoing.length ? (
           <>
-            <SectionTitle>You asked</SectionTitle>
+            <SectionTitle icon="useradd">You asked</SectionTitle>
             <Surface level={1} style={styles.list}>
               {outgoing.map((r, i) => (
                 <PersonRow
@@ -95,7 +96,7 @@ export default function Requests() {
         ) : null}
         {clubInvites.length ? (
           <>
-            <SectionTitle>Club invites</SectionTitle>
+            <SectionTitle icon="people">Club invites</SectionTitle>
             <Surface level={1} style={styles.list}>
               {clubInvites.map((r) => (
                 <View key={r.club.clubId}>
@@ -104,8 +105,8 @@ export default function Requests() {
                     {`Invited by @${r.by.handle}${r.club.goals ? ' · Shared goals' : ''}`}
                   </ThemedText>
                   <View style={styles.actions}>
-                    <Button label="Decline" variant="text" compact onPress={() => declineClub(r.club)} />
-                    <Button label="Join" variant="text" compact onPress={() => joinClub(r.club)} />
+                    <Btn text="Join" kind="main" onPress={() => joinClub(r.club)} label={`Join ${r.club.name}`} />
+                    <Btn text="Decline" onPress={() => declineClub(r.club)} label={`Decline ${r.club.name}`} />
                   </View>
                 </View>
               ))}
@@ -119,7 +120,9 @@ export default function Requests() {
 
 const styles = StyleSheet.create({
   list: { overflow: 'hidden' },
-  actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: Spacing.one, paddingHorizontal: Spacing.two, paddingBottom: Spacing.two, marginTop: -Spacing.two },
+  // The hub's pills, on the tile's content edge under the name.
+  actions: { flexDirection: 'row', justifyContent: 'flex-start', gap: Spacing.two, paddingHorizontal: Spacing.three, paddingBottom: Spacing.three },
   note: { marginTop: Spacing.two },
-  by: { paddingHorizontal: Spacing.three, marginTop: -Spacing.two, marginBottom: Spacing.three },
+  // Under the club's name, on the row's text column (16 padding, the avatar, 16 gap).
+  by: { paddingLeft: Spacing.three * 2 + AVATAR, paddingRight: Spacing.three, marginTop: -Spacing.two, marginBottom: Spacing.three },
 });

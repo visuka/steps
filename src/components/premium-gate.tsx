@@ -47,6 +47,7 @@ export function PremiumCard() {
     <Card
       level={1}
       title={`${APP_NAME} Premium`}
+      icon="spark"
       right={
         <Why
           title={`${APP_NAME} Premium`}

@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import type { ReactNode } from 'react';
+import { type ReactNode, use } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -8,7 +8,7 @@ import { useTheme } from '@/hooks/use-theme';
 
 import type { IconName } from './button';
 import { SpecIcon } from './icons';
-import { ROW, rowLook, rowRipple } from './list-row-style';
+import { ROW, RowBleedContext, RowInsetContext, rowLook, rowRipple } from './list-row-style';
 
 export interface ListRowProps {
   /** One line: what this row is. */
@@ -61,6 +61,9 @@ export function ListRow({
 }: ListRowProps) {
   const theme = useTheme();
   const look = rowLook({ supporting: !!supporting, tall, last, hairline });
+  // In a tile a spec row keeps clear of the tile's edges; in a sheet a padded row lines up with the title.
+  const inset = use(RowInsetContext);
+  const bleed = use(RowBleedContext);
   const content = (
     <>
       {leading ?? (icon ? <Ionicons name={icon} size={24} color={theme.onSurfaceVariant} /> : null)}
@@ -69,6 +72,7 @@ export function ListRow({
           styles.part,
           look.spec ? styles.partSpec : null,
           look.spec ? { minHeight: look.minHeight } : null,
+          look.spec && inset ? { paddingVertical: ROW.insetVertical } : null,
           look.hairline ? { borderBottomWidth: ROW.hairline, borderBottomColor: theme.outlineVariant } : null,
         ]}>
         <View style={styles.text}>
@@ -108,7 +112,13 @@ export function ListRow({
       </View>
     </>
   );
-  const rowStyle = [styles.row, look.spec ? styles.rowSpec : styles.rowLegacy, { minHeight: look.minHeight }];
+  const rowStyle = [
+    styles.row,
+    look.spec ? styles.rowSpec : styles.rowLegacy,
+    { minHeight: look.minHeight },
+    look.spec && inset ? { paddingHorizontal: inset } : null,
+    !look.spec && bleed ? { marginHorizontal: -bleed } : null,
+  ];
   if (!onPress) return <View style={rowStyle}>{content}</View>;
   return (
     <Pressable
@@ -127,7 +137,7 @@ export function ListRow({
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
   rowLegacy: { gap: Spacing.three, paddingHorizontal: Spacing.three, paddingVertical: Spacing.two },
-  // No side padding: the screen's 24 margin applies.
+  // No side padding: the screen's 24 margin applies (inside a tile, RowInsetContext adds 16).
   rowSpec: { gap: ROW.gap },
   // The text part carries what used to be row children, with the row's old gap between them.
   part: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.three },

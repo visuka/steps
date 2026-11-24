@@ -62,7 +62,8 @@ export function CameraPermission({
       </View>
     );
   }
-  if (permission.granted) return children;
+  // One spaced column, so the finder, its hint and the buttons keep 16 apart whatever wraps the screen uses.
+  if (permission.granted) return <View style={styles.granted}>{children}</View>;
 
   const blocked = permission.status === 'denied' && !permission.canAskAgain;
   return (
@@ -109,6 +110,8 @@ export function ScanCamera({
   const [gate] = useState(createScanGate);
   const [locked, setLocked] = useState(false);
   const [torch, setTorch] = useState(false);
+  // Until the first frame, a soft grey cover: no black block (rule: no black solids).
+  const [ready, setReady] = useState(false);
 
   const onScanned = ({ type, data }: BarcodeScanningResult) => {
     const r = gate.feed(type, data, Date.now());
@@ -127,14 +130,16 @@ export function ScanCamera({
     <CameraPermission
       why="Point the camera at the barcode or QR code on a food pack. Nothing is recorded; only the number is read."
       onManual={onManual}>
-      <View style={[styles.finder, { backgroundColor: theme.inverseSurface }]}>
+      <View style={[styles.finder, { backgroundColor: theme.surfaceContainerHigh }]}>
         <CameraView
           style={StyleSheet.absoluteFill}
           facing="back"
           enableTorch={torch}
           barcodeScannerSettings={{ barcodeTypes: [...BARCODE_TYPES] }}
           onBarcodeScanned={locked ? undefined : onScanned}
+          onCameraReady={() => setReady(true)}
         />
+        {ready ? null : <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: theme.surfaceContainerHigh }]} />}
         <View pointerEvents="none" style={styles.frameWrap}>
           <View style={[styles.frame, { borderColor: theme.surface }]} />
         </View>
@@ -188,6 +193,7 @@ export function ManualEntry({ onCode, onScan }: { onCode: (gtin: string, code: s
 
 const styles = StyleSheet.create({
   center: { paddingVertical: Spacing.five, alignItems: 'center' },
+  granted: { gap: Spacing.three },
   finder: { width: '100%', aspectRatio: 3 / 4, borderRadius: Radius.md, overflow: 'hidden' },
   frameWrap: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center' },
   frame: { width: '78%', aspectRatio: 1.6, borderWidth: 3, borderRadius: Radius.sm },

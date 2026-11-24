@@ -11,13 +11,13 @@ import { ThemedText } from '@/components/themed-text';
 import { Button, ListRow, Surface, ToggleRow } from '@/components/ui';
 import { PlainIcon } from '@/components/plain/plain-icons';
 import { autoDecision, type PhoneToday } from '@/buddies/goals-auto';
-import { byTimeWords, countedWord, goalLine, KIND_ICON, KIND_WORD, liveWords, markWords, summaryLine } from '@/buddies/goals';
+import { byWords, countedWord, goalLine, KIND_ICON, KIND_WORD, liveWords, markWords, summaryLine } from '@/buddies/goals';
 import type { Goal, GoalMark, GoalSummaryRow } from '@/buddies/types';
 import { Spacing, TouchTarget } from '@/constants/theme';
 import type { ClockStyle } from '@/lib/when';
 import { useTheme } from '@/hooks/use-theme';
 
-import { CONSENT_NEVER, CONSENT_SEE } from '../clubs/club-parts';
+import { CONSENT_NEVER, CONSENT_SEE, ShareList } from '../clubs/club-parts';
 import { AVATAR } from '../parts';
 
 const BADGE = AVATAR;
@@ -47,7 +47,8 @@ export function myStatus(goal: Goal, mark: GoalMark | null, phone: PhoneToday | 
 /** The small line under a goal's name: "by 7:00 am · Counted by the phone". */
 function myLine(goal: Goal, clock: ClockStyle): string {
   const parts: string[] = [];
-  if (goal.byTime) parts.push(`by ${byTimeWords(goal.byTime, clock)}`);
+  // "by 7:00 am" wraps as one unit.
+  if (goal.byTime) parts.push(byWords(goal.byTime, clock));
   parts.push(goal.counted === 'auto' ? countedWord('auto') : KIND_WORD[goal.kind]);
   return parts.join(' · ');
 }
@@ -88,33 +89,35 @@ export function MyGoalRow({
           <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
             {line}
           </ThemedText>
-          <ThemedText type="titleSmall" style={styles.status} maxFontSizeMultiplier={1.3}>
+        </View>
+        {/* The status, and Undo beside it once done, so no link floats on a line of its own. */}
+        <View style={styles.statusRow}>
+          <ThemedText type="titleSmall" style={styles.statusText} maxFontSizeMultiplier={1.3} importantForAccessibility="no" accessibilityElementsHidden>
             {status}
           </ThemedText>
+          {goal.counted === 'tap' && done ? (
+            <Button
+              label="Undo"
+              variant="text"
+              compact
+              loading={busy}
+              disabled={busy}
+              onPress={() => onMark(false)}
+              accessibilityLabel={`Undo ${goal.title}`}
+            />
+          ) : null}
         </View>
-        {goal.counted === 'tap' ? (
+        {goal.counted === 'tap' && !done ? (
           <View style={styles.action}>
-            {done ? (
-              <Button
-                label="Undo"
-                variant="text"
-                compact
-                loading={busy}
-                disabled={busy}
-                onPress={() => onMark(false)}
-                accessibilityLabel={`Undo ${goal.title}`}
-              />
-            ) : (
-              <Button
-                label="Mark done"
-                variant="tonal"
-                compact
-                loading={busy}
-                disabled={busy}
-                onPress={() => onMark(true)}
-                accessibilityLabel={`Mark ${goal.title} done`}
-              />
-            )}
+            <Button
+              label="Mark done"
+              variant="tonal"
+              compact
+              loading={busy}
+              disabled={busy}
+              onPress={() => onMark(true)}
+              accessibilityLabel={`Mark ${goal.title} done`}
+            />
           </View>
         ) : null}
       </View>
@@ -191,24 +194,9 @@ export function TrackingSwitch({ on, busy, onChange, clubName }: { on: boolean; 
       {on ? null : (
         <View style={styles.share}>
           <ShareList title="When on, the captain and vice-captains see" rows={CONSENT_SEE} />
-          <ShareList title="They never see" rows={CONSENT_NEVER} />
+          <ShareList title="They never see" rows={CONSENT_NEVER} never />
         </View>
       )}
-    </View>
-  );
-}
-
-function ShareList({ title, rows }: { title: string; rows: string[] }) {
-  return (
-    <View style={styles.shareGroup}>
-      <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
-        {title}
-      </ThemedText>
-      {rows.map((r) => (
-        <ThemedText key={r} type="bodySmall" maxFontSizeMultiplier={1.3}>
-          {r}
-        </ThemedText>
-      ))}
     </View>
   );
 }
@@ -217,12 +205,12 @@ const styles = StyleSheet.create({
   badge: { width: BADGE, height: BADGE, borderRadius: BADGE / 2, alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.three, minHeight: TouchTarget, paddingVertical: Spacing.three, paddingHorizontal: Spacing.three },
   grow: { flex: 1, minWidth: 0 },
-  status: { marginTop: Spacing.one },
+  statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.two, marginTop: Spacing.one },
+  statusText: { flexShrink: 1 },
   action: { marginTop: Spacing.two, alignItems: 'flex-start' },
   list: { overflow: 'hidden' },
-  title: { marginTop: Spacing.four, marginBottom: Spacing.two },
+  title: { marginTop: Spacing.three, marginBottom: Spacing.two },
   titleFirst: { marginBottom: Spacing.two },
   note: { marginTop: Spacing.two },
   share: { marginTop: Spacing.three, gap: Spacing.three },
-  shareGroup: { gap: Spacing.half },
 });

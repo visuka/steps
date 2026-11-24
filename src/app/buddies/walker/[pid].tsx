@@ -45,7 +45,7 @@ export default function WalkerScreen() {
           <ListRow title="Message" icon="chatbubble-outline" chevron onPress={() => router.push({ pathname: '/buddies/chat/[key]', params: { key: `b.${pid}`, title } })} />
           <ListRow title="Remove buddy" icon="person-remove-outline" onPress={() => run(() => api.removeBuddy(pid), `Removed ${title}.`)} />
           <ListRow title="Block" icon="ban-outline" onPress={() => run(() => api.block(pid), `Blocked ${title}. They can't message you.`)} />
-          <ListRow title="Report" icon="flag-outline" last onPress={() => setReporting(true)} />
+          <ListRow title="Report" icon="flag-outline" onPress={() => setReporting(true)} />
         </Surface>
       </Screen>
       <ReportSheet

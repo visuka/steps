@@ -100,8 +100,10 @@ export function LabelCapture({
         <ThemedText type="bodyMedium">
           Fit the whole table of values in the frame, flat and close, in good light. Tilt the pack to avoid glare.
         </ThemedText>
-        <View style={[styles.finder, { backgroundColor: theme.inverseSurface }]}>
+        <View style={[styles.finder, { backgroundColor: theme.surfaceContainerHigh }]}>
           <CameraView ref={camera} style={StyleSheet.absoluteFill} facing="back" enableTorch={torch} onCameraReady={() => setReady(true)} />
+          {/* Until the first frame, a soft grey cover: no black block. */}
+          {ready ? null : <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: theme.surfaceContainerHigh }]} />}
           <View style={styles.torch}>
             <IconButton
               icon={torch ? 'flashlight' : 'flashlight-outline'}

@@ -7,7 +7,10 @@ import { useTheme } from '@/hooks/use-theme';
 
 import type { IconName } from './button';
 
-/** A Material 3 switch in the park-track colours: ink when on, a quiet lane when off. */
+/**
+ * A Material 3 switch: a white knob on sage when on, and a white knob on the soft
+ * grey lane when off (no dark knob: no deep solids).
+ */
 export function MaterialSwitch({
   value,
   onValueChange,
@@ -26,9 +29,9 @@ export function MaterialSwitch({
       onValueChange={onValueChange}
       disabled={disabled}
       accessibilityLabel={accessibilityLabel}
-      trackColor={{ true: theme.primary, false: theme.surfaceContainerHighest }}
-      thumbColor={value ? theme.onPrimary : theme.outline}
-      ios_backgroundColor={theme.surfaceContainerHighest}
+      trackColor={{ true: theme.primary, false: theme.lane }}
+      thumbColor={value ? theme.onPrimary : theme.surfaceBright}
+      ios_backgroundColor={theme.lane}
     />
   );
 }
@@ -46,7 +49,7 @@ export function ToggleRow({
   disabled,
 }: {
   title: string;
-  /** One short line at most. */
+  /** A short note under the title; it wraps rather than being cut at large text. */
   supporting?: string;
   icon?: IconName;
   value: boolean;
@@ -72,7 +75,7 @@ export function ToggleRow({
       <View style={styles.text}>
         <ThemedText type="bodyLarge">{title}</ThemedText>
         {supporting ? (
-          <ThemedText type="bodyMedium" themeColor="onSurfaceVariant" numberOfLines={2}>
+          <ThemedText type="bodyMedium" themeColor="onSurfaceVariant">
             {supporting}
           </ThemedText>
         ) : null}

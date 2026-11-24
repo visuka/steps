@@ -93,7 +93,8 @@ export default function MyGoalsScreen() {
 
         {list.map((x) => (
           <View key={x.club.clubId}>
-            <GroupTitle title={x.club.name} />
+            {/* Screen already keeps 16 between blocks, so the heading adds no margin of its own. */}
+            <GroupTitle title={x.club.name} first />
             {block(x)}
             <View style={styles.open}>
               <Button label="Open club" variant="text" compact onPress={() => openClub(x.club.clubId)} accessibilityLabel={`Open ${x.club.name}`} />
@@ -108,5 +109,6 @@ export default function MyGoalsScreen() {
 const styles = StyleSheet.create({
   list: { overflow: 'hidden' },
   gap: { marginTop: Spacing.three },
-  open: { marginTop: Spacing.one, alignItems: 'flex-start' },
+  // Tile, 8, the link on the tile's edge, then Screen's 16 to the next club.
+  open: { marginTop: Spacing.two, alignItems: 'flex-start' },
 });

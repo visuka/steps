@@ -11,7 +11,7 @@ export { BAR_FAB_CLEARANCE } from './fab';
 export { ListRow, type ListRowProps } from './list-row';
 export { standardEasing, standardTiming, useReducedMotion } from './motion';
 export { NavigationBar, type NavigationBarProps, type NavigationItem } from './navigation-bar';
-export { Screen, type ScreenProps } from './screen';
+export { BackButton, Screen, type ScreenProps } from './screen';
 export { SectionHeader, Why } from './section-header';
 export { Sheet, type SheetProps } from './sheet';
 export { Snackbar } from './snackbar';

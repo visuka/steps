@@ -1,12 +1,15 @@
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, type StyleProp, View, type ViewStyle } from 'react-native';
 
+import { Label } from '@/components/plain/plain-kit';
+import type { PlainIconName } from '@/components/plain/plain-theme';
 import { ThemedText } from '@/components/themed-text';
 import { type DataTone, Elevation, Look, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
+import { ROW, RowBleedContext, RowInsetContext } from './list-row-style';
 import { CARD_LOOK, pressedColor, splitCardStyle } from './surface-style';
-import { InCardContext, toneInk, ToneInkContext } from './tone-surface';
+import { InCardContext, toneInk, ToneInkContext, useInCard } from './tone-surface';
 
 export type ElevationLevel = 0 | 1 | 2 | 3 | 4;
 
@@ -14,11 +17,14 @@ const LEVEL = [Elevation.level0, Elevation.level1, Elevation.level2, Elevation.l
 
 /**
  * A flat plate on a tonal surface role. Higher `level` = a higher
- * surfaceContainer tone, never a shadow.
+ * surfaceContainer tone, never a shadow. On the plain look a level 1 Surface
+ * (a list tile) is the frosted tile, as a Card: white, a white hairline edge
+ * and the soft lift, unless it sits inside a card (no tile inside a tile).
+ * Spec rows inside keep 16 off the tile's sides (RowInsetContext).
  */
 export function Surface({
   level = 2,
-  radius = Radius.md,
+  radius,
   style,
   children,
 }: {
@@ -28,7 +34,29 @@ export function Surface({
   children?: ReactNode;
 }) {
   const theme = useTheme();
-  return <View style={[{ backgroundColor: theme[LEVEL[level]], borderRadius: radius }, style]}>{children}</View>;
+  const inCard = useInCard();
+  const rows = (
+    <RowInsetContext value={ROW.inset}>
+      <RowBleedContext value={0}>{children}</RowBleedContext>
+    </RowInsetContext>
+  );
+  if (Look.tile === 'plain' && level === 1 && !inCard) {
+    const flat = StyleSheet.flatten(style) ?? {};
+    const { outer, inner } = splitCardStyle(flat);
+    const r = radius ?? flat.borderRadius ?? CARD_LOOK.radius;
+    // The shadow needs an unclipped layer: the caller's clip (overflow) goes on the inner one.
+    const { overflow, ...placement } = outer;
+    return (
+      <View
+        style={[
+          { borderRadius: r, backgroundColor: theme.surfaceContainerLowest, borderWidth: 1, borderColor: theme.surfaceBright, boxShadow: CARD_LOOK.boxShadow },
+          placement,
+        ]}>
+        <View style={[{ borderRadius: r, flexGrow: 1 }, overflow ? { overflow } : null, inner]}>{rows}</View>
+      </View>
+    );
+  }
+  return <View style={[{ backgroundColor: theme[LEVEL[level]], borderRadius: radius ?? Radius.md }, style]}>{rows}</View>;
 }
 
 /**
@@ -46,6 +74,7 @@ export function Surface({
  */
 export function Card({
   title,
+  icon,
   right,
   children,
   style,
@@ -57,6 +86,8 @@ export function Card({
   clip = true,
 }: {
   title?: string;
+  /** On the plain look, the title is drawn as a tile label: this icon and tracked capitals. */
+  icon?: PlainIconName;
   /** End of the title row: a short value or a small action. */
   right?: ReactNode;
   children?: ReactNode;
@@ -75,7 +106,9 @@ export function Card({
     <>
       {title || right ? (
         <View style={styles.header}>
-          {title ? (
+          {title && icon && Look.tile === 'plain' ? (
+            <Label icon={icon} text={title} style={styles.title} />
+          ) : title ? (
             <ThemedText type="titleMedium" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={styles.title}>
               {title}
             </ThemedText>
@@ -97,7 +130,12 @@ export function Card({
       ? { backgroundColor: outlined ? theme.surface : theme.surfaceContainerLowest, borderColor: theme.outlineVariant, borderWidth: 1 }
       : { backgroundColor: theme[LEVEL[level]] };
   const wrap = (card: ReactNode) => (
-    <InCardContext value>{ink ? <ToneInkContext value={ink}>{card}</ToneInkContext> : card}</InCardContext>
+    <InCardContext value>
+      {/* A card pads its content, so its rows need no inset of their own. */}
+      <RowInsetContext value={0}>
+        <RowBleedContext value={0}>{ink ? <ToneInkContext value={ink}>{card}</ToneInkContext> : card}</RowBleedContext>
+      </RowInsetContext>
+    </InCardContext>
   );
 
   if (clean) {
