@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 
 import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
 
-import { SECTION, headerMarginTop, headingTextDistance, rowTouchHeight } from '../section-header-style';
+import { SECTION, headerMarginBottom, headerMarginTop, headerSlop, headingTextDistance, headingTextGapBelow, rowTouchHeight } from '../section-header-style';
 
 describe('section header (spec 5.10)', () => {
   it('has the spec gaps', () => {
@@ -26,5 +26,15 @@ describe('section header (spec 5.10)', () => {
     expect(headerMarginTop('sub', true)).toBe(-13);
     expect(headingTextDistance('section', true)).toBe(24);
     expect(headingTextDistance('sub', true)).toBe(16);
+  });
+
+  it('sits 8 above its own block, with or without a button, and the button target stays clear of it', () => {
+    expect(headerMarginBottom(false)).toBe(-8);
+    expect(headerMarginBottom(true)).toBe(-21);
+    expect(headingTextGapBelow(false)).toBe(8);
+    expect(headingTextGapBelow(true)).toBe(8);
+    const slop = headerSlop();
+    expect(slop.bottom).toBeLessThanOrEqual(SECTION.gapBelow);
+    expect(SECTION.lineHeight + slop.top + slop.bottom).toBeGreaterThanOrEqual(CLEAN_SPEC.sizes.nav.minTouch);
   });
 });

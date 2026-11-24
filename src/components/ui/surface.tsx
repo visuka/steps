@@ -49,10 +49,12 @@ export function Surface({
     return (
       <View
         style={[
-          { borderRadius: r, backgroundColor: theme.surfaceContainerLowest, borderWidth: 1, borderColor: theme.surfaceBright, boxShadow: CARD_LOOK.boxShadow },
+          { borderRadius: r, backgroundColor: theme.surfaceContainerLowest, boxShadow: CARD_LOOK.boxShadow },
           placement,
         ]}>
         <View style={[{ borderRadius: r, flexGrow: 1 }, overflow ? { overflow } : null, inner]}>{rows}</View>
+        {/* The white hairline edge is drawn over the tile, so it takes no room from the rows (as the plain list tiles before it). */}
+        <View pointerEvents="none" style={[StyleSheet.absoluteFill, { borderRadius: r, borderWidth: 1, borderColor: theme.surfaceBright }]} />
       </View>
     );
   }

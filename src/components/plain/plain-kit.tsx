@@ -153,7 +153,7 @@ const CAPS_TRACK = [2, 1.5, 1, 0.75] as const;
  * Where a long label would not fit on one line (a half tile at 360 dp), it keeps
  * its 11 dp size (rule: smallest text 11) and tightens its tracking one step at a
  * time (CAPS_TRACK), so it stays inside the tile's padding and a near fit stays
- * close to its neighbours' tracking. The space after the last capital is not counted.
+ * close to its neighbours' tracking. No negative end margin: a right-aligned label ends on the column edge.
  * A label too long even at the tightest step wraps whole rather than being cut.
  */
 export function Caps({ text, color = PLAIN.label }: { text: string; color?: string }) {
@@ -164,7 +164,7 @@ export function Caps({ text, color = PLAIN.label }: { text: string; color?: stri
     <Text
       onTextLayout={lvl < last ? (e) => e.nativeEvent.lines.length > 1 && setLvl(lvl + 1) : undefined}
       maxFontSizeMultiplier={MaxTextScale}
-      style={{ fontFamily: PLAIN_FONT.caps, fontSize: T(11.5), lineHeight: Math.max(S(15), T(11.5) + 3), letterSpacing: track, marginRight: -track, color, includeFontPadding: false, flexShrink: 1 }}>
+      style={{ fontFamily: PLAIN_FONT.caps, fontSize: T(11.5), lineHeight: Math.max(S(15), T(11.5) + 3), letterSpacing: track, color, includeFontPadding: false, flexShrink: 1 }}>
       {text.toUpperCase()}
     </Text>
   );

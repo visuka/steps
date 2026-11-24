@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Button, IconButton } from '@/components/ui/button';
 import { Surface } from '@/components/ui/surface';
-import { Spacing } from '@/constants/theme';
+import { Spacing, TouchTarget } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 /**
@@ -78,9 +78,11 @@ export function EntryRow({
         </View>
       )}
       {onDelete ? (
-        <IconButton icon="trash-outline" onPress={onDelete} accessibilityLabel={deleteLabel ?? `Delete ${title}`} />
+        <View style={styles.trail}>
+          <IconButton icon="trash-outline" onPress={onDelete} accessibilityLabel={deleteLabel ?? `Delete ${title}`} />
+        </View>
       ) : readOnly ? (
-        <View style={styles.mark}>
+        <View style={[styles.mark, styles.trail]}>
           <Ionicons name="link-outline" size={20} color={theme.onSurfaceVariant} />
         </View>
       ) : null}
@@ -165,6 +167,8 @@ const styles = StyleSheet.create({
   },
   text: { flex: 1, gap: Spacing.half },
   mark: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
+  // The 48 dp target reaches half its empty room past the row's edge, so the 24 dp glyph sits on the column edge with the chevrons and kcal values.
+  trail: { marginRight: -(TouchTarget - 24) / 2 },
   panel: {
     padding: Spacing.three,
     gap: Spacing.three,

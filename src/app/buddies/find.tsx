@@ -177,7 +177,7 @@ export default function FindWalkers() {
         {!on ? (
           <Surface level={1} style={styles.note}>
             <ThemedText maxFontSizeMultiplier={1.3}>Show yourself to walkers in your area to see them. Only your area (about 5 km) is used.</ThemedText>
-            <Button label="Turn on" variant="tonal" compact slim onPress={() => setExplain(true)} loading={nearBusy} disabled={nearBusy || !(me && me.joined)} />
+            <Button label="Turn on" variant="tonal" compact slim style={styles.turnOn} onPress={() => setExplain(true)} loading={nearBusy} disabled={nearBusy || !(me && me.joined)} />
           </Surface>
         ) : (
           <View>
@@ -226,4 +226,6 @@ const styles = StyleSheet.create({
   gap: { marginTop: Spacing.three },
   note: { padding: Spacing.three, gap: Spacing.two, alignItems: 'flex-start' },
   start: { alignSelf: 'flex-start', marginTop: Spacing.two },
+  // 12 from the paragraph, as the other text-to-button gaps in Buddies tiles (the note's own gap is 8).
+  turnOn: { marginTop: Spacing.one },
 });

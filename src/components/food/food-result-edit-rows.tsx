@@ -321,7 +321,8 @@ function Field({
       accessibilityLabel={label}
       style={[
         styles.field,
-        resolveFont([Type.bodyMedium, { color: theme.onSurface, backgroundColor: theme.surfaceContainer }]),
+        // Its own white box with a hairline, like the app's other inputs: the grey fill vanished on the grey ground.
+        resolveFont([Type.bodyMedium, { color: theme.onSurface, backgroundColor: theme.surface, borderColor: theme.outlineVariant }]),
         align === 'right' && { textAlign: 'right' },
         style,
       ]}
@@ -344,7 +345,7 @@ const styles = StyleSheet.create({
   oilGrams: { marginRight: RESULT.removeTouch },
   remove: { width: RESULT.removeTouch, height: RESULT.removeTouch, alignItems: 'center', justifyContent: 'center' },
   add: { minHeight: RESULT.ingredientRowHeight },
-  field: { height: RESULT.fieldHeight, borderRadius: RESULT.fieldRadius, paddingHorizontal: CLEAN_SPEC.space.s12, paddingVertical: 0 },
+  field: { height: RESULT.fieldHeight, borderRadius: RESULT.fieldRadius, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: CLEAN_SPEC.space.s12, paddingVertical: 0 },
   method: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: RESULT.oilLineGap, minWidth: RESULT.methodTouch, minHeight: RESULT.methodTouch },
   chipsBlock: { gap: RESULT.chipGap, marginBottom: RESULT.chipGap },
   // The strip runs to the screen's edges, so a chip slides out of view instead of being cut at

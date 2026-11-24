@@ -221,8 +221,12 @@ export default function ClubScreen() {
 
 /** "Banjara Hills · 48 members · Captain @ravi_walks", or "… · You're the captain". */
 function headLine(club: Club): string {
-  const cap = club.captain ? (club.captain.relation === 'self' ? "You're the captain" : `Captain @${club.captain.handle}`) : null;
-  return [clubLine(club), cap].filter(Boolean).join(' · ');
+  return [clubLine(club), captainWords(club)].filter(Boolean).join(' · ');
+}
+
+/** "Captain @ravi_walks", "You're the captain", or nothing. */
+function captainWords(club: Club): string | null {
+  return club.captain ? (club.captain.relation === 'self' ? "You're the captain" : `Captain @${club.captain.handle}`) : null;
 }
 
 /** Not a member yet: what the club is, and Ask to join, Cancel, or the invite's Join and Decline. */
@@ -244,9 +248,17 @@ function Visitor({
     <ScrollView contentContainerStyle={[styles.pad, { paddingBottom: insets.bottom + Spacing.four }]}>
       {/* The club in one tile (its name is in the top bar), then the actions under it. */}
       <Card style={styles.info}>
-        <ThemedText themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
-          {headLine(club)}
-        </ThemedText>
+        {/* The place line, then the captain on a line of its own: no line ends on a hanging " · ". */}
+        <View>
+          <ThemedText themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
+            {clubLine(club)}
+          </ThemedText>
+          {captainWords(club) ? (
+            <ThemedText themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
+              {captainWords(club)}
+            </ThemedText>
+          ) : null}
+        </View>
         {club.about ? <ThemedText maxFontSizeMultiplier={1.3}>{club.about}</ThemedText> : null}
         {club.goals ? (
           <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>

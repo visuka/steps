@@ -171,11 +171,24 @@ describe('hero card fit (spec 10.4)', () => {
     expect(f.kcalLines).toBe(2);
   });
 
-  it('keeps a short number beside the donut and wraps the macros to two lines', () => {
+  it('drops the donut below rather than leave one macro alone on a second row', () => {
     const f = heroFits(342, 1, '320', macros);
-    expect(f.stacked).toBe(false);
+    expect(f.stacked).toBe(true);
     expect(f.kcalLines).toBe(1);
-    expect(f.macroLines).toBe(2);
+    expect(f.macroLines).toBe(1);
+  });
+
+  it('keeps Protein, Carbs and Fat on one row at 360 dp and font scale 1.3', () => {
+    const f = heroFits(360 - 48, 1.3, '520', ['38 g', '14 g', '22 g']);
+    expect(f.stacked).toBe(true);
+    expect(f.macroLines).toBe(1);
+    expect(f.fits).toBe(true);
+  });
+
+  it('keeps the donut beside short macros at 412 dp, font scale 1', () => {
+    const f = heroFits(412 - 48, 1, '520', ['38 g', '14 g', '22 g']);
+    expect(f.stacked).toBe(false);
+    expect(f.macroLines).toBe(1);
   });
 
   it('takes one macro line when the donut is below', () => {

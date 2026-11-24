@@ -38,7 +38,8 @@ export function AnswerCounts({ cells }: { cells: { n: number; word: string }[] }
 export function PeopleList({ title, people, onOpen }: { title: string; people: PlanInvitee[]; onOpen: (p: PlanInvitee) => void }) {
   if (!people.length) return null;
   return (
-    <View style={styles.gap}>
+    // Screen's 16 dp block gap is the only space between lists.
+    <View>
       <ThemedText type="titleSmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
         {`${title} (${people.length})`}
       </ThemedText>
@@ -68,6 +69,5 @@ const styles = StyleSheet.create({
   cell: { flex: 1, minHeight: TouchTarget, alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.three, paddingHorizontal: Spacing.two },
   word: { textAlign: 'center' },
   list: { overflow: 'hidden' },
-  gap: { marginTop: Spacing.four },
   under: { marginTop: Spacing.two },
 });

@@ -8,7 +8,7 @@ import { useTheme } from '@/hooks/use-theme';
 
 import { Button } from './button';
 import { Sheet } from './sheet';
-import { SECTION, type SectionGap, headerMarginTop, rowTouchHeight } from './section-header-style';
+import { SECTION, type SectionGap, headerMarginBottom, headerMarginTop, headerSlop, rowTouchHeight } from './section-header-style';
 import { useToneInk } from './tone-surface';
 
 /**
@@ -16,7 +16,18 @@ import { useToneInk } from './tone-surface';
  * screen itself never carries a paragraph. With `label="(i)"` it is an
  * (i) icon instead of the word, for the end of a list row.
  */
-export function Why({ title, text, label = 'Why?' }: { title: string; text: string; label?: string }) {
+export function Why({
+  title,
+  text,
+  label = 'Why?',
+  slop,
+}: {
+  title: string;
+  text: string;
+  label?: string;
+  /** The word's touch slop; a heading passes one that keeps clear of the tile below. */
+  slop?: { top: number; bottom: number; left: number; right: number };
+}) {
   const theme = useTheme();
   const plate = useToneInk();
   const [open, setOpen] = useState(false);
@@ -28,7 +39,7 @@ export function Why({ title, text, label = 'Why?' }: { title: string; text: stri
         accessibilityRole="button"
         accessibilityLabel={icon ? `More about ${title}` : `${label} ${title}`}
         // The word keeps a 48 dp target through its slop, so it does not make a title row taller.
-        hitSlop={icon ? 8 : WHY_SLOP}
+        hitSlop={icon ? 8 : (slop ?? WHY_SLOP)}
         style={icon ? styles.info : styles.why}>
         {icon ? (
           <Ionicons name="information-circle-outline" size={24} color={plate ? plate.ink : theme.onSurfaceVariant} />
@@ -51,7 +62,8 @@ export function Why({ title, text, label = 'Why?' }: { title: string; text: stri
  * The heading above a group (spec 5.10): 15/22 medium on the left, an optional
  * 13 muted caption on the right, at most one action (a text button) or a
  * "Why?". `gap` is the margin above: 24 for a section (the first on a screen),
- * 16 for a sub-heading. A row with a button is 48 dp high so it can be tapped.
+ * 16 for a sub-heading; 8 below it to its own block. A row with a button is 48 dp
+ * high so it can be tapped.
  */
 export function SectionHeader({
   title,
@@ -74,7 +86,7 @@ export function SectionHeader({
     <View
       style={[
         styles.row,
-        { marginTop: headerMarginTop(gap, interactive), minHeight: rowTouchHeight(interactive) },
+        { marginTop: headerMarginTop(gap, interactive), marginBottom: headerMarginBottom(interactive), minHeight: rowTouchHeight(interactive) },
         interactive ? styles.rowCentered : styles.rowBaseline,
       ]}>
       <ThemedText type="labelLarge" accessibilityRole="header" maxFontSizeMultiplier={1.3} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.title, caption || why || action ? styles.titleBeside : null]}>
@@ -87,9 +99,9 @@ export function SectionHeader({
               {caption}
             </ThemedText>
           ) : null}
-          {why ? <Why title={title} text={why} /> : null}
+          {why ? <Why title={title} text={why} slop={HEADER_SLOP} /> : null}
           {action ? (
-            <Pressable onPress={action.onPress} accessibilityRole="button" hitSlop={WHY_SLOP} style={styles.why}>
+            <Pressable onPress={action.onPress} accessibilityRole="button" hitSlop={HEADER_SLOP} style={styles.why}>
               <ThemedText type="labelLarge" maxFontSizeMultiplier={1.3} style={styles.underline}>
                 {action.label}
               </ThemedText>
@@ -106,6 +118,9 @@ export function SectionHeader({
  * padding, so it lines up with the title and the tile edge; the slop widens the target.
  */
 const WHY_SLOP = { top: 14, bottom: 14, left: 16, right: 16 };
+
+/** A heading's button: 48 dp, reaching up into the gap above rather than over the tile 8 below. */
+const HEADER_SLOP = headerSlop();
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', gap: SECTION.gap },

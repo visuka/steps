@@ -174,5 +174,5 @@ const styles = StyleSheet.create({
   // Under the report, on its text's left edge.
   actionsFlat: { flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', flexWrap: 'wrap', gap: Spacing.four },
   note: { marginTop: Spacing.two },
-  report: { paddingHorizontal: Spacing.three, paddingTop: Spacing.three, paddingBottom: Spacing.two, gap: Spacing.one },
+  report: { paddingHorizontal: Spacing.three, paddingTop: Spacing.three, paddingBottom: Spacing.three, gap: Spacing.one },
 });

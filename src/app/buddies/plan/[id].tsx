@@ -117,12 +117,11 @@ export default function PlanScreen() {
           </ThemedText>
         </View>
 
-        <View style={styles.gap}>
-          <AnswerCounts cells={cells} />
-        </View>
+        {/* Screen's 16 dp block gap is the only space between the blocks below. */}
+        <AnswerCounts cells={cells} />
 
         {!mine && on ? (
-          <View style={styles.gap}>
+          <View>
             <View style={styles.answers}>
               <Button
                 label={ANSWER_WORD.going}
@@ -161,7 +160,7 @@ export default function PlanScreen() {
         ) : null}
 
         {plan.club || (!mine && plan.organiser.relation === 'buddy') ? (
-          <Surface level={1} style={[styles.list, styles.gap]}>
+          <Surface level={1} style={styles.list}>
             {club ? (
               <ListRow
                 title="Club chat"
@@ -186,7 +185,7 @@ export default function PlanScreen() {
           </>
         ) : null}
         {mine && plan.club && !groups.going.length && !groups.not_going.length ? (
-          <ThemedText type="bodySmall" themeColor="onSurfaceVariant" style={styles.gap} maxFontSizeMultiplier={1.3}>
+          <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
             Everyone in the club can see this walk. People who answer are listed here.
           </ThemedText>
         ) : null}
@@ -222,7 +221,6 @@ export default function PlanScreen() {
 
 const styles = StyleSheet.create({
   start: { alignSelf: 'flex-start' },
-  gap: { marginTop: Spacing.four },
   gapSmall: { marginTop: Spacing.two },
   gapTiny: { marginTop: Spacing.one },
   // One under the other: both labels fit at 360 dp and the largest font.

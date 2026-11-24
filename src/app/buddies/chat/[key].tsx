@@ -10,7 +10,7 @@ import { useSnack } from '@/components/buddies/parts';
 import { PremiumGate } from '@/components/premium-gate';
 import { ThemedText } from '@/components/themed-text';
 import { BackButton, IconButton, ListRow, Sheet, Snackbar } from '@/components/ui';
-import { SCREEN } from '@/components/ui/screen-style';
+import { SCREEN, topPadding } from '@/components/ui/screen-style';
 import { attempt, useSocialApi } from '@/buddies/use-buddies';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -51,7 +51,7 @@ export default function ChatScreen() {
     <PremiumGate feature={SCREEN_FEATURES.buddies} title={name} onBack={back}>
       <KeyboardAvoidingView behavior="padding" style={[styles.fill, { backgroundColor: theme.background }]}>
         <PlainGround />
-        <View style={[styles.top, { paddingTop: insets.top + Spacing.one }]}>
+        <View style={[styles.top, { paddingTop: topPadding(insets.top, true) }]}>
           {/* The same back chevron and title as every pushed screen (Screen, the club page). */}
           <BackButton onPress={back} />
           <ThemedText
@@ -106,7 +106,7 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   grow: { flex: 1 },
-  // The chevron sits where Screen puts it (24 margin, -4), the title 8 after it.
+  // The chevron sits where Screen puts it (24 margin, -4, the pushed screen's 16 under the status bar), the title 8 after it.
   top: {
     flexDirection: 'row',
     alignItems: 'center',

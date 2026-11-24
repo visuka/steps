@@ -161,7 +161,9 @@ function Form({
           </Surface>
         </Field>
       ) : (
-        <Caption text="No target: members tap Mark done." />
+        <Field label="Target">
+          <Caption text="No target: members tap Mark done." />
+        </Field>
       )}
 
       <Field label="Counted">

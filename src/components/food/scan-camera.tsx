@@ -1,7 +1,7 @@
 import { type BarcodeScanningResult, CameraView, useCameraPermissions } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
-import { type ReactNode, useEffect, useState } from 'react';
-import { ActivityIndicator, AppState, Linking, StyleSheet, View } from 'react-native';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Animated, AppState, Linking, StyleSheet, View } from 'react-native';
 
 import { TextField } from '@/components/controls';
 import { ThemedText } from '@/components/themed-text';
@@ -11,9 +11,54 @@ import { useTheme } from '@/hooks/use-theme';
 import { createScanGate, manualHint, manualState } from '@/nutrition/barcode';
 
 /** Food packs: EAN-13, EAN-8, UPC-A, UPC-E, and QR codes (GS1 Digital Link). */
-/** The grey cover lifts by itself after this long, if the camera never reports it is ready. */
-const COVER_MAX_MS = 3000;
+/**
+ * The grey cover lifts by itself after this long, if the camera never reports
+ * it is ready. Long enough that it cannot lift before a slow camera's first frame.
+ */
+const COVER_MAX_MS = 8000;
+/** onCameraReady comes before the first picture is drawn: the cover waits this long more. */
+const COVER_AFTER_READY_MS = 600;
+/** The cover fades out rather than snapping off. */
+const COVER_FADE_MS = 200;
 const BARCODE_TYPES = ['ean13', 'ean8', 'upc_a', 'upc_e', 'qr'] as const;
+
+/**
+ * The soft grey cover over a camera finder until a picture is likely there
+ * (rule: no black solids). `onCameraReady` lifts it a moment after the camera
+ * says it is ready, `lift` at once (a code was read, so a picture is there),
+ * and a safety net after COVER_MAX_MS. Shared by the food and Buddies scanners.
+ */
+export function useCameraCover() {
+  const [ready, setReady] = useState(false);
+  const after = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    const t = setTimeout(() => setReady(true), COVER_MAX_MS);
+    return () => {
+      clearTimeout(t);
+      if (after.current) clearTimeout(after.current);
+    };
+  }, []);
+  const onCameraReady = () => {
+    if (after.current) return;
+    after.current = setTimeout(() => setReady(true), COVER_AFTER_READY_MS);
+  };
+  return { ready, lift: () => setReady(true), onCameraReady };
+}
+
+/** The grey cover itself: fades out over COVER_FADE_MS once `ready`, then is gone. */
+export function CameraCover({ ready }: { ready: boolean }) {
+  const theme = useTheme();
+  const [opacity] = useState(() => new Animated.Value(1));
+  const [gone, setGone] = useState(false);
+  useEffect(() => {
+    if (!ready) return;
+    const anim = Animated.timing(opacity, { toValue: 0, duration: COVER_FADE_MS, useNativeDriver: true });
+    anim.start(({ finished }) => finished && setGone(true));
+    return () => anim.stop();
+  }, [ready, opacity]);
+  if (gone) return null;
+  return <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: theme.surfaceContainerHigh, opacity }]} />;
+}
 
 /** Never fails a scan: some phones have no vibration motor. */
 export function buzz(kind: 'success' | 'warning') {
@@ -113,15 +158,10 @@ export function ScanCamera({
   const [locked, setLocked] = useState(false);
   const [torch, setTorch] = useState(false);
   // Until the first frame, a soft grey cover: no black block (rule: no black solids).
-  const [ready, setReady] = useState(false);
-  // A safety net for phones that never call onCameraReady: the cover lifts after 3 s anyway.
-  useEffect(() => {
-    const t = setTimeout(() => setReady(true), COVER_MAX_MS);
-    return () => clearTimeout(t);
-  }, []);
+  const cover = useCameraCover();
 
   const onScanned = ({ type, data }: BarcodeScanningResult) => {
-    setReady(true);
+    cover.lift();
     const r = gate.feed(type, data, Date.now());
     if (r.action === 'accept') {
       setLocked(true);
@@ -145,12 +185,12 @@ export function ScanCamera({
           enableTorch={torch}
           barcodeScannerSettings={{ barcodeTypes: [...BARCODE_TYPES] }}
           onBarcodeScanned={locked ? undefined : onScanned}
-          onCameraReady={() => setReady(true)}
+          onCameraReady={cover.onCameraReady}
         />
-        {ready ? null : <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: theme.surfaceContainerHigh }]} />}
+        <CameraCover ready={cover.ready} />
         <View pointerEvents="none" style={styles.frameWrap}>
           {/* White on the live picture; a soft grey on the grey cover, where white would vanish. */}
-          <View style={[styles.frame, { borderColor: ready ? theme.surface : theme.outline }]} />
+          <View style={[styles.frame, { borderColor: cover.ready ? theme.surface : theme.outline }]} />
         </View>
         <View style={styles.torch}>
           <IconButton

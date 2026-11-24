@@ -96,15 +96,18 @@ export function MyGoalRow({
             {status}
           </ThemedText>
           {goal.counted === 'tap' && done ? (
-            <Button
-              label="Undo"
-              variant="text"
-              compact
-              loading={busy}
-              disabled={busy}
-              onPress={() => onMark(false)}
-              accessibilityLabel={`Undo ${goal.title}`}
-            />
+            // The 48 dp target stays, but reaches into the row's padding instead of pushing the line apart.
+            <View style={styles.undo}>
+              <Button
+                label="Undo"
+                variant="text"
+                compact
+                loading={busy}
+                disabled={busy}
+                onPress={() => onMark(false)}
+                accessibilityLabel={`Undo ${goal.title}`}
+              />
+            </View>
           ) : null}
         </View>
         {goal.counted === 'tap' && !done ? (
@@ -207,6 +210,8 @@ const styles = StyleSheet.create({
   grow: { flex: 1, minWidth: 0 },
   statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.two, marginTop: Spacing.one },
   statusText: { flexShrink: 1 },
+  // A 48 dp box around a 24 dp line: 12 above and below sit in the gaps around the line.
+  undo: { marginVertical: -(TouchTarget - 24) / 2 },
   action: { marginTop: Spacing.two, alignItems: 'flex-start' },
   list: { overflow: 'hidden' },
   title: { marginTop: Spacing.three, marginBottom: Spacing.two },

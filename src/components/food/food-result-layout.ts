@@ -319,7 +319,7 @@ const HERO_TYPE = { numeral: 48, unit: 15, macroValue: 18, macroLabel: 13 } as c
 const MACRO_LABELS = ['Protein', 'Carbs', 'Fat'] as const;
 
 export interface HeroFit {
-  /** The donut sits below the text because the number alone is wider than the space beside the donut. */
+  /** The donut sits below the text because the number, or the row of macros, is wider than the space beside the donut. */
   stacked: boolean;
   /** Width the kcal row and the macro grid have. */
   availWidth: number;
@@ -335,7 +335,7 @@ export interface HeroFit {
  * Hero card arithmetic. `width` is the card's outer width (screen minus the two
  * 24 margins); the card pads 24 each side, the donut is 88 with an 8 gap. The
  * kcal row and the macro cells wrap, and the donut drops below when the number
- * alone will not fit beside it. Text is never shrunk below its spec size.
+ * or the one row of macros will not fit beside it. Text is never shrunk below its spec size.
  */
 export function heroFits(width: number, fontScale: number, kcalText: string, macroTexts: readonly string[]): HeroFit {
   const inner = Math.max(0, width - 2 * RESULT.heroPaddingH);
@@ -345,15 +345,18 @@ export function heroFits(width: number, fontScale: number, kcalText: string, mac
   const numeralW = glyph(kcalText, HERO_TYPE.numeral);
   const unitW = glyph('kcal', HERO_TYPE.unit);
   const beside = Math.max(0, inner - sizes.foodHero.donut - gap);
-  const stacked = numeralW > beside;
-  const availWidth = stacked ? inner : beside;
-  const kcalLines = numeralW + gap + unitW <= availWidth ? 1 : 2;
-
   const cells = macroTexts.map((t, i) => {
     const label = glyph(MACRO_LABELS[i] ?? 'Protein', HERO_TYPE.macroLabel);
     const value = RESULT.macroDot + RESULT.macroDotGap + glyph(t, HERO_TYPE.macroValue);
     return Math.max(RESULT.macroColumns[i] ?? RESULT.macroColumns[0], value, label);
   });
+  // The donut also drops below when Protein, Carbs and Fat cannot share one row beside it,
+  // so no macro is left alone on a second row (rule: no lone wraps).
+  const macrosW = cells.reduce((a, c) => a + c, 0);
+  const stacked = numeralW > beside || macrosW > beside;
+  const availWidth = stacked ? inner : beside;
+  const kcalLines = numeralW + gap + unitW <= availWidth ? 1 : 2;
+
   let macroLines = cells.length ? 1 : 0;
   let used = 0;
   for (const c of cells) {

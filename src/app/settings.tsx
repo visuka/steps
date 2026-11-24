@@ -230,6 +230,7 @@ export default function SettingsScreen() {
         <NumberField
           label="Birth year (optional)"
           value={profile.birthYear}
+          unitSlot
           placeholder="—"
           commitOnBlur
           onCommit={(v) => updateProfile({ birthYear: v && v > 1900 && v <= new Date().getFullYear() ? v : null })}

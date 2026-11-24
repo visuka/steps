@@ -12,6 +12,8 @@ export const SECTION = {
   gapSub: space.s16,
   /** Gap between the left text and the caption or action. */
   gap: space.s8,
+  /** Distance from the heading text down to its own block, so the heading reads as that block's title. */
+  gapBelow: space.s8,
   /** Heading text line height (15/22). */
   lineHeight: type.body.lineHeight,
   minTouch: sizes.nav.minTouch,
@@ -38,6 +40,33 @@ export function headerMarginTop(gap: SectionGap, interactive: boolean): number {
   const base = gap === 'sub' ? SECTION.gapSub : SECTION.gapSection;
   const extra = interactive ? (SECTION.minTouch - SECTION.lineHeight) / 2 : 0;
   return base - SCREEN.blockGap - extra;
+}
+
+/**
+ * Margin below the row, again inside Screen's block column (16 below every
+ * block): the spec 8 below the heading text minus that gap, so the heading
+ * sits with its own block and keeps 24 / 16 above. A row with a button also
+ * takes back the extra below its centred line (13); the heading's tap
+ * target then reaches up, not down (HEADER_SLOP), so it never covers the tile.
+ */
+export function headerMarginBottom(interactive: boolean): number {
+  const extra = interactive ? (SECTION.minTouch - SECTION.lineHeight) / 2 : 0;
+  return SECTION.gapBelow - SCREEN.blockGap - extra;
+}
+
+/** Visual distance from the heading text down to the next block inside Screen's gap column. */
+export function headingTextGapBelow(interactive: boolean): number {
+  const extra = interactive ? (SECTION.minTouch - SECTION.lineHeight) / 2 : 0;
+  return extra + headerMarginBottom(interactive) + SCREEN.blockGap;
+}
+
+/**
+ * Touch slop of a heading's "Why?" or button: 48 dp in all, but only as far
+ * down as the 8 dp gap to the block below, the rest above the word.
+ */
+export function headerSlop(): { top: number; bottom: number; left: number; right: number } {
+  const bottom = SECTION.gapBelow;
+  return { top: SECTION.minTouch - SECTION.lineHeight - bottom, bottom, left: 16, right: 16 };
 }
 
 /** Visual distance from the previous block to the heading text inside Screen's gap column. */

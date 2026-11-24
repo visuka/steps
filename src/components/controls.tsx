@@ -124,10 +124,13 @@ export function NumberField({
   decimals = 0,
   placeholder,
   commitOnBlur,
+  unitSlot,
 }: {
   label: string;
   value: number | null;
   unit?: string;
+  /** Keep the unit's room with no unit, so this field's input lines up with unit fields in the same form. */
+  unitSlot?: boolean;
   onCommit: (v: number | null) => void;
   decimals?: number;
   placeholder?: string;
@@ -174,6 +177,8 @@ export function NumberField({
           <ThemedText themeColor="onSurfaceVariant" style={styles.unit} maxFontSizeMultiplier={1.3}>
             {unit}
           </ThemedText>
+        ) : unitSlot ? (
+          <View style={styles.unit} />
         ) : null}
       </View>
     </View>
@@ -244,7 +249,7 @@ export function TextField({
   if (!showLabel) return input;
   return (
     <View>
-      <ThemedText type="labelMedium" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3} style={styles.shownLabel}>
+      <ThemedText type="titleSmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3} style={styles.shownLabel}>
         {label}
       </ThemedText>
       {input}
@@ -357,11 +362,12 @@ const styles = StyleSheet.create({
   round: { width: TouchTarget, height: TouchTarget, borderRadius: TouchTarget / 2, alignItems: 'center', justifyContent: 'center' },
   field: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.two, minHeight: TouchTarget },
   fieldLabel: { flexShrink: 1 },
-  fieldInput: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
+  fieldInput: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: Spacing.two },
   // A set width: the web preview's inputs are 20 characters wide by default, which pushed the unit off a phone screen.
   numberInput: { width: 112 },
   // Fits "mmHg" at text size 1.3, so "bpm" leaves its input in the same column.
-  unit: { minWidth: 56 },
+  // Right-aligned in its slot, so the unit ends on the column edge with the full-width fields below.
+  unit: { minWidth: 56, textAlign: 'right' },
   nameInput: { flex: 1, minWidth: 0 },
   input: {
     minWidth: 88,
@@ -371,7 +377,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
   },
   textField: { textAlign: 'left', minWidth: 0 },
-  // A field's own label above it, on the typed text's edge.
-  shownLabel: { marginBottom: Spacing.one, marginLeft: Spacing.three },
+  // A field's own label above it, on the column edge in the form headings' style ("Day", "Name").
+  shownLabel: { marginBottom: Spacing.two },
   multiline: { minHeight: 72, textAlignVertical: 'top', borderRadius: 16 },
 });
