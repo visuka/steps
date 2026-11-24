@@ -54,7 +54,7 @@ export default function ClubSearch() {
               ))}
             </Surface>
             {mine.data.some((c) => c.goals && c.myState === 'member') ? (
-              <Button label="My goals" variant="secondary" icon="checkbox-outline" onPress={() => router.push('/buddies/goals' as never)} style={styles.gap} />
+              <Button label="My goals" variant="secondary" raised icon="checkbox-outline" onPress={() => router.push('/buddies/goals' as never)} style={styles.gap} />
             ) : null}
           </>
         ) : null}

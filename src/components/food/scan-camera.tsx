@@ -11,6 +11,8 @@ import { useTheme } from '@/hooks/use-theme';
 import { createScanGate, manualHint, manualState } from '@/nutrition/barcode';
 
 /** Food packs: EAN-13, EAN-8, UPC-A, UPC-E, and QR codes (GS1 Digital Link). */
+/** The grey cover lifts by itself after this long, if the camera never reports it is ready. */
+const COVER_MAX_MS = 3000;
 const BARCODE_TYPES = ['ean13', 'ean8', 'upc_a', 'upc_e', 'qr'] as const;
 
 /** Never fails a scan: some phones have no vibration motor. */
@@ -112,8 +114,14 @@ export function ScanCamera({
   const [torch, setTorch] = useState(false);
   // Until the first frame, a soft grey cover: no black block (rule: no black solids).
   const [ready, setReady] = useState(false);
+  // A safety net for phones that never call onCameraReady: the cover lifts after 3 s anyway.
+  useEffect(() => {
+    const t = setTimeout(() => setReady(true), COVER_MAX_MS);
+    return () => clearTimeout(t);
+  }, []);
 
   const onScanned = ({ type, data }: BarcodeScanningResult) => {
+    setReady(true);
     const r = gate.feed(type, data, Date.now());
     if (r.action === 'accept') {
       setLocked(true);
@@ -141,7 +149,8 @@ export function ScanCamera({
         />
         {ready ? null : <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: theme.surfaceContainerHigh }]} />}
         <View pointerEvents="none" style={styles.frameWrap}>
-          <View style={[styles.frame, { borderColor: theme.surface }]} />
+          {/* White on the live picture; a soft grey on the grey cover, where white would vanish. */}
+          <View style={[styles.frame, { borderColor: ready ? theme.surface : theme.outline }]} />
         </View>
         <View style={styles.torch}>
           <IconButton

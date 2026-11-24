@@ -25,7 +25,7 @@ export const PILL_STYLE = {
 
 type PillTheme = Pick<
   ColorScheme,
-  'primary' | 'onPrimary' | 'primaryContainer' | 'error' | 'errorContainer'
+  'primary' | 'onPrimary' | 'primaryContainer' | 'error' | 'errorContainer' | 'onSurface'
 >;
 
 /** Fill and text colour of a variant, from theme roles only. */
@@ -39,6 +39,7 @@ export function pillColors(theme: PillTheme, variant: PillVariant, heroFill?: He
     );
     return { fill: h.pill, text: h.strong };
   }
-  if (variant === 'warning') return { fill: theme.errorContainer, text: theme.error };
-  return { fill: theme.primaryContainer, text: theme.primary };
+  // Words never take colour: the tint or warning sits on the pill's surface, the words stay ink.
+  if (variant === 'warning') return { fill: theme.errorContainer, text: theme.onSurface };
+  return { fill: theme.primaryContainer, text: theme.onSurface };
 }

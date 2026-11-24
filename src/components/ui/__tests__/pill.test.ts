@@ -11,6 +11,7 @@ const theme = {
   primaryContainer: '#E8EEFC',
   error: '#B42318',
   errorContainer: '#FDECEA',
+  onSurface: '#1C1C1E',
 };
 
 describe('pill style', () => {
@@ -26,8 +27,8 @@ describe('pill style', () => {
   });
 
   it('picks colours per variant from roles', () => {
-    expect(pillColors(theme, 'tint')).toEqual({ fill: theme.primaryContainer, text: theme.primary });
-    expect(pillColors(theme, 'warning')).toEqual({ fill: theme.errorContainer, text: theme.error });
+    expect(pillColors(theme, 'tint')).toEqual({ fill: theme.primaryContainer, text: theme.onSurface });
+    expect(pillColors(theme, 'warning')).toEqual({ fill: theme.errorContainer, text: theme.onSurface });
     const h = heroColors(theme);
     expect(pillColors(theme, 'hero')).toEqual({ fill: h.pill, text: h.strong });
     expect(pillColors(theme, 'hero').fill).toBe(CLEAN_SPEC.colors.heroPill);

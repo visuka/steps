@@ -26,7 +26,8 @@ export function Pill({ label, variant = 'tint' }: PillProps) {
         { backgroundColor: fill },
         warning && { paddingLeft: PILL_STYLE.warningPaddingLeft, gap: PILL_STYLE.warningGap },
       ]}>
-      {warning ? <SpecIcon name="warning" color={text} size={PILL_STYLE.iconSize} /> : null}
+      {/* Icons may carry colour: the warning mark keeps the warn colour, the words stay ink. */}
+      {warning ? <SpecIcon name="warning" color={theme.error} size={PILL_STYLE.iconSize} /> : null}
       <ThemedText
         type="bodySmall"
         numberOfLines={1}

@@ -883,10 +883,10 @@ const styles = StyleSheet.create({
   nutrientGroup: { marginTop: RESULT.nutrientGroupTop },
   // "Edit recipe" lines up with the ingredient names (x 76: 24 margin + circle 40 + gap 12).
   changeRow: { paddingLeft: RESULT.circle + RESULT.ingredientGap },
-  changeIngredients: { minHeight: RESULT.ingredientRowHeight, alignSelf: 'flex-start', marginLeft: -Spacing.three },
+  changeIngredients: { minHeight: RESULT.ingredientRowHeight, alignSelf: 'flex-start' },
   changeNote: { marginTop: -CLEAN_SPEC.space.s8 },
-  // The button's own side padding is pulled back so its text lines up with the text above it.
-  showAll: { minHeight: RESULT.showAllHeight, alignSelf: 'flex-start', marginLeft: -Spacing.three },
+  // An inline text button has no side padding, so its word is already on the column edge.
+  showAll: { minHeight: RESULT.showAllHeight, alignSelf: 'flex-start' },
   panel: { marginTop: Spacing.three, gap: Spacing.three },
   footerWrap: { width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },
   footer: {

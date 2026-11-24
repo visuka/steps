@@ -100,6 +100,11 @@ export interface ColorScheme {
    * covered part use the tone's `on` colour (toneColors().on).
    */
   laneTick: string;
+  /**
+   * A soft warn fill for a bar over a limit (Sodium): a pastel red that still shows on the
+   * lane, never the deep warn solid (rule: no saturated or deep solid fills).
+   */
+  warnSoft: string;
 
   // ── Older names, kept so every existing screen keeps working. New code uses the roles above. ──
   /** = onSurface */

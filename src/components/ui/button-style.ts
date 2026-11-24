@@ -15,10 +15,12 @@ export const BUTTON_STYLE = {
    */
   disabled: { bg: 'surfaceContainerHigh', fg: 'onSurfaceVariant', border: 'outlineVariant' },
   /**
-   * A compact text button is a link in the text column: no box of its own, so its
-   * word sits on the column's left edge; the hit slop keeps the target 48 dp.
+   * A compact text button is a link in the text column: no side padding, so its word
+   * sits on the column's left edge; its 48 dp box gives the height, the side slop the width.
    */
-  inline: { paddingVertical: CLEAN_SPEC.space.s4, hitSlop: { top: 12, bottom: 12, left: 12, right: 12 } },
+  inline: { hitSlop: { top: 0, bottom: 0, left: 12, right: 12 } },
+  /** A slim pill inside a tile (Turn on): the plain Btn's height, 48 dp to hit through the slop. */
+  slim: { minHeight: CLEAN_SPEC.sizes.chip.height, hitSlop: { top: 4, bottom: 4, left: 0, right: 0 } },
   paddingHorizontal: CLEAN_SPEC.space.s24,
   paddingVertical: CLEAN_SPEC.space.s8,
   iconSize: CLEAN_SPEC.icon.size,

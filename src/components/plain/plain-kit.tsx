@@ -10,6 +10,7 @@ import { type ReactNode, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, type TextStyle, View, type ViewStyle } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, RadialGradient, Rect, Stop } from 'react-native-svg';
 
+import { keepTogetherChildren } from '@/components/text-breaks';
 import { MaxTextScale } from '@/constants/theme';
 import { scaled } from '@/constants/ui-scale';
 
@@ -116,7 +117,7 @@ export function Words({
       textBreakStrategy="balanced"
       lineBreakStrategyIOS="standard"
       style={[{ fontFamily: family, fontSize: T(size), lineHeight: Math.max(T(size), S(line ?? Math.round(size * 1.2))), color, includeFontPadding: false }, style]}>
-      {children}
+      {keepTogetherChildren(children)}
     </Text>
   );
 }
@@ -144,20 +145,26 @@ export function Label({ icon, text, style }: { icon?: PlainIconName; text: strin
   );
 }
 
+/** Caps tracking steps: the shared 2, then only as much tighter as a long label needs. */
+const CAPS_TRACK = [2, 1.5, 1, 0.75] as const;
+
 /**
  * Outfit 500 capitals, 11.5 label grey, tracked 2: "STEPS TODAY", "06:00 – 15:45".
  * Where a long label would not fit on one line (a half tile at 360 dp), it keeps
- * its 11 dp size (rule: smallest text 11) and takes a tighter tracking instead, so
- * it stays inside the tile's padding rather than running into it.
+ * its 11 dp size (rule: smallest text 11) and tightens its tracking one step at a
+ * time (CAPS_TRACK), so it stays inside the tile's padding and a near fit stays
+ * close to its neighbours' tracking. The space after the last capital is not counted.
+ * A label too long even at the tightest step wraps whole rather than being cut.
  */
 export function Caps({ text, color = PLAIN.label }: { text: string; color?: string }) {
-  const [tight, setTight] = useState(false);
+  const [lvl, setLvl] = useState(0);
+  const last = CAPS_TRACK.length - 1;
+  const track = S(CAPS_TRACK[lvl]);
   return (
     <Text
-      numberOfLines={tight ? 1 : undefined}
-      onTextLayout={tight ? undefined : (e) => e.nativeEvent.lines.length > 1 && setTight(true)}
+      onTextLayout={lvl < last ? (e) => e.nativeEvent.lines.length > 1 && setLvl(lvl + 1) : undefined}
       maxFontSizeMultiplier={MaxTextScale}
-      style={{ fontFamily: PLAIN_FONT.caps, fontSize: T(11.5), lineHeight: Math.max(S(15), T(11.5) + 3), letterSpacing: S(tight ? 0.75 : 2), color, includeFontPadding: false, flexShrink: 1 }}>
+      style={{ fontFamily: PLAIN_FONT.caps, fontSize: T(11.5), lineHeight: Math.max(S(15), T(11.5) + 3), letterSpacing: track, marginRight: -track, color, includeFontPadding: false, flexShrink: 1 }}>
       {text.toUpperCase()}
     </Text>
   );

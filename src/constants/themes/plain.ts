@@ -46,6 +46,8 @@ export const PLAIN = {
   ripple: '#2C2C2E14',
   /** Warnings only: over a limit, a wrong walker ID, Delete. */
   warn: '#B3261E',
+  /** The same warning as a soft surface: a bar over its limit (pastel, shows on the lane). */
+  warnSoft: '#D98A7E',
 } as const;
 
 /**

@@ -12,7 +12,7 @@ import { LockedClubs } from '@/components/buddies/clubs/locked-clubs';
 import { PremiumCard } from '@/components/premium-gate';
 import { ThemedText } from '@/components/themed-text';
 import { BackButton, Button, Card, Dialog, IconButton, ListRow, Screen, Sheet, Snackbar } from '@/components/ui';
-import { SCREEN } from '@/components/ui/screen-style';
+import { SCREEN, subtitleIndent } from '@/components/ui/screen-style';
 import { can, clubLine, isStaff } from '@/buddies/clubs';
 import type { Club, Message } from '@/buddies/types';
 import { attempt, useSocialApi } from '@/buddies/use-buddies';
@@ -124,7 +124,8 @@ export default function ClubScreen() {
         ) : (
           <>
             <View style={styles.head}>
-              <ThemedText type="bodySmall" themeColor="onSurfaceVariant" numberOfLines={2} maxFontSizeMultiplier={1.3}>
+              {/* Indented under the title past the chevron, like every pushed screen's subtitle. */}
+              <ThemedText type="bodySmall" themeColor="onSurfaceVariant" numberOfLines={2} maxFontSizeMultiplier={1.3} style={styles.headLine}>
                 {headLine(club)}
               </ThemedText>
               <Segments parts={CLUB_TABS} value={tab} onChange={setTab} stretch spoken={(v) => `${CLUB_TABS.find((t) => t.value === v)?.text} tab`} />
@@ -291,6 +292,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.one,
   },
   info: { gap: Spacing.two },
+  headLine: { marginLeft: subtitleIndent() },
   head: { paddingHorizontal: Spacing.four, gap: Spacing.two, paddingBottom: Spacing.two, width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },
   pad: { paddingHorizontal: Spacing.four, paddingTop: Spacing.two, gap: Spacing.three, width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },
   start: { alignSelf: 'flex-start' },

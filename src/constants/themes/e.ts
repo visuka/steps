@@ -98,6 +98,7 @@ const light: SchemeRoles = {
   lane: '#D2D2D7',
   tick: '#FFFFFF',
   laneTick: PLAIN.muted,
+  warnSoft: PLAIN.warnSoft,
 };
 
 /**

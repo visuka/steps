@@ -14,9 +14,15 @@ describe('button style', () => {
   });
 
   it('keeps an inline text link at 48 dp to hit', () => {
-    const { paddingVertical, hitSlop } = BUTTON_STYLE.inline;
-    // About 20 dp of label plus its padding and slop.
-    expect(20 + 2 * paddingVertical + hitSlop.top + hitSlop.bottom).toBeGreaterThanOrEqual(CLEAN_SPEC.sizes.nav.minTouch);
+    // Its box is TouchTarget tall (button.tsx), so the slop only widens it.
+    const { hitSlop } = BUTTON_STYLE.inline;
+    expect(hitSlop.top + hitSlop.bottom).toBe(0);
+    expect(hitSlop.left).toBeGreaterThan(0);
+  });
+
+  it('keeps a slim pill at 48 dp to hit', () => {
+    const { minHeight, hitSlop } = BUTTON_STYLE.slim;
+    expect(minHeight + hitSlop.top + hitSlop.bottom).toBeGreaterThanOrEqual(CLEAN_SPEC.sizes.nav.minTouch);
   });
 
   it('ripples white on accent and ink elsewhere', () => {

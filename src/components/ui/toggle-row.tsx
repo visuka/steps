@@ -8,8 +8,9 @@ import { useTheme } from '@/hooks/use-theme';
 import type { IconName } from './button';
 
 /**
- * A Material 3 switch: a white knob on sage when on, and a white knob on the soft
- * grey lane when off (no dark knob: no deep solids).
+ * A Material 3 switch: a white knob on sage when on, and a mid-grey knob on the soft
+ * grey lane when off. The off knob (outline #7A7A80, about 4:1 on the white tile) is a
+ * mid grey, not a deep solid, and keeps the off switch readable as a control (3:1).
  */
 export function MaterialSwitch({
   value,
@@ -30,7 +31,7 @@ export function MaterialSwitch({
       disabled={disabled}
       accessibilityLabel={accessibilityLabel}
       trackColor={{ true: theme.primary, false: theme.lane }}
-      thumbColor={value ? theme.onPrimary : theme.surfaceBright}
+      thumbColor={value ? theme.onPrimary : theme.outline}
       ios_backgroundColor={theme.lane}
     />
   );

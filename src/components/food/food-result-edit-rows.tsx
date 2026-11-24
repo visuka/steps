@@ -222,7 +222,7 @@ function MethodChips({ rows, locked, onPick, onMore }: { rows: EditRow[]; locked
       <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={NumeralMaxScale}>
         {COOKED_QUESTION}
       </ThemedText>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.chipsRow}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" style={styles.chipsStrip} contentContainerStyle={styles.chipsRow}>
         {METHOD_CHIPS.map((c) => (
           <Chip
             key={c.method}
@@ -347,7 +347,10 @@ const styles = StyleSheet.create({
   field: { height: RESULT.fieldHeight, borderRadius: RESULT.fieldRadius, paddingHorizontal: CLEAN_SPEC.space.s12, paddingVertical: 0 },
   method: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: RESULT.oilLineGap, minWidth: RESULT.methodTouch, minHeight: RESULT.methodTouch },
   chipsBlock: { gap: RESULT.chipGap, marginBottom: RESULT.chipGap },
-  chipsRow: { gap: RESULT.chipGap, paddingRight: CLEAN_SPEC.space.sideMargin },
+  // The strip runs to the screen's edges, so a chip slides out of view instead of being cut at
+  // the margin; the first chip still starts on the column edge.
+  chipsStrip: { marginHorizontal: -CLEAN_SPEC.space.sideMargin },
+  chipsRow: { gap: RESULT.chipGap, paddingHorizontal: CLEAN_SPEC.space.sideMargin },
   choice: {
     minHeight: RESULT.methodTouch,
     justifyContent: 'center',

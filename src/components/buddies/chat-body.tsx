@@ -13,7 +13,7 @@ import { IconButton, ListRow, Sheet } from '@/components/ui';
 import { chatItems, countLabel, MESSAGE_MAX } from '@/buddies/chat-logic';
 import type { Message } from '@/buddies/types';
 import { useChat } from '@/buddies/use-buddies';
-import { MaxContentWidth, Spacing, Type } from '@/constants/theme';
+import { MaxContentWidth, MaxTextScale, Spacing, Type } from '@/constants/theme';
 import { PLAIN_FIELD } from '@/constants/themes/plain';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -113,11 +113,11 @@ export function ChatBody({
               value={text}
               onChangeText={setText}
               placeholder="Message"
-              placeholderTextColor={theme.onSurfaceVariant}
+              placeholderTextColor={theme.outline}
               cursorColor={theme.primary}
               multiline
               maxLength={MESSAGE_MAX}
-              maxFontSizeMultiplier={1.3}
+              maxFontSizeMultiplier={MaxTextScale}
               accessibilityLabel="Message"
               style={resolveFont([Type.bodyLarge, PLAIN_FIELD, styles.input, { color: theme.onSurface }])}
             />
@@ -187,7 +187,8 @@ function Bubble({
         onPress={m.state === 'failed' ? onRetry : undefined}
         accessibilityLabel={`${mine ? 'You' : (sender ?? 'Them')}: ${m.text}, ${timeOf(m.at)}`}
         style={[styles.bubble, { backgroundColor: mine ? theme.primary : theme.surfaceContainerHigh, opacity: m.state ? 0.55 : 1 }]}>
-        <ThemedText maxFontSizeMultiplier={1.3} style={{ color: mine ? theme.onPrimary : theme.onSurface }}>
+        {/* A bubble hugs its text: simple breaking fills each line, so the bubble has even sides. */}
+        <ThemedText maxFontSizeMultiplier={1.3} textBreakStrategy="simple" style={{ color: mine ? theme.onPrimary : theme.onSurface }}>
           {m.text}
         </ThemedText>
       </Pressable>

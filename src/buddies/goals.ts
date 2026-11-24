@@ -145,14 +145,17 @@ export function byWords(byTime: string, style: ClockStyle): string {
   return `by ${byTimeWords(byTime, style)}`.replace(/ /g, ' ');
 }
 
-/** The second line of a goal: "8,000 steps · Every day · by 7:00 am". */
+/**
+ * The second line of a goal: "8,000 steps · Every day · by 7:00 am". Each piece keeps
+ * no-break spaces, so a line only breaks after a "· ", never inside a phrase ("Every / day").
+ */
 export function goalLine(goal: Pick<Goal, 'kind' | 'target' | 'days' | 'byTime' | 'paused'>, style: ClockStyle): string {
   const parts: string[] = [];
   if (goal.target !== null) parts.push(targetWords(goal.kind, goal.target));
   parts.push(daysWord(goal.days));
   if (goal.byTime) parts.push(byWords(goal.byTime, style));
   if (goal.paused) parts.push('Paused');
-  return parts.join(' · ');
+  return parts.map((p) => p.replace(/ /g, ' ')).join(' · ');
 }
 
 export const countedWord = (c: GoalCounted) => (c === 'auto' ? 'Counted by the phone' : 'Marked by tapping');

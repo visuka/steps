@@ -405,7 +405,8 @@ function DayArrow({
 
 const styles = StyleSheet.create({
   dayRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  total: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', gap: CLEAN_SPEC.space.s8, marginTop: CLEAN_SPEC.space.s16 },
+  // 16 below the day row: Screen's block gap now spaces the day view's parts.
+  total: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', gap: CLEAN_SPEC.space.s8 },
   unit: { flexShrink: 1 },
   arrow: {
     width: CLEAN_SPEC.sizes.nav.minTouch,

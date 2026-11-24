@@ -4,10 +4,11 @@ import { ActivityIndicator, Pressable, StyleSheet, type StyleProp, View, type Vi
 
 import { ThemedText } from '@/components/themed-text';
 import { Controls, Spacing, TouchTarget } from '@/constants/theme';
+import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
 import { useTheme } from '@/hooks/use-theme';
 
 import { BUTTON_STYLE, rippleKind } from './button-style';
-import { pressedColor, pressedColorOnAccent } from './surface-style';
+import { CARD_LOOK, pressedColor, pressedColorOnAccent } from './surface-style';
 import { useToneInk } from './tone-surface';
 
 export type IconName = ComponentProps<typeof Ionicons>['name'];
@@ -26,6 +27,14 @@ export interface ButtonProps {
   loading?: boolean;
   /** Hug the label instead of filling the row. */
   compact?: boolean;
+  /**
+   * Secondary only: a white pill with the tile's soft lift, for a secondary button on the bare
+   * grey ground (Buddies), where the soft grey pill would fade into the ground. It has no edge,
+   * so it never reads as a text field. Elsewhere (the Food result's footer) it is the soft grey pill.
+   */
+  raised?: boolean;
+  /** A pill inside a tile at the plain Btn's height (40), still 48 dp to hit (BUTTON_STYLE.slim). */
+  slim?: boolean;
   accessibilityLabel?: string;
   accessibilityHint?: string;
   style?: StyleProp<ViewStyle>;
@@ -46,6 +55,8 @@ export function Button({
   disabled,
   loading,
   compact,
+  raised,
+  slim,
   accessibilityLabel,
   accessibilityHint,
   style,
@@ -63,13 +74,16 @@ export function Button({
       fg: danger ? theme.onSurface : theme.onSecondaryContainer,
       border: undefined,
     },
-    // A white pill with a hairline: it reads as a button on the grey ground and on a tile.
+    // The soft grey pill (Clean+ "Edit"), or a lifted white pill on the bare ground (`raised`).
     secondary: {
-      bg: danger ? theme.errorContainer : theme.surfaceBright,
+      bg: danger ? theme.errorContainer : raised ? theme.surfaceBright : theme.surfaceContainer,
       fg: theme.onSurface,
-      border: danger ? undefined : theme.surfaceContainerHigh,
+      border: undefined,
     },
-    outlined: { bg: 'transparent', fg: theme.onSurface, border: danger ? theme.error : theme.outline },
+    // A danger outline sits on the same soft warn surface as a danger pill, not inside a red ring.
+    outlined: danger
+      ? { bg: theme.errorContainer, fg: theme.onSurface, border: undefined }
+      : { bg: 'transparent', fg: theme.onSurface, border: theme.outline },
     text: { bg: danger ? theme.errorContainer : 'transparent', fg: theme.onSurface, border: undefined },
   }[variant] as { bg: string; fg: string; border: string | undefined };
   // On a tone plate (a filled tile) a tonal button is a ground-coloured pill with the plate's ink,
@@ -86,10 +100,14 @@ export function Button({
       border: variant === 'outlined' ? theme[d.border] : undefined,
     });
   }
-  // A compact text button is a link in the text column: no box, the word on the column's edge.
+  // A compact text button is a link in the text column: no side padding, the word on the column's edge.
   const inline = variant === 'text' && compact && !danger;
+  const lifted = raised && variant === 'secondary' && !danger && !plate && !off;
+  const slimPill = slim && variant !== 'text';
   const bg = look.bg;
   const fg = look.fg;
+  // Icons may carry colour: a danger action's icon keeps the warn colour while its words stay ink.
+  const iconColor = danger && !off && variant !== 'filled' ? theme.error : fg;
   const ripple = rippleKind(variant) === 'onAccent' ? pressedColorOnAccent(look.fg) : pressedColor(theme.onSurface);
 
   return (
@@ -101,12 +119,14 @@ export function Button({
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: !!off, busy: !!loading }}
       android_ripple={{ color: ripple, foreground: true }}
-      hitSlop={inline ? BUTTON_STYLE.inline.hitSlop : undefined}
+      hitSlop={inline ? BUTTON_STYLE.inline.hitSlop : slimPill ? BUTTON_STYLE.slim.hitSlop : undefined}
       style={[
         styles.button,
         variant === 'text' && (inline ? styles.inline : styles.textButton),
         compact && styles.compact,
+        slimPill && styles.slim,
         { backgroundColor: bg },
+        lifted && styles.lifted,
         look.border ? { borderWidth: 1, borderColor: look.border } : null,
         style,
       ]}>
@@ -114,11 +134,11 @@ export function Button({
         <ActivityIndicator size="small" color={fg} />
       ) : (
         <View style={styles.inner}>
-          {icon ? <Ionicons name={icon} size={BUTTON_STYLE.iconSize} color={fg} /> : null}
+          {icon ? <Ionicons name={icon} size={BUTTON_STYLE.iconSize} color={iconColor} /> : null}
           <ThemedText
             type="labelLarge"
             maxFontSizeMultiplier={1.3}
-            style={[styles.label, Controls.buttonLabel, { color: fg }, variant === 'text' && !danger && styles.underline, inline && styles.inlineLabel]}
+            style={[styles.label, Controls.buttonLabel, { color: fg }, inline && styles.underline, inline && styles.inlineLabel]}
             numberOfLines={2}>
             {label}
           </ThemedText>
@@ -148,9 +168,17 @@ export function IconButton({
   size?: number;
 }) {
   const theme = useTheme();
-  const bg = variant === 'filled' ? theme.primary : variant === 'tonal' ? theme.secondaryContainer : 'transparent';
-  const fg =
-    variant === 'filled' ? theme.onPrimary : variant === 'tonal' ? theme.onSecondaryContainer : (color ?? theme.onSurfaceVariant);
+  // Disabled: the soft grey pill and grey mark of a disabled Button, never a faded colour.
+  const d = BUTTON_STYLE.disabled;
+  const boxed = variant === 'filled' || variant === 'tonal';
+  const bg = disabled && boxed ? theme[d.bg] : variant === 'filled' ? theme.primary : variant === 'tonal' ? theme.secondaryContainer : 'transparent';
+  const fg = disabled
+    ? theme[d.fg]
+    : variant === 'filled'
+      ? theme.onPrimary
+      : variant === 'tonal'
+        ? theme.onSecondaryContainer
+        : (color ?? theme.onSurfaceVariant);
   return (
     <Pressable
       onPress={onPress}
@@ -158,7 +186,7 @@ export function IconButton({
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled: !!disabled }}
-      style={({ pressed }) => [styles.iconTarget, { opacity: disabled ? 0.38 : pressed ? 0.7 : 1 }]}>
+      style={({ pressed }) => [styles.iconTarget, { opacity: pressed ? 0.7 : 1 }]}>
       <View style={[styles.iconMark, { backgroundColor: bg }]}>
         <Ionicons name={icon} size={size} color={fg} />
       </View>
@@ -176,12 +204,15 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   textButton: { paddingHorizontal: Spacing.three },
-  // No box of its own: the 48 dp target comes from the hit slop (BUTTON_STYLE.inline).
-  inline: { minHeight: 0, paddingHorizontal: 0, paddingVertical: BUTTON_STYLE.inline.paddingVertical, overflow: 'visible' },
+  // No side padding, so the word sits on the column edge; still a 48 dp box, so it centres in a
+  // row like a pill (Dismiss beside Delete message, Invite beside a name).
+  inline: { minHeight: TouchTarget, paddingHorizontal: 0, paddingVertical: 0, justifyContent: 'center', overflow: 'visible' },
   inlineLabel: { textAlign: 'left' },
-  // A charcoal text button is marked as an action by its weight and an underline, not by colour.
+  // An inline charcoal link is marked as an action by its weight and an underline, not by colour.
   underline: { textDecorationLine: 'underline' },
   compact: { alignSelf: 'flex-start' },
+  slim: { minHeight: BUTTON_STYLE.slim.minHeight, paddingVertical: CLEAN_SPEC.space.s4 },
+  lifted: { boxShadow: CARD_LOOK.boxShadow },
   inner: { flexDirection: 'row', alignItems: 'center', gap: BUTTON_STYLE.iconGap },
   label: { textAlign: 'center', flexShrink: 1 },
   iconTarget: { width: TouchTarget, height: TouchTarget, alignItems: 'center', justifyContent: 'center' },

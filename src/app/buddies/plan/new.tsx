@@ -184,11 +184,11 @@ function Form({
       </View>
 
       <View style={styles.section}>
-        <TextField label="Where you'll meet" value={form.place} onChangeText={set('place')} placeholder="e.g. KBR Park main gate" maxLength={PLACE_MAX} />
+        <TextField label="Where you'll meet" showLabel value={form.place} onChangeText={set('place')} placeholder="e.g. KBR Park main gate" maxLength={PLACE_MAX} />
         <Caption text="Type a place name. No map pin is shared." />
       </View>
       <View style={styles.section}>
-        <TextField label="Note (optional)" value={form.note} onChangeText={set('note')} placeholder="Pace, how long, what to bring" maxLength={NOTE_MAX} multiline />
+        <TextField label="Note (optional)" showLabel value={form.note} onChangeText={set('note')} placeholder="Pace, how long, what to bring" maxLength={NOTE_MAX} multiline />
       </View>
 
       <View style={styles.section}>

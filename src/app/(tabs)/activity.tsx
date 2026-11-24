@@ -160,22 +160,21 @@ function Workouts() {
         </Surface>
       ) : (
         <View style={styles.starts}>
+          {/* Each start is the shared frosted tile, like the Places row below it. */}
           {STARTS.map((s) => (
-            <Pressable
-              key={s.kind}
-              onPress={() => start(s.kind)}
-              accessibilityRole="button"
-              accessibilityLabel={`Start: ${s.label}`}
-              android_ripple={{ color: theme.outlineVariant, foreground: true }}
-              style={({ pressed }) => [
-                styles.start,
-                { backgroundColor: pressed ? theme.surfaceContainerHighest : theme.surfaceContainerHigh },
-              ]}>
-              <Ionicons name={s.icon} size={32} color={theme.onSurface} />
-              <ThemedText type="labelLarge" style={styles.center} numberOfLines={2}>
-                {s.label}
-              </ThemedText>
-            </Pressable>
+            <Surface key={s.kind} level={1} style={styles.startTile}>
+              <Pressable
+                onPress={() => start(s.kind)}
+                accessibilityRole="button"
+                accessibilityLabel={`Start: ${s.label}`}
+                android_ripple={{ color: theme.outlineVariant, foreground: true }}
+                style={styles.start}>
+                <Ionicons name={s.icon} size={32} color={theme.onSurface} />
+                <ThemedText type="labelLarge" style={styles.center} numberOfLines={2}>
+                  {s.label}
+                </ThemedText>
+              </Pressable>
+            </Surface>
           ))}
         </View>
       )}
@@ -256,16 +255,14 @@ function Workouts() {
 
 const styles = StyleSheet.create({
   starts: { flexDirection: 'row', gap: Spacing.two },
+  startTile: { flex: 1, minHeight: 96, overflow: 'hidden' },
   start: {
-    flex: 1,
-    minHeight: 96,
-    borderRadius: Radius.md,
+    flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.two,
     paddingHorizontal: Spacing.two,
     paddingVertical: Spacing.three,
-    overflow: 'hidden',
   },
   center: { textAlign: 'center' },
   clip: { overflow: 'hidden' },

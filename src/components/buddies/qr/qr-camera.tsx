@@ -5,7 +5,7 @@
  * what a code means (qr/club-code.ts scanOutcome).
  */
 import { type BarcodeScanningResult, CameraView } from 'expo-camera';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { buzz, CameraPermission } from '@/components/food/scan-camera';
@@ -16,6 +16,8 @@ import { useTheme } from '@/hooks/use-theme';
 
 /** The same code read again within this long is the same scan. */
 const REPEAT_MS = 2500;
+/** The grey cover lifts by itself after this long, if the camera never reports it is ready. */
+const COVER_MAX_MS = 3000;
 
 export function QrCamera({
   paused,
@@ -33,8 +35,14 @@ export function QrCamera({
   const last = useRef<{ text: string; at: number } | null>(null);
   // Until the first frame, a soft grey cover: no black block (rule: no black solids).
   const [ready, setReady] = useState(false);
+  // A safety net for phones that never call onCameraReady: the cover lifts after 3 s anyway.
+  useEffect(() => {
+    const t = setTimeout(() => setReady(true), COVER_MAX_MS);
+    return () => clearTimeout(t);
+  }, []);
 
   const onScanned = ({ data }: BarcodeScanningResult) => {
+    setReady(true);
     const now = Date.now();
     const prev = last.current;
     if (prev && prev.text === data && now - prev.at < REPEAT_MS) return;
@@ -60,7 +68,8 @@ export function QrCamera({
         />
         {ready ? null : <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: theme.surfaceContainerHigh }]} />}
         <View pointerEvents="none" style={styles.frameWrap}>
-          <View style={[styles.frame, { borderColor: theme.surface }]} />
+          {/* White on the live picture; a soft grey on the grey cover, where white would vanish. */}
+          <View style={[styles.frame, { borderColor: ready ? theme.surface : theme.outline }]} />
         </View>
       </View>
       <ThemedText type="bodyMedium" themeColor="onSurfaceVariant">

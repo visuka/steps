@@ -6,6 +6,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { StyleSheet, View } from 'react-native';
 
+import { Label } from '@/components/plain/plain-kit';
 import { ThemedText } from '@/components/themed-text';
 import { Button, ListRow, Surface } from '@/components/ui';
 import { clubLine, ROLE_WORD, stateWord } from '@/buddies/clubs';
@@ -105,7 +106,8 @@ export function GoalsConsent({
 }
 
 /**
- * What goal tracking shares (or never shares): a grey heading over a tile of
+ * What goal tracking shares (or never shares): a tile label (icon and tracked
+ * capitals, like every Buddies section) over a tile of
  * items, each with its own mark (a tick, or a cross for "never"), so a wrapped
  * item never reads as two. Shared by the consent and the tracking switch.
  */
@@ -113,9 +115,7 @@ export function ShareList({ title, rows, never }: { title: string; rows: string[
   const theme = useTheme();
   return (
     <View>
-      <ThemedText type="titleSmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3} style={styles.title}>
-        {title}
-      </ThemedText>
+      <Label icon={never ? 'lock' : 'check'} text={title} style={styles.title} />
       <Surface level={1} style={styles.box}>
         {rows.map((r) => (
           <View key={r} style={styles.row}>

@@ -35,15 +35,16 @@ export function NutrientRow({ name, value, share, warn, pill }: NutrientRowProps
   return (
     <View style={styles.row} accessible accessibilityLabel={nutrientLabel(name, value, share, warn)}>
       <View style={styles.name}>
-        <ThemedText type="bodyMedium" maxFontSizeMultiplier={1.3} style={[styles.nameText, { color: warn ? theme.error : theme.onSurface }]}>
+        <ThemedText type="bodyMedium" maxFontSizeMultiplier={1.3} style={[styles.nameText, { color: theme.onSurface }]}>
           {name}
         </ThemedText>
         {pill ? <Pill label="High" variant="warning" /> : null}
       </View>
       <View style={styles.bar}>
-        <BarTrack share={share} color={warn ? theme.error : undefined} />
+        {/* The warning lives on surfaces and the pill's icon only; the words stay ink and grey. */}
+        <BarTrack share={share} color={warn ? theme.warnSoft : undefined} />
       </View>
-      <ThemedText type="bodyMedium" maxFontSizeMultiplier={1.3} style={[styles.value, { color: warn ? theme.error : theme.onSurfaceVariant }]}>
+      <ThemedText type="bodyMedium" maxFontSizeMultiplier={1.3} style={[styles.value, { color: theme.onSurfaceVariant }]}>
         {value}
       </ThemedText>
     </View>

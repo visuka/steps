@@ -106,7 +106,8 @@ export function Screen({
             ) : null}
           </Rise>
           {Children.toArray(children).map((child, i) => (
-            <Rise key={keyOf(child, i)} delay={Math.min(i + 1, 6) * 50}>
+            // A block that is a fragment (HealthLog, Workouts, Patterns) spaces its parts like top-level blocks.
+            <Rise key={keyOf(child, i)} delay={Math.min(i + 1, 6) * 50} style={styles.block}>
               {child}
             </Rise>
           ))}
@@ -157,6 +158,7 @@ const styles = StyleSheet.create({
   statusInset: { position: 'absolute', top: 0, left: 0, right: 0, overflow: 'hidden' },
   content: { paddingHorizontal: SCREEN.sideMargin, alignItems: 'center' },
   inner: { width: '100%', maxWidth: MaxContentWidth, gap: SCREEN.blockGap },
+  block: { gap: SCREEN.blockGap },
   // Heights from the spec are minimums: the row grows with large text.
   header: { minHeight: SCREEN.topBarHeight, justifyContent: 'center' },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: SCREEN.back.titleGap, minHeight: SCREEN.topBarHeight },

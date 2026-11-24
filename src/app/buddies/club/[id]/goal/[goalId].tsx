@@ -96,12 +96,14 @@ export default function GoalScreen() {
         <Button
           label="Edit"
           variant="secondary"
+          raised
           onPress={() => router.push({ pathname: '/buddies/club/[id]/goal/new', params: { id, goal: goalId } } as never)}
           disabled={r.busy}
         />
         <Button
           label={report.goal.paused ? 'Resume' : 'Pause'}
           variant="secondary"
+          raised
           onPress={async () => show((await r.setPaused(!report.goal.paused)) ?? (report.goal.paused ? 'Goal resumed.' : 'Goal paused.'))}
           disabled={r.busy}
         />

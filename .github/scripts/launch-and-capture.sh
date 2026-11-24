@@ -150,6 +150,12 @@ more() {
   done
 }
 for screen in you foodtab buddies settings insights stepcheck places record scan find requests signin welcome; do
+  if [ "$screen" = scan ]; then
+    # The finder shows a grey cover until the camera is ready: a second shot 5 s later
+    # shows whether it lifts (the screen does not scroll, so more() would stop at once).
+    capture e scan smoke/all-scan.png && { sleep 5; adb exec-out screencap -p > smoke/all-scan-2.png; }
+    continue
+  fi
   capture e "$screen" "smoke/all-$screen.png" && more "smoke/all-$screen"
 done
 for section in workouts bp weight; do

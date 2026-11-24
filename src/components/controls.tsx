@@ -169,7 +169,12 @@ export function NumberField({
           style={inputStyle(theme, [styles.input, styles.numberInput])}
           accessibilityLabel={label}
         />
-        {unit ? <ThemedText themeColor="onSurfaceVariant">{unit}</ThemedText> : null}
+        {/* A set slot for the unit, so every field in a form shares one input column (bpm under mmHg). */}
+        {unit ? (
+          <ThemedText themeColor="onSurfaceVariant" style={styles.unit} maxFontSizeMultiplier={1.3}>
+            {unit}
+          </ThemedText>
+        ) : null}
       </View>
     </View>
   );
@@ -355,6 +360,8 @@ const styles = StyleSheet.create({
   fieldInput: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   // A set width: the web preview's inputs are 20 characters wide by default, which pushed the unit off a phone screen.
   numberInput: { width: 112 },
+  // Fits "mmHg" at text size 1.3, so "bpm" leaves its input in the same column.
+  unit: { minWidth: 56 },
   nameInput: { flex: 1, minWidth: 0 },
   input: {
     minWidth: 88,

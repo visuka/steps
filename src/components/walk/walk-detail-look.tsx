@@ -423,7 +423,8 @@ function PartListRow({
         accessibilityState={{ disabled: busy }}
         android_ripple={{ color: pressedColor(theme.onSurface), foreground: true }}
         style={[styles.keep, busy && styles.disabled]}>
-        <ThemedText type="labelLarge" themeColor="primary" {...SCALE}>
+        {/* A text action like Why? and How?: charcoal and underlined, never coloured. */}
+        <ThemedText type="labelLarge" themeColor="onSurface" style={styles.keepLabel} {...SCALE}>
           {part.toggle.label}
         </ThemedText>
       </Pressable>
@@ -533,6 +534,7 @@ const styles = StyleSheet.create({
   partText: { flex: 1, flexDirection: 'row', alignItems: 'center', alignSelf: 'stretch', minHeight: WALK_STYLE.part.height },
   partInfo: { flex: 1, alignSelf: 'stretch', justifyContent: 'center' },
   keep: { minHeight: WALK_STYLE.keepMinHeight, paddingLeft: WALK_STYLE.part.gap, justifyContent: 'center' },
+  keepLabel: { textDecorationLine: 'underline' },
   disabled: { opacity: 0.4 },
   sourceLine: { flexDirection: 'row', alignItems: 'center', gap: WALK_STYLE.infoItemGap, minHeight: 32, marginTop: WALK_STYLE.infoItemGap },
   deleteRow: { alignItems: 'flex-start', marginTop: WALK_STYLE.infoItemGap },

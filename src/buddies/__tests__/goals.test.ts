@@ -81,7 +81,7 @@ describe('words', () => {
   });
 
   it('puts a goal on one line', () => {
-    expect(goalLine(goal(), h12)).toBe('30 min · Every day · by 7:00 am');
+    expect(goalLine(goal(), h12)).toBe('30 min · Every day · by 7:00 am');
     expect(goalLine(goal({ kind: 'medicine', target: null, byTime: null, days: [0, 1, 2, 3, 4], paused: true }), h12)).toBe('Weekdays · Paused');
   });
 

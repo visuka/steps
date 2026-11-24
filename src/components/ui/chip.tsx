@@ -44,9 +44,9 @@ export function Chip({ label, onPress, selected, icon, dot, trailingIcon, disabl
       style={[
         styles.chip,
         trailingIcon ? styles.withTrailing : styles.plain,
-        // Unselected: a white pill with a hairline, so it reads as a chip on the grey ground and on a tile.
-        // The edge is always 1 dp (clear when selected), so choosing a chip never shifts the row.
-        { backgroundColor: on ? theme.secondaryContainer : theme.surfaceBright, borderColor: on ? 'transparent' : theme.surfaceContainerHigh },
+        // Unselected chips sit on the ground #ECECEE (docs/design.md), with a hairline so they read on the
+        // grey ground too. The edge is always 1 dp (clear when selected), so choosing a chip never shifts the row.
+        { backgroundColor: on ? theme.secondaryContainer : theme.surfaceContainer, borderColor: on ? 'transparent' : theme.surfaceContainerHigh },
         disabled && { opacity: 0.38 },
       ]}>
       {on ? (
@@ -58,15 +58,21 @@ export function Chip({ label, onPress, selected, icon, dot, trailingIcon, disabl
       <ThemedText
         type={Controls.chipType === 'labelLarge' ? 'bodyMedium' : Controls.chipType}
         maxFontSizeMultiplier={1.3}
-        // A long name (a club) wraps inside the chip rather than losing its last word.
-        textBreakStrategy="simple"
-        style={[Controls.chipLabel, styles.label, { color: on ? fg : theme.onSurface }]}>
+        // Short labels never shrink (a shrunk box dropped the "y" of "Today" onto a hidden line);
+        // only a long name (a club) may wrap inside the chip, which the chip's maxWidth keeps in the row.
+        style={[Controls.chipLabel, styles.label, label.length > LONG_LABEL && styles.shrink, { color: on ? fg : theme.onSurface }]}>
         {label}
       </ThemedText>
       {trailingIcon ? <SpecIcon name={trailingIcon} color={theme.onSurfaceVariant} /> : null}
     </Pressable>
   );
 }
+
+/** The chip's hairline edge (always drawn, clear when selected). */
+const CHIP_EDGE = 1;
+const LABEL_SLACK = 1;
+/** Labels longer than this (club names) may wrap inside the chip. */
+const LONG_LABEL = 22;
 
 const styles = StyleSheet.create({
   chip: {
@@ -75,11 +81,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: CHIP_STYLE.gap,
     borderRadius: CHIP_STYLE.radius,
-    borderWidth: 1,
+    borderWidth: CHIP_EDGE,
+    maxWidth: '100%',
     overflow: 'hidden',
   },
-  label: { flexShrink: 1 },
-  plain: { paddingLeft: CHIP_STYLE.paddingLeft, paddingRight: CHIP_STYLE.paddingRightPlain },
-  withTrailing: { paddingLeft: CHIP_STYLE.paddingLeft, paddingRight: CHIP_STYLE.paddingRight, gap: CHIP_STYLE.gapTrailing },
+  // 1 dp of end slack, so a rounding difference cannot push the last word onto a hidden line.
+  label: { paddingEnd: LABEL_SLACK },
+  shrink: { flexShrink: 1 },
+  // The edge and the slack come out of the padding, so a chip keeps its spec width (rows still fit at 360 dp).
+  plain: { paddingLeft: CHIP_STYLE.paddingLeft - CHIP_EDGE, paddingRight: CHIP_STYLE.paddingRightPlain - CHIP_EDGE - LABEL_SLACK },
+  withTrailing: {
+    paddingLeft: CHIP_STYLE.paddingLeft - CHIP_EDGE,
+    paddingRight: CHIP_STYLE.paddingRight - CHIP_EDGE,
+    gap: CHIP_STYLE.gapTrailing - LABEL_SLACK,
+  },
   dot: { width: CHIP_STYLE.dotSize, height: CHIP_STYLE.dotSize, borderRadius: CHIP_STYLE.dotRadius },
 });

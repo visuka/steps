@@ -9,7 +9,8 @@ import { ReportSheet } from '@/components/buddies/report-sheet';
 import { useSnack } from '@/components/buddies/parts';
 import { PremiumGate } from '@/components/premium-gate';
 import { ThemedText } from '@/components/themed-text';
-import { IconButton, ListRow, Sheet, Snackbar } from '@/components/ui';
+import { BackButton, IconButton, ListRow, Sheet, Snackbar } from '@/components/ui';
+import { SCREEN } from '@/components/ui/screen-style';
 import { attempt, useSocialApi } from '@/buddies/use-buddies';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -51,8 +52,16 @@ export default function ChatScreen() {
       <KeyboardAvoidingView behavior="padding" style={[styles.fill, { backgroundColor: theme.background }]}>
         <PlainGround />
         <View style={[styles.top, { paddingTop: insets.top + Spacing.one }]}>
-          <IconButton icon="arrow-back" accessibilityLabel="Back" onPress={back} />
-          <ThemedText type="titleMedium" numberOfLines={1} style={styles.grow} maxFontSizeMultiplier={1.3}>
+          {/* The same back chevron and title as every pushed screen (Screen, the club page). */}
+          <BackButton onPress={back} />
+          <ThemedText
+            type="headlineSmall"
+            accessibilityRole="header"
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.8}
+            style={styles.grow}
+            maxFontSizeMultiplier={1.3}>
             {name}
           </ThemedText>
           <IconButton icon="ellipsis-vertical" accessibilityLabel="Menu" onPress={() => setMenu(true)} />
@@ -97,5 +106,14 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   grow: { flex: 1 },
-  top: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one, paddingHorizontal: Spacing.two, paddingBottom: Spacing.one },
+  // The chevron sits where Screen puts it (24 margin, -4), the title 8 after it.
+  top: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SCREEN.back.titleGap,
+    minHeight: SCREEN.topBarHeight,
+    paddingLeft: SCREEN.sideMargin,
+    paddingRight: Spacing.two,
+    paddingBottom: Spacing.one,
+  },
 });

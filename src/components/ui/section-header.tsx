@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Spacing, TouchTarget } from '@/constants/theme';
+import { TouchTarget } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { Button } from './button';
@@ -101,8 +101,11 @@ export function SectionHeader({
   );
 }
 
-/** About 22 dp of label plus 14 above and below: a 48 dp target. */
-const WHY_SLOP = { top: 14, bottom: 14, left: 12, right: 12 };
+/**
+ * About 22 dp of label plus 14 above and below: a 48 dp target. The word has no side
+ * padding, so it lines up with the title and the tile edge; the slop widens the target.
+ */
+const WHY_SLOP = { top: 14, bottom: 14, left: 16, right: 16 };
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', gap: SECTION.gap },
@@ -113,7 +116,7 @@ const styles = StyleSheet.create({
   titleBeside: { flexShrink: 0, maxWidth: '60%' },
   end: { flexDirection: 'row', flexShrink: 1, gap: SECTION.gap },
   caption: { flexShrink: 1, textAlign: 'right' },
-  why: { justifyContent: 'center', paddingHorizontal: Spacing.one },
+  why: { justifyContent: 'center' },
   info: { width: TouchTarget, height: TouchTarget, alignItems: 'center', justifyContent: 'center' },
   underline: { textDecorationLine: 'underline' },
 });

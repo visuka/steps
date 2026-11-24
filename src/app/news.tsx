@@ -3,7 +3,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { SpecIcon } from '@/components/ui';
+import { SpecIcon, Surface } from '@/components/ui';
 import { Screen } from '@/components/ui/screen';
 import { CLEAN_SPEC } from '@/constants/themes/clean-spec';
 import { useTheme } from '@/hooks/use-theme';
@@ -15,7 +15,6 @@ import { type NewsItem, useGoodNews } from '@/state/use-good-news';
  */
 export default function NewsRoute() {
   const router = useRouter();
-  const theme = useTheme();
   const items = useGoodNews();
   const back = () => (router.canGoBack() ? router.back() : router.replace('/'));
   const sources = [...new Set(items.map((n) => n.source))];
@@ -23,11 +22,12 @@ export default function NewsRoute() {
   return (
     <Screen title="Good news" onBack={back}>
       {items.length ? (
-        <View style={[styles.list, { backgroundColor: theme.surfaceContainerLow }]}>
+        // The shared frosted tile (a level 1 Surface), like the lists on Water and Sleep.
+        <Surface level={1} style={styles.list}>
           {items.map((n, i) => (
             <Row key={n.link} item={n} last={i === items.length - 1} />
           ))}
-        </View>
+        </Surface>
       ) : (
         <ThemedText type="bodyLarge" themeColor="onSurfaceVariant">
           No headlines yet. They come when the phone is online.
@@ -65,11 +65,12 @@ function Row({ item, last }: { item: NewsItem; last: boolean }) {
 
 const styles = StyleSheet.create({
   list: { borderRadius: CLEAN_SPEC.radius.card, overflow: 'hidden' },
+  // The side room sits outside the hairline, so dividers stop 16 short of the tile's sides.
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: CLEAN_SPEC.space.s12,
-    paddingHorizontal: CLEAN_SPEC.space.s16,
+    marginHorizontal: CLEAN_SPEC.space.s16,
     paddingVertical: CLEAN_SPEC.space.s12,
     minHeight: 64,
   },

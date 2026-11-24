@@ -99,7 +99,7 @@ export function Onboarding() {
               {STEPS.map((s, i) => (
                 <View
                   key={s}
-                  style={[styles.segment, { backgroundColor: i <= at ? theme.onSurface : theme.lane }]}
+                  style={[styles.segment, { backgroundColor: i <= at ? theme.primary : theme.lane }]}
                 />
               ))}
             </View>

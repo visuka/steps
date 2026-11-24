@@ -518,7 +518,8 @@ const styles = StyleSheet.create({
   detail: { gap: Spacing.two, paddingHorizontal: Spacing.two, paddingBottom: Spacing.three },
   sources: { gap: Spacing.two },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
-  textButton: { marginLeft: -Spacing.three },
+  // An inline text button already starts on the card's text edge.
+  textButton: {},
   split: { gap: Spacing.two },
   splitBar: { flexDirection: 'row', height: 12, borderRadius: Radius.xs, overflow: 'hidden' },
   legend: { flexDirection: 'row', flexWrap: 'wrap', columnGap: Spacing.three, rowGap: Spacing.one },

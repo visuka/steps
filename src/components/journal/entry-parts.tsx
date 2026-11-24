@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Button, IconButton } from '@/components/ui/button';
 import { Surface } from '@/components/ui/surface';
-import { Radius, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 /**
@@ -145,16 +145,22 @@ export function FieldLabel({ children }: { children: string }) {
 }
 
 const styles = StyleSheet.create({
-  list: { overflow: 'hidden', borderRadius: Radius.md },
-  row: { flexDirection: 'row', alignItems: 'center', borderTopWidth: StyleSheet.hairlineWidth, marginTop: -StyleSheet.hairlineWidth },
+  // The frosted tile's own corners (CARD_LOOK), like every other tile.
+  list: { overflow: 'hidden' },
+  // The side room sits outside the hairline, so dividers stop 16 short of the tile's sides, as in ListRow.
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: Spacing.three,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    marginTop: -StyleSheet.hairlineWidth,
+  },
   main: {
     flex: 1,
     minHeight: 72,
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.three,
-    paddingLeft: Spacing.three,
-    paddingRight: Spacing.two,
     paddingVertical: Spacing.two,
   },
   text: { flex: 1, gap: Spacing.half },
