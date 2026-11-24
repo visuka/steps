@@ -12,6 +12,7 @@ import { Button, ListRow, Surface } from '@/components/ui';
 import { clubLine, ROLE_WORD, stateWord } from '@/buddies/clubs';
 import type { ClubCard, ClubRole } from '@/buddies/types';
 import { Spacing } from '@/constants/theme';
+import { scaled } from '@/constants/ui-scale';
 import { useTheme } from '@/hooks/use-theme';
 
 import { Avatar } from '../parts';
@@ -173,5 +174,6 @@ const bannerStyles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
   },
-  text: { flexGrow: 1, flexShrink: 1, flexBasis: 160 },
+  // Below this the button wraps under the words (scaled with the screen, no raw size).
+  text: { flexGrow: 1, flexShrink: 1, flexBasis: scaled(160) },
 });

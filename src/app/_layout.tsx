@@ -1,7 +1,7 @@
 import '@/sync/background';
 
 import { useFonts } from 'expo-font';
-import { DarkTheme, DefaultTheme, Stack, type Theme, ThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, type Href, Stack, type Theme, ThemeProvider, useRootNavigationState, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
@@ -24,6 +24,8 @@ import { previewLaunch } from '@/design-preview/launch';
 import { SampleDataProvider } from '@/design-preview/providers';
 import { SAMPLE_NOW } from '@/design-preview/sample';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { listenForTaps } from '@/notifications/tap-listener';
+import { onTap, tapHref } from '@/notifications/taps';
 import { LockProvider, useLock } from '@/state/app-lock';
 import { AppProvider, useApp } from '@/state/app-state';
 import { usePendingFoods } from '@/state/use-pending-foods';
@@ -94,6 +96,10 @@ export default function RootLayout() {
     SystemUI.setBackgroundColorAsync(surface).catch(() => undefined);
   }, [surface]);
 
+  // Notification taps (this phone's reminders and the Walk buddies pushes) are queued from the
+  // start, since sign-in, the lock or onboarding may come first; TapRouter takes them.
+  useEffect(() => (PREVIEW ? undefined : listenForTaps()), []);
+
   if (PREVIEW) {
     return (
       <ThemeProvider value={navigationTheme(dark)}>
@@ -152,6 +158,20 @@ function useStackOptions(surface: string) {
     animation: reduced ? ('none' as const) : ('slide_from_right' as const),
     animationDuration: 280,
   };
+}
+
+/**
+ * Opens the screen a notification tap names (notifications/taps.ts: a journal
+ * section, or one of the fixed Walk buddies routes) once the Stack is ready.
+ */
+function TapRouter() {
+  const router = useRouter();
+  const ready = !!useRootNavigationState()?.key;
+  useEffect(() => {
+    if (!ready) return;
+    return onTap((t) => router.push(tapHref(t) as Href));
+  }, [ready, router]);
+  return null;
 }
 
 /**
@@ -220,6 +240,7 @@ function Gate({ fontsReady, surface }: { fontsReady: boolean; surface: string })
         <>
           <Stack screenOptions={stack} />
           <PendingFoods signedIn={Boolean(userId)} />
+          <TapRouter />
         </>
       ) : (
         <Onboarding />

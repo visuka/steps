@@ -48,8 +48,13 @@ export function canPlanClubWalk(role: ClubRole | null | undefined, election: Pic
   return isStaff(powerRole(role, election, myPid));
 }
 
-/** Plan a walk's club chips: only the clubs I captain or vice-captain (my role from GET /clubs/mine). */
-export function canPlanForCard(c: Pick<ClubCard, 'myState' | 'myRole' | 'captain'>): boolean {
+/**
+ * Plan a walk's club chips: only the clubs I captain or vice-captain (my role
+ * from GET /clubs/mine), and the club whose vote I keep running as acting
+ * captain (the card's "acting" while "electionOpen").
+ */
+export function canPlanForCard(c: Pick<ClubCard, 'myState' | 'myRole' | 'captain' | 'electionOpen' | 'acting'>): boolean {
+  if (c.myState === 'member' && c.electionOpen && c.acting) return true;
   return isStaff(cardRole(c));
 }
 
@@ -133,6 +138,11 @@ export function leaveAsk(role: ClubRole | null, memberCount: number, name: strin
   if (memberCount <= 1) return { title, message: "You're the only member. Leaving deletes the club.", confirm: 'Leave and delete' };
   if (role === 'owner') return { title, message: "Members will vote for a new captain over the next 2 days. You can't undo this.", confirm: 'Leave' };
   return { title, message: "You leave the club chat and the board. If the club has shared goals, your goal history here is deleted.", confirm: 'Leave' };
+}
+
+/** leaveAsk for a club card (Your clubs without Premium): my role from the card. */
+export function cardLeaveAsk(c: Pick<ClubCard, 'myState' | 'myRole' | 'captain' | 'memberCount' | 'name'>): { title: string; message: string; confirm: string } {
+  return leaveAsk(cardRole(c), c.memberCount, c.name);
 }
 
 /** The snackbar after a vote, a change or a clear. */

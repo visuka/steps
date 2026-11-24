@@ -362,3 +362,12 @@ Not committed. No server or AWS change. Nothing is removed from any count.
 - Preview: screen `club-election`; sample clubs GSW000000006 (voting), BGW000000007 (no one standing), KDP000000008 (decided); club `&ask=leave`. Twelve new CI capture lines (normal and 360 dp large text). docs/walk-buddies.md 13.1 holds the rules.
 - Not done: club chat has no system-line mechanism, so the "vote opened / decided" chat lines are left to the server (the app shows nothing extra). The app has no remote push tap routing yet, so the notification route works only once that exists. The emulator shots have not been taken or reviewed (nothing pushed); the web preview crashes at start-up on `Appearance.setColorScheme` (already so, not from this change).
 - Checks: tsc, eslint on touched files, and the whole jest suite.
+
+## 24 Nov 2026 — Captain election review fixes
+
+- Plan a walk: during a vote the acting captain's club is offered in the club chips from Buddies home too (`acting: true` on their own `GET /clubs/mine` card, read only with `electionOpen`; `canPlanForCard`).
+- Without Premium, Your clubs now shows Leave club for the captain as well, with the captain's dialog ("Members will vote for a new captain over the next 2 days. You can't undo this.", or the only-member one). `cardLeaveAsk` in election.ts, tested. Preview `plus-locked &ask=leave&id=KBR000000001`, CI shots `smoke/clean-plus-locked-captain-leave*.png` (normal and 360 dp large text).
+- Push taps now open their screen: the root layout listens for notification taps (the one that opened the app too) and opens the Walk buddies route a push names when it is on the fixed list (`buddiesRoute`, tested against every route the server sends), or the journal section for this phone's reminders. So a vote push opens the election screen.
+- The election banner's text width uses `scaled(160)` (central theme: no raw sizes).
+- Server (stepsinfra, local git, not deployed): a report about the acting captain stays with the app owner; banned people are not made acting captain or captain (unless no one else is left); the result is removed after 7 days (cron and club reads) and at once when the winner erases their account; the decided push says "<club> has a new captain." when the handle can't be read.
+- Checks: tsc, eslint on touched files, the whole jest suite, server unittest for test_social*. The emulator shots have not been taken or reviewed (nothing pushed).

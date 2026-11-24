@@ -58,6 +58,7 @@ export function readClubCard(v: unknown): ClubCard {
     captain: walkerOrNull(v.captain),
     ...(myRole ? { myRole } : {}),
     ...(myState === 'member' && v.electionOpen === true ? { electionOpen: true } : {}),
+    ...(myState === 'member' && v.electionOpen === true && v.acting === true ? { acting: true } : {}),
   };
 }
 

@@ -113,6 +113,8 @@ export interface ClubCard {
   myRole?: ClubRole | null;
   /** Members are choosing a new captain (GET /clubs/mine "electionOpen"); left out otherwise. */
   electionOpen?: boolean;
+  /** I am the acting captain of the open vote (GET /clubs/mine "acting", my own card only); left out otherwise. */
+  acting?: boolean;
 }
 
 export interface Club extends ClubCard {

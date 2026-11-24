@@ -13,6 +13,7 @@ import {
   canPlanClubWalk,
   canPlanForCard,
   cardElectionWords,
+  cardLeaveAsk,
   endsWords,
   HOW_IT_WORKS,
   lastElectionWords,
@@ -122,6 +123,13 @@ describe('reading the vote', () => {
     expect(readClubCard({ ...card, electionOpen: 'yes' }).electionOpen).toBeUndefined();
     expect(readClubCard({ ...card, myState: 'none', electionOpen: true }).electionOpen).toBeUndefined();
   });
+
+  it('reads acting only on a member card with the vote open', () => {
+    expect(readClubCard({ ...card, electionOpen: true, acting: true }).acting).toBe(true);
+    expect(readClubCard({ ...card, acting: true }).acting).toBeUndefined();
+    expect(readClubCard({ ...card, electionOpen: true, acting: 'yes' }).acting).toBeUndefined();
+    expect(readClubCard({ ...card, myState: 'none', electionOpen: true, acting: true }).acting).toBeUndefined();
+  });
 });
 
 describe('election calls', () => {
@@ -184,6 +192,10 @@ describe('who may do what while members vote', () => {
     expect(canPlanForCard({ myState: 'member', myRole: 'member', captain: null })).toBe(false);
     expect(canPlanForCard({ myState: 'member', captain: me })).toBe(true);
     expect(canPlanForCard({ myState: 'asked', myRole: 'owner', captain: me })).toBe(false);
+    // The acting captain's stored role is Member: the card's "acting" lets them plan for that club.
+    expect(canPlanForCard({ myState: 'member', myRole: 'member', captain: null, electionOpen: true, acting: true })).toBe(true);
+    expect(canPlanForCard({ myState: 'member', myRole: 'member', captain: null, electionOpen: true })).toBe(false);
+    expect(canPlanForCard({ myState: 'member', myRole: 'member', captain: null, acting: true })).toBe(false);
   });
 
   it('says a staff-only plan error plainly', () => {
@@ -263,6 +275,11 @@ describe('election words', () => {
       confirm: 'Leave',
     });
     expect(leaveAsk('member', 48, 'KBR').message).toMatch(/club chat and the board/);
+    // Your clubs without Premium: the captain's row asks the captain's question too.
+    expect(cardLeaveAsk({ ...card, myState: 'member' as const, name: 'KBR', myRole: 'owner' }).message).toBe("Members will vote for a new captain over the next 2 days. You can't undo this.");
+    expect(cardLeaveAsk({ ...card, myState: 'member' as const, name: 'KBR', captain: me }).confirm).toBe('Leave');
+    expect(cardLeaveAsk({ ...card, myState: 'member' as const, name: 'KBR', myRole: 'owner', memberCount: 1 }).confirm).toBe('Leave and delete');
+    expect(cardLeaveAsk({ ...card, myState: 'member' as const, name: 'KBR', myRole: 'member' }).message).toMatch(/club chat and the board/);
   });
 
   it('confirms a vote without saying anything to others', () => {

@@ -219,6 +219,8 @@ capture e club-election smoke/clean-club-election-empty.png '&id=BGW000000007' &
 capture e club smoke/clean-club-new-captain.png '&id=KDP000000008'
 capture e club smoke/clean-club-captain-leave.png '&id=KBR000000001&ask=leave'
 capture e club smoke/clean-club-walks-member.png '&id=HPW000000004&seg=walks' walks && more smoke/clean-club-walks-member
+# Your clubs without Premium: the captain's Leave dialog (the members then vote).
+capture e plus-locked smoke/clean-plus-locked-captain-leave.png '&ask=leave&id=KBR000000001'
 # The same on a small phone (360 dp) with large text: everything must still fit.
 adb shell wm density 480
 adb shell settings put system font_scale 1.3
@@ -258,6 +260,7 @@ capture e club-election smoke/clean-club-election-empty-360dp.png '&id=BGW000000
 capture e club smoke/clean-club-new-captain-360dp.png '&id=KDP000000008'
 capture e club smoke/clean-club-captain-leave-360dp.png '&id=KBR000000001&ask=leave'
 capture e club smoke/clean-club-walks-member-360dp.png '&id=HPW000000004&seg=walks' walks && more smoke/clean-club-walks-member-360dp
+capture e plus-locked smoke/clean-plus-locked-captain-leave-360dp.png '&ask=leave&id=KBR000000001'
 adb shell settings put system font_scale 1.0
 adb shell wm density 420
 # The long screens CI already photographs, the rest of the way down.

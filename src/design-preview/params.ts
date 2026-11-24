@@ -28,7 +28,8 @@
  * Shared goals: goal takes id=<clubId>&goalId=<goalId> (KBR000000001, GL0000000001), goal-new
  * id=<clubId> and goal=<goalId> to change one; club &seg=goals with id=HPW000000004 is a member's
  * tab and id=SRN000000005 the goal tracking switch. Those screens read them themselves.
- * plus-locked is Buddies as it is without Premium, over the sample clubs.
+ * plus-locked is Buddies as it is without Premium, over the sample clubs (&ask=leave&id=KBR000000001:
+ * the captain's Leave dialog in Your clubs; LockedBuddies reads them itself).
  * Choosing a new captain: club &id=GSW000000006 is a club voting (I'm a member, I stand and
  * voted), &id=KDP000000008 one whose vote closed (the new captain line), and &ask=leave
  * opens the Leave dialog (with &id=KBR000000001: the captain's). club-election takes
