@@ -169,6 +169,11 @@ for seg in chat walks goals board; do
 done
 capture e club-admin smoke/clean-club-admin.png '&id=KBR000000001' && more smoke/clean-club-admin
 capture e club-join smoke/clean-club-join.png '&id=NRS000000002' && more smoke/clean-club-join
+# Walk plans (T16e): a walk I planned, one I'm invited to, Plan a walk, and its safety tips.
+capture e plan smoke/clean-plan.png '&id=PLN000000001' && more smoke/clean-plan
+capture e plan smoke/clean-plan-invited.png '&id=PLN000000002' && more smoke/clean-plan-invited
+capture e plan-new smoke/clean-plan-new.png && more smoke/clean-plan-new
+capture e plan-new smoke/clean-plan-tips.png '&tips=1' tips
 # The same on a small phone (360 dp) with large text: everything must still fit.
 adb shell wm density 480
 adb shell settings put system font_scale 1.3
@@ -176,6 +181,10 @@ capture e buddies smoke/clean-buddies-360dp.png && more smoke/clean-buddies-360d
 capture e club smoke/clean-club-board-360dp.png '&id=KBR000000001&seg=board' board
 capture e club-join smoke/clean-club-join-360dp.png '&id=NRS000000002' && more smoke/clean-club-join-360dp
 capture e club-new smoke/clean-club-new-360dp.png && more smoke/clean-club-new-360dp
+capture e plan smoke/clean-plan-360dp.png '&id=PLN000000001' && more smoke/clean-plan-360dp
+capture e plan smoke/clean-plan-invited-360dp.png '&id=PLN000000002' && more smoke/clean-plan-invited-360dp
+capture e plan-new smoke/clean-plan-new-360dp.png && more smoke/clean-plan-new-360dp
+capture e plan-new smoke/clean-plan-tips-360dp.png '&tips=1' tips
 adb shell settings put system font_scale 1.0
 adb shell wm density 420
 # The long screens CI already photographs, the rest of the way down.

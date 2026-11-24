@@ -59,6 +59,7 @@ Size rule for this look: the mockup phone is **411 px wide; 1 mockup px = 1 dp**
 | Top tile on each screen (sage tint) | #DEE4E2, edge #D3DDD8 |
 | Second tile (sand tint) | #F2EAE1, edge #EFE3D6 |
 | Chips, avatars | #F2E9DE |
+| Selected chip (`chip.selected`: day, time, who on Plan a walk) | sand #F2E9DE with a tick, ink text; unselected chips sit on the ground #ECECEE. Words never take the colour |
 | Badge | **#876644**, white text |
 | Secondary button (Later) | white 80 %, ink text |
 | Search field | white, edge #E8E8EB |

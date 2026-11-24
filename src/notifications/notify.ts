@@ -61,6 +61,25 @@ export async function notifyNow(title: string, body: string, opts: NotifyOptions
   });
 }
 
+/**
+ * One reminder at `at` (epoch ms) on the walk plans channel. Returns its id,
+ * or null when notifications are off; asks for them first only when `ask`
+ * (a tap on Going), never from a background refresh.
+ */
+export async function scheduleAt(at: number, title: string, body: string, ask: boolean): Promise<string | null> {
+  const granted = ask ? await requestNotificationPermission() : (await Notifications.getPermissionsAsync()).granted;
+  if (!granted || at <= Date.now()) return null;
+  await ensureChannels();
+  return Notifications.scheduleNotificationAsync({
+    content: { title, body, data: {} },
+    trigger: { type: SchedulableTriggerInputTypes.DATE, date: at, channelId: 'plans' },
+  });
+}
+
+export async function cancelScheduled(id: string): Promise<void> {
+  await Notifications.cancelScheduledNotificationAsync(id).catch(() => undefined);
+}
+
 /** Daily "how was today?" at `hour`; null turns it off. */
 export async function scheduleMoodCheckIn(hour: number | null): Promise<void> {
   await Notifications.cancelScheduledNotificationAsync(MOOD_CHECK_IN_ID).catch(() => undefined);

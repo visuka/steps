@@ -53,6 +53,16 @@ describe('parsePreviewParams', () => {
     expect(parsePreviewUrl(previewUrl(SCHEME, p))).toEqual(p);
   });
 
+  it('has the plan screens, and opens Plan a walk with the safety tips on tips=1', () => {
+    for (const screen of ['plan', 'plan-new']) expect(PREVIEW_SCREENS).toContain(screen);
+    expect(parsePreviewParams({ theme: 'e', screen: 'plan-new', tips: '1' })).toEqual({ theme: 'e', screen: 'plan-new', tips: true });
+    expect(parsePreviewParams({ theme: 'e', screen: 'plan-new', tips: 'yes' })).toEqual({ theme: 'e', screen: 'plan-new' });
+    expect(parsePreviewParams({ theme: 'e', screen: 'plan', tips: '1' })).toEqual({ theme: 'e', screen: 'plan' });
+    const p = { theme: 'e', screen: 'plan-new', tips: true } as const;
+    expect(previewUrl(SCHEME, p)).toBe('neutcraftssteps://design-preview?theme=e&screen=plan-new&tips=1');
+    expect(parsePreviewUrl(previewUrl(SCHEME, p))).toEqual(p);
+  });
+
   it('takes the first of repeated params, as expo-router hands them over', () => {
     expect(parsePreviewParams({ theme: ['e', 'd'], screen: ['walk'] })).toEqual({ theme: 'e', screen: 'walk' });
   });

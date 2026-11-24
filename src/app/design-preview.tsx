@@ -24,6 +24,8 @@ import ClubFormScreen from '@/app/buddies/club/new';
 import ClubScreen from '@/app/buddies/club/[id]';
 import ClubAdminScreen from '@/app/buddies/club/[id]/admin';
 import ClubJoinScreen from '@/app/buddies/club/[id]/join';
+import PlanScreen from '@/app/buddies/plan/[id]';
+import PlanFormScreen from '@/app/buddies/plan/new';
 import { AuthScreen } from '@/components/auth/auth-screen';
 import { BuddiesHome } from '@/components/buddies/buddies-home';
 import { ScanScreen } from '@/components/food/scan-screen';
@@ -32,6 +34,7 @@ import { type Part, PartBar } from '@/components/plain/part-bar';
 import { Detail } from '@/app/detail/[kind]';
 import { dayKey } from '@/lib/dates';
 import { BuddiesSource } from '@/buddies/use-buddies';
+import { PlanDeviceSource, PREVIEW_PLAN_DEVICE } from '@/buddies/use-plans';
 import { SAMPLE_SOCIAL_API } from '@/design-preview/buddies-sample';
 import { WalkDetail } from '@/app/walk/[id]';
 import { FoodResultScreen } from '@/components/food/food-result';
@@ -74,10 +77,15 @@ const PART_OF: Partial<Record<PreviewScreen, Part>> = { today: 'activity', foodt
  */
 export default function DesignPreviewRoute() {
   // &part=dawn|noon|dusk: Today and the bar in that part's colours, not the clock's (T18).
-  const part = parsePreviewParams(useLocalSearchParams())?.part ?? null;
+  const params = parsePreviewParams(useLocalSearchParams());
+  const part = params?.part ?? null;
+  // Walk plans never schedule a reminder or ask for notifications here; &tips=1 opens the safety tips (T16e).
+  const device = params?.tips ? { ...PREVIEW_PLAN_DEVICE, tips: 'always' as const } : PREVIEW_PLAN_DEVICE;
   return (
     <DayPartOverride.Provider value={part}>
-      <DesignPreviewScreens />
+      <PlanDeviceSource device={device}>
+        <DesignPreviewScreens />
+      </PlanDeviceSource>
     </DayPartOverride.Provider>
   );
 }
@@ -85,7 +93,7 @@ export default function DesignPreviewRoute() {
 function DesignPreviewScreens() {
   const raw = useLocalSearchParams();
   const params = parsePreviewParams(raw);
-  const shown = params && params.theme === ActiveTheme.id ? `${params.theme} ${params.screen}${params.edit ? ' edit' : ''}${params.mine ? ' mine' : ''}${params.seg ? ` ${params.seg}` : ''}${params.part ? ` ${params.part}` : ''}` : 'refused';
+  const shown = params && params.theme === ActiveTheme.id ? `${params.theme} ${params.screen}${params.edit ? ' edit' : ''}${params.mine ? ' mine' : ''}${params.seg ? ` ${params.seg}` : ''}${params.tips ? ' tips' : ''}${params.part ? ` ${params.part}` : ''}` : 'refused';
 
   // CI waits for this line in logcat before photographing (.github/scripts/launch-and-capture.sh).
   useEffect(() => {
@@ -192,6 +200,11 @@ function StackScreen({ screen }: { screen: PreviewScreen }) {
     case 'club-join':
       // &id=NRS000000002: a club with shared goals I am not in yet.
       return <ClubJoinScreen />;
+    case 'plan':
+      // &id=PLN000000001: a walk I planned; PLN000000002: one I'm invited to.
+      return <PlanScreen />;
+    case 'plan-new':
+      return <PlanFormScreen />;
     case 'signin':
       return <AuthScreen />;
     case 'welcome':

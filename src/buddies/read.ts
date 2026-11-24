@@ -103,7 +103,8 @@ export function socialErrorFor(status: number | null, code?: string, why?: strin
   if (status === 402) return new SocialError('premium', code);
   if (status === 429) return new SocialError('limit', code);
   if (status === 503) return new SocialError('busy', code);
-  return new SocialError('other', code);
+  // Keep the server's reason (bad_request "startsAt", "invite"…) so screens can say which field.
+  return new SocialError('other', code, why);
 }
 
 // ── reading ──────────────────────────────────────────────────────────────

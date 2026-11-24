@@ -19,11 +19,16 @@ import { displayName } from '@/buddies/read';
 import type { BuddyRow, ChatRow, SocialMe } from '@/buddies/types';
 import { attempt, useLoad, useSocialApi, useSocialMe } from '@/buddies/use-buddies';
 import { useMyClubs, useStepsShare } from '@/buddies/use-clubs';
+import { upcoming } from '@/buddies/plans';
+import { usePlans } from '@/buddies/use-plans';
 import { scaled } from '@/constants/ui-scale';
+import { useClock } from '@/hooks/use-clock';
+import { useClockStyle } from '@/hooks/use-clock-style';
 import { minutesAgo } from '@/lib/format';
 import { useApp } from '@/state/app-state';
 
-import { GroupsTile, PlannedWalksSlot } from './clubs/groups-tile';
+import { GroupsTile } from './clubs/groups-tile';
+import { PlannedWalksTile } from './plans/planned-walks-tile';
 import { useSnack } from './parts';
 
 const S = scaled;
@@ -118,6 +123,9 @@ function Joined({ me, refreshMe }: { me: Extract<SocialMe, { joined: true }>; re
   const buddies = useLoad(api.buddies);
   const requests = useLoad(api.requests);
   const clubs = useMyClubs();
+  const plans = usePlans();
+  const now = useClock().now;
+  const clock = useClockStyle();
   // Today's and this week's steps for the club boards, only while a board is on (steps-share.ts).
   useStepsShare();
   const { snack, show, dismiss } = useSnack();
@@ -131,7 +139,7 @@ function Joined({ me, refreshMe }: { me: Extract<SocialMe, { joined: true }>; re
   }
 
   const refresh = async () => {
-    await Promise.all([refreshMe(), chats.refresh(), buddies.refresh(), requests.refresh(), clubs.refresh()]);
+    await Promise.all([refreshMe(), chats.refresh(), buddies.refresh(), requests.refresh(), clubs.refresh(), plans.refresh()]);
   };
 
   const incoming = requests.data?.incoming ?? [];
@@ -227,7 +235,14 @@ function Joined({ me, refreshMe }: { me: Extract<SocialMe, { joined: true }>; re
         onFind={() => router.push('/buddies/clubs' as never)}
         onStart={() => router.push('/buddies/club/new' as never)}
       />
-      <PlannedWalksSlot />
+      <PlannedWalksTile
+        plans={plans.data ? upcoming(plans.data, now) : null}
+        error={plans.error}
+        now={now}
+        clock={clock}
+        onOpen={(p) => router.push({ pathname: '/buddies/plan/[id]', params: { id: p.planId } } as never)}
+        onPlan={() => router.push('/buddies/plan/new' as never)}
+      />
 
       <Tile style={[ps.spread, { paddingTop: S(12), paddingBottom: S(12) }]}>
         <Label icon="spark" text="Coming next" />

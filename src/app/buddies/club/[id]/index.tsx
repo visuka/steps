@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ClubBoardTab, ClubChatTab, ClubGoalsTab, ClubWalksTab, CLUB_TABS, isClubTab, type ClubTab } from '@/components/buddies/clubs/club-tabs';
 import { useSnack } from '@/components/buddies/parts';
+import { SafetySheet } from '@/components/buddies/plans/safety-sheet';
 import { ReportSheet } from '@/components/buddies/report-sheet';
 import { PlainGround, Segments } from '@/components/plain/plain-kit';
 import { PremiumGate } from '@/components/premium-gate';
@@ -14,6 +15,7 @@ import { can, clubLine, isStaff } from '@/buddies/clubs';
 import type { Club } from '@/buddies/types';
 import { attempt, useSocialApi } from '@/buddies/use-buddies';
 import { useClub, useStepsShare } from '@/buddies/use-clubs';
+import { useSafetyTips } from '@/buddies/use-plans';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { SCREEN_FEATURES } from '@/premium/premium';
@@ -42,6 +44,8 @@ export default function ClubScreen() {
   const club = c.club;
   const role = club?.myRole ?? null;
   const name = club?.name ?? 'Club';
+  // The safety tips, once, the first time I'm in a club (docs/walk-buddies.md 6.4).
+  const tips = useSafetyTips('club', club?.myState === 'member');
 
   const join = async () => {
     if (!club) return;
@@ -104,7 +108,7 @@ export default function ClubScreen() {
             {tab === 'chat' ? (
               <ClubChatTab club={club} show={show} onReportMessage={(ref) => setReport({ kind: 'message', ref, label: 'message' })} />
             ) : tab === 'walks' ? (
-              <ClubWalksTab />
+              <ClubWalksTab club={club} />
             ) : tab === 'goals' ? (
               <ClubGoalsTab club={club} />
             ) : (
@@ -159,6 +163,8 @@ export default function ClubScreen() {
           if (!err) back();
         }}
       />
+
+      <SafetySheet visible={tips.open} onClose={tips.close} />
 
       <ReportSheet
         visible={!!report}

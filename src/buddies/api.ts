@@ -11,6 +11,7 @@ import { premiumRequired } from '@/premium/premium';
 
 import { makeClubsApi } from './clubs-api';
 import { readClubInvites } from './clubs-read';
+import { makePlansApi } from './plans-api';
 import {
   readBuddies,
   readChats,
@@ -152,6 +153,8 @@ export const socialApi = {
 
   // Clubs (clubs-api.ts).
   ...makeClubsApi((method, path, body) => call(method, path, body)),
+  // Walk plans (plans-api.ts).
+  ...makePlansApi((method, path, body) => call(method, path, body)),
 };
 
 export type SocialApi = typeof socialApi;

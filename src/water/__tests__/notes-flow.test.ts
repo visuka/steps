@@ -223,9 +223,9 @@ describe('health notes after a sync', () => {
 });
 
 describe('notification plumbing', () => {
-  it('has a channel for each kind, nutrition and weekly private', () => {
-    expect(CHANNELS.map((c) => c.id)).toEqual(['nudges', 'water', 'nutrition', 'weekly']);
-    expect(CHANNELS.filter((c) => c.private).map((c) => c.id)).toEqual(['nutrition', 'weekly']);
+  it('has a channel for each kind, nutrition, weekly and walk plans private', () => {
+    expect(CHANNELS.map((c) => c.id)).toEqual(['nudges', 'water', 'nutrition', 'weekly', 'plans']);
+    expect(CHANNELS.filter((c) => c.private).map((c) => c.id)).toEqual(['nutrition', 'weekly', 'plans']);
   });
   it('keeps 45 minutes from any post and from the mood check-in', () => {
     const now = at(TODAY, 19, 30);

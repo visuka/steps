@@ -1,8 +1,8 @@
 /**
  * Buddies home, Groups (spec T16f): the clubs I am in, Find a club and
- * Start a club, in the plain tiles look. Planned walks has its own slot
- * under it, filled by the next stage (walk plans). Colours and sizes come
- * from the plain tokens and scaled() only.
+ * Start a club, in the plain tiles look. Planned walks is its own tile
+ * under it (plans/planned-walks-tile.tsx). Colours and sizes come from the
+ * plain tokens and scaled() only.
  */
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -48,21 +48,6 @@ export function GroupsTile({
         <Btn text="Find a club" kind="main" onPress={onFind} />
         <Btn text="Start a club" onPress={onStart} />
       </View>
-    </Tile>
-  );
-}
-
-/**
- * The place for planned walks (the next stage swaps this part for the real
- * list). It promises nothing it can't do yet.
- */
-export function PlannedWalksSlot() {
-  return (
-    <Tile style={[ps.spread, { paddingTop: S(12), paddingBottom: S(12) }]}>
-      <Label icon="walk" text="Planned walks" />
-      <Note style={{ marginTop: 0 }} lines={1}>
-        Coming soon
-      </Note>
     </Tile>
   );
 }

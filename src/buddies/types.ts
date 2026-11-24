@@ -170,6 +170,51 @@ export interface ClubForm {
   goals: boolean;
 }
 
+// ── walk plans (docs/walk-buddies.md 2.5 "Plans", T16e) ──
+
+/** My answer to a plan; the organiser's is always "going". */
+export type PlanAnswer = 'none' | 'going' | 'not_going';
+
+export interface Plan {
+  planId: string;
+  /** relation "self" when I made it. */
+  organiser: Walker;
+  /** A club plan: everyone in the club can see it. */
+  club: { clubId: string; name: string } | null;
+  /** Epoch ms. */
+  startsAt: number;
+  /** The organiser's time zone (IANA). */
+  tz: string;
+  /** A typed place name (never a position). */
+  place: string;
+  note: string;
+  status: 'on' | 'cancelled';
+  myAnswer: PlanAnswer;
+  /** Counts of other people's answers (block rules applied by the server). */
+  going: number;
+  notGoing: number;
+}
+
+export interface PlanInvitee {
+  walker: Walker;
+  answer: PlanAnswer;
+}
+
+/** GET /plans/{id}: the plan and who answered (club plans: only people who answered). */
+export interface PlanPage {
+  plan: Plan;
+  invitees: PlanInvitee[];
+}
+
+/** POST /plans: buddies (1–20 pids) or one club. */
+export interface PlanForm {
+  startsAt: number;
+  place: string;
+  note: string;
+  invite: string[];
+  clubId: string | null;
+}
+
 export const REPORT_REASONS = [
   { key: 'spam', label: 'Spam' },
   { key: 'harassment', label: 'Harassment or bullying' },

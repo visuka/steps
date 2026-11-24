@@ -295,3 +295,13 @@ Not committed. No server or AWS change. Nothing is removed from any count.
   - Club invites on Requests.
 - Preview screens: clubs, club-new, club (`&seg=`), club-admin and club-join. CI shots `smoke/clean-club*.png` include 360 dp shots with large text.
 - Checks: tsc, eslint and the whole jest suite. The emulator shots have not been reviewed yet.
+
+## 24 Nov 2026 — Walk plans (T16e), app side
+
+- Calls, readers and tests for `/plans*`: list, get, create (buddies or a club), change (new buddies only), cancel and answer. Code: `src/buddies/plans-api.ts`, `plans-read.ts`, `plans.ts` (day and time choices, the server's limits in plain words, the counts, the reminder and the safety tips) and `use-plans.tsx`.
+- Plan a walk (`/buddies/plan/new`, `?club=` for a club walk, `?id=` to change one): day chips (Today, Tomorrow, 5 more days, Other day), the time, a typed place (60 characters, no map pin), a note, and who (1–20 buddies or one of my clubs).
+- The Plan screen (`/buddies/plan/[id]`). The organiser sees Going, Can't make it and Waiting as numbers, then the lists (a buddy's row opens the chat), with Change and Cancel walk in the menu. Someone invited taps Going or Can't make it, and can message the organiser. Going sets a reminder on the phone 1 hour before (new channel `plans`, hidden on the lock screen). A club walk opens the club chat. Add to calendar is not built.
+- Groups on Buddies home: the Planned walks slot is now the real list with Plan a walk. The club Walks tab lists the club's walks and has Plan a club walk. "Coming next" is unchanged.
+- The safety tips sheet (docs/walk-buddies.md 6.4) shows once before the first plan and once the first time I'm in a club. The kv keys `buddies.planReminders` and `buddies.tipsSeen` are local only. The selected-chip colour is added to docs/design.md.
+- Preview screens: plan (`&id=PLN000000001` mine, `PLN000000002` invited) and plan-new (`&tips=1`). CI shots `smoke/clean-plan*.png` include 360 dp shots with large text.
+- Checks: tsc, eslint and the whole jest suite. The emulator shots have not been reviewed yet.

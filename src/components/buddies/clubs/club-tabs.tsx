@@ -3,16 +3,21 @@
  * part so a later stage can swap one (walk plans, shared goals) without
  * touching the club screen. Theme roles and Spacing only.
  */
+import { useRouter } from 'expo-router';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
-import { EmptyState, Surface, ToggleRow } from '@/components/ui';
+import { Button, EmptyState, ListRow, Surface, ToggleRow } from '@/components/ui';
 import { boardRows } from '@/buddies/clubs';
+import { planLine, standWord, upcoming } from '@/buddies/plans';
 import { displayName } from '@/buddies/read';
 import type { Club } from '@/buddies/types';
 import { useBoard } from '@/buddies/use-clubs';
+import { usePlans } from '@/buddies/use-plans';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { useClock } from '@/hooks/use-clock';
+import { useClockStyle } from '@/hooks/use-clock-style';
 import { useTheme } from '@/hooks/use-theme';
 
 import { ChatBody } from '../chat-body';
@@ -31,11 +36,39 @@ export function ClubChatTab({ club, show, onReportMessage }: { club: Club; show:
   return <ChatBody chatKey={`c.${club.clubId}`} name={club.name} group show={show} onReportMessage={onReportMessage} />;
 }
 
-/** Planned walks: the next stage fills this tab. */
-export function ClubWalksTab() {
+/** The club's planned walks, soonest first, and Plan a club walk (T16e). Any member can plan one. */
+export function ClubWalksTab({ club }: { club: Club }) {
+  const router = useRouter();
+  const plans = usePlans();
+  const now = useClock().now;
+  const clock = useClockStyle();
+  const list = upcoming((plans.data ?? []).filter((p) => p.club?.clubId === club.clubId), now);
   return (
-    <TabScroll>
-      <EmptyState icon="walk-outline" title="Planned walks" hint="Planning walks with your club comes next: a time, a meeting point and who's coming." />
+    <TabScroll onRefresh={plans.refresh}>
+      <Button label="Plan a club walk" onPress={() => router.push({ pathname: '/buddies/plan/new', params: { club: club.clubId } } as never)} />
+      {plans.error ? (
+        <ThemedText themeColor="error" style={styles.gap}>
+          {plans.error}
+        </ThemedText>
+      ) : null}
+      {plans.data && !list.length ? (
+        <EmptyState icon="walk-outline" title="No walks planned" hint="Pick a time and a meeting place. Everyone in the club can see it and say if they're going." />
+      ) : null}
+      {list.length ? (
+        <Surface level={1} style={[styles.list, styles.gap]}>
+          {list.map((p, i) => (
+            <ListRow
+              key={p.planId}
+              title={p.place}
+              supporting={planLine(p, now, clock)}
+              trailingText={standWord(p) || undefined}
+              chevron
+              onPress={() => router.push({ pathname: '/buddies/plan/[id]', params: { id: p.planId } } as never)}
+              last={i === list.length - 1}
+            />
+          ))}
+        </Surface>
+      ) : null}
     </TabScroll>
   );
 }

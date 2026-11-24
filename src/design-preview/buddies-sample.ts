@@ -1,6 +1,8 @@
 /** Sample Walk buddies data for the design preview: no network. */
 import type { SocialApi } from '@/buddies/api';
-import type { Club, ClubCard, ClubMember, ChatRow, Message, Walker } from '@/buddies/types';
+import { atDayTime } from '@/buddies/plans';
+import type { Club, ClubCard, ClubMember, ChatRow, Message, Plan, PlanInvitee, Walker } from '@/buddies/types';
+import { addDaysToKey, dayKey } from '@/lib/dates';
 
 const NOW = Date.now();
 const MIN = 60_000;
@@ -107,6 +109,77 @@ const MESSAGES: Message[] = [
   msg('m3', false, 'Nice. Park at 6:30 tomorrow?', 8),
 ];
 
+// Walk plans (T16e): one I organise, one I'm invited to, one for the club.
+const dayFromNow = (n: number) => addDaysToKey(dayKey(new Date(NOW)), n);
+
+/** The plan I organise (&id=PLN000000001): a buddy plan, two going, one can't, one waiting. */
+export const SAMPLE_PLAN_ID = 'PLN000000001';
+/** A plan Ravi invited me to (&id=PLN000000002). */
+export const SAMPLE_INVITED_PLAN_ID = 'PLN000000002';
+
+const PLANS: Plan[] = [
+  {
+    planId: SAMPLE_PLAN_ID,
+    organiser: me,
+    club: null,
+    startsAt: atDayTime(dayFromNow(1), 6 * 60 + 30),
+    tz: 'Asia/Kolkata',
+    place: 'KBR Park main gate',
+    note: 'One loop, about 45 minutes. Water at the gate.',
+    status: 'on',
+    myAnswer: 'going',
+    going: 2,
+    notGoing: 1,
+  },
+  {
+    planId: SAMPLE_INVITED_PLAN_ID,
+    organiser: ravi,
+    club: null,
+    startsAt: atDayTime(dayFromNow(3), 18 * 60),
+    tz: 'Asia/Kolkata',
+    place: 'Necklace Road, Sanjeevaiah Park side',
+    note: 'Easy pace, back by 7.',
+    status: 'on',
+    myAnswer: 'none',
+    going: 1,
+    notGoing: 0,
+  },
+  {
+    planId: 'PLN000000003',
+    organiser: ravi,
+    club: { clubId: SAMPLE_CLUB_ID, name: 'KBR Morning Walkers' },
+    startsAt: atDayTime(dayFromNow(5), 6 * 60),
+    tz: 'Asia/Kolkata',
+    place: 'KBR Park, gate 3',
+    note: 'Sunday long walk, two loops.',
+    status: 'on',
+    myAnswer: 'going',
+    going: 6,
+    notGoing: 2,
+  },
+];
+
+const INVITEES: Record<string, PlanInvitee[]> = {
+  [SAMPLE_PLAN_ID]: [
+    { walker: ravi, answer: 'going' },
+    { walker: lakshmi, answer: 'going' },
+    { walker: meera, answer: 'not_going' },
+    { walker: { ...asha, relation: 'buddy' }, answer: 'none' },
+  ],
+  [SAMPLE_INVITED_PLAN_ID]: [
+    { walker: me, answer: 'none' },
+    { walker: meera, answer: 'going' },
+  ],
+  PLN000000003: [
+    { walker: ravi, answer: 'going' },
+    { walker: me, answer: 'going' },
+    { walker: lakshmi, answer: 'going' },
+    { walker: arjun, answer: 'not_going' },
+  ],
+};
+
+const planById = (id: string) => PLANS.find((p) => p.planId === id) ?? PLANS[0];
+
 const ok = async () => undefined;
 
 export const SAMPLE_SOCIAL_API: SocialApi = {
@@ -189,4 +262,11 @@ export const SAMPLE_SOCIAL_API: SocialApi = {
   newClubCode: async () => ({ code: 'K7QM2XPA', codeExpiresAt: NOW + 48 * 60 * MIN }),
   clubByCode: async () => cardOf(NRS),
   putSteps: async () => true,
+
+  plans: async () => PLANS,
+  plan: async (id) => ({ plan: planById(id), invitees: INVITEES[planById(id).planId] ?? [] }),
+  createPlan: async (f) => ({ ...PLANS[0], startsAt: f.startsAt, place: f.place, note: f.note }),
+  updatePlan: async (id, p) => ({ ...planById(id), ...(p.startsAt ? { startsAt: p.startsAt } : {}), ...(p.place ? { place: p.place } : {}) }),
+  cancelPlan: async (id) => ({ ...planById(id), status: 'cancelled' }),
+  answerPlan: async (id, answer) => ({ ...planById(id), myAnswer: answer }),
 };
