@@ -3,7 +3,8 @@
  * them (Mark done / Undo, or the phone's count). The captain and
  * vice-captains also see each goal's "9 of 12 done", New goal, and open a
  * goal for who did it. A member who joined before goals were on gets the
- * tracking switch. Theme roles and Spacing only; no red, neutral words.
+ * tracking switch; turning it on first shows the goals consent, and only its
+ * Turn on tracking sends anything. Theme roles and Spacing only; no red, neutral words.
  */
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -17,6 +18,7 @@ import { useClubGoals } from '@/buddies/use-goals';
 import { Spacing } from '@/constants/theme';
 import { useClockStyle } from '@/hooks/use-clock-style';
 
+import { GoalsConsent } from '../clubs/club-parts';
 import { GoalNote, GroupTitle, MyGoalRow, StaffGoalRow, TrackingSwitch } from './goal-parts';
 
 export const STOP_TRACKING = 'Stop tracking goals here?';
@@ -27,6 +29,8 @@ export function GoalsTabBody({ club, show }: { club: Club; show: (m: string | nu
   const clock = useClockStyle();
   const g = useClubGoals(club);
   const [stopAsk, setStopAsk] = useState(false);
+  // The goals consent, opened by the tracking switch; only its button turns tracking on.
+  const [consentAsk, setConsentAsk] = useState(false);
   const data = g.data;
 
   if (!club.goals) {
@@ -44,7 +48,11 @@ export function GoalsTabBody({ club, show }: { club: Club; show: (m: string | nu
   const later = data.goals.length - due.length;
   const openGoal = (goalId: string) => router.push({ pathname: '/buddies/club/[id]/goal/[goalId]', params: { id: club.clubId, goalId } } as never);
   const newGoal = () => router.push({ pathname: '/buddies/club/[id]/goal/new', params: { id: club.clubId } } as never);
-  const consent = async (on: boolean) => show((await g.setConsent(on)) ?? (on ? 'Goal tracking is on.' : 'Goal tracking is off.'));
+  const consent = async (on: boolean) => {
+    const err = await g.setConsent(on);
+    if (on && !err) setConsentAsk(false);
+    show(err ?? (on ? 'Goal tracking is on.' : 'Goal tracking is off.'));
+  };
 
   return (
     <View>
@@ -71,13 +79,24 @@ export function GoalsTabBody({ club, show }: { club: Club; show: (m: string | nu
           )}
           {later > 0 && due.length ? <GoalNote text={later === 1 ? '1 more goal on other days.' : `${later} more goals on other days.`} /> : null}
         </>
+      ) : consentAsk ? (
+        <>
+          <GroupTitle title="Goal tracking" first />
+          <GoalsConsent
+            club={club}
+            joinLabel="Turn on tracking"
+            busy={g.busy === 'consent'}
+            onJoin={() => void consent(true)}
+            onNotNow={() => setConsentAsk(false)}
+          />
+        </>
       ) : (
         <>
           <GroupTitle title="Goal tracking" first />
           <ThemedText maxFontSizeMultiplier={1.3} style={styles.para}>
             {`${club.name} has shared goals. Turn on tracking to mark them done.`}
           </ThemedText>
-          <TrackingSwitch on={false} busy={g.busy === 'consent'} onChange={(on) => void consent(on)} />
+          <TrackingSwitch on={false} busy={g.busy === 'consent'} onChange={(on) => on && setConsentAsk(true)} />
         </>
       )}
 

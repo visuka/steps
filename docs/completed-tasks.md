@@ -338,3 +338,17 @@ Not committed. No server or AWS change. Nothing is removed from any count.
 - Plain `Btn` tap area is 48 dp or more (hitSlop 11 above and below); the look is unchanged.
 - Preview: new CI capture lines for the club as a visitor and as invited, Edit club, Change a walk, a club walk form, and 360 dp large-text shots of a club as a visitor, Find walkers and Requests. docs/walk-buddies.md section 10 marks T16e, T16f, QR and goals as built (app), and the new section 13 holds the goals and club QR contract, screens, retention and every preview link.
 - Checks: tsc, eslint and the whole jest suite. The emulator shots have not been reviewed yet (nothing pushed), and the server is not deployed.
+
+## 24 Nov 2026 — Buddies review fixes (consent, premium lapse, small things)
+
+- Goal tracking: the tracking switch (club Goals tab and My goals) no longer turns tracking on in one tap. It opens the goals consent, and only its "Turn on tracking" sends `PUT /goals/consent {on: true}`. Off still asks first.
+- The consent words now match what is shared: done or not done and the time it was marked, this week's days and whether ever done, the step total for step goals only, and the walker ID (a name only to buddies). New lines: the phone marks steps, walk, water and sleep goals; captains can send a gentle reminder (off in My goals); how to turn tracking off or leave. Delete club and Remove member now say the goal history is deleted too.
+- Without Premium: Buddies shows the premium card and then "Your clubs" with Leave club and Stop goal tracking (both free on the server; `GET /clubs/mine` is now free too). A club screen opened without Premium shows the same for that club. Preview screen `plus-locked`, CI shots `smoke/clean-plus-locked*.png`.
+- Joining: if the captain turned goals on after the page loaded (409 goals_consent), the app opens the consent screen instead of an error (club screen, Requests and Scan). `isConsentError` in clubs.ts, tested.
+- Club chat: reporting a message can also block its sender ("Report message from @handle").
+- Club codes typed with look-alike letters (O, I, L, U) are read as the server reads them (tested).
+- Phone numbers for goals: water, sleep and walks are read once per day and data change; a live step change only updates the steps.
+- Look: load errors in the Buddies screens are grey, not red; Cancelled walk pill is the plain tint; touch heights use `TouchTarget`, the goal badge uses the avatar size; the vice-captain list no longer repeats "@handle" for strangers.
+- CI: new shots for Invite a buddy, Enter a club code (`qr-scan &typing=1`), the club safety tips (`club &tips=1`), and 360 dp large-text shots of running a club, Invite a buddy, club chat, Find a club, an invited club, Enter a club code and the club tips.
+- Server (stepsinfra, local git, not deployed): `myRole` on `GET /clubs/mine`; hidden clubs stay visible to someone who asked with the code; the board takes each walker's own Monday; reminders don't use up the day when no one gets one, and show the goal title only to people who chose message text; push routes match the app (`/buddies/club/<id>`, `/buddies/plan/<id>`).
+- Checks: tsc and the whole jest suite; server unittest (the two failures in test_auth_stack and test_cooking_golden were already there and are not about Buddies). The emulator shots have not been reviewed yet (nothing pushed).

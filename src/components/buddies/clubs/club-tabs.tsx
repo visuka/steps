@@ -12,10 +12,10 @@ import { Button, EmptyState, ListRow, Surface, ToggleRow } from '@/components/ui
 import { boardRows } from '@/buddies/clubs';
 import { planLine, standWord, upcoming } from '@/buddies/plans';
 import { displayName } from '@/buddies/read';
-import type { Club } from '@/buddies/types';
+import type { Club, Message } from '@/buddies/types';
 import { useBoard } from '@/buddies/use-clubs';
 import { usePlans } from '@/buddies/use-plans';
-import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { MaxContentWidth, Spacing, TouchTarget } from '@/constants/theme';
 import { useClock } from '@/hooks/use-clock';
 import { useClockStyle } from '@/hooks/use-clock-style';
 import { useTheme } from '@/hooks/use-theme';
@@ -33,7 +33,15 @@ export const CLUB_TABS: { value: ClubTab; text: string }[] = [
 export const isClubTab = (v: unknown): v is ClubTab => CLUB_TABS.some((t) => t.value === v);
 
 /** The club chat: the buddy chat's body on key c.<clubId>, with each sender's @handle. */
-export function ClubChatTab({ club, show, onReportMessage }: { club: Club; show: (m: string | null) => void; onReportMessage: (ref: string) => void }) {
+export function ClubChatTab({
+  club,
+  show,
+  onReportMessage,
+}: {
+  club: Club;
+  show: (m: string | null) => void;
+  onReportMessage: (ref: string, author: Message['from']) => void;
+}) {
   return <ChatBody chatKey={`c.${club.clubId}`} name={club.name} group show={show} onReportMessage={onReportMessage} />;
 }
 
@@ -48,7 +56,7 @@ export function ClubWalksTab({ club }: { club: Club }) {
     <TabScroll onRefresh={plans.refresh}>
       <Button label="Plan a club walk" onPress={() => router.push({ pathname: '/buddies/plan/new', params: { club: club.clubId } } as never)} />
       {plans.error ? (
-        <ThemedText themeColor="error" style={styles.gap}>
+        <ThemedText themeColor="onSurfaceVariant" style={styles.gap}>
           {plans.error}
         </ThemedText>
       ) : null}
@@ -100,7 +108,7 @@ export function ClubBoardTab({ club, onBoard }: { club: Club; onBoard: (on: bool
         This week (Mon–Sun). Only members who turn it on.
       </ThemedText>
       {board.error ? (
-        <ThemedText themeColor="error" style={styles.gap}>
+        <ThemedText themeColor="onSurfaceVariant" style={styles.gap}>
           {board.error}
         </ThemedText>
       ) : null}
@@ -157,6 +165,6 @@ const styles = StyleSheet.create({
   pad: { paddingHorizontal: Spacing.four, paddingTop: Spacing.three, width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },
   list: { overflow: 'hidden' },
   gap: { marginTop: Spacing.three },
-  row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, minHeight: 48, paddingVertical: Spacing.two, paddingHorizontal: Spacing.three },
+  row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, minHeight: TouchTarget, paddingVertical: Spacing.two, paddingHorizontal: Spacing.three },
   rank: { minWidth: Spacing.four, textAlign: 'right' },
 });

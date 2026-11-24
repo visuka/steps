@@ -44,7 +44,7 @@ function JoinById() {
         {c.club ? (
           <GoalsConsent club={c.club} busy={busy} onJoin={join} onNotNow={back} />
         ) : c.error ? (
-          <ThemedText themeColor="error">{c.error}</ThemedText>
+          <ThemedText themeColor="onSurfaceVariant">{c.error}</ThemedText>
         ) : (
           <ThemedText themeColor="onSurfaceVariant">—</ThemedText>
         )}
@@ -75,7 +75,7 @@ function JoinWithCode({ code }: { code: string }) {
         {c.card ? (
           <GoalsConsent club={c.card} busy={busy} onJoin={join} onNotNow={back} />
         ) : c.error ? (
-          <ThemedText themeColor="error">{c.error}</ThemedText>
+          <ThemedText themeColor="onSurfaceVariant">{c.error}</ThemedText>
         ) : (
           <ThemedText themeColor="onSurfaceVariant">—</ThemedText>
         )}

@@ -157,6 +157,9 @@ export function searchReady(q: string): boolean {
 /** Joining this club first shows the goals consent screen. */
 export const needsConsent = (c: Pick<ClubCard, 'goals'>) => c.goals;
 
+/** The server's 409 goals_consent: the club turned on shared goals after the phone last looked. */
+export const isConsentError = (e: unknown) => e instanceof SocialError && e.why === 'goals_consent';
+
 /** Plain words for a club error, by the server's `why` when it gave one. */
 export function clubErrorText(e: unknown): string {
   if (!(e instanceof SocialError)) return 'Something went wrong. Try again.';

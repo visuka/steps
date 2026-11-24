@@ -10,6 +10,7 @@ import { Btn, Label, Note, plainStyles as ps, Tile, Words } from '@/components/p
 import { PLAIN } from '@/components/plain/plain-theme';
 import { planLine, standWord } from '@/buddies/plans';
 import type { Plan } from '@/buddies/types';
+import { TouchTarget } from '@/constants/theme';
 import { scaled } from '@/constants/ui-scale';
 import type { ClockStyle } from '@/lib/when';
 
@@ -71,6 +72,7 @@ function PlanLine({ p, line, onPress }: { p: Plan; line: string; onPress: () => 
 }
 
 const styles = StyleSheet.create({
-  line: { paddingVertical: S(8), minHeight: 48 },
+  // The touch floor stays 48 dp at every scale.
+  line: { paddingVertical: S(8), minHeight: TouchTarget },
   text: { flex: 1, minWidth: 0 },
 });

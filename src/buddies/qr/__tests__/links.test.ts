@@ -33,7 +33,7 @@ describe('Steps QR links', () => {
       'neutcraftssteps://w/ravi_walks/extra',
       'neutcraftssteps://w/admin',
       'neutcraftssteps://w/%E0%A4',
-      'neutcraftssteps://c/K7QM2XPU',
+      'neutcraftssteps://c/K7QM2XP_',
       'neutcraftssteps://c/K7QM2XP',
       'neutcraftssteps://x/ravi_walks',
       'othersteps://w/ravi_walks',
@@ -46,7 +46,11 @@ describe('Steps QR links', () => {
   it('cleans a typed club code', () => {
     expect(cleanClubCode(' k7qm 2xpa ')).toBe('K7QM2XPA');
     expect(cleanClubCode('K7QM-2XPA')).toBe('K7QM2XPA');
-    expect(cleanClubCode('K7QM2XPO')).toBeNull();
+    expect(cleanClubCode('K7QM2XP!')).toBeNull();
+    // Look-alike letters are read as the server reads them: I and L are 1, O is 0, U is V.
+    expect(cleanClubCode('k7qm 2xpo')).toBe('K7QM2XP0');
+    expect(cleanClubCode('i7qm-l2xu')).toBe('17QM12XV');
+    expect(parseQrText('neutcraftssteps://c/K7QM2XPU')).toEqual({ kind: 'club', code: 'K7QM2XPV' });
     expect(cleanClubCode('K7QM2XPAA')).toBeNull();
     expect(spacedCode('K7QM2XPA')).toBe('K7QM 2XPA');
   });

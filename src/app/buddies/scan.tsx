@@ -25,7 +25,8 @@ const BAD_CODE = "That club code isn't right. Check it with the captain.";
  * preview) opens that club's card without the camera.
  */
 export default function ScanQr() {
-  const { code: codeParam } = useLocalSearchParams<{ code?: string }>();
+  // &typing=1 opens the Enter a club code sheet (the design preview photographs it).
+  const { code: codeParam, typing: typingParam } = useLocalSearchParams<{ code?: string; typing?: string }>();
   const router = useRouter();
   const { me } = useSocialMe();
   const myHandle = me && me.joined ? me.handle : null;
@@ -33,7 +34,7 @@ export default function ScanQr() {
   const [camera, setCamera] = useState(!linked);
   const [club, setClub] = useState<string | null>(linked);
   const [hint, setHint] = useState<string | null>(codeParam && !linked ? BAD_CODE : null);
-  const [typing, setTyping] = useState(false);
+  const [typing, setTyping] = useState(typingParam === '1');
   const [typed, setTyped] = useState('');
   const [busy, setBusy] = useState(false);
   const found = useClubByCode(club);
@@ -71,6 +72,10 @@ export default function ScanQr() {
     setBusy(true);
     const r = await found.join(false);
     setBusy(false);
+    if (r.state === 'needs_consent') {
+      setClub(null);
+      return router.push({ pathname: '/buddies/club/[id]/join', params: { id: card.clubId, code: club } } as never);
+    }
     if (r.err) return show(r.err);
     if (r.state === 'member') {
       show(`You're in ${card.name}.`);

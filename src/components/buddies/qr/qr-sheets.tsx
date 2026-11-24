@@ -71,7 +71,7 @@ export function ClubQrSheet({ visible, onClose, clubId, clubName }: { visible: b
           Works for 48 hours. You approve every member.
         </ThemedText>
         {code && error ? (
-          <ThemedText themeColor="error" style={styles.mid}>
+          <ThemedText themeColor="onSurfaceVariant" style={styles.mid}>
             {error}
           </ThemedText>
         ) : null}
@@ -121,7 +121,7 @@ export function ClubCardSheet({
       ) : (
         <ThemedText themeColor={error ? 'error' : 'onSurfaceVariant'}>{error ?? '—'}</ThemedText>
       )}
-      {card && error ? <ThemedText themeColor="error">{error}</ThemedText> : null}
+      {card && error ? <ThemedText themeColor="onSurfaceVariant">{error}</ThemedText> : null}
       {button ? <Button label={button} loading={busy} onPress={onAction} /> : null}
       <Button label={action === 'asked' || !card ? 'Done' : 'Not now'} variant="text" onPress={onClose} />
     </Sheet>

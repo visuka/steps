@@ -19,13 +19,16 @@
  * The club screen also takes seg=chat|walks|goals|board (the tab it opens on), and the club
  * screens their id=<clubId> (design-preview/buddies-sample.ts), read by the screen itself.
  * The plan screen takes id=<planId> (PLN000000001: mine; PLN000000002: I'm invited), and
- * plan-new takes tips=1: the form with the safety tips sheet open over it (T16e).
+ * plan-new takes tips=1: the form with the safety tips sheet open over it (T16e); club takes
+ * tips=1 too: the club's safety tips over the club.
  * QR invites: buddies-qr is Buddies with My QR open; qr-scan is the scanner (&code=K7QM2XPA:
- * a club's card, without the camera); club-admin takes qr=1 (the Club QR open) and club-join
+ * a club's card, without the camera; &typing=1: the Enter a club code sheet open); club-admin
+ * takes qr=1 (the Club QR open) and invite=1 (Invite a buddy open), and club-join
  * code=<code> (the goals consent for a club found by its code). Those screens read them themselves.
  * Shared goals: goal takes id=<clubId>&goalId=<goalId> (KBR000000001, GL0000000001), goal-new
  * id=<clubId> and goal=<goalId> to change one; club &seg=goals with id=HPW000000004 is a member's
  * tab and id=SRN000000005 the goal tracking switch. Those screens read them themselves.
+ * plus-locked is Buddies as it is without Premium, over the sample clubs.
  * Every screen also takes part=dawn|noon|dusk: Today and the bar in that part's colours
  * instead of the clock's (T18).
  * Plain string work only: React Native's URLSearchParams has no get().
@@ -79,6 +82,8 @@ export const PREVIEW_SCREENS = [
   'goal',
   'goal-new',
   'my-goals',
+  // Buddies without Premium: the premium card and Your clubs (Leave club, Stop goal tracking).
+  'plus-locked',
 ] as const;
 export type PreviewScreen = (typeof PREVIEW_SCREENS)[number];
 
@@ -99,7 +104,7 @@ export interface PreviewParams {
   part?: DayPart;
   /** The club screen's tab; only set when screen is 'club' and the link names one. */
   seg?: ClubSeg;
-  /** Plan a walk with the safety tips sheet open; only set when screen is 'plan-new'. */
+  /** The safety tips sheet open; only set when screen is 'plan-new' (Plan a walk) or 'club' (a club's tips). */
   tips?: boolean;
 }
 
@@ -123,8 +128,9 @@ export function parsePreviewParams(raw: RawParams): PreviewParams | null {
   if (screen === 'food' && first(raw.edit) === '1') return { theme: theme as ThemeId, screen, edit: true, ...part };
   if (screen === 'plan-new' && first(raw.tips) === '1') return { theme: theme as ThemeId, screen, tips: true, ...part };
   const seg = first(raw.seg);
-  if (screen === 'club' && (CLUB_SEGS as readonly (string | undefined)[]).includes(seg)) return { theme: theme as ThemeId, screen, seg: seg as ClubSeg, ...part };
-  return { theme: theme as ThemeId, screen: screen as PreviewScreen, ...part };
+  const clubTips = screen === 'club' && first(raw.tips) === '1' ? { tips: true } : {};
+  if (screen === 'club' && (CLUB_SEGS as readonly (string | undefined)[]).includes(seg)) return { theme: theme as ThemeId, screen, seg: seg as ClubSeg, ...clubTips, ...part };
+  return { theme: theme as ThemeId, screen: screen as PreviewScreen, ...clubTips, ...part };
 }
 
 /** The link that opens the preview, e.g. neutcraftssteps://design-preview?theme=e&screen=today. */
@@ -133,7 +139,7 @@ export function previewUrl(scheme: string, p: PreviewParams): string {
   const edit = p.screen === 'food' ? (p.mine ? '&mine=1' : p.edit ? '&edit=1' : '') : '';
   const part = p.part ? `&part=${p.part}` : '';
   const seg = p.screen === 'club' && p.seg ? `&seg=${p.seg}` : '';
-  const tips = p.screen === 'plan-new' && p.tips ? '&tips=1' : '';
+  const tips = (p.screen === 'plan-new' || p.screen === 'club') && p.tips ? '&tips=1' : '';
   return `${scheme}://${PREVIEW_ROUTE}?theme=${p.theme}&screen=${p.screen}${kind}${edit}${seg}${tips}${part}`;
 }
 

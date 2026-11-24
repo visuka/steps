@@ -11,6 +11,7 @@ import { Btn, Caps, Label, Note, plainStyles as ps, Tile, Words } from '@/compon
 import { PLAIN } from '@/components/plain/plain-theme';
 import { clubLine, standWordOf } from '@/buddies/clubs';
 import type { ClubCard } from '@/buddies/types';
+import { TouchTarget } from '@/constants/theme';
 import { scaled } from '@/constants/ui-scale';
 
 const S = scaled;
@@ -85,7 +86,8 @@ function ClubLine({ c, goal, onPress }: { c: ClubCard; goal: string | null; onPr
 }
 
 const styles = StyleSheet.create({
-  line: { paddingVertical: S(8), minHeight: 48 },
+  // The touch floor stays 48 dp at every scale.
+  line: { paddingVertical: S(8), minHeight: TouchTarget },
   text: { flex: 1, minWidth: 0 },
   av: { width: S(40), height: S(40), borderRadius: S(20), backgroundColor: PLAIN.chip, alignItems: 'center', justifyContent: 'center' },
 });

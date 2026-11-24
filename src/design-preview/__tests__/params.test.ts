@@ -59,7 +59,7 @@ describe('parsePreviewParams', () => {
   });
 
   it('has the shared goal screens, which read their own id, goalId and goal params', () => {
-    for (const screen of ['goal', 'goal-new', 'my-goals']) expect(PREVIEW_SCREENS).toContain(screen);
+    for (const screen of ['goal', 'goal-new', 'my-goals', 'plus-locked']) expect(PREVIEW_SCREENS).toContain(screen);
     expect(parsePreviewParams({ theme: 'e', screen: 'goal', id: 'KBR000000001', goalId: 'GL0000000001' })).toEqual({ theme: 'e', screen: 'goal' });
     expect(parsePreviewParams({ theme: 'e', screen: 'goal-new', goal: 'GL0000000001', seg: 'goals' })).toEqual({ theme: 'e', screen: 'goal-new' });
     const p = { theme: 'e', screen: 'my-goals' } as const;
@@ -72,6 +72,10 @@ describe('parsePreviewParams', () => {
     expect(parsePreviewParams({ theme: 'e', screen: 'plan-new', tips: '1' })).toEqual({ theme: 'e', screen: 'plan-new', tips: true });
     expect(parsePreviewParams({ theme: 'e', screen: 'plan-new', tips: 'yes' })).toEqual({ theme: 'e', screen: 'plan-new' });
     expect(parsePreviewParams({ theme: 'e', screen: 'plan', tips: '1' })).toEqual({ theme: 'e', screen: 'plan' });
+    // A club's safety tips, over a tab too.
+    expect(parsePreviewParams({ theme: 'e', screen: 'club', tips: '1' })).toEqual({ theme: 'e', screen: 'club', tips: true });
+    expect(parsePreviewParams({ theme: 'e', screen: 'club', seg: 'chat', tips: '1' })).toEqual({ theme: 'e', screen: 'club', seg: 'chat', tips: true });
+    expect(previewUrl(SCHEME, { theme: 'e', screen: 'club', seg: 'chat', tips: true })).toBe('neutcraftssteps://design-preview?theme=e&screen=club&seg=chat&tips=1');
     const p = { theme: 'e', screen: 'plan-new', tips: true } as const;
     expect(previewUrl(SCHEME, p)).toBe('neutcraftssteps://design-preview?theme=e&screen=plan-new&tips=1');
     expect(parsePreviewUrl(previewUrl(SCHEME, p))).toEqual(p);

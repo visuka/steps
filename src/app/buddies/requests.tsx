@@ -6,7 +6,7 @@ import { PersonRow, SectionTitle, useSnack } from '@/components/buddies/parts';
 import { PremiumGate } from '@/components/premium-gate';
 import { ThemedText } from '@/components/themed-text';
 import { Button, EmptyState, Screen, Snackbar, Surface } from '@/components/ui';
-import { clubErrorText, joinOrAccept } from '@/buddies/clubs';
+import { clubErrorText, isConsentError, joinOrAccept } from '@/buddies/clubs';
 import type { ClubCard } from '@/buddies/types';
 import { attempt, useLoad, useSocialApi } from '@/buddies/use-buddies';
 import { Spacing } from '@/constants/theme';
@@ -32,11 +32,14 @@ export default function Requests() {
 
   // A club with shared goals shows its goals consent first; nothing is sent until Join there.
   const joinClub = async (c: ClubCard) => {
-    if (c.goals) return router.push({ pathname: '/buddies/club/[id]/join', params: { id: c.clubId } } as never);
+    const consent = () => router.push({ pathname: '/buddies/club/[id]/join', params: { id: c.clubId } } as never);
+    if (c.goals) return consent();
     try {
       await joinOrAccept(api, c);
       show(`You're in ${c.name}.`);
     } catch (e) {
+      // The captain turned goals on since this list loaded: the consent comes first.
+      if (isConsentError(e)) return consent();
       show(clubErrorText(e));
     }
     await refresh();
@@ -53,7 +56,7 @@ export default function Requests() {
   return (
     <PremiumGate feature={SCREEN_FEATURES.buddies} title="Requests" onBack={back}>
       <Screen title="Requests" onBack={back} onRefresh={refresh} refreshing={false} overlay={<Snackbar message={snack} onDismiss={dismiss} />}>
-        {error ? <ThemedText themeColor="error">{error}</ThemedText> : null}
+        {error ? <ThemedText themeColor="onSurfaceVariant">{error}</ThemedText> : null}
         {data && !incoming.length && !outgoing.length && !clubInvites.length ? <EmptyState icon="notifications-outline" title="No requests" hint="When someone asks to be your buddy, it shows here." /> : null}
         {incoming.length ? (
           <>

@@ -5,16 +5,18 @@
  * the repo. Multi-step rules live in clubs.ts and steps-share.ts.
  */
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 
 import { useClock } from '@/hooks/use-clock';
 import { useApp } from '@/state/app-state';
 
-import { clubErrorText, joinOrAccept, searchReady } from './clubs';
+import { clubErrorText, isConsentError, joinOrAccept, searchReady } from './clubs';
 import { rememberBoard, sendSteps } from './steps-share';
 import type { ClubCard, ClubForm, ReportReason } from './types';
-import { useLoad, useSocialApi } from './use-buddies';
+import { useLoad, useSocialApi, useSocialMe } from './use-buddies';
+
+type JoinState = Awaited<ReturnType<typeof joinOrAccept>>;
 
 /** Run an action; returns plain words for the snackbar on failure, or null. */
 async function tryClub(action: () => Promise<unknown>): Promise<string | null> {
@@ -30,6 +32,57 @@ async function tryClub(action: () => Promise<unknown>): Promise<string | null> {
 export function useMyClubs() {
   const api = useSocialApi();
   return useLoad(api.myClubs);
+}
+
+/**
+ * My clubs while Buddies is locked (premium ended): GET /clubs/mine stays free, and so
+ * do leaving a club and stopping goal tracking (server handler.py), so a member can
+ * always take back their goals consent. Nothing is read before joining Walk buddies.
+ */
+export function useLockedClubs() {
+  const api = useSocialApi();
+  const { repo } = useApp();
+  const { me } = useSocialMe();
+  const joined = !!me?.joined;
+  const load = useCallback(async () => (joined ? api.myClubs() : ([] as ClubCard[])), [api, joined]);
+  const state = useLoad(load);
+  const { refresh } = state;
+  const [busy, setBusy] = useState<string | null>(null);
+  // The saved walker is read after the first look: look again once it says joined.
+  useEffect(() => {
+    if (joined) void refresh();
+  }, [joined, refresh]);
+
+  const leave = useCallback(
+    async (id: string): Promise<string | null> => {
+      setBusy(`leave/${id}`);
+      try {
+        const err = await tryClub(() => api.leaveClub(id));
+        if (!err) {
+          await rememberBoard(repo, id, false).catch(() => undefined);
+          await refresh();
+        }
+        return err;
+      } finally {
+        setBusy(null);
+      }
+    },
+    [api, repo, refresh],
+  );
+
+  const stopTracking = useCallback(
+    async (id: string): Promise<string | null> => {
+      setBusy(`goals/${id}`);
+      try {
+        return await tryClub(() => api.setGoalsConsent(id, false));
+      } finally {
+        setBusy(null);
+      }
+    },
+    [api],
+  );
+
+  return { clubs: state.data, error: state.error, busy, leave, stopTracking };
 }
 
 /** Club search: a query, the cards found, and whether a search has run. */
@@ -77,16 +130,26 @@ export function useClub(id: string) {
   const page = useLoad(load);
   const club = page.data?.club ?? null;
 
-  /** Ask to join or accept an invite; a club with goals sends nothing until `consent`. */
+  /**
+   * Ask to join or accept an invite; a club with goals sends nothing until `consent`.
+   * When the captain turned goals on after the last load (409 goals_consent), the
+   * page is read again and the state is 'needs_consent', so the caller opens the consent.
+   */
   const join = useCallback(
-    async (o: { consent?: boolean; code?: string } = {}) => {
+    async (o: { consent?: boolean; code?: string } = {}): Promise<{ err: string | null; state: JoinState | null }> => {
       if (!club) return { err: null, state: null };
-      const box: { state: Awaited<ReturnType<typeof joinOrAccept>> | null } = { state: null };
-      const err = await tryClub(async () => {
-        box.state = await joinOrAccept(api, club, o);
-      });
-      if (!err && box.state !== 'needs_consent') await page.refresh();
-      return { err, state: box.state };
+      let state: JoinState;
+      try {
+        state = await joinOrAccept(api, club, o);
+      } catch (e) {
+        if (isConsentError(e)) {
+          await page.refresh();
+          return { err: null, state: 'needs_consent' };
+        }
+        return { err: clubErrorText(e), state: null };
+      }
+      if (state !== 'needs_consent') await page.refresh();
+      return { err: null, state };
     },
     [api, club, page],
   );

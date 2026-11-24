@@ -8,7 +8,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { useApp } from '@/state/app-state';
 
-import { clubErrorText, joinOrAccept } from './clubs';
+import { clubErrorText, isConsentError, joinOrAccept } from './clubs';
 import { CLUB_CODES_KEY, liveCode, readSavedCodes, withCode } from './qr/club-code';
 import type { ClubCard, ClubCode } from './types';
 import { useSocialApi } from './use-buddies';
@@ -95,6 +95,11 @@ export function useClubByCode(code: string | null) {
         if (state !== 'needs_consent') setFound({ code, card: { ...card, myState: state }, error: null });
         return { err: null, state };
       } catch (e) {
+        // Goals were turned on after the card was read: the caller opens the consent.
+        if (isConsentError(e)) {
+          setFound({ code, card: { ...card, goals: true }, error: null });
+          return { err: null, state: 'needs_consent' };
+        }
         return { err: clubErrorText(e), state: null };
       }
     },

@@ -8,23 +8,26 @@ import { useSnack } from '@/components/buddies/parts';
 import { SafetySheet } from '@/components/buddies/plans/safety-sheet';
 import { ReportSheet } from '@/components/buddies/report-sheet';
 import { PlainGround, Segments } from '@/components/plain/plain-kit';
-import { PremiumGate } from '@/components/premium-gate';
+import { LockedClubs } from '@/components/buddies/clubs/locked-clubs';
+import { PremiumCard } from '@/components/premium-gate';
 import { ThemedText } from '@/components/themed-text';
-import { Button, Dialog, IconButton, ListRow, Sheet, Snackbar } from '@/components/ui';
+import { Button, Dialog, IconButton, ListRow, Screen, Sheet, Snackbar } from '@/components/ui';
 import { can, clubLine, isStaff } from '@/buddies/clubs';
-import type { Club } from '@/buddies/types';
+import type { Club, Message } from '@/buddies/types';
 import { attempt, useSocialApi } from '@/buddies/use-buddies';
 import { useClub, useStepsShare } from '@/buddies/use-clubs';
 import { useSafetyTips } from '@/buddies/use-plans';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { SCREEN_FEATURES } from '@/premium/premium';
+import { usePremium } from '@/state/use-premium';
 
 /**
  * A club (spec T16f): Chat · Walks · Goals · Board for members; for anyone
  * else the club's line, what it is about and Ask to join (or the invite).
  * The menu: members and requests (captain, vice-captains), Invite a buddy,
- * Edit club, Delete club (captain), Report club and Leave club.
+ * Edit club, Delete club (captain), Report club and Leave club. Without
+ * Premium: the premium card, and Leave club / Stop goal tracking, which stay free.
  */
 export default function ClubScreen() {
   const { id, seg } = useLocalSearchParams<{ id: string; seg?: string }>();
@@ -32,12 +35,13 @@ export default function ClubScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const api = useSocialApi();
+  const premium = usePremium();
   const c = useClub(id);
   useStepsShare();
   const [tab, setTab] = useState<ClubTab>(isClubTab(seg) ? seg : 'chat');
   const [menu, setMenu] = useState(false);
   const [ask, setAsk] = useState<'leave' | 'delete' | null>(null);
-  const [report, setReport] = useState<{ kind: 'club' | 'message'; ref: string; label: string } | null>(null);
+  const [report, setReport] = useState<{ kind: 'club' | 'message'; ref: string; label: string; author?: Message['from'] } | null>(null);
   const [busy, setBusy] = useState(false);
   const { snack, show, dismiss } = useSnack();
   const back = () => (router.canGoBack() ? router.back() : router.replace('/plus'));
@@ -56,6 +60,8 @@ export default function ClubScreen() {
     setBusy(true);
     const r = await c.join();
     setBusy(false);
+    // The captain turned goals on since this page loaded: the consent comes first.
+    if (r.state === 'needs_consent') return router.push({ pathname: '/buddies/club/[id]/join', params: { id: club.clubId } });
     show(r.err ?? (r.state === 'member' ? `You're in ${club.name}.` : 'Asked. The captain or a vice-captain will let you in.'));
   };
 
@@ -72,8 +78,17 @@ export default function ClubScreen() {
     router.push({ pathname, params } as never);
   };
 
+  if (premium.isLocked(SCREEN_FEATURES.buddies)) {
+    return (
+      <Screen title={name} onBack={back} overlay={<Snackbar message={snack} onDismiss={dismiss} />}>
+        <PremiumCard />
+        <LockedClubs only={id} show={show} />
+      </Screen>
+    );
+  }
+
   return (
-    <PremiumGate feature={SCREEN_FEATURES.buddies} title={name} onBack={back}>
+    <>
       <KeyboardAvoidingView behavior="padding" style={[styles.fill, { backgroundColor: theme.background }]}>
         <PlainGround />
         <View style={[styles.top, { paddingTop: insets.top + Spacing.one }]}>
@@ -88,7 +103,7 @@ export default function ClubScreen() {
           <View style={styles.pad}>
             {c.error ? (
               <>
-                <ThemedText themeColor="error">{c.error}</ThemedText>
+                <ThemedText themeColor="onSurfaceVariant">{c.error}</ThemedText>
                 <Button label="Try again" variant="text" compact onPress={c.refresh} style={styles.start} />
               </>
             ) : (
@@ -106,7 +121,11 @@ export default function ClubScreen() {
               <Segments parts={CLUB_TABS} value={tab} onChange={setTab} stretch spoken={(v) => `${CLUB_TABS.find((t) => t.value === v)?.text} tab`} />
             </View>
             {tab === 'chat' ? (
-              <ClubChatTab club={club} show={show} onReportMessage={(ref) => setReport({ kind: 'message', ref, label: 'message' })} />
+              <ClubChatTab
+                club={club}
+                show={show}
+                onReportMessage={(ref, author) => setReport({ kind: 'message', ref, label: `message from @${author.handle}`, author })}
+              />
             ) : tab === 'walks' ? (
               <ClubWalksTab club={club} />
             ) : tab === 'goals' ? (
@@ -153,7 +172,7 @@ export default function ClubScreen() {
       <Dialog
         visible={ask === 'delete'}
         title={`Delete ${name}?`}
-        message="The club, its chat and its board are deleted for every member. This can't be undone."
+        message="The club, its chat, board, goals and everyone's goal history are deleted for every member. This can't be undone."
         confirmLabel="Delete"
         danger
         onCancel={() => setAsk(null)}
@@ -169,18 +188,24 @@ export default function ClubScreen() {
       <ReportSheet
         visible={!!report}
         label={report?.label ?? ''}
-        canBlock={false}
+        // A club message's sender can be blocked too (spec 5.1); a block hides each other's club messages (5.4).
+        canBlock={report?.kind === 'message' && !!report.author}
         onClose={() => setReport(null)}
-        onSend={async (reason, note) => {
+        onSend={async (reason, note, alsoBlock) => {
           const r = report;
           setReport(null);
           if (!r) return;
           const err =
-            r.kind === 'club' ? await c.report(reason, note) : await attempt(() => api.report({ kind: 'message', ref: r.ref, reason, note: note || undefined }));
+            r.kind === 'club'
+              ? await c.report(reason, note)
+              : await attempt(async () => {
+                  await api.report({ kind: 'message', ref: r.ref, reason, note: note || undefined });
+                  if (alsoBlock && r.author) await api.block(r.author.pid);
+                });
           show(err ?? 'Thanks. Steps reviews every report, urgent ones within 24 hours.');
         }}
       />
-    </PremiumGate>
+    </>
   );
 }
 

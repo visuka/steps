@@ -1,6 +1,8 @@
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { GoalsConsent } from '@/components/buddies/clubs/club-parts';
 import { useSnack } from '@/components/buddies/parts';
 import { GoalNote, GroupTitle, MyGoalRow, TrackingSwitch } from '@/components/buddies/goals/goal-parts';
 import { PremiumGate } from '@/components/premium-gate';
@@ -15,7 +17,9 @@ import { SCREEN_FEATURES } from '@/premium/premium';
 /**
  * My goals across every club I am in that has them: today's goals with
  * Mark done / Undo (or the phone's count), the goal tracking switch for a
- * club I joined before goals were on, and whether captains' reminders reach me.
+ * club I joined before goals were on (on first shows that club's goals
+ * consent; only Turn on tracking sends anything), and whether captains'
+ * reminders reach me.
  */
 export default function MyGoalsScreen() {
   const router = useRouter();
@@ -25,18 +29,25 @@ export default function MyGoalsScreen() {
   const back = () => (router.canGoBack() ? router.back() : router.replace('/plus'));
   const openClub = (clubId: string) => router.push({ pathname: '/buddies/club/[id]', params: { id: clubId, seg: 'goals' } } as never);
   const list = g.data ?? [];
+  // The club whose goals consent is open (from its tracking switch).
+  const [consentFor, setConsentFor] = useState<string | null>(null);
+  const turnOn = async (clubId: string) => {
+    const err = await g.setConsent(clubId, true);
+    if (!err) setConsentFor(null);
+    show(err ?? 'Goal tracking is on.');
+  };
 
   const block = (x: MyClubGoals) => {
     const goals = x.goals;
     if (!goals) return <GoalNote text="These goals could not be loaded. Try again later." />;
     if (!goals.tracked) {
-      return (
-        <TrackingSwitch
-          on={false}
-          busy={g.busy === `consent/${x.club.clubId}`}
-          onChange={async (on) => show((await g.setConsent(x.club.clubId, on)) ?? (on ? 'Goal tracking is on.' : null))}
-        />
-      );
+      const busy = g.busy === `consent/${x.club.clubId}`;
+      if (consentFor === x.club.clubId) {
+        return (
+          <GoalsConsent club={x.club} joinLabel="Turn on tracking" busy={busy} onJoin={() => void turnOn(x.club.clubId)} onNotNow={() => setConsentFor(null)} />
+        );
+      }
+      return <TrackingSwitch on={false} busy={busy} onChange={(on) => on && setConsentFor(x.club.clubId)} />;
     }
     const due = goals.goals.filter((goal) => dueOn(goal, g.today));
     if (!due.length) return <GoalNote text={goals.goals.length ? 'No goals for today.' : 'No goals yet.'} />;

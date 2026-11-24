@@ -18,9 +18,18 @@ export type QrTarget = { kind: 'walker'; handle: string } | { kind: 'club'; code
 export const walkerLink = (handle: string) => `${APP_SCHEME}://w/${cleanHandle(handle)}`;
 export const clubLink = (code: string) => `${APP_SCHEME}://c/${code}`;
 
-/** A typed or scanned club code with spaces, dashes and case dropped; null when it isn't one. */
+/**
+ * A typed or scanned club code with spaces, dashes and case dropped, and the
+ * look-alike letters read as the server reads them (family.clean_code: I and L
+ * are 1, O is 0, U is V); null when it isn't one.
+ */
 export function cleanClubCode(raw: string): string | null {
-  const code = raw.replace(/[\s-]+/g, '').toUpperCase();
+  const code = raw
+    .replace(/[\s-]+/g, '')
+    .toUpperCase()
+    .replace(/[IL]/g, '1')
+    .replace(/O/g, '0')
+    .replace(/U/g, 'V');
   return CLUB_CODE.test(code) ? code : null;
 }
 

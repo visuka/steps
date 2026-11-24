@@ -32,6 +32,7 @@ import GoalFormScreen from '@/app/buddies/club/[id]/goal/new';
 import MyGoalsScreen from '@/app/buddies/goals';
 import { AuthScreen } from '@/components/auth/auth-screen';
 import { BuddiesHome } from '@/components/buddies/buddies-home';
+import { LockedBuddies } from '@/components/buddies/locked-buddies';
 import { ScanScreen } from '@/components/food/scan-screen';
 import { Onboarding } from '@/components/onboarding';
 import { type Part, PartBar } from '@/components/plain/part-bar';
@@ -59,6 +60,7 @@ const TAB_OF: Partial<Record<PreviewScreen, string>> = {
   plus: 'plus',
   buddies: 'plus',
   'buddies-qr': 'plus',
+  'plus-locked': 'plus',
   activity: 'activity',
   you: 'you',
   foodtab: 'none',
@@ -71,6 +73,7 @@ const PART_OF: Partial<Record<PreviewScreen, Part>> = {
   plus: 'buddies',
   buddies: 'buddies',
   'buddies-qr': 'buddies',
+  'plus-locked': 'buddies',
 };
 
 /**
@@ -288,6 +291,13 @@ function PreviewScreenBody({ screen, edit, mine }: { screen: PreviewScreen; edit
       return (
         <BuddiesSource api={SAMPLE_SOCIAL_API}>
           <BuddiesHome initialSegment="buddies" openQr />
+        </BuddiesSource>
+      );
+    case 'plus-locked':
+      // Buddies without Premium: the premium card, then Your clubs over the sample clubs.
+      return (
+        <BuddiesSource api={SAMPLE_SOCIAL_API}>
+          <LockedBuddies />
         </BuddiesSource>
       );
     case 'activity':

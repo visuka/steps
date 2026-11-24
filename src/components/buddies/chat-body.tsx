@@ -45,8 +45,8 @@ export function ChatBody({
   group?: boolean;
   /** The screen's snackbar. */
   show: (message: string | null) => void;
-  /** Report a message; `ref` is "<chat key>/<message id>". */
-  onReportMessage: (ref: string) => void;
+  /** Report a message; `ref` is "<chat key>/<message id>", `author` who sent it (a club chat can block them). */
+  onReportMessage: (ref: string, author: Message['from']) => void;
 }) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -148,7 +148,7 @@ export function ChatBody({
             title="Report"
             icon="flag-outline"
             onPress={() => {
-              onReportMessage(`${chatKey}/${picked.id}`);
+              onReportMessage(`${chatKey}/${picked.id}`, picked.from);
               setPicked(null);
             }}
           />

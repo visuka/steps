@@ -8,6 +8,7 @@ import {
   clubErrorText,
   clubLine,
   clubProblem,
+  isConsentError,
   joinOrAccept,
   needsConsent,
   ROLE_WORD,
@@ -132,6 +133,12 @@ describe('words and checks', () => {
   it('asks for the goals consent only for clubs with goals', () => {
     expect(needsConsent({ goals: true })).toBe(true);
     expect(needsConsent({ goals: false })).toBe(false);
+  });
+
+  it("knows the server's goals consent answer (goals were turned on after the phone looked)", () => {
+    expect(isConsentError(new SocialError('conflict', 'conflict', 'goals_consent'))).toBe(true);
+    expect(isConsentError(new SocialError('conflict', 'conflict', 'club_full'))).toBe(false);
+    expect(isConsentError(new Error('goals_consent'))).toBe(false);
   });
 
   it('puts club errors in plain words', () => {

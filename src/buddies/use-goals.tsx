@@ -31,21 +31,25 @@ async function tryGoal(action: () => Promise<unknown>): Promise<string | null> {
   }
 }
 
-/** Today's own numbers on the phone (steps on screen, water, sleep, the longest walk). */
+/**
+ * Today's own numbers on the phone (steps on screen, water, sleep, the longest
+ * walk). Water, sleep and walks are read once per day and data change; a live
+ * step update only changes the steps, without reading the database again.
+ */
 export function usePhoneToday(): PhoneToday | null {
   const { repo, profile, displaySteps, dataVersion } = useApp();
   const today = useClock().today;
-  const [phone, setPhone] = useState<PhoneToday | null>(null);
+  const [slow, setSlow] = useState<PhoneToday | null>(null);
   useEffect(() => {
     let live = true;
-    readPhoneToday(repo, profile, today, displaySteps)
-      .then((p) => live && setPhone(p))
+    readPhoneToday(repo, profile, today, 0)
+      .then((p) => live && setSlow(p))
       .catch(() => undefined);
     return () => {
       live = false;
     };
-  }, [repo, profile, today, displaySteps, dataVersion]);
-  return phone;
+  }, [repo, profile, today, dataVersion]);
+  return useMemo(() => (slow ? { ...slow, steps: Math.max(0, Math.round(displaySteps)) } : null), [slow, displaySteps]);
 }
 
 export interface ClubGoalsView extends ClubGoals {

@@ -15,6 +15,7 @@ import {
   readClubs,
   readJoinState,
 } from './clubs-read';
+import { cleanClubCode } from './qr/links';
 import { isObj } from './read';
 import type { Board, Club, ClubCard, ClubCode, ClubForm, ClubPage, ClubReport, ClubRole, RequestRow } from './types';
 
@@ -110,7 +111,7 @@ export function makeClubsApi(send: Send) {
     newClubCode: async (id: string): Promise<ClubCode> => readClubCode(await send('POST', `${club(id)}/code`)),
     /** The club a code belongs to (works for hidden clubs; 404 bad_code). */
     clubByCode: async (code: string): Promise<ClubCard> => {
-      const r = await send('POST', '/clubs/code', { code: code.replace(/[\s-]+/g, '').toUpperCase() });
+      const r = await send('POST', '/clubs/code', { code: cleanClubCode(code) ?? code.replace(/[\s-]+/g, '').toUpperCase() });
       if (!isObj(r)) return readClubCard(null);
       return readClubCard(r.club);
     },

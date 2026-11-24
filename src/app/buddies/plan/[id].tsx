@@ -45,7 +45,7 @@ export default function PlanScreen() {
         <Screen title={title} onBack={back} onRefresh={p.refresh}>
           {p.error ? (
             <>
-              <ThemedText themeColor="error">{p.error}</ThemedText>
+              <ThemedText themeColor="onSurfaceVariant">{p.error}</ThemedText>
               <Button label="Try again" variant="text" compact onPress={p.refresh} style={styles.start} />
             </>
           ) : (
@@ -96,7 +96,7 @@ export default function PlanScreen() {
         overlay={<Snackbar message={snack} onDismiss={dismiss} />}>
         {!on ? (
           <View style={styles.start}>
-            <Pill label="Cancelled" variant="warning" />
+            <Pill label="Cancelled" variant="tint" />
           </View>
         ) : null}
         <ThemedText type="titleLarge" style={!on ? styles.gapSmall : undefined} maxFontSizeMultiplier={1.3}>

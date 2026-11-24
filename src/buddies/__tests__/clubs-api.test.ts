@@ -114,6 +114,9 @@ describe('club calls', () => {
     const found = await f.api.clubByCode('k7qm 2xpa');
     expect(f.send).toHaveBeenLastCalledWith('POST', '/clubs/code', { code: 'K7QM2XPA' });
     expect(found.clubId).toBe('KBR000000001');
+    // A look-alike letter typed in is sent as the server reads it.
+    await f.api.clubByCode('k7qm-2xpo');
+    expect(f.send).toHaveBeenLastCalledWith('POST', '/clubs/code', { code: 'K7QM2XP0' });
     await expect(fake({}).api.clubByCode('K7QM2XPA')).rejects.toThrow();
   });
 

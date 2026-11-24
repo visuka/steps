@@ -50,25 +50,53 @@ export function RoleText({ role }: { role: ClubRole }) {
   );
 }
 
-/** The plain words a club with shared goals shows before anyone joins. */
-export const CONSENT_SEE = ['Done or not done for each goal', 'Your step total, only for step goals', 'Your name and walker ID'];
+/**
+ * The plain words a club with shared goals shows before anyone joins or turns
+ * tracking on. They match what the server shares: the goal report (done, the
+ * time of the mark, this week's days and whether ever done), the step total
+ * for step goals, and the walker ID (a name only to buddies, people.view).
+ */
+export const CONSENT_SEE = [
+  'Done or not done for each goal, and the time you marked it',
+  'How many days you did it this week, and whether you ever did',
+  'Your step total, only for step goals',
+  'Your walker ID (your name only if you are buddies)',
+];
 export const CONSENT_NEVER = ['Your food', 'Your sleep details', 'Where you are', 'Your other chats'];
-export const CONSENT_LEAVE = 'Leave any time — your goal history here is deleted.';
+/** Goals the phone counts (goals-auto.ts): only done or not done goes, and the step total for step goals. */
+export const CONSENT_AUTO = 'Steps, walk, water and sleep goals are marked for you from this phone. Only done or not done is sent, and the step total for step goals.';
+export const CONSENT_REMIND = 'The captain can send a gentle reminder. You can turn these off in My goals.';
+export const CONSENT_LEAVE = "Turn off tracking in the club's Goals tab, or leave, any time. Your goal history here is then deleted.";
 
 /**
  * The goals consent: what the captain and vice-captains will see, what they
- * never see, and Join / Not now. Nothing is sent until Join.
+ * never see, and Join / Not now. Nothing is sent until Join (or `joinLabel`,
+ * "Turn on tracking" for a member who joined before goals were on).
  */
-export function GoalsConsent({ club, busy, onJoin, onNotNow }: { club: ClubCard; busy: boolean; onJoin: () => void; onNotNow: () => void }) {
+export function GoalsConsent({
+  club,
+  busy,
+  onJoin,
+  onNotNow,
+  joinLabel = 'Join',
+}: {
+  club: Pick<ClubCard, 'name'>;
+  busy: boolean;
+  onJoin: () => void;
+  onNotNow: () => void;
+  joinLabel?: string;
+}) {
   return (
     <View style={styles.gap}>
       <ThemedText maxFontSizeMultiplier={1.3}>{`${club.name} has shared goals. The captain and vice-captains can set goals for members, like steps or medicines.`}</ThemedText>
       <List title="What the captain and vice-captains see" rows={CONSENT_SEE} />
       <List title="What they never see" rows={CONSENT_NEVER} />
-      <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
-        {CONSENT_LEAVE}
-      </ThemedText>
-      <Button label="Join" onPress={onJoin} loading={busy} disabled={busy} />
+      {[CONSENT_AUTO, CONSENT_REMIND, CONSENT_LEAVE].map((line) => (
+        <ThemedText key={line} type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
+          {line}
+        </ThemedText>
+      ))}
+      <Button label={joinLabel} onPress={onJoin} loading={busy} disabled={busy} />
       <Button label="Not now" variant="text" onPress={onNotNow} disabled={busy} />
     </View>
   );

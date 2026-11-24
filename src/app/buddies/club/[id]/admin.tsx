@@ -44,7 +44,7 @@ export default function ClubAdminScreen() {
   return (
     <PremiumGate feature={SCREEN_FEATURES.buddies} title="Members" onBack={back}>
       <Screen title="Members" subtitle={a.club?.name} onBack={back} onRefresh={a.refresh} refreshing={false} overlay={<Snackbar message={snack} onDismiss={dismiss} />}>
-        {a.error ? <ThemedText themeColor="error">{a.error}</ThemedText> : null}
+        {a.error ? <ThemedText themeColor="onSurfaceVariant">{a.error}</ThemedText> : null}
         {can(role, 'invite') ? <Button label="Invite a buddy" icon="person-add-outline" variant="tonal" onPress={() => setInviting(true)} /> : null}
         {can(role, 'code') ? <Button label="Club QR code" icon="qr-code-outline" variant="tonal" onPress={() => setShowQr(true)} /> : null}
 
@@ -77,7 +77,7 @@ export default function ClubAdminScreen() {
               <PersonRow
                 key={m.walker.pid}
                 walker={m.walker}
-                supporting={me ? `${word} · You` : `${word} · @${m.walker.handle}`}
+                supporting={me ? `${word} · You` : m.walker.name ? `${word} · @${m.walker.handle}` : word}
                 onPress={options ? () => setPicked(m) : undefined}
               />
             );
@@ -136,7 +136,7 @@ export default function ClubAdminScreen() {
       <Dialog
         visible={!!removing}
         title={removing ? `Remove ${displayName(removing.walker)}?` : ''}
-        message="They leave the club chat and the board. They can ask to join again later."
+        message="They leave the club chat and the board, and their goal history here is deleted. They can ask to join again later."
         confirmLabel="Remove"
         danger
         onCancel={() => setRemoving(null)}

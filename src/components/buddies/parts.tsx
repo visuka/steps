@@ -13,7 +13,8 @@ import type { Walker } from '@/buddies/types';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-const AVATAR = 40;
+/** The avatar circle, also the size of other round leading marks (the goal kind badge). */
+export const AVATAR = 40;
 
 /** The person's first letter in a tinted circle, as the greeting's avatar. */
 export function Avatar({ label, size = AVATAR }: { label: string; size?: number }) {

@@ -18,8 +18,9 @@ import type { ClockStyle } from '@/lib/when';
 import { useTheme } from '@/hooks/use-theme';
 
 import { CONSENT_NEVER, CONSENT_SEE } from '../clubs/club-parts';
+import { AVATAR } from '../parts';
 
-const BADGE = 40;
+const BADGE = AVATAR;
 
 /** The kind's icon in a soft circle (hidden from screen readers; the row says the kind). */
 export function KindBadge({ kind }: { kind: Goal['kind'] }) {

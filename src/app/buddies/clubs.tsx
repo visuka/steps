@@ -30,7 +30,7 @@ export default function ClubSearch() {
         <TextField label="Club name or area" value={s.q} onChangeText={s.setQ} placeholder="e.g. KBR or Banjara Hills" maxLength={40} onSubmit={search} returnKeyType="search" />
         <Button label="Search" icon="search-outline" onPress={search} loading={s.busy} disabled={!s.q.trim() || s.busy} style={styles.gap} />
         {s.error ? (
-          <ThemedText themeColor="error" style={styles.gap}>
+          <ThemedText themeColor="onSurfaceVariant" style={styles.gap}>
             {s.error}
           </ThemedText>
         ) : null}
