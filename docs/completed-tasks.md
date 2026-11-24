@@ -316,3 +316,15 @@ Not committed. No server or AWS change. Nothing is removed from any count.
 - Links: `app/w/[handle].tsx` goes to Find and `app/c/[code].tsx` goes to the club's card. The parsers are in `src/buddies/qr/links.ts` and tested.
 - Preview screens: buddies-qr, qr-scan (`&code=K7QM2XPA`), club-admin `&qr=1` and club-join `&code=`. CI shots `smoke/clean-buddies-qr*.png`, `clean-qr-*.png`, `clean-club-qr*.png` and `clean-club-join-code*.png` include 360 dp shots with large text. "Coming next" is unchanged.
 - Checks: tsc, eslint and the whole jest suite. The emulator shots have not been reviewed yet, and the server is not deployed.
+
+## 24 Nov 2026 — Shared club goals, app side
+
+- Calls, readers and tests for every goals route: list (with `tracked` and my marks), create, change (title, target, by-time, days, paused), delete, mark a day, report, summary, remind and the tracking consent. Code: `src/buddies/goals-api.ts`, `goals-read.ts`, `goals.ts` (words, days, targets per kind, form checks, plain error words) and `use-goals.tsx`. `PATCH /me` now takes `notify`; `/me` is read with its reminder switches.
+- Club Goals tab: today's goals that apply to me (kind icon, by-time, "Done 8:12 am" with Undo or Mark done for tap goals; "6,240 of 8,000 steps" for goals the phone counts). The captain and vice-captains also see each goal with "9 of 12 done", New goal (up to 10), and open a goal. A member who joined before goals were on gets the tracking switch with what it shares; turning it off asks first.
+- Goal screen (`/buddies/club/[id]/goal/[goalId]`): Done and Not marked yet as numbers and names, This week per member ("6 of 7 days"), Never done, "Send a gentle reminder to n" ("Members choose whether they get reminders."), Edit, Pause or Resume, and Delete with a confirm.
+- Goal form (`/buddies/club/[id]/goal/new`, `?goal=` to change one): kind chips, name, a target per kind, counted by the phone or by tapping, Every day / Weekdays / Pick days, an optional by-time, and the caption about no doses or medical advice.
+- My goals (`/buddies/goals`): every club's goals for today, the tracking switch per club, and the goal reminders switch (`notify.goals`). Reached from Buddies home and from Find a club. On Buddies home the "Coming next" tile is now the My goals tile ("2 of 5 done today").
+- The phone counts steps, walk, water and sleep goals (`src/buddies/goals-auto.ts`): when Buddies or Today opens, at most every 15 minutes, only for clubs where I said yes. It never un-marks a goal. The kv key `buddies.goalsAuto` is local only.
+- New icons `pill` and `check` with their colours (docs/design.md). Wording stays neutral ("Not marked yet"), with no red.
+- Preview screens: goal, goal-new, my-goals, and club `&seg=goals` for HPW000000004 (member) and SRN000000005 (tracking off). The sample data now has these two clubs in My clubs. CI shots `smoke/clean-club-goals-*.png`, `clean-goal*.png` and `clean-my-goals*.png` include 360 dp shots with large text.
+- Checks: tsc, eslint and the whole jest suite. The emulator shots have not been reviewed yet, and the server is not deployed.

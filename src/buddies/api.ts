@@ -11,6 +11,7 @@ import { premiumRequired } from '@/premium/premium';
 
 import { makeClubsApi } from './clubs-api';
 import { readClubInvites } from './clubs-read';
+import { makeGoalsApi } from './goals-api';
 import { makePlansApi } from './plans-api';
 import {
   readBuddies,
@@ -24,7 +25,7 @@ import {
   SocialError,
   socialErrorFor,
 } from './read';
-import type { BuddyRow, ChatRow, Message, MessagePage, Nearby, ReportReason, Requests, SocialMe, Walker } from './types';
+import type { BuddyRow, ChatRow, Message, MessagePage, Nearby, NotifyPrefs, ReportReason, Requests, SocialMe, Walker } from './types';
 import { TERMS_VERSION } from './types';
 
 export interface SocialDeps {
@@ -87,7 +88,8 @@ export const socialApi = {
   me: async (): Promise<SocialMe> => readMe(await call('GET', '/me')),
   join: async (handle: string, name: string): Promise<SocialMe> =>
     readMe(await call('POST', '/join', { adult: true, terms: TERMS_VERSION, handle, name })),
-  updateMe: async (patch: { name?: string; handle?: string }): Promise<SocialMe> =>
+  /** `notify` alone needs no premium (a lapsed person can still turn reminders off). */
+  updateMe: async (patch: { name?: string; handle?: string; notify?: Partial<NotifyPrefs> }): Promise<SocialMe> =>
     readMe(await call('PATCH', '/me', patch)),
   leave: async (): Promise<void> => {
     await call('DELETE', '/me');
@@ -155,6 +157,8 @@ export const socialApi = {
   ...makeClubsApi((method, path, body) => call(method, path, body)),
   // Walk plans (plans-api.ts).
   ...makePlansApi((method, path, body) => call(method, path, body)),
+  // Shared club goals (goals-api.ts).
+  ...makeGoalsApi((method, path, body) => call(method, path, body)),
 };
 
 export type SocialApi = typeof socialApi;

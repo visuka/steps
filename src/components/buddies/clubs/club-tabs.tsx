@@ -21,6 +21,7 @@ import { useClockStyle } from '@/hooks/use-clock-style';
 import { useTheme } from '@/hooks/use-theme';
 
 import { ChatBody } from '../chat-body';
+import { GoalsTabBody } from '../goals/goals-tab';
 
 export type ClubTab = 'chat' | 'walks' | 'goals' | 'board';
 export const CLUB_TABS: { value: ClubTab; text: string }[] = [
@@ -73,19 +74,11 @@ export function ClubWalksTab({ club }: { club: Club }) {
   );
 }
 
-/** Shared goals: says whether the club has them; the goals themselves come next. */
-export function ClubGoalsTab({ club }: { club: Club }) {
+/** Shared goals: today's goals for me, and for the captain and vice-captains each goal's numbers and New goal. */
+export function ClubGoalsTab({ club, show }: { club: Club; show: (m: string | null) => void }) {
   return (
     <TabScroll>
-      <EmptyState
-        icon="checkbox-outline"
-        title={club.goals ? 'Shared goals are on' : 'No shared goals'}
-        hint={
-          club.goals
-            ? 'The captain and vice-captains will set goals here, like steps or medicines. Each member marks them done.'
-            : 'The captain can turn on shared goals in Edit club.'
-        }
-      />
+      <GoalsTabBody club={club} show={show} />
     </TabScroll>
   );
 }

@@ -33,6 +33,8 @@ export type SocialMe =
       /** The day the area was last sent, YYYY-MM-DD, or null. */
       areaSetOn: string | null;
       counts: SocialCounts;
+      /** Notification switches; missing in a copy saved by an older build (read.ts notifyOf gives the defaults). */
+      notify?: NotifyPrefs;
     };
 
 /** Walkers in my area: handles only, no names, areas or distances. */
@@ -230,3 +232,94 @@ export type ReportReason = (typeof REPORT_REASONS)[number]['key'];
 
 /** The terms version the join form agrees to (server SocialConfig). */
 export const TERMS_VERSION = '2026-11';
+
+// ── shared club goals (the goals contract; the owner's Teams with shared goals, 18 Nov 2026) ──
+
+/** What a goal is about. "other" is shown as "Anything". */
+export type GoalKind = 'steps' | 'walk' | 'water' | 'sleep' | 'medicine' | 'other';
+
+/** auto: the phone marks it from its own data (steps, walk, water, sleep only); tap: the member taps Done. */
+export type GoalCounted = 'auto' | 'tap';
+
+export interface Goal {
+  goalId: string;
+  title: string;
+  kind: GoalKind;
+  /** steps: 500–50000; walk: minutes 5–240; water: glasses 1–20; sleep: minutes 180–720. Null when none. */
+  target: number | null;
+  /** "HH:MM" on the phone's clock, or null. */
+  byTime: string | null;
+  /** Days of the week it is due, Monday = 0 … Sunday = 6 (never empty). */
+  days: number[];
+  counted: GoalCounted;
+  paused: boolean;
+  createdBy: Walker | null;
+  createdAt: number;
+}
+
+/** My mark for one goal on one day. */
+export interface GoalMark {
+  goalId: string;
+  done: boolean;
+  /** When it was marked done (epoch ms), or null. */
+  at: number | null;
+  /** The step total, for step goals only. */
+  value: number | null;
+}
+
+/** GET /clubs/{id}/goals?day=: the club's goals, whether I gave consent, and my marks that day. */
+export interface ClubGoals {
+  goals: Goal[];
+  tracked: boolean;
+  mine: GoalMark[];
+}
+
+export interface GoalReportRow {
+  walker: Walker;
+  role: ClubRole;
+  today: { done: boolean; at: number | null; value: number | null };
+  /** The last 7 days ending on the report's day: days it was due while they were in, and how many were done. */
+  week: { done: number; of: number };
+  everDone: boolean;
+}
+
+/** GET /clubs/{id}/goals/{goalId}/report?day= (captain and vice-captains). */
+export interface GoalReport {
+  day: string;
+  goal: Goal;
+  /** Tracked members the goal applies to. */
+  members: number;
+  doneToday: number;
+  neverDone: number;
+  /** Not done today first, then by name. */
+  rows: GoalReportRow[];
+}
+
+/** GET /clubs/{id}/goals/summary?day=: one row per goal. */
+export interface GoalSummaryRow {
+  goalId: string;
+  doneToday: number;
+  members: number;
+}
+
+/** POST /clubs/{id}/goals; PATCH takes title, target, byTime, days and paused. */
+export interface GoalForm {
+  title: string;
+  kind: GoalKind;
+  target: number | null;
+  byTime: string | null;
+  days: number[];
+  counted: GoalCounted;
+}
+
+/** The notification switches on /me (server push.DEFAULT_NOTIFY). */
+export interface NotifyPrefs {
+  messages: boolean;
+  requests: boolean;
+  plans: boolean;
+  clubChat: boolean;
+  family: boolean;
+  /** Reminders from a club's captain or vice-captains about a shared goal. */
+  goals: boolean;
+  preview: boolean;
+}

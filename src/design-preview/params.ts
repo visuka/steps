@@ -23,6 +23,9 @@
  * QR invites: buddies-qr is Buddies with My QR open; qr-scan is the scanner (&code=K7QM2XPA:
  * a club's card, without the camera); club-admin takes qr=1 (the Club QR open) and club-join
  * code=<code> (the goals consent for a club found by its code). Those screens read them themselves.
+ * Shared goals: goal takes id=<clubId>&goalId=<goalId> (KBR000000001, GL0000000001), goal-new
+ * id=<clubId> and goal=<goalId> to change one; club &seg=goals with id=HPW000000004 is a member's
+ * tab and id=SRN000000005 the goal tracking switch. Those screens read them themselves.
  * Every screen also takes part=dawn|noon|dusk: Today and the bar in that part's colours
  * instead of the clock's (T18).
  * Plain string work only: React Native's URLSearchParams has no get().
@@ -72,6 +75,10 @@ export const PREVIEW_SCREENS = [
   // QR invites: Buddies with My QR open, and the scanner (&code= opens a club's card without the camera).
   'buddies-qr',
   'qr-scan',
+  // Shared club goals: one goal for the captain (&id=&goalId=), the goal form (&id=, &goal= to change one), and My goals.
+  'goal',
+  'goal-new',
+  'my-goals',
 ] as const;
 export type PreviewScreen = (typeof PREVIEW_SCREENS)[number];
 

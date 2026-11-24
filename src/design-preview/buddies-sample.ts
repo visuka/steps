@@ -1,7 +1,23 @@
 /** Sample Walk buddies data for the design preview: no network. */
 import type { SocialApi } from '@/buddies/api';
 import { atDayTime } from '@/buddies/plans';
-import type { Club, ClubCard, ClubMember, ChatRow, Message, Plan, PlanInvitee, Walker } from '@/buddies/types';
+import { NOTIFY_DEFAULTS } from '@/buddies/read';
+import type {
+  Club,
+  ClubCard,
+  ClubGoals,
+  ClubMember,
+  ChatRow,
+  Goal,
+  GoalReport,
+  GoalReportRow,
+  GoalSummaryRow,
+  Message,
+  Plan,
+  PlanInvitee,
+  SocialMe,
+  Walker,
+} from '@/buddies/types';
 import { addDaysToKey, dayKey } from '@/lib/dates';
 
 const NOW = Date.now();
@@ -62,6 +78,39 @@ const JHE: Club = {
   about: '',
   hidden: false,
   myRole: null,
+  myBoard: false,
+};
+
+/** A club with goals where I said yes to goal tracking (&id=HPW000000004). */
+export const SAMPLE_TRACKED_CLUB_ID = 'HPW000000004';
+/** A club with goals I joined before goals were on: the tracking switch (&id=SRN000000005). */
+export const SAMPLE_UNTRACKED_CLUB_ID = 'SRN000000005';
+
+const HPW: Club = {
+  clubId: SAMPLE_TRACKED_CLUB_ID,
+  name: 'Hitech City Lunch Walk',
+  area: 'Madhapur',
+  memberCount: 31,
+  myState: 'member',
+  goals: true,
+  captain: meera,
+  about: 'A 20 minute walk after lunch, weekdays at 1:15.',
+  hidden: false,
+  myRole: 'member',
+  myBoard: false,
+};
+
+const SRN: Club = {
+  clubId: SAMPLE_UNTRACKED_CLUB_ID,
+  name: 'Sanjeevaiah Park Seniors',
+  area: 'Necklace Road',
+  memberCount: 17,
+  myState: 'member',
+  goals: true,
+  captain: ravi,
+  about: 'Slow walks and stretches, 6:30 every morning.',
+  hidden: false,
+  myRole: 'member',
   myBoard: false,
 };
 
@@ -178,23 +227,115 @@ const INVITEES: Record<string, PlanInvitee[]> = {
   ],
 };
 
+// Shared club goals: KBR (I am captain), HPW (I am tracked), SRN (I am not tracked yet).
+/** The goal the preview's goal screens open (&goal=GL0000000001): the morning walk, counted by the phone. */
+export const SAMPLE_GOAL_ID = 'GL0000000001';
+const everyDay = [0, 1, 2, 3, 4, 5, 6];
+const goalOf = (
+  goalId: string,
+  title: string,
+  kind: Goal['kind'],
+  target: number | null,
+  counted: Goal['counted'],
+  byTime: string | null,
+  days = everyDay,
+  by: Walker = me,
+): Goal => ({ goalId, title, kind, target, byTime, days, counted, paused: false, createdBy: by, createdAt: NOW - 20 * 1440 * MIN });
+const at = (h: number, m: number) => {
+  const d = new Date(NOW);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), h, m).getTime();
+};
+
+const GOALS: Record<string, ClubGoals> = {
+  [SAMPLE_CLUB_ID]: {
+    goals: [
+      goalOf(SAMPLE_GOAL_ID, 'Morning walk', 'walk', 30, 'auto', '07:00'),
+      goalOf('GL0000000002', 'Daily steps', 'steps', 8000, 'auto', null),
+      goalOf('GL0000000003', 'Morning tablet', 'medicine', null, 'tap', '09:00'),
+      goalOf('GL0000000004', 'Drink water', 'water', 8, 'auto', null),
+      goalOf('GL0000000005', 'Stretch for 10 minutes', 'other', null, 'tap', null, [0, 2, 4], ravi),
+    ],
+    tracked: true,
+    mine: [
+      { goalId: SAMPLE_GOAL_ID, done: true, at: at(6, 48), value: null },
+      { goalId: 'GL0000000002', done: false, at: null, value: 6200 },
+      { goalId: 'GL0000000003', done: true, at: at(8, 12), value: null },
+    ],
+  },
+  [SAMPLE_TRACKED_CLUB_ID]: {
+    goals: [
+      goalOf('GL0000000011', 'Lunch walk', 'walk', 20, 'auto', '14:00', everyDay, meera),
+      goalOf('GL0000000012', 'Sleep 7 hours', 'sleep', 420, 'auto', null, everyDay, meera),
+      goalOf('GL0000000013', 'Evening tablet', 'medicine', null, 'tap', '20:00', everyDay, meera),
+    ],
+    tracked: true,
+    mine: [],
+  },
+  [SAMPLE_UNTRACKED_CLUB_ID]: {
+    goals: [goalOf('GL0000000021', 'Morning stretches', 'other', null, 'tap', '07:30', everyDay, ravi)],
+    tracked: false,
+    mine: [],
+  },
+};
+const goalsOf = (id: string): ClubGoals => GOALS[id] ?? { goals: [], tracked: false, mine: [] };
+const goalById = (id: string, goalId: string) => goalsOf(id).goals.find((g) => g.goalId === goalId) ?? GOALS[SAMPLE_CLUB_ID].goals[0];
+
+const SUMMARY: GoalSummaryRow[] = [
+  { goalId: SAMPLE_GOAL_ID, doneToday: 5, members: 7 },
+  { goalId: 'GL0000000002', doneToday: 3, members: 7 },
+  { goalId: 'GL0000000003', doneToday: 6, members: 7 },
+  { goalId: 'GL0000000004', doneToday: 2, members: 7 },
+  { goalId: 'GL0000000005', doneToday: 0, members: 7 },
+];
+
+const reportRow = (walker: Walker, role: GoalReportRow['role'], done: boolean, h: number, m: number, week: number, ever = true): GoalReportRow => ({
+  walker,
+  role,
+  today: { done, at: done ? at(h, m) : null, value: null },
+  week: { done: week, of: 7 },
+  everDone: ever || done,
+});
+
+const REPORT_ROWS: GoalReportRow[] = [
+  reportRow(arjun, 'member', false, 0, 0, 3),
+  reportRow(kiran, 'member', false, 0, 0, 0, false),
+  reportRow(lakshmi, 'member', true, 6, 35, 7),
+  reportRow(meena, 'member', true, 6, 52, 5),
+  reportRow(ravi, 'admin', true, 6, 20, 6),
+  reportRow(sita, 'member', true, 6, 41, 4),
+  reportRow(me, 'owner', true, 6, 48, 6),
+];
+
+const reportOf = (id: string, goalId: string, day: string): GoalReport => ({
+  day,
+  goal: goalById(id, goalId),
+  members: REPORT_ROWS.length,
+  doneToday: REPORT_ROWS.filter((r) => r.today.done).length,
+  neverDone: REPORT_ROWS.filter((r) => !r.everDone).length,
+  rows: REPORT_ROWS,
+});
+
+const SAMPLE_ME: SocialMe = {
+  joined: true,
+  pid: 'me',
+  handle: 'you_walk',
+  name: 'You',
+  handleChangeFrom: 0,
+  nearby: false,
+  areaSetOn: null,
+  counts: { requestsIn: 1, unread: 2, clubInvites: 0, clubRequests: 0 },
+  notify: { ...NOTIFY_DEFAULTS },
+};
+
 const planById = (id: string) => PLANS.find((p) => p.planId === id) ?? PLANS[0];
 
 const ok = async () => undefined;
 
 export const SAMPLE_SOCIAL_API: SocialApi = {
-  me: async () => ({
-    joined: true,
-    pid: 'me',
-    handle: 'you_walk',
-    name: 'You',
-    handleChangeFrom: 0,
-    nearby: false,
-    areaSetOn: null,
-    counts: { requestsIn: 1, unread: 2, clubInvites: 0, clubRequests: 0 },
-  }),
+  me: async () => SAMPLE_ME,
   join: async () => SAMPLE_SOCIAL_API.me(),
-  updateMe: async () => SAMPLE_SOCIAL_API.me(),
+  updateMe: async (p) =>
+    SAMPLE_ME.joined ? { ...SAMPLE_ME, notify: { ...(SAMPLE_ME.notify ?? NOTIFY_DEFAULTS), ...(p.notify ?? {}) } } : SAMPLE_ME,
   leave: ok,
   findWalker: async () => ravi,
   setArea: ok,
@@ -223,13 +364,17 @@ export const SAMPLE_SOCIAL_API: SocialApi = {
   report: ok,
 
   searchClubs: async () => [cardOf(KBR), cardOf(NRS), { ...cardOf(JHE), myState: 'asked' }],
-  myClubs: async () => [cardOf(KBR), { ...cardOf(JHE), myState: 'member' }],
+  myClubs: async () => [cardOf(KBR), { ...cardOf(JHE), myState: 'member' }, cardOf(HPW), cardOf(SRN)],
   club: async (id) =>
     id === SAMPLE_GOALS_CLUB_ID
       ? { club: NRS, members: [] }
       : id === JHE.clubId
         ? { club: JHE, members: [] }
-        : { club: KBR, members: KBR_MEMBERS },
+        : id === HPW.clubId
+          ? { club: HPW, members: [] }
+          : id === SRN.clubId
+            ? { club: SRN, members: [] }
+            : { club: KBR, members: KBR_MEMBERS },
   createClub: async () => KBR,
   updateClub: async () => KBR,
   deleteClub: ok,
@@ -269,4 +414,24 @@ export const SAMPLE_SOCIAL_API: SocialApi = {
   updatePlan: async (id, p) => ({ ...planById(id), ...(p.startsAt ? { startsAt: p.startsAt } : {}), ...(p.place ? { place: p.place } : {}) }),
   cancelPlan: async (id) => ({ ...planById(id), status: 'cancelled' }),
   answerPlan: async (id, answer) => ({ ...planById(id), myAnswer: answer }),
+
+  clubGoals: async (id) => goalsOf(id),
+  createGoal: async (_id, f) => ({ ...goalOf('GL0000000099', f.title, f.kind, f.target, f.counted, f.byTime, f.days), createdAt: NOW }),
+  updateGoal: async (id, goalId, p) => {
+    const g = goalById(id, goalId);
+    return {
+      ...g,
+      title: p.title ?? g.title,
+      target: p.target === undefined ? g.target : p.target,
+      byTime: p.byTime === undefined ? g.byTime : p.byTime,
+      days: p.days ?? g.days,
+      paused: p.paused ?? g.paused,
+    };
+  },
+  deleteGoal: ok,
+  putMark: async (_id, goalId, day, m) => ({ goalId, day, done: m.done, at: m.done ? Date.now() : null, value: m.value ?? null }),
+  goalReport: async (id, goalId, day) => reportOf(id, goalId, day),
+  goalSummary: async (id) => (id === SAMPLE_CLUB_ID ? SUMMARY : []),
+  remindGoal: ok,
+  setGoalsConsent: ok,
 };

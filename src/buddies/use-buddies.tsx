@@ -11,6 +11,7 @@ import { AppState } from 'react-native';
 import { useApp } from '@/state/app-state';
 
 import { socialApi, type SocialApi } from './api';
+import { GOALS_AUTO_KEY } from './goals-auto';
 import { mergeMessages, messageProblem, newClientId, newestId, nextDelay } from './chat-logic';
 import { PLAN_REMINDERS_KEY, TIPS_KEY } from './plans';
 import { CLUB_CODES_KEY } from './qr/club-code';
@@ -29,7 +30,7 @@ export const useSocialApi = () => useContext(Source);
 export const ME_KEY = 'buddies.me';
 
 /** Every kv key Walk buddies writes; wiped on sign-out and reset. */
-export const BUDDIES_KV_KEYS = [ME_KEY, BOARDS_KEY, STEPS_SENT_KEY, PLAN_REMINDERS_KEY, TIPS_KEY, CLUB_CODES_KEY] as const;
+export const BUDDIES_KV_KEYS = [ME_KEY, BOARDS_KEY, STEPS_SENT_KEY, PLAN_REMINDERS_KEY, TIPS_KEY, CLUB_CODES_KEY, GOALS_AUTO_KEY] as const;
 
 function messageOf(e: unknown): string {
   return e instanceof SocialError ? e.message : 'Something went wrong. Try again.';

@@ -27,6 +27,9 @@ import ClubJoinScreen from '@/app/buddies/club/[id]/join';
 import PlanScreen from '@/app/buddies/plan/[id]';
 import PlanFormScreen from '@/app/buddies/plan/new';
 import ScanQr from '@/app/buddies/scan';
+import GoalScreen from '@/app/buddies/club/[id]/goal/[goalId]';
+import GoalFormScreen from '@/app/buddies/club/[id]/goal/new';
+import MyGoalsScreen from '@/app/buddies/goals';
 import { AuthScreen } from '@/components/auth/auth-screen';
 import { BuddiesHome } from '@/components/buddies/buddies-home';
 import { ScanScreen } from '@/components/food/scan-screen';
@@ -216,6 +219,14 @@ function StackScreen({ screen }: { screen: PreviewScreen }) {
     case 'qr-scan':
       // No camera on the preview: the camera ask; &code=K7QM2XPA opens that club's card instead.
       return <ScanQr />;
+    case 'goal':
+      // &id=KBR000000001&goalId=GL0000000001: the morning walk, for its captain.
+      return <GoalScreen />;
+    case 'goal-new':
+      // &id=KBR000000001; &goal=GL0000000001 opens it to change.
+      return <GoalFormScreen />;
+    case 'my-goals':
+      return <MyGoalsScreen />;
     case 'signin':
       return <AuthScreen />;
     case 'welcome':

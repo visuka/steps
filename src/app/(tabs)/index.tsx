@@ -3,6 +3,7 @@ import { type ComponentRef, useCallback, useEffect, useRef, useState } from 'rea
 import { Alert, Dimensions, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useGoalsAuto } from '@/buddies/use-goals';
 import { PremiumCard } from '@/components/premium-gate';
 import { ThemedText } from '@/components/themed-text';
 import { Button, Snackbar } from '@/components/ui';
@@ -69,6 +70,8 @@ export default function TodayScreen() {
   const news = useGoodNews();
   const prompts = useTodayPrompts(todayKey);
   const backup = useBackupStatus();
+  // Shared club goals the phone counts are marked when Today opens too (goals-auto.ts; never in the preview).
+  useGoalsAuto();
   // The first screen doesn't move: it scrolls only when its content can't fit (very large text).
   const [viewH, setViewH] = useState(0);
   const [contentH, setContentH] = useState(0);

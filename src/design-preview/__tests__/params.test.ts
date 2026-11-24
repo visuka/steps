@@ -58,6 +58,15 @@ describe('parsePreviewParams', () => {
     expect(parsePreviewParams({ theme: 'e', screen: 'qr-scan', code: 'K7QM2XPA' })).toEqual({ theme: 'e', screen: 'qr-scan' });
   });
 
+  it('has the shared goal screens, which read their own id, goalId and goal params', () => {
+    for (const screen of ['goal', 'goal-new', 'my-goals']) expect(PREVIEW_SCREENS).toContain(screen);
+    expect(parsePreviewParams({ theme: 'e', screen: 'goal', id: 'KBR000000001', goalId: 'GL0000000001' })).toEqual({ theme: 'e', screen: 'goal' });
+    expect(parsePreviewParams({ theme: 'e', screen: 'goal-new', goal: 'GL0000000001', seg: 'goals' })).toEqual({ theme: 'e', screen: 'goal-new' });
+    const p = { theme: 'e', screen: 'my-goals' } as const;
+    expect(previewUrl(SCHEME, p)).toBe('neutcraftssteps://design-preview?theme=e&screen=my-goals');
+    expect(parsePreviewUrl(previewUrl(SCHEME, p))).toEqual(p);
+  });
+
   it('has the plan screens, and opens Plan a walk with the safety tips on tips=1', () => {
     for (const screen of ['plan', 'plan-new']) expect(PREVIEW_SCREENS).toContain(screen);
     expect(parsePreviewParams({ theme: 'e', screen: 'plan-new', tips: '1' })).toEqual({ theme: 'e', screen: 'plan-new', tips: true });

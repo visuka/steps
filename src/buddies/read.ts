@@ -9,6 +9,7 @@ import type {
   Message,
   MessagePage,
   Nearby,
+  NotifyPrefs,
   Relation,
   RequestRow,
   Requests,
@@ -149,7 +150,32 @@ export function readMe(v: unknown): SocialMe {
       clubInvites: num(c.clubInvites),
       clubRequests: num(c.clubRequests),
     },
+    notify: readNotify(v.notify),
   };
+}
+
+/** The server's defaults (push.DEFAULT_NOTIFY): goal reminders start on. */
+export const NOTIFY_DEFAULTS: NotifyPrefs = {
+  messages: true,
+  requests: true,
+  plans: true,
+  clubChat: false,
+  family: true,
+  goals: true,
+  preview: false,
+};
+
+/** The notification switches; a missing or odd one takes the server's default. */
+export function readNotify(v: unknown): NotifyPrefs {
+  const o = isObj(v) ? v : {};
+  const out = { ...NOTIFY_DEFAULTS };
+  for (const k of Object.keys(NOTIFY_DEFAULTS) as (keyof NotifyPrefs)[]) if (typeof o[k] === 'boolean') out[k] = o[k] as boolean;
+  return out;
+}
+
+/** My switches, from a /me answer or a copy saved by an older build (which had none). */
+export function notifyOf(me: SocialMe | null): NotifyPrefs {
+  return me && me.joined && me.notify ? me.notify : NOTIFY_DEFAULTS;
 }
 
 /** The badge number on the Plus tab and its rows. */

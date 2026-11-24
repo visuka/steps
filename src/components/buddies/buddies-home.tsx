@@ -19,6 +19,8 @@ import { displayName } from '@/buddies/read';
 import type { BuddyRow, ChatRow, SocialMe } from '@/buddies/types';
 import { attempt, useLoad, useSocialApi, useSocialMe } from '@/buddies/use-buddies';
 import { useMyClubs, useStepsShare } from '@/buddies/use-clubs';
+import { digestWords } from '@/buddies/goals';
+import { useGoalsAuto, useGoalsDigest } from '@/buddies/use-goals';
 import { upcoming } from '@/buddies/plans';
 import { usePlans } from '@/buddies/use-plans';
 import { scaled } from '@/constants/ui-scale';
@@ -33,9 +35,6 @@ import { MyQrSheet } from './qr/qr-sheets';
 import { useSnack } from './parts';
 
 const S = scaled;
-
-/** Still to come here; shown so nothing promised disappears. */
-const COMING = 'Clubs · Walk plans · QR invite';
 
 export type Segment = 'chats' | 'buddies';
 
@@ -130,6 +129,10 @@ function Joined({ me, refreshMe, openQr }: { me: Extract<SocialMe, { joined: tru
   const clock = useClockStyle();
   // Today's and this week's steps for the club boards, only while a board is on (steps-share.ts).
   useStepsShare();
+  // Shared club goals the phone counts (steps, walk, water, sleep), at most every 15 minutes (goals-auto.ts).
+  useGoalsAuto();
+  const goals = useGoalsDigest(clubs.data);
+  const goalsLine = digestWords(goals.digest, goals.clubs);
   const { snack, show, dismiss } = useSnack();
   const [later, setLater] = useState(false);
   // When the chats last came in, for "Updated 2 min ago" (set as they arrive, not in an effect).
@@ -253,10 +256,10 @@ function Joined({ me, refreshMe, openQr }: { me: Extract<SocialMe, { joined: tru
         onPlan={() => router.push('/buddies/plan/new' as never)}
       />
 
-      <Tile style={[ps.spread, { paddingTop: S(12), paddingBottom: S(12) }]}>
-        <Label icon="spark" text="Coming next" />
+      <Tile style={[ps.spread, { paddingTop: S(12), paddingBottom: S(12) }]} onPress={() => router.push('/buddies/goals' as never)} label={`My goals, ${goalsLine}`}>
+        <Label icon="check" text="My goals" />
         <Note style={{ marginTop: 0 }} lines={1}>
-          {COMING}
+          {goalsLine}
         </Note>
       </Tile>
 

@@ -64,6 +64,7 @@ Size rule for this look: the mockup phone is **411 px wide; 1 mockup px = 1 dp**
 | Secondary button (Later) | white 80 %, ink text |
 | Search field | white, edge #E8E8EB |
 | Today / Week switch, selected side | white pill, ink text, shadow 0 1 4 rgba(0,0,0,.08) (only one sage pill per screen) |
+| Shared goal icons (Goals tab, My goals) | each kind keeps its tile's icon colour (steps, walk, drop, moon); medicine `pill` #B0647E, anything `check` #4E8C6E, in a chip-coloured circle #F2E9DE. Status words stay ink and grey, never red |
 | QR code (My QR, Club QR) | ink #2C2C2E modules on a white tile, quiet zone of 4 modules, radius 16, at most 240 dp across (`PLAIN_QR`) |
 
 - Colour sits on surfaces only; words stay ink and grey.

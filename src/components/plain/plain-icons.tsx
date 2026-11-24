@@ -94,6 +94,18 @@ const SHAPES: Record<PlainIconName, ReactNode> = {
       <Path d="M8 11V8a4 4 0 0 1 8 0v3" />
     </>
   ),
+  pill: (
+    <>
+      <Rect x={3.5} y={8.5} width={17} height={7} rx={3.5} transform="rotate(-40 12 12)" />
+      <Path d="M9.7 9.3l4.6 5.4" />
+    </>
+  ),
+  check: (
+    <>
+      <Circle cx={12} cy={12} r={8} />
+      <Path d="M8.5 12.3l2.4 2.4 4.8-5" />
+    </>
+  ),
 };
 
 export function PlainIcon({ name, size = 17, color, stroke = 1.9 }: { name: PlainIconName; size?: number; color?: string; stroke?: number }) {

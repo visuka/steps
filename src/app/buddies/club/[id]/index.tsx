@@ -110,7 +110,7 @@ export default function ClubScreen() {
             ) : tab === 'walks' ? (
               <ClubWalksTab club={club} />
             ) : tab === 'goals' ? (
-              <ClubGoalsTab club={club} />
+              <ClubGoalsTab club={club} show={show} />
             ) : (
               <ClubBoardTab
                 club={club}

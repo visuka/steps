@@ -181,6 +181,15 @@ capture e qr-scan smoke/clean-qr-scan.png
 capture e qr-scan smoke/clean-qr-club.png '&code=K7QM2XPA'
 capture e club-admin smoke/clean-club-qr.png '&id=KBR000000001&qr=1'
 capture e club-join smoke/clean-club-join-code.png '&id=NRS000000002&code=K7QM2XPA' && more smoke/clean-club-join-code
+# Shared club goals: the captain's Goals tab all the way down, a member's tab, the goal
+# tracking switch, one goal for its captain, New goal, Change goal, and My goals.
+capture e club smoke/clean-club-goals-captain.png '&id=KBR000000001&seg=goals' goals && more smoke/clean-club-goals-captain
+capture e club smoke/clean-club-goals-member.png '&id=HPW000000004&seg=goals' goals && more smoke/clean-club-goals-member
+capture e club smoke/clean-club-goals-consent.png '&id=SRN000000005&seg=goals' goals && more smoke/clean-club-goals-consent
+capture e goal smoke/clean-goal.png '&id=KBR000000001&goalId=GL0000000001' && more smoke/clean-goal
+capture e goal-new smoke/clean-goal-new.png '&id=KBR000000001' && more smoke/clean-goal-new
+capture e goal-new smoke/clean-goal-edit.png '&id=KBR000000001&goal=GL0000000003' && more smoke/clean-goal-edit
+capture e my-goals smoke/clean-my-goals.png && more smoke/clean-my-goals
 # The same on a small phone (360 dp) with large text: everything must still fit.
 adb shell wm density 480
 adb shell settings put system font_scale 1.3
@@ -196,6 +205,13 @@ capture e buddies-qr smoke/clean-buddies-qr-360dp.png
 capture e qr-scan smoke/clean-qr-scan-360dp.png && more smoke/clean-qr-scan-360dp
 capture e qr-scan smoke/clean-qr-club-360dp.png '&code=K7QM2XPA'
 capture e club-admin smoke/clean-club-qr-360dp.png '&id=KBR000000001&qr=1'
+capture e club smoke/clean-club-goals-captain-360dp.png '&id=KBR000000001&seg=goals' goals && more smoke/clean-club-goals-captain-360dp
+capture e club smoke/clean-club-goals-member-360dp.png '&id=HPW000000004&seg=goals' goals && more smoke/clean-club-goals-member-360dp
+capture e club smoke/clean-club-goals-consent-360dp.png '&id=SRN000000005&seg=goals' goals && more smoke/clean-club-goals-consent-360dp
+capture e goal smoke/clean-goal-360dp.png '&id=KBR000000001&goalId=GL0000000001' && more smoke/clean-goal-360dp
+capture e goal-new smoke/clean-goal-new-360dp.png '&id=KBR000000001' && more smoke/clean-goal-new-360dp
+capture e goal-new smoke/clean-goal-edit-360dp.png '&id=KBR000000001&goal=GL0000000003' && more smoke/clean-goal-edit-360dp
+capture e my-goals smoke/clean-my-goals-360dp.png && more smoke/clean-my-goals-360dp
 adb shell settings put system font_scale 1.0
 adb shell wm density 420
 # The long screens CI already photographs, the rest of the way down.
