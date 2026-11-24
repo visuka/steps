@@ -37,7 +37,7 @@ import { SCREEN_FEATURES } from '@/premium/premium';
  */
 export default function PlanFormScreen() {
   const { id, club } = useLocalSearchParams<{ id?: string; club?: string }>();
-  const f = usePlanForm(id || undefined);
+  const f = usePlanForm(id || undefined, club || null);
   const editing = !!id;
   const title = editing ? 'Change walk' : club ? 'Plan a club walk' : 'Plan a walk';
   const router = useRouter();

@@ -11,6 +11,7 @@ import { useClockStyle } from '@/hooks/use-clock-style';
 import { cancelScheduled, scheduleAt } from '@/notifications/notify';
 import { useApp } from '@/state/app-state';
 
+import { canPlanForCard } from './election';
 import { phoneTimeZone } from './steps-share';
 import {
   answerAndRemind,
@@ -143,7 +144,7 @@ export interface PlanBefore {
  * Plan a walk, or (with an id) change one. Loads my buddies and my clubs for
  * "Who"; returns the plan id or plain words.
  */
-export function usePlanForm(id?: string) {
+export function usePlanForm(id?: string, presetClub?: string | null) {
   const api = useSocialApi();
   const buddies = useLoad(api.buddies);
   const clubs = useLoad(api.myClubs);
@@ -188,7 +189,9 @@ export function usePlanForm(id?: string) {
     save,
     before,
     buddies: buddies.data ?? [],
-    clubs: (clubs.data ?? []).filter((c) => c.myState === 'member'),
+    // Club walks are planned by the captain and vice-captains only (owner, 24 Nov 2026); the
+    // club a Walks tab opened the form for stays too (that tab shows Plan only to whoever may).
+    clubs: (clubs.data ?? []).filter((c) => c.myState === 'member' && (canPlanForCard(c) || c.clubId === presetClub)),
     // The clubs too: ?club= can only be picked once they are in.
     loading: (!!id && existing.loading) || buddies.loading || clubs.loading,
     error: existing.error,

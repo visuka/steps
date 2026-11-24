@@ -146,3 +146,32 @@ const styles = StyleSheet.create({
   mark: { marginTop: 3 },
   item: { flex: 1 },
 });
+
+/**
+ * While members choose a new captain: one frosted tile under the club's line,
+ * "Choosing a new captain · ends Thu 6:00 pm" and Vote (the election screen).
+ * The words wrap at large text; the button moves under them rather than squeeze.
+ */
+export function ElectionBanner({ text, button, onPress }: { text: string; button: string; onPress: () => void }) {
+  return (
+    <Surface level={1} style={bannerStyles.tile}>
+      <ThemedText style={bannerStyles.text} maxFontSizeMultiplier={1.3}>
+        {text}
+      </ThemedText>
+      <Button label={button} variant="tonal" compact onPress={onPress} accessibilityLabel={`${button}. ${text}`} />
+    </Surface>
+  );
+}
+
+const bannerStyles = StyleSheet.create({
+  tile: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
+  },
+  text: { flexGrow: 1, flexShrink: 1, flexBasis: 160 },
+});

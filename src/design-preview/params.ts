@@ -29,6 +29,10 @@
  * id=<clubId> and goal=<goalId> to change one; club &seg=goals with id=HPW000000004 is a member's
  * tab and id=SRN000000005 the goal tracking switch. Those screens read them themselves.
  * plus-locked is Buddies as it is without Premium, over the sample clubs.
+ * Choosing a new captain: club &id=GSW000000006 is a club voting (I'm a member, I stand and
+ * voted), &id=KDP000000008 one whose vote closed (the new captain line), and &ask=leave
+ * opens the Leave dialog (with &id=KBR000000001: the captain's). club-election takes
+ * &id=GSW000000006 (candidates) or BGW000000007 (no one standing). Those screens read them themselves.
  * Every screen also takes part=dawn|noon|dusk: Today and the bar in that part's colours
  * instead of the clock's (T18).
  * Plain string work only: React Native's URLSearchParams has no get().
@@ -84,6 +88,8 @@ export const PREVIEW_SCREENS = [
   'my-goals',
   // Buddies without Premium: the premium card and Your clubs (Leave club, Stop goal tracking).
   'plus-locked',
+  // Choosing a new captain: the election screen (&id=GSW000000006 I stand and voted; BGW000000007 no one standing).
+  'club-election',
 ] as const;
 export type PreviewScreen = (typeof PREVIEW_SCREENS)[number];
 

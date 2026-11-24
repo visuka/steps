@@ -97,6 +97,18 @@ export function makeClubsApi(send: Send) {
       await send('DELETE', `${club(id)}/members/me`);
     },
 
+    /** While members choose a new captain: stand (or withdraw). 409 not_open, 403 not_eligible. */
+    standForCaptain: async (id: string, stand: boolean): Promise<void> => {
+      await send('POST', `${club(id)}/election/stand`, { stand });
+    },
+    /** My one secret vote, for any candidate (myself too); changeable until the vote ends. 400 not_candidate. */
+    voteForCaptain: async (id: string, pid: string): Promise<void> => {
+      await send('PUT', `${club(id)}/election/vote`, { pid });
+    },
+    clearCaptainVote: async (id: string): Promise<void> => {
+      await send('DELETE', `${club(id)}/election/vote`);
+    },
+
     setBoard: async (id: string, on: boolean): Promise<void> => {
       await send('PUT', `${club(id)}/board`, { on });
     },

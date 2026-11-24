@@ -183,6 +183,17 @@ export function clubErrorText(e: unknown): string {
       return 'Already done.';
     case 'daily_limit':
       return "You've reached today's limit. Try again tomorrow.";
+    // Choosing a new captain (contract B).
+    case 'not_open':
+      return 'Voting for a captain has ended.';
+    case 'not_eligible':
+      return 'Only people who were members when voting started can stand and vote.';
+    case 'not_candidate':
+      return "They're not standing any more.";
+    case 'election_open':
+      return 'Not while members are choosing a new captain.';
+    case 'staff_only':
+      return 'The captain and vice-captains plan club walks.';
   }
   return e.message;
 }

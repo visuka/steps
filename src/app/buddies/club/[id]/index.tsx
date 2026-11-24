@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -9,15 +9,19 @@ import { SafetySheet } from '@/components/buddies/plans/safety-sheet';
 import { ReportSheet } from '@/components/buddies/report-sheet';
 import { PlainGround, Segments } from '@/components/plain/plain-kit';
 import { LockedClubs } from '@/components/buddies/clubs/locked-clubs';
+import { ElectionBanner } from '@/components/buddies/clubs/club-parts';
 import { PremiumCard } from '@/components/premium-gate';
 import { ThemedText } from '@/components/themed-text';
 import { BackButton, Button, Card, Dialog, IconButton, ListRow, Screen, Sheet, Snackbar } from '@/components/ui';
 import { SCREEN, subtitleIndent } from '@/components/ui/screen-style';
 import { can, clubLine, isStaff } from '@/buddies/clubs';
+import { bannerButton, bannerWords, canInClub, canPlanClubWalk, lastElectionWords, leaveAsk, myPidOf, powerRole } from '@/buddies/election';
 import type { Club, Message } from '@/buddies/types';
 import { attempt, useSocialApi } from '@/buddies/use-buddies';
 import { useClub, useStepsShare } from '@/buddies/use-clubs';
 import { useSafetyTips } from '@/buddies/use-plans';
+import { useClock } from '@/hooks/use-clock';
+import { useClockStyle } from '@/hooks/use-clock-style';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { SCREEN_FEATURES } from '@/premium/premium';
@@ -27,11 +31,16 @@ import { usePremium } from '@/state/use-premium';
  * A club (spec T16f): Chat · Walks · Goals · Board for members; for anyone
  * else the club's line, what it is about and Ask to join (or the invite).
  * The menu: members and requests (captain, vice-captains), Invite a buddy,
- * Edit club, Delete club (captain), Report club and Leave club. Without
- * Premium: the premium card, and Leave club / Stop goal tracking, which stay free.
+ * Edit club, Delete club (captain), Report club and Leave club (the captain
+ * too: members then vote for a new one, election.tsx). While they vote, a
+ * banner says until when, with Vote, and no one can delete the club or change
+ * roles. Without Premium: the premium card, and Leave club / Stop goal
+ * tracking, which stay free.
  */
 export default function ClubScreen() {
-  const { id, seg } = useLocalSearchParams<{ id: string; seg?: string }>();
+  // ?seg=election (the vote's notifications) opens the election screen over the club;
+  // ?ask=leave opens the Leave dialog (the design preview's captain leave shot).
+  const { id, seg, ask: askParam } = useLocalSearchParams<{ id: string; seg?: string; ask?: string }>();
   const router = useRouter();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -41,7 +50,7 @@ export default function ClubScreen() {
   useStepsShare();
   const [tab, setTab] = useState<ClubTab>(isClubTab(seg) ? seg : 'chat');
   const [menu, setMenu] = useState(false);
-  const [ask, setAsk] = useState<'leave' | 'delete' | null>(null);
+  const [ask, setAsk] = useState<'leave' | 'delete' | null>(askParam === 'leave' ? 'leave' : null);
   const [report, setReport] = useState<{ kind: 'club' | 'message'; ref: string; label: string; author?: Message['from'] } | null>(null);
   const [busy, setBusy] = useState(false);
   const { snack, show, dismiss } = useSnack();
@@ -49,6 +58,25 @@ export default function ClubScreen() {
   const club = c.club;
   const role = club?.myRole ?? null;
   const name = club?.name ?? 'Club';
+  const now = useClock().now;
+  const clock = useClockStyle();
+  const election = c.election;
+  const myPid = myPidOf(c.members);
+  // The acting captain has a vice-captain's powers while members vote; no one deletes or changes roles.
+  const power = powerRole(role, election, myPid);
+  const allowed = (action: Parameters<typeof canInClub>[1]) => canInClub(role, action, election, myPid);
+  const result = lastElectionWords(c.lastElection, now, myPid);
+  const leaving = leaveAsk(role, club?.memberCount ?? 0, name);
+  const openElection = () => {
+    setMenu(false);
+    router.push({ pathname: '/buddies/club/[id]/election', params: { id } } as never);
+  };
+  const sentToVote = useRef(false);
+  useEffect(() => {
+    if (seg !== 'election' || sentToVote.current || !club || club.myState !== 'member') return;
+    sentToVote.current = true;
+    router.push({ pathname: '/buddies/club/[id]/election', params: { id: club.clubId } } as never);
+  }, [seg, club, router]);
   // The safety tips, once, the first time I'm in a club (docs/walk-buddies.md 6.4).
   const tips = useSafetyTips('club', club?.myState === 'member');
 
@@ -128,6 +156,13 @@ export default function ClubScreen() {
               <ThemedText type="bodySmall" themeColor="onSurfaceVariant" numberOfLines={2} maxFontSizeMultiplier={1.3} style={styles.headLine}>
                 {headLine(club)}
               </ThemedText>
+              {/* The vote's result, for 7 days after it closed: plain words, no "won". */}
+              {result ? (
+                <ThemedText type="bodySmall" themeColor="onSurfaceVariant" numberOfLines={2} maxFontSizeMultiplier={1.3} style={styles.headLine}>
+                  {result}
+                </ThemedText>
+              ) : null}
+              {election ? <ElectionBanner text={bannerWords(election, now, clock)} button={bannerButton(election)} onPress={openElection} /> : null}
               <Segments parts={CLUB_TABS} value={tab} onChange={setTab} stretch spoken={(v) => `${CLUB_TABS.find((t) => t.value === v)?.text} tab`} />
             </View>
             {tab === 'chat' ? (
@@ -137,9 +172,10 @@ export default function ClubScreen() {
                 onReportMessage={(ref, author) => setReport({ kind: 'message', ref, label: `message from @${author.handle}`, author })}
               />
             ) : tab === 'walks' ? (
-              <ClubWalksTab club={club} />
+              <ClubWalksTab club={club} canPlan={canPlanClubWalk(role, election, myPid)} />
             ) : tab === 'goals' ? (
-              <ClubGoalsTab club={club} show={show} />
+              // Goals follow my powers: the acting captain runs them during a vote.
+              <ClubGoalsTab club={{ ...club, myRole: power }} show={show} />
             ) : (
               <ClubBoardTab
                 club={club}
@@ -152,25 +188,27 @@ export default function ClubScreen() {
       </KeyboardAvoidingView>
 
       <Sheet visible={menu} onClose={() => setMenu(false)} title={name}>
-        {club && isStaff(role) ? (
+        {club && election ? <ListRow title="Vote for a new captain" icon="ribbon-outline" chevron onPress={openElection} /> : null}
+        {club && isStaff(power) ? (
           <ListRow title="Members and requests" icon="people-outline" chevron onPress={() => go('/buddies/club/[id]/admin', { id: club.clubId })} />
         ) : null}
-        {club && can(role, 'invite') ? (
+        {club && allowed('invite') ? (
           <ListRow title="Invite a buddy" icon="person-add-outline" onPress={() => go('/buddies/club/[id]/admin', { id: club.clubId, invite: '1' })} />
         ) : null}
-        {club && can(role, 'edit') ? <ListRow title="Edit club" icon="create-outline" onPress={() => go('/buddies/club/new', { id: club.clubId })} /> : null}
-        {club && can(role, 'delete') ? <ListRow title="Delete club" icon="trash-outline" onPress={() => (setMenu(false), setAsk('delete'))} /> : null}
+        {club && allowed('edit') ? <ListRow title="Edit club" icon="create-outline" onPress={() => go('/buddies/club/new', { id: club.clubId })} /> : null}
+        {club && allowed('delete') ? <ListRow title="Delete club" icon="trash-outline" onPress={() => (setMenu(false), setAsk('delete'))} /> : null}
         {club ? <ListRow title="Report club" icon="flag-outline" onPress={() => (setMenu(false), setReport({ kind: 'club', ref: club.clubId, label: 'club' }))} /> : null}
-        {club && can(role, 'leave') && role !== 'owner' ? (
+        {/* The captain can leave too (owner, 24 Nov 2026): members then vote for a new one. */}
+        {club && can(role, 'leave') ? (
           <ListRow title="Leave club" icon="exit-outline" onPress={() => (setMenu(false), setAsk('leave'))} />
         ) : null}
       </Sheet>
 
       <Dialog
         visible={ask === 'leave'}
-        title={`Leave ${name}?`}
-        message="You leave the club chat and the board. If the club has shared goals, your goal history here is deleted."
-        confirmLabel="Leave"
+        title={leaving.title}
+        message={leaving.message}
+        confirmLabel={leaving.confirm}
         danger
         onCancel={() => setAsk(null)}
         onConfirm={async () => {
@@ -219,7 +257,7 @@ export default function ClubScreen() {
   );
 }
 
-/** "Banjara Hills · 48 members · Captain @ravi_walks", or "… · You're the captain". */
+/** "Banjara Hills · 48 members · Captain @ravi_walks", or "… · You're the captain" (no captain while members vote). */
 function headLine(club: Club): string {
   return [clubLine(club), captainWords(club)].filter(Boolean).join(' · ');
 }

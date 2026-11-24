@@ -6,7 +6,9 @@ import type {
   Club,
   ClubCard,
   ClubGoals,
+  ClubElection,
   ClubMember,
+  ClubPage,
   ChatRow,
   Goal,
   GoalReport,
@@ -114,6 +116,68 @@ const SRN: Club = {
   myRole: 'member',
   myBoard: false,
 };
+
+// Choosing a new captain (owner, 24 Nov 2026): a club voting, one with no one standing, one just decided.
+/** A club voting for a new captain (&id=GSW000000006): I'm a member, I stand, and I voted for Lakshmi. */
+export const SAMPLE_ELECTION_CLUB_ID = 'GSW000000006';
+/** A club voting with no one standing yet (&id=BGW000000007): I'm the acting captain. */
+export const SAMPLE_EMPTY_ELECTION_CLUB_ID = 'BGW000000007';
+/** A club whose vote closed 2 days ago (&id=KDP000000008): "@meera.k is the new captain." */
+export const SAMPLE_DECIDED_CLUB_ID = 'KDP000000008';
+
+const memberClub = (clubId: string, name: string, area: string, memberCount: number, about: string, captain: Walker | null): Club => ({
+  clubId,
+  name,
+  area,
+  memberCount,
+  myState: 'member',
+  goals: false,
+  captain,
+  about,
+  hidden: false,
+  myRole: 'member',
+  myBoard: false,
+});
+
+// The captain left: no captain until the vote closes.
+const GSW = memberClub(SAMPLE_ELECTION_CLUB_ID, 'Gachibowli Stadium Walkers', 'Gachibowli', 26, 'Laps of the stadium track, 6 am and 6 pm.', null);
+const BGW = memberClub(SAMPLE_EMPTY_ELECTION_CLUB_ID, 'Botanical Garden Walk', 'Kondapur', 9, 'Sunday mornings in the garden.', null);
+const KDP = memberClub(SAMPLE_DECIDED_CLUB_ID, 'Kothaguda Evening Walk', 'Kothaguda', 14, 'Around the lake after work.', meera);
+
+const GSW_MEMBERS: ClubMember[] = [
+  { walker: ravi, role: 'admin' },
+  { walker: me, role: 'member' },
+  { walker: lakshmi, role: 'member' },
+  { walker: arjun, role: 'member' },
+  { walker: meena, role: 'member' },
+];
+const BGW_MEMBERS: ClubMember[] = [
+  { walker: me, role: 'member' },
+  { walker: kiran, role: 'member' },
+  { walker: sita, role: 'member' },
+];
+const KDP_MEMBERS: ClubMember[] = [
+  { walker: meera, role: 'owner' },
+  { walker: me, role: 'member' },
+  { walker: arjun, role: 'member' },
+];
+
+/** Ends the day after tomorrow at 6 pm; Ravi (the vice-captain) acts as captain. */
+const GSW_ELECTION: ClubElection = {
+  endsAt: atDayTime(addDaysToKey(dayKey(new Date(NOW)), 2), 18 * 60),
+  actingPid: ravi.pid,
+  candidates: [
+    { pid: lakshmi.pid, handle: lakshmi.handle, name: lakshmi.name, isMe: false },
+    { pid: me.pid, handle: me.handle, name: me.name, isMe: true },
+    { pid: arjun.pid, handle: arjun.handle, name: null, isMe: false },
+  ],
+  myVote: lakshmi.pid,
+  iStand: true,
+  canVote: true,
+};
+const BGW_ELECTION: ClubElection = { ...GSW_ELECTION, actingPid: me.pid, candidates: [], myVote: null, iStand: false };
+
+const pageOf = (club: Club, members: ClubMember[], more: Partial<ClubPage> = {}): ClubPage => ({ club, members, election: null, lastElection: null, ...more });
 
 const cardOf = ({ clubId, name, area, memberCount, myState, goals, captain }: Club): ClubCard => ({ clubId, name, area, memberCount, myState, goals, captain });
 
@@ -365,23 +429,35 @@ export const SAMPLE_SOCIAL_API: SocialApi = {
   report: ok,
 
   searchClubs: async () => [cardOf(KBR), cardOf(NRS), { ...cardOf(JHE), myState: 'asked' }],
-  // GET /clubs/mine with my role on each card: Captain (KBR), Vice-captain (JHE), Member (HPW, SRN).
+  // GET /clubs/mine with my role on each card: Captain (KBR), Vice-captain (JHE), Member (HPW, SRN),
+  // and a club voting for a new captain (GSW: "Voting for captain").
   myClubs: async () => [
     { ...cardOf(KBR), myRole: 'owner' },
     { ...cardOf(JHE), myState: 'member', myRole: 'admin' },
     { ...cardOf(HPW), myRole: 'member' },
     { ...cardOf(SRN), myRole: 'member' },
+    { ...cardOf(GSW), myRole: 'member', electionOpen: true },
   ],
-  club: async (id) =>
-    id === SAMPLE_GOALS_CLUB_ID
-      ? { club: NRS, members: [] }
-      : id === JHE.clubId
-        ? { club: JHE, members: [] }
-        : id === HPW.clubId
-          ? { club: HPW, members: [] }
-          : id === SRN.clubId
-            ? { club: SRN, members: [] }
-            : { club: KBR, members: KBR_MEMBERS },
+  club: async (id) => {
+    switch (id) {
+      case SAMPLE_GOALS_CLUB_ID:
+        return pageOf(NRS, []);
+      case JHE.clubId:
+        return pageOf(JHE, []);
+      case HPW.clubId:
+        return pageOf(HPW, []);
+      case SRN.clubId:
+        return pageOf(SRN, []);
+      case GSW.clubId:
+        return pageOf({ ...GSW, electionOpen: true }, GSW_MEMBERS, { election: GSW_ELECTION });
+      case BGW.clubId:
+        return pageOf({ ...BGW, electionOpen: true }, BGW_MEMBERS, { election: BGW_ELECTION });
+      case KDP.clubId:
+        return pageOf(KDP, KDP_MEMBERS, { lastElection: { winnerPid: meera.pid, handle: meera.handle, decidedAt: NOW - 2 * 1440 * MIN, how: 'votes' } });
+      default:
+        return pageOf(KBR, KBR_MEMBERS);
+    }
+  },
   createClub: async () => KBR,
   updateClub: async () => KBR,
   deleteClub: ok,
@@ -399,6 +475,9 @@ export const SAMPLE_SOCIAL_API: SocialApi = {
   setRole: ok,
   removeMember: ok,
   leaveClub: ok,
+  standForCaptain: ok,
+  voteForCaptain: ok,
+  clearCaptainVote: ok,
   setBoard: ok,
   board: async () => ({
     weekStart: '2026-11-23',

@@ -10,6 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { Button, EmptyState, ListRow, Surface, ToggleRow } from '@/components/ui';
 import { boardRows } from '@/buddies/clubs';
+import { STAFF_PLANS_LINE } from '@/buddies/election';
 import { planLine, standWord, upcoming } from '@/buddies/plans';
 import { displayName } from '@/buddies/read';
 import type { Club, Message } from '@/buddies/types';
@@ -45,8 +46,12 @@ export function ClubChatTab({
   return <ChatBody chatKey={`c.${club.clubId}`} name={club.name} group show={show} onReportMessage={onReportMessage} />;
 }
 
-/** The club's planned walks, soonest first, and Plan a club walk (T16e). Any member can plan one. */
-export function ClubWalksTab({ club }: { club: Club }) {
+/**
+ * The club's planned walks, soonest first. The captain and vice-captains (and the
+ * acting captain during a vote) get Plan a club walk; members see who plans them
+ * (owner, 24 Nov 2026), and can still open a walk and say if they're going.
+ */
+export function ClubWalksTab({ club, canPlan }: { club: Club; canPlan: boolean }) {
   const router = useRouter();
   const plans = usePlans();
   const now = useClock().now;
@@ -54,14 +59,24 @@ export function ClubWalksTab({ club }: { club: Club }) {
   const list = upcoming((plans.data ?? []).filter((p) => p.club?.clubId === club.clubId), now);
   return (
     <TabScroll onRefresh={plans.refresh}>
-      <Button label="Plan a club walk" onPress={() => router.push({ pathname: '/buddies/plan/new', params: { club: club.clubId } } as never)} />
+      {canPlan ? (
+        <Button label="Plan a club walk" onPress={() => router.push({ pathname: '/buddies/plan/new', params: { club: club.clubId } } as never)} />
+      ) : (
+        <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
+          {STAFF_PLANS_LINE}
+        </ThemedText>
+      )}
       {plans.error ? (
         <ThemedText themeColor="onSurfaceVariant" style={styles.gap}>
           {plans.error}
         </ThemedText>
       ) : null}
       {plans.data && !list.length ? (
-        <EmptyState icon="walk-outline" title="No walks planned" hint="Pick a time and a meeting place. Everyone in the club can see it and say if they're going." />
+        <EmptyState
+          icon="walk-outline"
+          title="No walks planned"
+          hint={canPlan ? "Pick a time and a meeting place. Everyone in the club can see it and say if they're going." : "When one is planned, it shows here and you can say if you're going."}
+        />
       ) : null}
       {list.length ? (
         <Surface level={1} style={[styles.list, styles.gap]}>

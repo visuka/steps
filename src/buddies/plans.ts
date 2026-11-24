@@ -139,6 +139,8 @@ export function planErrorText(e: unknown): string {
     if (e.why === 'text') return `Use a place of up to ${PLACE_MAX} characters and a note of up to ${NOTE_MAX}.`;
     return "Check the time, the place and who's invited.";
   }
+  // Club walks are planned by the captain and vice-captains only (owner, 24 Nov 2026).
+  if (e.why === 'staff_only') return 'The captain and vice-captains plan club walks.';
   switch (e.code) {
     case 'daily_limit':
       return `You can have ${UPCOMING_MAX} upcoming walks at a time.`;

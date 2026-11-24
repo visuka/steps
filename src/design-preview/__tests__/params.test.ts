@@ -53,6 +53,14 @@ describe('parsePreviewParams', () => {
     expect(parsePreviewUrl(previewUrl(SCHEME, p))).toEqual(p);
   });
 
+  it('has the election screen; the club and election screens read their own id and ask', () => {
+    expect(PREVIEW_SCREENS).toContain('club-election');
+    expect(parsePreviewParams({ theme: 'e', screen: 'club-election', id: 'GSW000000006' })).toEqual({ theme: 'e', screen: 'club-election' });
+    expect(parsePreviewParams({ theme: 'e', screen: 'club', ask: 'leave' })).toEqual({ theme: 'e', screen: 'club' });
+    // seg=election is the vote's notification route, not a preview tab.
+    expect(parsePreviewParams({ theme: 'e', screen: 'club', seg: 'election' })).toEqual({ theme: 'e', screen: 'club' });
+  });
+
   it('has the QR screens, which read their own code and qr params', () => {
     for (const screen of ['buddies-qr', 'qr-scan']) expect(PREVIEW_SCREENS).toContain(screen);
     expect(parsePreviewParams({ theme: 'e', screen: 'qr-scan', code: 'K7QM2XPA' })).toEqual({ theme: 'e', screen: 'qr-scan' });

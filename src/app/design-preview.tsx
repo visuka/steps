@@ -24,6 +24,7 @@ import ClubFormScreen from '@/app/buddies/club/new';
 import ClubScreen from '@/app/buddies/club/[id]';
 import ClubAdminScreen from '@/app/buddies/club/[id]/admin';
 import ClubJoinScreen from '@/app/buddies/club/[id]/join';
+import ClubElectionScreen from '@/app/buddies/club/[id]/election';
 import PlanScreen from '@/app/buddies/plan/[id]';
 import PlanFormScreen from '@/app/buddies/plan/new';
 import ScanQr from '@/app/buddies/scan';
@@ -214,6 +215,9 @@ function StackScreen({ screen }: { screen: PreviewScreen }) {
     case 'club-join':
       // &id=NRS000000002: a club with shared goals I am not in yet.
       return <ClubJoinScreen />;
+    case 'club-election':
+      // Choosing a new captain: &id=GSW000000006 (I stand and voted) or BGW000000007 (no one standing).
+      return <ClubElectionScreen />;
     case 'plan':
       // &id=PLN000000001: a walk I planned; PLN000000002: one I'm invited to.
       return <PlanScreen />;
