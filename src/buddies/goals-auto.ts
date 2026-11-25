@@ -282,6 +282,20 @@ export const mealsOf = (foods: Pick<FoodEntry, 'loggedAt'>[]): number => new Set
 /** Readings or log entries taken today. */
 export const countToday = (list: { loggedAt: number }[], today: string): number => list.filter((x) => dayKey(new Date(x.loggedAt)) === today).length;
 
+/**
+ * The keys today's total only partly knows: those a food itself marks as
+ * missing, plus any key some entries have and others don't (a calories-only
+ * entry next to a catalog food). An "at most" goal is never done on such a
+ * total, since the uncounted entry may hold more.
+ */
+export function partlyKnown(each: Partial<Record<NutrientKey, number>>[], missing: PartialKeys): PartialKeys {
+  const out: PartialKeys = { ...missing };
+  const keys = new Set<NutrientKey>();
+  for (const n of each) for (const [k, v] of Object.entries(n) as [NutrientKey, number | undefined][]) if (typeof v === 'number') keys.add(k);
+  for (const k of keys) if (each.some((n) => typeof n[k] !== 'number')) out[k] = true;
+  return out;
+}
+
 /** Reads today's numbers from the phone. `steps`: the steps on screen, when known. */
 export async function readPhoneToday(
   repo: Repository,
@@ -328,7 +342,7 @@ export async function readPhoneToday(
     waterGlasses: glassesOf(waterMl, drinks, profile.water.glassMl),
     nutrients,
     known,
-    partial: book ? partialKeys(todayFoods, book.own, book.saved) : {},
+    partial: partlyKnown(each, book ? partialKeys(todayFoods, book.own, book.saved) : {}),
   };
 }
 

@@ -21,6 +21,7 @@ import {
   sleepMinOf,
   statusWords,
   walkMinOf,
+  partlyKnown,
 } from '../goals-auto';
 import type { ClubGoals, Goal } from '../types';
 
@@ -331,3 +332,13 @@ describe('the runner', () => {
     expect(read).not.toHaveBeenCalled();
   });
 });
+
+describe('partlyKnown', () => {
+  it('marks a key partly known when a calories-only entry sits next to a food that knows it', () => {
+    expect(partlyKnown([{ kcal: 300, addedSugar: 10 }, { kcal: 210 }], {})).toEqual({ addedSugar: true });
+  });
+  it('leaves keys every entry knows alone, and keeps the food book missing keys', () => {
+    expect(partlyKnown([{ kcal: 300, protein: 8 }, { kcal: 100, protein: 2 }], { fiber: true })).toEqual({ fiber: true });
+  });
+});
+
