@@ -111,10 +111,6 @@ export interface ClubCard {
   captain: Walker | null;
   /** My role, when the server says it on a card (GET /clubs/mine); left out otherwise. */
   myRole?: ClubRole | null;
-  /** Members are choosing a new captain (GET /clubs/mine "electionOpen"); left out otherwise. */
-  electionOpen?: boolean;
-  /** I am the acting captain of the open vote (GET /clubs/mine "acting", my own card only); left out otherwise. */
-  acting?: boolean;
 }
 
 export interface Club extends ClubCard {
@@ -129,49 +125,14 @@ export interface Club extends ClubCard {
 export interface ClubMember {
   walker: Walker;
   role: ClubRole;
+  /** When they joined (epoch ms), when the server says; left out otherwise. */
+  joinedAt?: number;
 }
 
 /** GET /clubs/{id}: the club, and its members when I am one. */
 export interface ClubPage {
   club: Club;
   members: ClubMember[];
-  /** The captain left and members are voting for a new one; null otherwise (members only). */
-  election: ClubElection | null;
-  /** The last vote's result, for 7 days after it closed; null otherwise (members only). */
-  lastElection: LastElection | null;
-}
-
-// ── choosing a new captain (owner, 24 Nov 2026: "members should go for voting and elect a captain") ──
-
-export interface ElectionCandidate {
-  pid: string;
-  handle: string;
-  /** Only for buddies (and me). */
-  name: string | null;
-  isMe: boolean;
-}
-
-/** An open vote: anyone who was a member when it opened can stand and vote; ballots are secret. */
-export interface ClubElection {
-  /** Epoch ms, 48 hours after it opened. */
-  endsAt: number;
-  /** The acting captain until the vote closes (vice-captain powers, no delete or role changes). */
-  actingPid: string | null;
-  candidates: ElectionCandidate[];
-  /** The candidate I voted for, or null. */
-  myVote: string | null;
-  iStand: boolean;
-  /** I was a member when the vote opened. */
-  canVote: boolean;
-}
-
-export type ElectionHow = 'votes' | 'tie_earliest' | 'no_candidates' | 'no_votes';
-
-export interface LastElection {
-  winnerPid: string;
-  handle: string;
-  decidedAt: number;
-  how: ElectionHow;
 }
 
 export interface ClubInviteRow {

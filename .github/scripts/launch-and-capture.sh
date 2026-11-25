@@ -210,16 +210,10 @@ capture e goal-new smoke/clean-goal-edit.png '&id=KBR000000001&goal=GL0000000003
 capture e my-goals smoke/clean-my-goals.png && more smoke/clean-my-goals
 # Buddies without Premium: the premium card, then Your clubs (Leave club, Stop goal tracking).
 capture e plus-locked smoke/clean-plus-locked.png && more smoke/clean-plus-locked
-# Choosing a new captain: a club voting (member view, voted), the election screen with people
-# standing (I stand), with no one standing, a club whose vote closed (the new captain line),
-# the captain's Leave dialog, and a member's Walks tab (no Plan a club walk).
-capture e club smoke/clean-club-election.png '&id=GSW000000006'
-capture e club-election smoke/clean-club-election-vote.png '&id=GSW000000006' && more smoke/clean-club-election-vote
-capture e club-election smoke/clean-club-election-empty.png '&id=BGW000000007' && more smoke/clean-club-election-empty
-capture e club smoke/clean-club-new-captain.png '&id=KDP000000008'
+# The captain's Leave dialog (names who takes over), and a member's Walks tab (no Plan a club walk).
 capture e club smoke/clean-club-captain-leave.png '&id=KBR000000001&ask=leave'
 capture e club smoke/clean-club-walks-member.png '&id=HPW000000004&seg=walks' walks && more smoke/clean-club-walks-member
-# Your clubs without Premium: the captain's Leave dialog (the members then vote).
+# Your clubs without Premium: the captain's Leave dialog (a vice-captain takes over).
 capture e plus-locked smoke/clean-plus-locked-captain-leave.png '&ask=leave&id=KBR000000001'
 # The same on a small phone (360 dp) with large text: everything must still fit.
 adb shell wm density 480
@@ -254,10 +248,6 @@ capture e club smoke/clean-club-invited-360dp.png '&id=JHE000000003' && more smo
 capture e qr-scan smoke/clean-qr-code-entry-360dp.png '&typing=1'
 capture e plus-locked smoke/clean-plus-locked-360dp.png && more smoke/clean-plus-locked-360dp
 capture e club smoke/clean-club-tips-360dp.png '&id=KBR000000001&tips=1' tips
-capture e club smoke/clean-club-election-360dp.png '&id=GSW000000006'
-capture e club-election smoke/clean-club-election-vote-360dp.png '&id=GSW000000006' && more smoke/clean-club-election-vote-360dp
-capture e club-election smoke/clean-club-election-empty-360dp.png '&id=BGW000000007' && more smoke/clean-club-election-empty-360dp
-capture e club smoke/clean-club-new-captain-360dp.png '&id=KDP000000008'
 capture e club smoke/clean-club-captain-leave-360dp.png '&id=KBR000000001&ask=leave'
 capture e club smoke/clean-club-walks-member-360dp.png '&id=HPW000000004&seg=walks' walks && more smoke/clean-club-walks-member-360dp
 capture e plus-locked smoke/clean-plus-locked-captain-leave-360dp.png '&ask=leave&id=KBR000000001'

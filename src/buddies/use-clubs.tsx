@@ -179,9 +179,6 @@ export function useClub(id: string) {
     ...page,
     club,
     members: page.data?.members ?? [],
-    /** Members choosing a new captain, and the last result (7 days). */
-    election: page.data?.election ?? null,
-    lastElection: page.data?.lastElection ?? null,
     join,
     cancelJoin: () => run(() => api.cancelJoin(id)),
     declineInvite: () => run(() => api.declineClubInvite(id)),
@@ -191,10 +188,6 @@ export function useClub(id: string) {
       return err;
     },
     remove: () => tryClub(() => api.deleteClub(id)),
-    /** Stand for captain, or withdraw (the server clears votes for a withdrawn candidate). */
-    stand: (on: boolean) => run(() => api.standForCaptain(id, on)),
-    /** My secret vote, or null to clear it. */
-    vote: (pid: string | null) => run(() => (pid ? api.voteForCaptain(id, pid) : api.clearCaptainVote(id))),
     setBoard,
     report: (reason: ReportReason, note: string) =>
       tryClub(() => api.report({ kind: 'club', ref: id, reason, note: note || undefined })),
@@ -232,7 +225,6 @@ export function useClubAdmin(id: string) {
   return {
     club: page.data?.club ?? null,
     members: page.data?.members ?? [],
-    election: page.data?.election ?? null,
     requests: requests.data ?? [],
     reports: reports.data ?? [],
     buddies: buddies.data ?? [],

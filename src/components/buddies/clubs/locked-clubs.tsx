@@ -2,8 +2,8 @@
  * Your clubs while Buddies is locked (premium ended): each club I am in, with
  * Leave club and, for a club with shared goals, Stop goal tracking. Both stay
  * free on the server, so a member can always take back their goals consent.
- * The captain can leave too: the members then vote for a new captain (owner,
- * 24 Nov 2026), and the dialog says so, as on the club screen.
+ * The captain can leave too: the club passes at once to a vice-captain (or the
+ * member who joined first), and the dialog says so, as on the club screen.
  * Plain tiles look: colours and sizes come from the plain tokens and scaled() only.
  */
 import { useState } from 'react';
@@ -11,8 +11,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Btn, Label, Note, plainStyles as ps, Tile, Words } from '@/components/plain/plain-kit';
 import { Dialog } from '@/components/ui';
-import { cardRole, clubLine, ROLE_WORD } from '@/buddies/clubs';
-import { cardLeaveAsk } from '@/buddies/election';
+import { cardLeaveAsk, cardRole, clubLine, ROLE_WORD } from '@/buddies/clubs';
 import type { ClubCard } from '@/buddies/types';
 import { useLockedClubs } from '@/buddies/use-clubs';
 import { scaled } from '@/constants/ui-scale';
@@ -71,7 +70,7 @@ export function LockedClubs({ only, show, askLeave }: { only?: string; show: (m:
               {club.goals ? (
                 <Btn text="Stop goal tracking" onPress={() => !busy && setAsk({ kind: 'goals', club })} label={`Stop goal tracking in ${club.name}`} />
               ) : null}
-              {/* Everyone can leave, the captain too (the members then vote for a new captain). */}
+              {/* Everyone can leave, the captain too (a vice-captain, or the earliest member, takes over). */}
               <Btn text="Leave club" onPress={() => !busy && setAsk({ kind: 'leave', club })} label={`Leave ${club.name}`} />
             </View>
           </View>

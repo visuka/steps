@@ -10,7 +10,6 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Btn, Caps, Label, Note, plainStyles as ps, Tile, Words } from '@/components/plain/plain-kit';
 import { PLAIN } from '@/components/plain/plain-theme';
 import { clubLine, standWordOf } from '@/buddies/clubs';
-import { cardElectionWords } from '@/buddies/election';
 import type { ClubCard } from '@/buddies/types';
 import { TouchTarget } from '@/constants/theme';
 import { scaled } from '@/constants/ui-scale';
@@ -58,16 +57,15 @@ export function GroupsTile({
   );
 }
 
-/** One club: the initial, the name over "area · members", "Voting for captain" while members vote, its goal line, and my role or where I stand. */
+/** One club: the initial, the name over "area · members" and its goal line, and my role or where I stand. */
 function ClubLine({ c, goal, onPress }: { c: ClubCard; goal: string | null; onPress: () => void }) {
   const line = clubLine(c);
   const stand = standWordOf(c);
-  const vote = cardElectionWords(c);
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={[c.name, line, vote, goal, stand].filter(Boolean).join(', ')}
+      accessibilityLabel={[c.name, line, goal, stand].filter(Boolean).join(', ')}
       android_ripple={{ color: PLAIN.ripple }}
       style={[ps.row, styles.line]}>
       <View style={styles.av}>
@@ -80,7 +78,6 @@ function ClubLine({ c, goal, onPress }: { c: ClubCard; goal: string | null; onPr
           {c.name}
         </Words>
         <Note lines={1}>{line}</Note>
-        {vote ? <Note lines={1}>{vote}</Note> : null}
         {goal ? <Note lines={1}>{goal}</Note> : null}
       </View>
       {stand ? <Note style={{ marginTop: 0 }}>{stand}</Note> : null}

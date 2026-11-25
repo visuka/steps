@@ -125,6 +125,50 @@ export function cardRole(c: Pick<ClubCard, 'myState' | 'myRole' | 'captain'>): C
   return c.captain?.relation === 'self' ? 'owner' : null;
 }
 
+/** Club walks are planned by the captain and vice-captains only (owner, 24 Nov 2026). */
+export const canPlanClubWalk = (role: ClubRole | null | undefined) => isStaff(role);
+
+/** Plan a walk's club chips: only the clubs I captain or vice-captain (my role from GET /clubs/mine). */
+export const canPlanForCard = (c: Pick<ClubCard, 'myState' | 'myRole' | 'captain'>) => isStaff(cardRole(c));
+
+/** What a member sees in a club's Walks tab instead of Plan a club walk (and the server's 403 staff_only). */
+export const STAFF_PLANS_LINE = 'The captain and vice-captains plan club walks.';
+
+/**
+ * Who becomes captain when the captain leaves (the server's rule, owner 25 Nov 2026):
+ * the vice-captain who joined first, else the member who joined first. Null when the
+ * list can't tell (no one else in it, or a join time missing).
+ */
+export function heirOf(members: ClubMember[]): ClubMember | null {
+  const others = members.filter((m) => m.role !== 'owner' && m.walker.relation !== 'self');
+  if (!others.length || others.some((m) => !m.joinedAt)) return null;
+  return [...others].sort((a, b) => Number(a.role !== 'admin') - Number(b.role !== 'admin') || (a.joinedAt ?? 0) - (b.joinedAt ?? 0))[0];
+}
+
+const LEAVE_WORDS = 'You leave the club chat and the board. If the club has shared goals, your goal history here is deleted.';
+const NO_UNDO = "You can't undo this.";
+
+/**
+ * What Leave club asks. The captain hands the club over at once: the dialog names
+ * who takes over only when the member list is complete (the server leaves out people I
+ * blocked, and ranks everyone), else says the rule; the only member deletes it.
+ */
+export function leaveAsk(role: ClubRole | null, memberCount: number, name: string, members: ClubMember[] = []): { title: string; message: string; confirm: string } {
+  const title = `Leave ${name}?`;
+  if (role !== 'owner') return { title, message: LEAVE_WORDS, confirm: 'Leave' };
+  if (memberCount <= 1) return { title, message: `You're the only member, so the club is deleted. ${NO_UNDO}`, confirm: 'Leave and delete' };
+  const heir = members.length === memberCount ? heirOf(members) : null;
+  const who = heir
+    ? `${displayName(heir.walker)} becomes captain.`
+    : 'A vice-captain becomes captain, or the member who joined first if there is none.';
+  return { title, message: `${who} ${LEAVE_WORDS} ${NO_UNDO}`, confirm: 'Leave' };
+}
+
+/** leaveAsk for a club card (Your clubs without Premium): my role from the card, no member list. */
+export function cardLeaveAsk(c: Pick<ClubCard, 'myState' | 'myRole' | 'captain' | 'memberCount' | 'name'>): { title: string; message: string; confirm: string } {
+  return leaveAsk(cardRole(c), c.memberCount, c.name);
+}
+
 /** Buddies home, a club row's right side: Captain, Vice-captain or Member, or Asked / Invited; '' when not known. */
 export function standWordOf(c: Pick<ClubCard, 'myState' | 'myRole' | 'captain'>): string {
   if (c.myState === 'asked') return 'Asked';
@@ -183,17 +227,8 @@ export function clubErrorText(e: unknown): string {
       return 'Already done.';
     case 'daily_limit':
       return "You've reached today's limit. Try again tomorrow.";
-    // Choosing a new captain (contract B).
-    case 'not_open':
-      return 'Voting for a captain has ended.';
-    case 'not_eligible':
-      return 'Only people who were members when voting started can stand and vote.';
-    case 'not_candidate':
-      return "They're not standing any more.";
-    case 'election_open':
-      return 'Not while members are choosing a new captain.';
     case 'staff_only':
-      return 'The captain and vice-captains plan club walks.';
+      return STAFF_PLANS_LINE;
   }
   return e.message;
 }

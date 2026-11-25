@@ -12,7 +12,6 @@ import { Button, ListRow, Surface } from '@/components/ui';
 import { clubLine, ROLE_WORD, stateWord } from '@/buddies/clubs';
 import type { ClubCard, ClubRole } from '@/buddies/types';
 import { Spacing } from '@/constants/theme';
-import { scaled } from '@/constants/ui-scale';
 import { useTheme } from '@/hooks/use-theme';
 
 import { Avatar } from '../parts';
@@ -146,38 +145,4 @@ const styles = StyleSheet.create({
   // The mark sits on the first line of its item.
   mark: { marginTop: 3 },
   item: { flex: 1 },
-});
-
-/**
- * While members choose a new captain: one frosted tile under the club's line,
- * "Choosing a new captain" over a muted "Voting ends Thu 6:00 pm", and Vote
- * (the election screen). Two lines so large text breaks between them; the
- * button moves under them rather than squeeze.
- */
-export function ElectionBanner({ title, caption, button, onPress }: { title: string; caption: string; button: string; onPress: () => void }) {
-  return (
-    <Surface level={1} style={bannerStyles.tile}>
-      <View style={bannerStyles.text}>
-        <ThemedText maxFontSizeMultiplier={1.3}>{title}</ThemedText>
-        <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
-          {caption}
-        </ThemedText>
-      </View>
-      <Button label={button} variant="tonal" compact onPress={onPress} accessibilityLabel={`${button}. ${title}. ${caption}.`} />
-    </Surface>
-  );
-}
-
-const bannerStyles = StyleSheet.create({
-  tile: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: Spacing.two,
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two,
-  },
-  // Below this the button wraps under the words (scaled with the screen, no raw size).
-  text: { flexGrow: 1, flexShrink: 1, flexBasis: scaled(160) },
 });

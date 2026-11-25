@@ -8,8 +8,7 @@ import { ClubQrSheet } from '@/components/buddies/qr/qr-sheets';
 import { PremiumGate } from '@/components/premium-gate';
 import { ThemedText } from '@/components/themed-text';
 import { Button, Dialog, ListRow, Screen, Sheet, Snackbar, Surface } from '@/components/ui';
-import { canRemove, ROLE_WORD, roleChange, sortMembers } from '@/buddies/clubs';
-import { canInClub, myPidOf, powerRole } from '@/buddies/election';
+import { can, canRemove, ROLE_WORD, roleChange, sortMembers } from '@/buddies/clubs';
 import { displayName } from '@/buddies/read';
 import { type ClubMember, REPORT_REASONS } from '@/buddies/types';
 import { useClubAdmin } from '@/buddies/use-clubs';
@@ -21,8 +20,6 @@ import { SCREEN_FEATURES } from '@/premium/premium';
  * (Approve / Decline), the members with their roles (Make vice-captain,
  * Remove), Invite a buddy, the Club QR code (a join code that works for 48
  * hours; every member is still approved here) and reports from the club chat.
- * While members vote for a new captain, the acting captain runs this page as
- * a vice-captain would, and no one changes roles.
  */
 export default function ClubAdminScreen() {
   const { id, invite, qr } = useLocalSearchParams<{ id: string; invite?: string; qr?: string }>();
@@ -35,15 +32,12 @@ export default function ClubAdminScreen() {
   const { snack, show, dismiss } = useSnack();
   const back = () => (router.canGoBack() ? router.back() : router.replace('/plus'));
 
+  const role = a.club?.myRole ?? null;
   const members = sortMembers(a.members);
-  const myPid = myPidOf(members);
-  const election = a.election;
-  // The acting captain has a vice-captain's powers during a vote (election.ts).
-  const role = powerRole(a.club?.myRole, election, myPid);
-  const can = (action: Parameters<typeof canInClub>[1]) => canInClub(role, action, election, myPid);
+  const myPid = members.find((m) => m.walker.relation === 'self')?.walker.pid ?? null;
   const inClub = new Set(members.map((m) => m.walker.pid));
   const canInvite = a.buddies.filter((b) => !inClub.has(b.walker.pid));
-  const change = picked && can('setRole') ? roleChange(picked, members) : null;
+  const change = picked && can(role, 'setRole') ? roleChange(picked, members) : null;
   const removable = picked ? canRemove(role, picked, myPid) : false;
 
   const act = async (action: () => Promise<string | null>, done: string) => show((await action()) ?? done);
@@ -52,8 +46,8 @@ export default function ClubAdminScreen() {
     <PremiumGate feature={SCREEN_FEATURES.buddies} title="Members" onBack={back}>
       <Screen title="Members" subtitle={a.club?.name} onBack={back} onRefresh={a.refresh} refreshing={false} overlay={<Snackbar message={snack} onDismiss={dismiss} />}>
         {a.error ? <ThemedText themeColor="onSurfaceVariant">{a.error}</ThemedText> : null}
-        {can('invite') ? <Button label="Invite a buddy" icon="person-add-outline" variant="tonal" onPress={() => setInviting(true)} /> : null}
-        {can('code') ? <Button label="Club QR code" icon="qr-code-outline" variant="tonal" onPress={() => setShowQr(true)} /> : null}
+        {can(role, 'invite') ? <Button label="Invite a buddy" icon="person-add-outline" variant="tonal" onPress={() => setInviting(true)} /> : null}
+        {can(role, 'code') ? <Button label="Club QR code" icon="qr-code-outline" variant="tonal" onPress={() => setShowQr(true)} /> : null}
 
         <SectionTitle icon="useradd">Asking to join</SectionTitle>
         {a.requests.length ? (
@@ -79,7 +73,7 @@ export default function ClubAdminScreen() {
           {members.map((m) => {
             const me = m.walker.relation === 'self';
             const word = ROLE_WORD[m.role];
-            const options = !me && ((can('setRole') && !!roleChange(m, members)) || canRemove(role, m, myPid));
+            const options = !me && ((can(role, 'setRole') && !!roleChange(m, members)) || canRemove(role, m, myPid));
             return (
               <PersonRow
                 key={m.walker.pid}
@@ -91,12 +85,10 @@ export default function ClubAdminScreen() {
           })}
         </Surface>
         <ThemedText type="bodySmall" themeColor="onSurfaceVariant" style={styles.note} maxFontSizeMultiplier={1.3}>
-          {election
-            ? "Members are choosing a new captain. Roles can't change until voting ends."
-            : 'A club has 1 captain and up to 2 vice-captains. Tap a member to change their role or remove them.'}
+          A club has 1 captain and up to 2 vice-captains. Tap a member to change their role or remove them.
         </ThemedText>
 
-        {can('reports') ? (
+        {can(role, 'reports') ? (
           <>
             <SectionTitle icon="list">Reports</SectionTitle>
             {a.reports.length ? (
@@ -125,7 +117,7 @@ export default function ClubAdminScreen() {
         ) : null}
       </Screen>
 
-      {a.club && can('code') ? <ClubQrSheet visible={showQr} onClose={() => setShowQr(false)} clubId={a.club.clubId} clubName={a.club.name} /> : null}
+      {a.club && can(role, 'code') ? <ClubQrSheet visible={showQr} onClose={() => setShowQr(false)} clubId={a.club.clubId} clubName={a.club.name} /> : null}
 
       <Sheet visible={!!picked} onClose={() => setPicked(null)} title={picked ? displayName(picked.walker) : ''}>
         {picked && change ? (

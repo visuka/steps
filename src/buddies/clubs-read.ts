@@ -17,10 +17,6 @@ import type {
   ClubReport,
   ClubRole,
   ClubState,
-  ClubElection,
-  ElectionCandidate,
-  ElectionHow,
-  LastElection,
   RequestRow,
   Walker,
 } from './types';
@@ -57,8 +53,6 @@ export function readClubCard(v: unknown): ClubCard {
     goals: v.goals === true,
     captain: walkerOrNull(v.captain),
     ...(myRole ? { myRole } : {}),
-    ...(myState === 'member' && v.electionOpen === true ? { electionOpen: true } : {}),
-    ...(myState === 'member' && v.electionOpen === true && v.acting === true ? { acting: true } : {}),
   };
 }
 
@@ -102,66 +96,18 @@ function readMembers(v: unknown): ClubMember[] {
     if (!isObj(m)) continue;
     const r = role(m.role);
     const w = walkerOrNull(m.walker);
-    if (r && w) out.push({ walker: w, role: r });
+    // When they joined (epoch ms), if the server says: the captain's Leave dialog names who takes over.
+    const joinedAt = num(m.joinedAt);
+    if (r && w) out.push({ walker: w, role: r, ...(joinedAt > 0 ? { joinedAt } : {}) });
   }
   return out;
 }
 
-/** GET /clubs/{id}: {"club", "members"?, "election"?, "lastElection"?} (members, election and result only for members). */
+/** GET /clubs/{id}: {"club", "members"?} (members only for members). */
 export function readClubPage(v: unknown): ClubPage {
   if (!isObj(v)) bad();
   const club = readClub(v.club);
-  const member = club.myState === 'member';
-  // Next to "club" as the contract has it; inside it is read too, so either place works.
-  const inner = isObj(v.club) ? v.club : {};
-  const election = member ? readElection(v.election ?? inner.election) : null;
-  return {
-    club: election ? { ...club, electionOpen: true } : club,
-    members: member ? readMembers(v.members) : [],
-    election,
-    lastElection: member && !election ? readLastElection(v.lastElection ?? inner.lastElection) : null,
-  };
-}
-
-const HOWS: readonly ElectionHow[] = ['votes', 'tie_earliest', 'no_candidates', 'no_votes'];
-
-/** An open vote, or null when there is none (or the answer is broken). A vote for someone not standing reads as none. */
-export function readElection(v: unknown): ClubElection | null {
-  if (!isObj(v)) return null;
-  const endsAt = num(v.endsAt);
-  if (endsAt <= 0) return null;
-  const candidates: ElectionCandidate[] = [];
-  const seen = new Set<string>();
-  if (Array.isArray(v.candidates)) {
-    for (const c of v.candidates) {
-      if (!isObj(c)) continue;
-      const pid = str(c.pid, 64);
-      const handle = str(c.handle, 40);
-      if (!pid || !handle || seen.has(pid)) continue;
-      seen.add(pid);
-      candidates.push({ pid, handle, name: str(c.name, 80) || null, isMe: c.isMe === true });
-    }
-  }
-  const vote = str(v.myVote, 64);
-  const canVote = v.canVote === true;
-  return {
-    endsAt,
-    actingPid: str(v.actingPid, 64) || null,
-    candidates,
-    myVote: canVote && vote && seen.has(vote) ? vote : null,
-    iStand: canVote && (v.iStand === true || candidates.some((c) => c.isMe)),
-    canVote,
-  };
-}
-
-/** The last vote's result (shown for 7 days), or null. */
-export function readLastElection(v: unknown): LastElection | null {
-  if (!isObj(v)) return null;
-  const winnerPid = str(v.winnerPid, 64);
-  const handle = str(v.handle, 40);
-  const decidedAt = num(v.decidedAt);
-  if (!winnerPid || !handle || decidedAt <= 0) return null;
-  return { winnerPid, handle, decidedAt, how: HOWS.includes(v.how as ElectionHow) ? (v.how as ElectionHow) : 'votes' };
+  return { club, members: club.myState === 'member' ? readMembers(v.members) : [] };
 }
 
 /** GET /clubs/{id}/requests: {"requests": [{"walker", "at"}]}. */

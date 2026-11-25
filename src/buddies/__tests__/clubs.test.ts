@@ -3,13 +3,18 @@ import { describe, expect, it, jest } from '@jest/globals';
 import {
   boardRows,
   can,
+  canPlanClubWalk,
+  canPlanForCard,
   canRemove,
+  cardLeaveAsk,
   cardRole,
   clubErrorText,
   clubLine,
   clubProblem,
+  heirOf,
   isConsentError,
   joinOrAccept,
+  leaveAsk,
   needsConsent,
   ROLE_WORD,
   roleChange,
@@ -18,7 +23,8 @@ import {
   standWordOf,
   stateWord,
 } from '../clubs';
-import { SocialError } from '../read';
+import { SocialError, socialErrorFor } from '../read';
+import { planErrorText } from '../plans';
 import type { ClubMember, Walker } from '../types';
 
 const w = (pid: string, handle: string, name: string | null = null, relation: Walker['relation'] = 'none'): Walker => ({ pid, handle, name, relation });
@@ -178,5 +184,79 @@ describe('joining', () => {
     expect(await joinOrAccept(api, { clubId: 'K', myState: 'invited', goals: true }, { consent: true })).toBe('member');
     expect(api.acceptClubInvite).toHaveBeenCalledWith('K', { goalsConsent: true });
     expect(api.joinClub).not.toHaveBeenCalled();
+  });
+});
+
+describe('club walks', () => {
+  it('lets only the captain and vice-captains plan club walks', () => {
+    expect(canPlanClubWalk('owner')).toBe(true);
+    expect(canPlanClubWalk('admin')).toBe(true);
+    expect(canPlanClubWalk('member')).toBe(false);
+    expect(canPlanClubWalk(null)).toBe(false);
+    const cap = w('9', 'me', 'Me', 'self');
+    expect(canPlanForCard({ myState: 'member', myRole: 'admin', captain: null })).toBe(true);
+    expect(canPlanForCard({ myState: 'member', myRole: 'member', captain: null })).toBe(false);
+    expect(canPlanForCard({ myState: 'member', captain: cap })).toBe(true);
+    expect(canPlanForCard({ myState: 'asked', myRole: 'owner', captain: cap })).toBe(false);
+  });
+
+  it('says a staff-only plan error plainly', () => {
+    expect(planErrorText(socialErrorFor(403, 'forbidden', 'staff_only'))).toBe('The captain and vice-captains plan club walks.');
+    expect(clubErrorText(socialErrorFor(403, 'forbidden', 'staff_only'))).toBe('The captain and vice-captains plan club walks.');
+    expect(planErrorText(socialErrorFor(403, 'forbidden'))).toBe("You can't change this walk.");
+  });
+});
+
+describe('when the captain leaves', () => {
+  const me = w('0', 'cap', 'Kavya', 'self');
+  const j = (walker: Walker, role: ClubMember['role'], joinedAt?: number): ClubMember => ({ walker, role, ...(joinedAt ? { joinedAt } : {}) });
+  const ravi = w('1', 'ravi_walks', 'Ravi', 'buddy');
+  const asha = w('2', 'asha_runs');
+  const zed = w('3', 'zed');
+
+  it('passes the club to the vice-captain who joined first', () => {
+    const list = [j(me, 'owner', 1), j(zed, 'member', 2), j(asha, 'admin', 9), j(ravi, 'admin', 5)];
+    expect(heirOf(list)?.walker.pid).toBe('1');
+  });
+
+  it('with no vice-captain, to the member who joined first', () => {
+    expect(heirOf([j(me, 'owner', 1), j(zed, 'member', 7), j(asha, 'member', 3)])?.walker.pid).toBe('2');
+  });
+
+  it("can't tell without join times or anyone else", () => {
+    expect(heirOf([j(me, 'owner', 1), j(ravi, 'admin', 5), j(zed, 'member')])).toBeNull();
+    expect(heirOf([j(me, 'owner', 1)])).toBeNull();
+    expect(heirOf([])).toBeNull();
+  });
+
+  it('asks the right Leave question', () => {
+    const list = [j(me, 'owner', 1), j(asha, 'admin', 4), j(ravi, 'admin', 6)];
+    expect(leaveAsk('owner', 3, 'KBR', list)).toEqual({
+      title: 'Leave KBR?',
+      message: "@asha_runs becomes captain. You leave the club chat and the board. If the club has shared goals, your goal history here is deleted. You can't undo this.",
+      confirm: 'Leave',
+    });
+    expect(leaveAsk('owner', 2, 'KBR', [j(me, 'owner', 1), j(ravi, 'member', 2)]).message).toMatch(/^Ravi becomes captain\./);
+    // Someone left out of the list (blocked, or not shown): the heir may be them, so the rule.
+    expect(leaveAsk('owner', 4, 'KBR', list).message).toMatch(/^A vice-captain becomes captain, or/);
+    // Members not loaded: the rule in plain words.
+    expect(leaveAsk('owner', 48, 'KBR').message).toBe(
+      "A vice-captain becomes captain, or the member who joined first if there is none. You leave the club chat and the board. If the club has shared goals, your goal history here is deleted. You can't undo this.",
+    );
+    expect(leaveAsk('owner', 1, 'KBR')).toEqual({ title: 'Leave KBR?', message: "You're the only member, so the club is deleted. You can't undo this.", confirm: 'Leave and delete' });
+    expect(leaveAsk('member', 48, 'KBR')).toEqual({
+      title: 'Leave KBR?',
+      message: 'You leave the club chat and the board. If the club has shared goals, your goal history here is deleted.',
+      confirm: 'Leave',
+    });
+    expect(leaveAsk('admin', 1, 'KBR').confirm).toBe('Leave');
+  });
+
+  it('asks the same from a club card (Your clubs without Premium)', () => {
+    const card = { myState: 'member' as const, name: 'KBR', memberCount: 48, captain: null };
+    expect(cardLeaveAsk({ ...card, myRole: 'owner' }).message).toMatch(/^A vice-captain becomes captain/);
+    expect(cardLeaveAsk({ ...card, captain: me }).message).toMatch(/^A vice-captain becomes captain/);
+    expect(cardLeaveAsk({ ...card, myRole: 'owner', memberCount: 1 }).confirm).toBe('Leave and delete');
+    expect(cardLeaveAsk({ ...card, myRole: 'member' }).message).toMatch(/^You leave the club chat/);
   });
 });

@@ -91,6 +91,15 @@ describe('a club', () => {
     expect(() => readClubPage({})).toThrow();
   });
 
+  it("reads a member's join time when the server sends one", () => {
+    const page = readClubPage({
+      club: { ...card, myRole: 'owner' },
+      members: [{ walker: ravi, role: 'admin', joinedAt: 1_700_000_000_000 }, { walker: { ...ravi, pid: 'P2' }, role: 'member', joinedAt: 'soon' }],
+    });
+    expect(page.members[0]).toEqual({ walker: ravi, role: 'admin', joinedAt: 1_700_000_000_000 });
+    expect(page.members[1]).not.toHaveProperty('joinedAt');
+  });
+
   it('reads a {"club"} reply', () => {
     expect(readClubReply({ club: { ...card, myRole: 'owner' } }).myRole).toBe('owner');
     expect(() => readClubReply({ club: null })).toThrow();

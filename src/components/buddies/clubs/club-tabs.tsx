@@ -9,8 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { Button, EmptyState, ListRow, Surface, ToggleRow } from '@/components/ui';
-import { boardRows } from '@/buddies/clubs';
-import { STAFF_PLANS_LINE } from '@/buddies/election';
+import { boardRows, STAFF_PLANS_LINE } from '@/buddies/clubs';
 import { planLine, standWord, upcoming } from '@/buddies/plans';
 import { displayName } from '@/buddies/read';
 import type { Club, Message } from '@/buddies/types';
@@ -47,8 +46,8 @@ export function ClubChatTab({
 }
 
 /**
- * The club's planned walks, soonest first. The captain and vice-captains (and the
- * acting captain during a vote) get Plan a club walk; members see who plans them
+ * The club's planned walks, soonest first. The captain and vice-captains get
+ * Plan a club walk; members see who plans them
  * (owner, 24 Nov 2026), and can still open a walk and say if they're going.
  */
 export function ClubWalksTab({ club, canPlan }: { club: Club; canPlan: boolean }) {

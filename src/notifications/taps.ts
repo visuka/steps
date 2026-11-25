@@ -27,7 +27,7 @@ const ID = '[0-9A-Za-z]{6,24}';
 const BUDDIES_ROUTES: readonly RegExp[] = [
   /^\/buddies\/requests$/,
   new RegExp(String.raw`^/buddies/chat/[bcf]\.${ID}$`),
-  new RegExp(String.raw`^/buddies/club/${ID}(\?seg=(election|goals))?$`),
+  new RegExp(String.raw`^/buddies/club/${ID}(\?seg=goals)?$`),
   new RegExp(`^/buddies/club/${ID}/admin$`),
   new RegExp(`^/buddies/plan/${ID}$`),
 ];

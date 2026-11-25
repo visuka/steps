@@ -13,7 +13,6 @@ const SERVER_ROUTES: [string, string][] = [
   [`/buddies/chat/c.${CLUB}`, `/buddies/chat/c.${CLUB}`],
   ['/buddies/chat/f.FAM000000001', '/buddies/chat/f.FAM000000001'],
   [`/buddies/club/${CLUB}`, `/buddies/club/${CLUB}`],
-  [`/buddies/club/${CLUB}?seg=election`, `/buddies/club/${CLUB}?seg=election`],
   [`/buddies/club/${CLUB}?seg=goals`, `/buddies/club/${CLUB}?seg=goals`],
   [`/buddies/club/${CLUB}/admin`, `/buddies/club/${CLUB}/admin`],
   ['/buddies/plan/PLN000000001', '/buddies/plan/PLN000000001'],
@@ -43,7 +42,7 @@ describe('notification taps', () => {
 
   it('opens a journal section or a buddies screen', () => {
     expect(tapOf({ open: 'food' })).toBe('food');
-    expect(tapOf({ open: 'buddies', to: `/buddies/club/${CLUB}?seg=election` })).toBe(`/buddies/club/${CLUB}?seg=election`);
+    expect(tapOf({ open: 'buddies', to: `/buddies/club/${CLUB}?seg=goals` })).toBe(`/buddies/club/${CLUB}?seg=goals`);
     expect(tapOf({ open: 'elsewhere' })).toBeNull();
     expect(tapHref('water')).toEqual(journalRoute('water'));
     expect(tapHref('/buddies/requests')).toBe('/buddies/requests');

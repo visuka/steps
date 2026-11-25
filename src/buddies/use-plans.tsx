@@ -11,7 +11,7 @@ import { useClockStyle } from '@/hooks/use-clock-style';
 import { cancelScheduled, scheduleAt } from '@/notifications/notify';
 import { useApp } from '@/state/app-state';
 
-import { canPlanForCard } from './election';
+import { canPlanForCard } from './clubs';
 import { phoneTimeZone } from './steps-share';
 import {
   answerAndRemind,
