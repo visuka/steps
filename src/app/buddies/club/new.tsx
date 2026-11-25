@@ -88,7 +88,7 @@ function Form({
         <ToggleRow title="Hide from search" supporting="Only people you invite can find it." value={form.hidden} onValueChange={set('hidden')} />
         <ToggleRow
           title="Shared goals"
-          supporting={"You can set goals for members, like steps or medicines. Members see what you'll see before they join."}
+          supporting={"You can set goals for members, like steps, water or blood pressure. Members see what you'll see before they join."}
           value={form.goals}
           onValueChange={set('goals')}
         />

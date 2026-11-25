@@ -3,6 +3,7 @@
  * lambda_src/python/steps/social, routes in docs/walk-buddies.md 2.5).
  * Times are epoch ms.
  */
+import type { NutrientKey } from '@/nutrition/types';
 
 export type Relation = 'none' | 'buddy' | 'requested' | 'asked_me' | 'self';
 
@@ -239,23 +240,46 @@ export const TERMS_VERSION = '2026-11';
 
 // ── shared club goals (the goals contract; the owner's Teams with shared goals, 18 Nov 2026) ──
 
-/** What a goal is about. "other" is shown as "Anything". */
-export type GoalKind = 'steps' | 'walk' | 'water' | 'sleep' | 'medicine' | 'other';
-
-/** auto: the phone marks it from its own data (steps, walk, water, sleep only); tap: the member taps Done. */
-export type GoalCounted = 'auto' | 'tap';
+/**
+ * What a goal is about: only what the app itself tracks (owner, 25 Nov 2026). Counted by the
+ * phone by itself: steps, active (minutes), distance (metres), walk and ride (minutes of a saved
+ * walk or ride), sleep (minutes last night), heart (a heart rate recorded today). Counted from
+ * what the person logs in the app: bp (readings), weight, mood, meals (as the Food screen splits the day), water
+ * (glasses) and nutrient (a total from the food log; nutrientKey says which). The same names as
+ * server goals.py KINDS. Every goal is counted by the phone: there is no tap goal any more.
+ */
+export type GoalKind =
+  | 'steps'
+  | 'active'
+  | 'distance'
+  | 'walk'
+  | 'ride'
+  | 'sleep'
+  | 'heart'
+  | 'bp'
+  | 'weight'
+  | 'mood'
+  | 'meals'
+  | 'water'
+  | 'nutrient';
 
 export interface Goal {
   goalId: string;
   title: string;
   kind: GoalKind;
-  /** steps: 500–50000; walk: minutes 5–240; water: glasses 1–20; sleep: minutes 180–720. Null when none. */
+  /**
+   * steps 500–50000; active 5–300 min; distance 500–100000 m; walk 5–240 min; ride 5–480 min;
+   * sleep 180–720 min; bp 1–4 readings; meals 1–4 (the Food screen's breakfast, lunch, snacks, dinner); water 1–20 glasses; nutrient in the
+   * nutrient's own unit, above 0 and at most 10 times its daily value or limit (decimals allowed).
+   * Null for heart, weight and mood.
+   */
   target: number | null;
+  /** Nutrient goals: which nutrient (goals.ts NUTRIENT_GOALS); null for every other kind. */
+  nutrientKey: NutrientKey | null;
   /** "HH:MM" on the phone's clock, or null. */
   byTime: string | null;
   /** Days of the week it is due, Monday = 0 … Sunday = 6 (never empty). */
   days: number[];
-  counted: GoalCounted;
   paused: boolean;
   createdBy: Walker | null;
   createdAt: number;
@@ -267,7 +291,7 @@ export interface GoalMark {
   done: boolean;
   /** When it was marked done (epoch ms), or null. */
   at: number | null;
-  /** The step total, for step goals only. */
+  /** The step total, for step goals only: no other number (blood pressure, weight, mood, food) ever leaves the phone. */
   value: number | null;
 }
 
@@ -306,14 +330,14 @@ export interface GoalSummaryRow {
   members: number;
 }
 
-/** POST /clubs/{id}/goals; PATCH takes title, target, byTime, days and paused. */
+/** POST /clubs/{id}/goals; PATCH takes title, target, byTime, days and paused (kind and nutrientKey stay as made). */
 export interface GoalForm {
   title: string;
   kind: GoalKind;
   target: number | null;
+  nutrientKey: NutrientKey | null;
   byTime: string | null;
   days: number[];
-  counted: GoalCounted;
 }
 
 /** The notification switches on /me (server push.DEFAULT_NOTIFY). */

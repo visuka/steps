@@ -226,7 +226,8 @@ function StackScreen({ screen }: { screen: PreviewScreen }) {
       // &id=KBR000000001&goalId=GL0000000001: the morning walk, for its captain.
       return <GoalScreen />;
     case 'goal-new':
-      // &id=KBR000000001; &goal=GL0000000001 opens it to change.
+      // &id=KBR000000001: the "what" picker; &kind=steps the form, &kind=nutrient the nutrient
+      // list; &goal=GL0000000003 opens one to change.
       return <GoalFormScreen />;
     case 'my-goals':
       return <MyGoalsScreen />;

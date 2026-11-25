@@ -26,7 +26,8 @@
  * takes qr=1 (the Club QR open) and invite=1 (Invite a buddy open), and club-join
  * code=<code> (the goals consent for a club found by its code). Those screens read them themselves.
  * Shared goals: goal takes id=<clubId>&goalId=<goalId> (KBR000000001, GL0000000001), goal-new
- * id=<clubId> and goal=<goalId> to change one; club &seg=goals with id=HPW000000004 is a member's
+ * id=<clubId> (the "what" picker), kind=<kind> to open the form on that kind (kind=nutrient:
+ * the nutrient list) and goal=<goalId> to change one; club &seg=goals with id=HPW000000004 is a member's
  * tab and id=SRN000000005 the goal tracking switch. Those screens read them themselves.
  * plus-locked is Buddies as it is without Premium, over the sample clubs (&ask=leave&id=KBR000000001:
  * the captain's Leave dialog in Your clubs; LockedBuddies reads them itself).

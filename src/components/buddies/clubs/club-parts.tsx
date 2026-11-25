@@ -60,14 +60,21 @@ export function RoleText({ role }: { role: ClubRole }) {
  * for step goals, and the walker ID (a name only to buddies, people.view).
  */
 export const CONSENT_SEE = [
-  'Done or not done for each goal, and the time you marked it',
+  'Done or not done for each goal, and the time it was marked',
   'How many days you did it this week, and whether you ever did',
   'Your step total, only for step goals',
   'Your walker ID (your name only if you are buddies)',
 ];
-export const CONSENT_NEVER = ['Your food', 'Your sleep details', 'Where you are', 'Your other chats'];
-/** Goals the phone counts (goals-auto.ts): only done or not done goes, and the step total for step goals. */
-export const CONSENT_AUTO = 'Steps, walk, water and sleep goals are marked for you from this phone. Only done or not done is sent, and the step total for step goals.';
+export const CONSENT_NEVER = [
+  'Your blood pressure, heart rate, weight and mood',
+  'Your food, water and nutrients',
+  'Your sleep details',
+  'Where you are',
+  'Your other chats',
+];
+/** Every goal is marked by the phone (goals-auto.ts): only done or not done goes, and the step total for step goals. */
+export const CONSENT_AUTO =
+  'This phone marks your goals from what it counts and what you log. Only done or not done is sent, and your step total for step goals. Your readings and food stay on your phone.';
 export const CONSENT_REMIND = 'The captain can send a gentle reminder. You can turn these off in My goals.';
 export const CONSENT_LEAVE = "Turn off tracking in the club's Goals tab, or leave, any time. Your goal history here is then deleted.";
 
@@ -91,7 +98,7 @@ export function GoalsConsent({
 }) {
   return (
     <View style={styles.gap}>
-      <ThemedText maxFontSizeMultiplier={1.3}>{`${club.name} has shared goals. The captain and vice-captains can set goals for members, like steps or medicines.`}</ThemedText>
+      <ThemedText maxFontSizeMultiplier={1.3}>{`${club.name} has shared goals. The captain and vice-captains can set goals for members, like steps, water or blood pressure.`}</ThemedText>
       <ShareList title="What the captain and vice-captains see" rows={CONSENT_SEE} />
       <ShareList title="What they never see" rows={CONSENT_NEVER} never />
       {[CONSENT_AUTO, CONSENT_REMIND, CONSENT_LEAVE].map((line) => (

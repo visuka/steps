@@ -10,7 +10,7 @@ import type { ClubGoals, Goal, GoalForm, GoalMark, GoalReport, GoalSummaryRow } 
 
 const enc = encodeURIComponent;
 
-/** What a captain may change on a goal (kind and counted stay as made). */
+/** What a captain may change on a goal (kind and nutrient stay as made). */
 export type GoalPatch = Partial<Pick<GoalForm, 'title' | 'target' | 'byTime' | 'days'>> & { paused?: boolean };
 
 export function makeGoalsApi(send: Send) {
@@ -19,14 +19,18 @@ export function makeGoalsApi(send: Send) {
   return {
     /** The club's goals, whether I am tracked, and my marks for `day` (YYYY-MM-DD). */
     clubGoals: async (id: string, day: string): Promise<ClubGoals> => readClubGoals(await send('GET', `${goals(id)}?day=${enc(day)}`)),
-    /** Captain or vice-captain; at most 10 goals a club. */
+    /**
+     * Captain or vice-captain; at most 10 goals a club. Every goal is counted by the phone:
+     * counted is always "auto" (the server takes nothing else, or no counted at all).
+     */
     createGoal: async (id: string, f: GoalForm): Promise<Goal> => {
       const body: Record<string, unknown> = {
         title: f.title.trim(),
         kind: f.kind,
-        counted: f.counted,
+        counted: 'auto',
         days: [...f.days].sort((a, b) => a - b),
       };
+      if (f.kind === 'nutrient' && f.nutrientKey) body.nutrientKey = f.nutrientKey;
       if (f.target !== null) body.target = f.target;
       if (f.byTime) body.byTime = f.byTime;
       return readGoalReply(await send('POST', goals(id), body));
@@ -45,7 +49,10 @@ export function makeGoalsApi(send: Send) {
     deleteGoal: async (id: string, goalId: string): Promise<void> => {
       await send('DELETE', goal(id, goalId));
     },
-    /** Mark my goal done or not for `day`. A value is kept for steps goals only. */
+    /**
+     * Mark my goal done or not for `day`. A value goes for steps goals only (goals-auto.ts):
+     * no blood pressure, weight, mood or food number ever leaves the phone.
+     */
     putMark: async (id: string, goalId: string, day: string, m: { done: boolean; value?: number | null }): Promise<GoalMark & { day: string }> => {
       const body: Record<string, unknown> = { done: m.done };
       if (typeof m.value === 'number') body.value = Math.max(0, Math.round(m.value));

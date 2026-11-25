@@ -200,12 +200,15 @@ capture e qr-scan smoke/clean-qr-code-entry.png '&typing=1'
 # The club's safety tips (shown once, the first time I'm in a club).
 capture e club smoke/clean-club-tips.png '&id=KBR000000001&tips=1' tips
 # Shared club goals: the captain's Goals tab all the way down, a member's tab, the goal
-# tracking switch, one goal for its captain, New goal, Change goal, and My goals.
+# tracking switch, one goal for its captain, New goal (what it is about, the form, the
+# nutrient list), Change goal, and My goals.
 capture e club smoke/clean-club-goals-captain.png '&id=KBR000000001&seg=goals' goals && more smoke/clean-club-goals-captain
 capture e club smoke/clean-club-goals-member.png '&id=HPW000000004&seg=goals' goals && more smoke/clean-club-goals-member
 capture e club smoke/clean-club-goals-consent.png '&id=SRN000000005&seg=goals' goals && more smoke/clean-club-goals-consent
 capture e goal smoke/clean-goal.png '&id=KBR000000001&goalId=GL0000000001' && more smoke/clean-goal
-capture e goal-new smoke/clean-goal-new.png '&id=KBR000000001' && more smoke/clean-goal-new
+capture e goal-new smoke/clean-goal-new-what.png '&id=KBR000000001' && more smoke/clean-goal-new-what
+capture e goal-new smoke/clean-goal-new.png '&id=KBR000000001&kind=steps' && more smoke/clean-goal-new
+capture e goal-new smoke/clean-goal-new-nutrient.png '&id=KBR000000001&kind=nutrient' && more smoke/clean-goal-new-nutrient
 capture e goal-new smoke/clean-goal-edit.png '&id=KBR000000001&goal=GL0000000003' && more smoke/clean-goal-edit
 capture e my-goals smoke/clean-my-goals.png && more smoke/clean-my-goals
 # Buddies without Premium: the premium card, then Your clubs (Leave club, Stop goal tracking).
@@ -234,7 +237,9 @@ capture e club smoke/clean-club-goals-captain-360dp.png '&id=KBR000000001&seg=go
 capture e club smoke/clean-club-goals-member-360dp.png '&id=HPW000000004&seg=goals' goals && more smoke/clean-club-goals-member-360dp
 capture e club smoke/clean-club-goals-consent-360dp.png '&id=SRN000000005&seg=goals' goals && more smoke/clean-club-goals-consent-360dp
 capture e goal smoke/clean-goal-360dp.png '&id=KBR000000001&goalId=GL0000000001' && more smoke/clean-goal-360dp
-capture e goal-new smoke/clean-goal-new-360dp.png '&id=KBR000000001' && more smoke/clean-goal-new-360dp
+capture e goal-new smoke/clean-goal-new-what-360dp.png '&id=KBR000000001' && more smoke/clean-goal-new-what-360dp
+capture e goal-new smoke/clean-goal-new-360dp.png '&id=KBR000000001&kind=steps' && more smoke/clean-goal-new-360dp
+capture e goal-new smoke/clean-goal-new-nutrient-360dp.png '&id=KBR000000001&kind=nutrient' && more smoke/clean-goal-new-nutrient-360dp
 capture e goal-new smoke/clean-goal-edit-360dp.png '&id=KBR000000001&goal=GL0000000003' && more smoke/clean-goal-edit-360dp
 capture e my-goals smoke/clean-my-goals-360dp.png && more smoke/clean-my-goals-360dp
 capture e club smoke/clean-club-visitor-360dp.png '&id=NRS000000002' && more smoke/clean-club-visitor-360dp

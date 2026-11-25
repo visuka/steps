@@ -4,12 +4,12 @@
  * broken row is left out, an odd field falls back. Pure, tested in
  * __tests__/goals-read.test.ts.
  */
+import { isGoalNutrient, needsTarget } from './goals';
 import { bad, isObj, num, readWalker, str } from './read';
 import type {
   ClubGoals,
   ClubRole,
   Goal,
-  GoalCounted,
   GoalKind,
   GoalMark,
   GoalReport,
@@ -18,7 +18,8 @@ import type {
   Walker,
 } from './types';
 
-export const GOAL_KINDS: readonly GoalKind[] = ['steps', 'walk', 'water', 'sleep', 'medicine', 'other'];
+/** The kinds this app knows (server goals.py KINDS); a goal of any other kind (an old medicine goal) is left out. */
+export const GOAL_KINDS: readonly GoalKind[] = ['steps', 'active', 'distance', 'walk', 'ride', 'sleep', 'heart', 'bp', 'weight', 'mood', 'meals', 'water', 'nutrient'];
 const ROLES: readonly ClubRole[] = ['owner', 'admin', 'member'];
 /** Goal ids are 12 characters of base32 (server keys.random_id). */
 const GOAL_ID = /^[0-9A-Za-z]{6,24}$/;
@@ -26,6 +27,8 @@ const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const BY_TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 const whole = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? Math.round(v) : null);
+/** A nutrient target keeps its decimals (0.2 g of trans fat), to 3 places. */
+const amount = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? Number(v.toFixed(3)) : null);
 
 function walkerOrNull(v: unknown): Walker | null {
   try {
@@ -47,19 +50,21 @@ export function readGoal(v: unknown): Goal {
   const title = str(v.title, 80);
   const kind = v.kind as GoalKind;
   if (!goalId || !GOAL_ID.test(goalId) || !title?.trim() || !GOAL_KINDS.includes(kind)) bad();
+  // A nutrient goal names one nutrient on the list; no other kind has one.
+  const nutrientKey = kind === 'nutrient' ? (isGoalNutrient(v.nutrientKey) ? v.nutrientKey : bad()) : null;
   const days = readDays(v.days);
   if (!days.length) bad();
   const byTime = str(v.byTime, 5);
-  // A phone can only mark steps, walks, water and sleep by itself; anything else is tapped.
-  const counted: GoalCounted = v.counted === 'auto' && ['steps', 'walk', 'water', 'sleep'].includes(kind) ? 'auto' : 'tap';
+  // Heart, weight and mood have no target; whatever came is dropped.
+  const target = !needsTarget(kind) ? null : kind === 'nutrient' ? amount(v.target) : whole(v.target) || null;
   return {
     goalId,
     title: title.trim(),
     kind,
-    target: whole(v.target) || null,
+    target,
+    nutrientKey,
     byTime: byTime && BY_TIME.test(byTime) ? byTime : null,
     days,
-    counted,
     paused: v.paused === true,
     createdBy: walkerOrNull(v.createdBy),
     createdAt: num(v.createdAt),

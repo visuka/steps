@@ -106,6 +106,29 @@ const SHAPES: Record<PlainIconName, ReactNode> = {
       <Path d="M8.5 12.3l2.4 2.4 4.8-5" />
     </>
   ),
+  heart: <Path d="M12 19.5s-7-4.4-7-9.6A3.9 3.9 0 0 1 12 7.6a3.9 3.9 0 0 1 7 2.3c0 5.2-7 9.6-7 9.6z" />,
+  pulse: <Path d="M3 12.5h4l2-4.5 3 9 2.4-6.5 1.6 2H21" />,
+  scale: (
+    <>
+      <Rect x={4} y={4} width={16} height={16} rx={3.5} />
+      <Path d="M8.5 10a4.5 4.5 0 0 1 7 0M12 10l1.2-1.6" />
+    </>
+  ),
+  smile: (
+    <>
+      <Circle cx={12} cy={12} r={8} />
+      <Path d="M9 14.2a4 4 0 0 0 6 0" />
+      <Circle cx={9.5} cy={10} r={0.6} />
+      <Circle cx={14.5} cy={10} r={0.6} />
+    </>
+  ),
+  bike: (
+    <>
+      <Circle cx={6} cy={16} r={3.3} />
+      <Circle cx={18} cy={16} r={3.3} />
+      <Path d="M6 16l3.6-6.5h5.2L18 16M9.6 9.5L12.5 16H6M14 6.5h2l-1.2 3" />
+    </>
+  ),
 };
 
 export function PlainIcon({ name, size = 17, color, stroke = 1.9 }: { name: PlainIconName; size?: number; color?: string; stroke?: number }) {

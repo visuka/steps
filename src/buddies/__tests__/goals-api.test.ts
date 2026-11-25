@@ -10,7 +10,6 @@ const goal = {
   target: 30,
   byTime: '07:00',
   days: [0, 1, 2, 3, 4, 5, 6],
-  counted: 'auto',
   paused: false,
   createdBy: null,
   createdAt: 1,
@@ -29,16 +28,29 @@ describe('goal calls', () => {
     expect(cg.goals[0].title).toBe('Morning walk');
   });
 
-  it('creates a goal: trimmed, days sorted, no target or by-time when there is none', async () => {
-    const { send, api } = fake({ goal: { ...goal, kind: 'medicine', counted: 'tap', target: undefined, byTime: undefined } });
-    await api.createGoal('KBR000000001', { title: ' Evening tablet ', kind: 'medicine', target: null, byTime: null, days: [4, 0], counted: 'tap' });
-    expect(send).toHaveBeenCalledWith('POST', '/clubs/KBR000000001/goals', { title: 'Evening tablet', kind: 'medicine', counted: 'tap', days: [0, 4] });
+  it('creates a goal: trimmed, days sorted, no target or by-time when there is none, always counted by the phone', async () => {
+    const { send, api } = fake({ goal: { ...goal, kind: 'weight', target: undefined, byTime: undefined } });
+    await api.createGoal('KBR000000001', { title: ' Check weight ', kind: 'weight', target: null, nutrientKey: null, byTime: null, days: [4, 0] });
+    expect(send).toHaveBeenCalledWith('POST', '/clubs/KBR000000001/goals', { title: 'Check weight', kind: 'weight', counted: 'auto', days: [0, 4] });
   });
 
-  it('creates an auto goal with its target and by-time', async () => {
+  it('creates a goal with its target and by-time', async () => {
     const { send, api } = fake({ goal });
-    await api.createGoal('KBR000000001', { title: 'Morning walk', kind: 'walk', target: 30, byTime: '07:00', days: [0, 1, 2, 3, 4, 5, 6], counted: 'auto' });
+    await api.createGoal('KBR000000001', { title: 'Morning walk', kind: 'walk', target: 30, nutrientKey: null, byTime: '07:00', days: [0, 1, 2, 3, 4, 5, 6] });
     expect(send.mock.calls[0][2]).toEqual({ title: 'Morning walk', kind: 'walk', counted: 'auto', days: [0, 1, 2, 3, 4, 5, 6], target: 30, byTime: '07:00' });
+  });
+
+  it('creates a nutrient goal with its nutrient and a decimal target', async () => {
+    const { send, api } = fake({ goal: { ...goal, kind: 'nutrient', nutrientKey: 'transFat', target: 0.4 } });
+    const g = await api.createGoal('KBR000000001', { title: 'Trans fat 0.4 g or less', kind: 'nutrient', target: 0.4, nutrientKey: 'transFat', byTime: null, days: [0] });
+    expect(send.mock.calls[0][2]).toEqual({ title: 'Trans fat 0.4 g or less', kind: 'nutrient', counted: 'auto', nutrientKey: 'transFat', days: [0], target: 0.4 });
+    expect(g).toMatchObject({ kind: 'nutrient', nutrientKey: 'transFat', target: 0.4 });
+  });
+
+  it('never sends a nutrient key for another kind', async () => {
+    const { send, api } = fake({ goal });
+    await api.createGoal('KBR000000001', { title: 'Walk', kind: 'walk', target: 30, nutrientKey: 'protein', byTime: null, days: [0] });
+    expect(send.mock.calls[0][2]).not.toHaveProperty('nutrientKey');
   });
 
   it('changes only what was given; an empty by-time clears it', async () => {

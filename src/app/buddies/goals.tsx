@@ -16,7 +16,7 @@ import { SCREEN_FEATURES } from '@/premium/premium';
 
 /**
  * My goals across every club I am in that has them: today's goals with
- * Mark done / Undo (or the phone's count), the goal tracking switch for a
+ * the phone's count (and Log for what I log), the goal tracking switch for a
  * club I joined before goals were on (on first shows that club's goals
  * consent; only Turn on tracking sends anything), and whether captains'
  * reminders reach me.
@@ -60,8 +60,6 @@ export default function MyGoalsScreen() {
             mark={goals.mine.find((m) => m.goalId === goal.goalId) ?? null}
             phone={g.phone}
             clock={clock}
-            busy={g.busy === `${x.club.clubId}/${goal.goalId}`}
-            onMark={async (done) => show(await g.mark(x.club.clubId, goal.goalId, done))}
             first={i === 0}
           />
         ))}
@@ -88,7 +86,7 @@ export default function MyGoalsScreen() {
           </ThemedText>
         ) : null}
         {g.data && !list.length ? (
-          <EmptyState icon="checkbox-outline" title="No club goals yet" hint="Clubs can set shared goals, like a morning walk. Join a club, or start one." />
+          <EmptyState icon="checkbox-outline" title="No club goals yet" hint="Clubs can set shared goals, like daily steps or water. Join a club, or start one." />
         ) : null}
 
         {list.map((x) => (

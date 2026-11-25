@@ -1,21 +1,25 @@
 /**
  * Shared club goals, the pieces the goal screens share: the kind icon, my
- * goal row (Mark done / Undo, or what the phone counted), a captain's goal
- * row, and the goal tracking switch with what it shares. Theme roles,
- * Spacing and TouchTarget only; numbers and words, no bars or rings.
- * Wording stays neutral: "Not marked yet", never missed.
+ * goal row (what the phone counted today, and a small Log button for what
+ * the person logs), a captain's goal row, and the goal tracking switch with
+ * what it shares. Theme roles, Spacing and TouchTarget only; numbers and
+ * words, no bars or rings. Wording stays neutral: "Not marked yet", never missed.
  */
+import { useRouter } from 'expo-router';
+import { useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Button, ListRow, Surface, ToggleRow } from '@/components/ui';
 import { PlainIcon } from '@/components/plain/plain-icons';
-import { autoDecision, type PhoneToday } from '@/buddies/goals-auto';
-import { byWords, countedWord, goalLine, KIND_ICON, KIND_WORD, liveWords, markWords, summaryLine } from '@/buddies/goals';
-import type { Goal, GoalMark, GoalSummaryRow } from '@/buddies/types';
+import { type PhoneToday, statusWords } from '@/buddies/goals-auto';
+import { byWords, countedWord, goalLine, isLogged, KIND_ICON, LOG_ROUTE, summaryLine } from '@/buddies/goals';
+import type { Goal, GoalKind, GoalMark, GoalSummaryRow } from '@/buddies/types';
 import { Spacing, TouchTarget } from '@/constants/theme';
+import type { Units } from '@/lib/format';
 import type { ClockStyle } from '@/lib/when';
 import { useTheme } from '@/hooks/use-theme';
+import { useApp } from '@/state/app-state';
 
 import { CONSENT_NEVER, CONSENT_SEE, ShareList } from '../clubs/club-parts';
 import { AVATAR } from '../parts';
@@ -32,16 +36,12 @@ export function KindBadge({ kind }: { kind: Goal['kind'] }) {
   );
 }
 
-/** What my row says about a goal today: done, the phone's count, or not marked yet. */
-export function myStatus(goal: Goal, mark: GoalMark | null, phone: PhoneToday | null, clock: ClockStyle): string {
-  if (mark?.done) return markWords(mark, clock);
-  if (goal.counted === 'auto' && goal.target !== null) {
-    const d = phone ? autoDecision(goal, phone) : null;
-    // The phone's own number when it has one; else what was last sent.
-    const value = d?.value ?? mark?.value ?? null;
-    if (value !== null) return liveWords(goal.kind, value, goal.target);
-  }
-  return markWords(null, clock);
+/**
+ * What my row says about a goal today: done, the phone's count, or not marked
+ * yet; an "at most" goal the phone now sees over says so at once (goals-auto.ts statusWords).
+ */
+export function myStatus(goal: Goal, mark: GoalMark | null, phone: PhoneToday | null, clock: ClockStyle, units: Units = 'metric'): string {
+  return statusWords(goal, mark, phone, clock, units);
 }
 
 /** The small line under a goal's name: "by 7:00 am · Counted by the phone". */
@@ -49,35 +49,54 @@ function myLine(goal: Goal, clock: ClockStyle): string {
   const parts: string[] = [];
   // "by 7:00 am" wraps as one unit.
   if (goal.byTime) parts.push(byWords(goal.byTime, clock));
-  parts.push(goal.counted === 'auto' ? countedWord('auto') : KIND_WORD[goal.kind]);
+  parts.push(countedWord(goal.kind));
   return parts.join(' · ');
 }
 
+/** Opens the app's own place to log a kind (blood pressure, weight, mood, food, water). */
+export function useOpenLog() {
+  const router = useRouter();
+  return useCallback(
+    (kind: GoalKind) => {
+      const to = LOG_ROUTE[kind];
+      if (!to) return;
+      // A fresh n re-selects the Activity part when that tab is already open.
+      router.push((to.params ? { pathname: to.pathname, params: { ...to.params, n: String(Date.now()) } } : to.pathname) as never);
+    },
+    [router],
+  );
+}
+
+/** The small Log button of a logged kind; nothing for a kind the phone counts by itself. */
+export function LogButton({ goal }: { goal: Pick<Goal, 'kind' | 'title'> }) {
+  const openLog = useOpenLog();
+  if (!isLogged(goal.kind)) return null;
+  // The shared small pill: 40 dp to see, 48 dp to hit (BUTTON_STYLE.slim), so it sits inside the row.
+  return <Button label="Log" variant="tonal" compact slim onPress={() => openLog(goal.kind)} accessibilityLabel={`Log for ${goal.title}`} />;
+}
+
 /**
- * One of my goals for today: icon, name, by-time, then the status. A tap
- * goal has Mark done, or Undo once done; the phone marks an auto goal.
+ * One of my goals for today: icon, name, by-time, then the status. The phone
+ * marks every goal from its own numbers; a goal counted from what I log has
+ * a small Log button that opens where I log it.
  */
 export function MyGoalRow({
   goal,
   mark,
   phone,
   clock,
-  busy,
-  onMark,
   first,
 }: {
   goal: Goal;
   mark: GoalMark | null;
   phone: PhoneToday | null;
   clock: ClockStyle;
-  busy: boolean;
-  onMark: (done: boolean) => void;
   first?: boolean;
 }) {
   const theme = useTheme();
-  const status = myStatus(goal, mark, phone, clock);
+  const { profile } = useApp();
+  const status = myStatus(goal, mark, phone, clock, profile.units);
   const line = myLine(goal, clock);
-  const done = !!mark?.done;
   return (
     <View style={[styles.row, first ? null : { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.outlineVariant }]}>
       <KindBadge kind={goal.kind} />
@@ -90,39 +109,13 @@ export function MyGoalRow({
             {line}
           </ThemedText>
         </View>
-        {/* The status, and Undo beside it once done, so no link floats on a line of its own. */}
+        {/* The status, and Log beside it, so no button floats on a line of its own. */}
         <View style={styles.statusRow}>
           <ThemedText type="titleSmall" style={styles.statusText} maxFontSizeMultiplier={1.3} importantForAccessibility="no" accessibilityElementsHidden>
             {status}
           </ThemedText>
-          {goal.counted === 'tap' && done ? (
-            // The 48 dp target stays, but reaches into the row's padding instead of pushing the line apart.
-            <View style={styles.undo}>
-              <Button
-                label="Undo"
-                variant="text"
-                compact
-                loading={busy}
-                disabled={busy}
-                onPress={() => onMark(false)}
-                accessibilityLabel={`Undo ${goal.title}`}
-              />
-            </View>
-          ) : null}
+          <LogButton goal={goal} />
         </View>
-        {goal.counted === 'tap' && !done ? (
-          <View style={styles.action}>
-            <Button
-              label="Mark done"
-              variant="tonal"
-              compact
-              loading={busy}
-              disabled={busy}
-              onPress={() => onMark(true)}
-              accessibilityLabel={`Mark ${goal.title} done`}
-            />
-          </View>
-        ) : null}
       </View>
     </View>
   );
@@ -142,7 +135,8 @@ export function StaffGoalRow({
   onPress: () => void;
   last?: boolean;
 }) {
-  const line = goalLine(goal, clock);
+  const { profile } = useApp();
+  const line = goalLine(goal, clock, profile.units);
   const done = goal.paused ? 'Paused' : summaryLine(summary);
   return (
     <ListRow
@@ -210,9 +204,6 @@ const styles = StyleSheet.create({
   grow: { flex: 1, minWidth: 0 },
   statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.two, marginTop: Spacing.one },
   statusText: { flexShrink: 1 },
-  // A 48 dp box around a 24 dp line: 12 above and below sit in the gaps around the line.
-  undo: { marginVertical: -(TouchTarget - 24) / 2 },
-  action: { marginTop: Spacing.two, alignItems: 'flex-start' },
   list: { overflow: 'hidden' },
   title: { marginTop: Spacing.three, marginBottom: Spacing.two },
   titleFirst: { marginBottom: Spacing.two },

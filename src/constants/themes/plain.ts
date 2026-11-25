@@ -86,9 +86,14 @@ export const PLAIN_ICON_COLOR = {
   card: '#B08550',
   spark: '#C9A23C',
   lock: '#8E8E93',
-  /** Shared goals: medicine and anything (the other kinds use steps, walk, drop and moon). */
   pill: '#B0647E',
   check: '#4E8C6E',
+  /** Shared goals (goals.ts KIND_ICON): heart rate, blood pressure, weight, mood and a ride; soft, never deep. */
+  heart: '#C9607A',
+  pulse: '#B0647E',
+  scale: '#6C7FA8',
+  smile: '#D39A3A',
+  bike: '#2E918A',
 } as const;
 
 export type PlainIconName = keyof typeof PLAIN_ICON_COLOR;

@@ -32,8 +32,8 @@ async function tryGoal(action: () => Promise<unknown>): Promise<string | null> {
 }
 
 /**
- * Today's own numbers on the phone (steps on screen, water, sleep, the longest
- * walk). Water, sleep and walks are read once per day and data change; a live
+ * Today's own numbers on the phone (steps on screen, and everything else a goal
+ * counts: goals-auto.ts PhoneToday). Read once per day and data change; a live
  * step update only changes the steps, without reading the database again.
  */
 export function usePhoneToday(): PhoneToday | null {
@@ -58,8 +58,8 @@ export interface ClubGoalsView extends ClubGoals {
 
 /**
  * One club's goals for today: the goals, my marks, and (captain and
- * vice-captains) how many are done. Goals the phone counts are marked
- * right after loading, so what the tab shows matches what was sent.
+ * vice-captains) how many are done. Every goal is counted by the phone and
+ * marked right after loading, so what the tab shows matches what was sent.
  */
 export function useClubGoals(club: Pick<Club, 'clubId' | 'myRole' | 'goals'>) {
   const api = useSocialApi();
@@ -72,7 +72,7 @@ export function useClubGoals(club: Pick<Club, 'clubId' | 'myRole' | 'goals'>) {
       api.clubGoals(id, today),
       staff ? api.goalSummary(id, today).catch(() => [] as GoalSummaryRow[]) : Promise.resolve([] as GoalSummaryRow[]),
     ]);
-    if (!cg.tracked || !cg.goals.some((g) => g.counted === 'auto')) return { ...cg, summary };
+    if (!cg.tracked || !cg.goals.length) return { ...cg, summary };
     const phone = await readPhoneToday(repo, profile, today, displaySteps).catch(() => null);
     if (!phone) return { ...cg, summary };
     const sent: { goalId: string; done: boolean; value?: number; at?: number | null }[] = [];
@@ -89,23 +89,6 @@ export function useClubGoals(club: Pick<Club, 'clubId' | 'myRole' | 'goals'>) {
   const state = useLoad(load);
   const phone = usePhoneToday();
   const [busy, setBusy] = useState<string | null>(null);
-  const { setData } = state;
-
-  /** A tap goal: done now, or undo. */
-  const mark = useCallback(
-    async (goalId: string, done: boolean): Promise<string | null> => {
-      setBusy(goalId);
-      try {
-        return await tryGoal(async () => {
-          const r = await api.putMark(id, goalId, today, { done });
-          setData((cur) => (cur ? { ...cur, mine: applyMarks(cur.mine, [{ goalId, done: r.done, at: r.at }]) } : cur));
-        });
-      } finally {
-        setBusy(null);
-      }
-    },
-    [api, id, today, setData],
-  );
 
   /** Yes or no to goal tracking in this club. */
   const setConsent = useCallback(
@@ -122,7 +105,7 @@ export function useClubGoals(club: Pick<Club, 'clubId' | 'myRole' | 'goals'>) {
     [api, id, state],
   );
 
-  return { ...state, phone, today, staff, busy, mark, setConsent };
+  return { ...state, phone, today, staff, busy, setConsent };
 }
 
 /** One goal for the captain: who did it today and this week, a gentle reminder, pause and delete. */
@@ -192,15 +175,15 @@ export function useGoalForm(id: string, goalId: string | null) {
             return;
           }
           const patch: GoalPatch = { title: f.title, byTime: f.byTime, days: f.days };
-          // The server keeps kind and counted as made; an auto goal always keeps a target.
-          if (f.target !== null || state.data?.counted !== 'auto') patch.target = f.target;
+          // The server keeps kind and nutrient as made; a goal with a target always keeps one.
+          if (f.target !== null) patch.target = f.target;
           await api.updateGoal(id, goalId, patch);
         });
       } finally {
         setBusy(false);
       }
     },
-    [api, id, goalId, state.data],
+    [api, id, goalId],
   );
 
   return { ...state, busy, save };
@@ -232,32 +215,8 @@ export function useMyGoals() {
   const state = useLoad(load);
   const phone = usePhoneToday();
   const [busy, setBusy] = useState<string | null>(null);
-  const { setData } = state;
   const { me, setMe } = social;
   const reminders = notifyOf(me).goals;
-
-  const mark = useCallback(
-    async (clubId: string, goalId: string, done: boolean): Promise<string | null> => {
-      setBusy(`${clubId}/${goalId}`);
-      try {
-        return await tryGoal(async () => {
-          const r = await api.putMark(clubId, goalId, today, { done });
-          setData((cur) =>
-            cur
-              ? cur.map((x) =>
-                  x.club.clubId === clubId && x.goals
-                    ? { ...x, goals: { ...x.goals, mine: applyMarks(x.goals.mine, [{ goalId, done: r.done, at: r.at }]) } }
-                    : x,
-                )
-              : cur,
-          );
-        });
-      } finally {
-        setBusy(null);
-      }
-    },
-    [api, today, setData],
-  );
 
   const setReminders = useCallback(
     async (on: boolean): Promise<string | null> => {
@@ -288,11 +247,11 @@ export function useMyGoals() {
     [api, state],
   );
 
-  return { ...state, phone, today, busy, reminders, remindersKnown: !!me?.joined, mark, setReminders, setConsent };
+  return { ...state, phone, today, busy, reminders, remindersKnown: !!me?.joined, setReminders, setConsent };
 }
 
 /**
- * Marks the goals the phone counts, when Buddies or Today opens and while
+ * Marks the club goals from the phone's own numbers, when Buddies or Today opens and while
  * it stays open (at most every 15 minutes; goals-auto.ts). Never in the
  * design preview, only after joining Walk buddies, and only with premium.
  */

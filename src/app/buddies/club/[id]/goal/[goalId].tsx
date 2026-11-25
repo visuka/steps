@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { useSnack } from '@/components/buddies/parts';
 import { AnswerCounts } from '@/components/buddies/plans/plan-parts';
-import { GoalNote, GroupTitle, KindBadge } from '@/components/buddies/goals/goal-parts';
+import { GoalNote, GroupTitle, KindBadge, LogButton, myStatus } from '@/components/buddies/goals/goal-parts';
 import { PremiumGate } from '@/components/premium-gate';
 import { ThemedText } from '@/components/themed-text';
 import { Button, Dialog, ListRow, Screen, Snackbar, Surface } from '@/components/ui';
@@ -12,11 +12,12 @@ import { ROLE_WORD } from '@/buddies/clubs';
 import { countedWord, goalLine, weekLine } from '@/buddies/goals';
 import { displayName } from '@/buddies/read';
 import type { GoalReportRow } from '@/buddies/types';
-import { useGoalReport } from '@/buddies/use-goals';
+import { useGoalReport, usePhoneToday } from '@/buddies/use-goals';
 import { Spacing } from '@/constants/theme';
 import { useClockStyle } from '@/hooks/use-clock-style';
 import { type ClockStyle, formatClock } from '@/lib/when';
 import { SCREEN_FEATURES } from '@/premium/premium';
+import { useApp } from '@/state/app-state';
 
 export const REMIND_CAPTION = 'Members choose whether they get reminders.';
 export const DELETE_GOAL_WHY = "The goal and everyone's marks for it are deleted. This can't be undone.";
@@ -24,13 +25,17 @@ export const DELETE_GOAL_WHY = "The goal and everyone's marks for it are deleted
 /**
  * One goal, for the captain and vice-captains: today's done and not marked
  * yet with names, this week per member, never done, a gentle reminder, and
- * Edit, Pause and Delete. Numbers and words only; no red.
+ * Edit, Pause and Delete. Only done or not done (and steps) for members;
+ * my own count from this phone, and Log for a goal counted from what is
+ * logged. Numbers and words only; no red.
  */
 export default function GoalScreen() {
   const { id, goalId } = useLocalSearchParams<{ id: string; goalId: string }>();
   const router = useRouter();
   const clock = useClockStyle();
   const r = useGoalReport(id, goalId);
+  const phone = usePhoneToday();
+  const { profile } = useApp();
   const { snack, show, dismiss } = useSnack();
   const [askDelete, setAskDelete] = useState(false);
   const back = () =>
@@ -47,11 +52,18 @@ export default function GoalScreen() {
       <View style={styles.head}>
         <KindBadge kind={report.goal.kind} />
         <View style={styles.grow}>
-          <ThemedText maxFontSizeMultiplier={1.3}>{goalLine(report.goal, clock)}</ThemedText>
+          <ThemedText maxFontSizeMultiplier={1.3}>{goalLine(report.goal, clock, profile.units)}</ThemedText>
           <ThemedText type="bodySmall" themeColor="onSurfaceVariant" maxFontSizeMultiplier={1.3}>
-            {countedWord(report.goal.counted)}
+            {countedWord(report.goal.kind, 'members')}
           </ThemedText>
         </View>
+      </View>
+      {/* My own count, from this phone only; never sent or shown to anyone. */}
+      <View style={styles.mine}>
+        <ThemedText type="bodySmall" themeColor="onSurfaceVariant" style={styles.grow} maxFontSizeMultiplier={1.3}>
+          {`You today: ${myStatus(report.goal, null, phone, clock, profile.units)}`}
+        </ThemedText>
+        <LogButton goal={report.goal} />
       </View>
 
       <GroupTitle title="Today" />
@@ -166,6 +178,7 @@ function People({ title, rows, clock, today }: { title: string; rows: GoalReport
 
 const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three },
+  mine: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, marginTop: Spacing.three },
   grow: { flex: 1, minWidth: 0 },
   list: { overflow: 'hidden' },
   gapLarge: { marginTop: Spacing.four },

@@ -12,7 +12,6 @@ const goal = {
   target: 30,
   byTime: '07:00',
   days: [0, 1, 2, 3, 4, 5, 6],
-  counted: 'auto',
   paused: false,
   createdBy: ravi,
   createdAt: 1_763_000_000_000,
@@ -21,22 +20,41 @@ const goal = {
 describe('a goal', () => {
   it('reads a good goal with its target, by-time and maker', () => {
     const g = readGoal(goal);
-    expect(g).toMatchObject({ goalId: 'GL0000000001', kind: 'walk', target: 30, byTime: '07:00', counted: 'auto', paused: false });
+    expect(g).toMatchObject({ goalId: 'GL0000000001', kind: 'walk', target: 30, nutrientKey: null, byTime: '07:00', paused: false });
     expect(g.createdBy?.handle).toBe('ravi_walks');
   });
 
   it('leaves out a target and by-time the server did not send', () => {
     const { target: _t, byTime: _b, ...rest } = goal;
-    const g = readGoal({ ...rest, kind: 'medicine', counted: 'tap' });
+    const g = readGoal({ ...rest, kind: 'bp' });
     expect(g.target).toBeNull();
     expect(g.byTime).toBeNull();
   });
 
-  it('never counts medicine or anything by the phone, and drops odd days and times', () => {
-    const g = readGoal({ ...goal, kind: 'medicine', counted: 'auto', days: [4, 0, 0, 9, 'x'], byTime: '25:00' });
-    expect(g.counted).toBe('tap');
+  it('drops a target on a kind that has none, odd days and odd times', () => {
+    const g = readGoal({ ...goal, kind: 'mood', target: 3, days: [4, 0, 0, 9, 'x'], byTime: '25:00' });
+    expect(g.target).toBeNull();
     expect(g.days).toEqual([0, 4]);
     expect(g.byTime).toBeNull();
+  });
+
+  it('reads every kind the app tracks', () => {
+    for (const kind of ['steps', 'active', 'distance', 'walk', 'ride', 'sleep', 'heart', 'bp', 'weight', 'mood', 'meals', 'water']) {
+      expect(readGoal({ ...goal, kind }).kind).toBe(kind);
+    }
+  });
+
+  it('reads a nutrient goal with its nutrient and decimal target; a nutrient key only on nutrient goals', () => {
+    expect(readGoal({ ...goal, kind: 'nutrient', nutrientKey: 'transFat', target: 0.4 })).toMatchObject({ kind: 'nutrient', nutrientKey: 'transFat', target: 0.4 });
+    expect(readGoal({ ...goal, nutrientKey: 'protein' }).nutrientKey).toBeNull();
+    expect(() => readGoal({ ...goal, kind: 'nutrient', nutrientKey: 'alcohol', target: 10 })).toThrow();
+    expect(() => readGoal({ ...goal, kind: 'nutrient', target: 10 })).toThrow();
+  });
+
+  it('leaves out goals of kinds that are gone (medicine, anything)', () => {
+    expect(() => readGoal({ ...goal, kind: 'medicine' })).toThrow();
+    expect(() => readGoal({ ...goal, kind: 'other' })).toThrow();
+    expect(readClubGoals({ goals: [goal, { ...goal, goalId: 'GL0000000002', kind: 'medicine' }], tracked: true, mine: [] }).goals).toHaveLength(1);
   });
 
   it('refuses a goal without an id, a title, a known kind or any day', () => {

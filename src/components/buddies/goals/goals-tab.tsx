@@ -1,6 +1,6 @@
 /**
  * A club's Goals tab. Every tracked member sees today's goals that apply to
- * them (Mark done / Undo, or the phone's count). The captain and
+ * them (the phone's count, and Log for what they log). The captain and
  * vice-captains also see each goal's "9 of 12 done", New goal, and open a
  * goal for who did it. A member who joined before goals were on gets the
  * tracking switch; turning it on first shows the goals consent, and only its
@@ -68,8 +68,6 @@ export function GoalsTabBody({ club, show }: { club: Club; show: (m: string | nu
                   mark={data.mine.find((m) => m.goalId === goal.goalId) ?? null}
                   phone={g.phone}
                   clock={clock}
-                  busy={g.busy === goal.goalId}
-                  onMark={async (done) => show(await g.mark(goal.goalId, done))}
                   first={i === 0}
                 />
               ))}
@@ -94,7 +92,7 @@ export function GoalsTabBody({ club, show }: { club: Club; show: (m: string | nu
         <>
           <GroupTitle title="Goal tracking" first />
           <ThemedText maxFontSizeMultiplier={1.3} style={styles.para}>
-            {`${club.name} has shared goals. Turn on tracking to mark them done.`}
+            {`${club.name} has shared goals. Turn on tracking to count them from this phone.`}
           </ThemedText>
           <TrackingSwitch on={false} busy={g.busy === 'consent'} onChange={(on) => on && setConsentAsk(true)} />
         </>
